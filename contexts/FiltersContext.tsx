@@ -1,8 +1,11 @@
+
 import React, { createContext, useReducer, useContext, useMemo, useCallback, useEffect } from 'react';
 import { PostType, FilterAction, FiltersState, SavedSearchFilters } from '../types';
 import { performAiSearch } from '../utils/gemini';
 import { usePosts } from './PostsContext';
 import { useUI } from './UIContext';
+
+const FILTERS_STORAGE_KEY = 'localeAppFilters';
 
 const initialState: FiltersState = {
   searchQuery: '',
@@ -62,6 +65,25 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
   }
 };
 
+const initFilters = (defaultState: FiltersState): FiltersState => {
+  try {
+    const stored = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Merge with default state to ensure compatibility and reset transient fields
+      return {
+        ...defaultState,
+        ...parsed,
+        isAiSearching: false,
+        aiSmartFilterResults: null,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load filters from storage:', error);
+  }
+  return defaultState;
+};
+
 interface FiltersContextType {
   filterState: FiltersState;
   dispatchFilterAction: React.Dispatch<FilterAction>;
@@ -74,9 +96,19 @@ interface FiltersContextType {
 const FiltersContext = createContext<FiltersContextType | undefined>(undefined);
 
 export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialState);
+  const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialState, initFilters);
   const { posts } = usePosts();
   const { addToast } = useUI();
+
+  // Persist filters to local storage whenever they change
+  useEffect(() => {
+    const { isAiSearching, aiSmartFilterResults, ...persistentState } = filterState;
+    try {
+      window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(persistentState));
+    } catch (e) {
+      console.error("Failed to save filters to storage:", e);
+    }
+  }, [filterState]);
 
   useEffect(() => {
     // When in AI search mode, if the user clears the search box, also clear the AI results.
