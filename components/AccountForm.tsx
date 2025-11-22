@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
-import { AlertIcon, EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon } from './Icons';
+import { AlertIcon, EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
@@ -69,6 +68,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     const [referralCode, setReferralCode] = useState('');
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
     const [isVerifyingGst, setIsVerifyingGst] = useState(false);
+    const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
     
     // Social Media State
     const [socials, setSocials] = useState<Record<SocialPlatform, string>>({
@@ -197,6 +197,27 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         }
     };
 
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUsername(e.target.value);
+        setIsUsernameAvailable(false);
+        if (errors.username) {
+             setErrors(prev => {
+                 const newErrors = { ...prev };
+                 delete newErrors.username;
+                 return newErrors;
+             });
+        }
+    };
+
+    const handleUsernameBlur = () => {
+        const isValid = validate('username');
+        if (isValid && username.trim()) {
+            setIsUsernameAvailable(true);
+        } else {
+            setIsUsernameAvailable(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) {
@@ -303,16 +324,23 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 <Input type="text" id="account-name" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => validate('name')} className={`mt-1 ${errors.name ? 'border-red-500' : ''}`} aria-invalid={!!errors.name} aria-describedby="account-name-error" autoFocus />
                 {errors.name && <p id="account-name-error" className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
-            <InputWithIcon
-                id="account-username"
-                label="Username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                onBlur={() => validate('username')}
-                icon={<span className="text-gray-500 sm:text-sm">@</span>}
-                error={errors.username}
-            />
+            <div>
+                <InputWithIcon
+                    id="account-username"
+                    label="Username"
+                    type="text"
+                    value={username}
+                    onChange={handleUsernameChange}
+                    onBlur={handleUsernameBlur}
+                    icon={<span className="text-gray-500 sm:text-sm">@</span>}
+                    error={errors.username}
+                />
+                {isUsernameAvailable && !errors.username && (
+                    <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in">
+                        <CheckIcon className="w-4 h-4" /> Username available
+                    </p>
+                )}
+            </div>
             <InputWithIcon
                 id="account-email"
                 label="Email"
