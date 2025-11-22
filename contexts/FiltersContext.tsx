@@ -76,6 +76,7 @@ const initFilters = (defaultState: FiltersState): FiltersState => {
         ...parsed,
         isAiSearching: false,
         aiSmartFilterResults: null,
+        isAiSearchEnabled: false,
       };
     }
   } catch (error) {
@@ -102,7 +103,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Persist filters to local storage whenever they change
   useEffect(() => {
-    const { isAiSearching, aiSmartFilterResults, ...persistentState } = filterState;
+    const { isAiSearching, isAiSearchEnabled, aiSmartFilterResults, ...persistentState } = filterState;
     try {
       window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(persistentState));
     } catch (e) {

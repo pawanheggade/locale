@@ -42,8 +42,8 @@ const plans = [
   },
   {
     tier: 'Verified',
-    price: '₹499/mo',
-    annualPrice: '₹4,990/yr',
+    price: '₹399/mo',
+    annualPrice: '₹3,990/yr',
     description: 'For verified members and enthusiasts who want more.',
     features: [
       <span key="verified-f1"><span className="font-bold text-gray-800">Priority Placement</span> in search & feeds</span>,
@@ -79,8 +79,8 @@ const plans = [
   },
   {
     tier: 'Business Pro',
-    price: '₹4,999/mo',
-    annualPrice: '₹49,990/yr',
+    price: '₹3,990/mo',
+    annualPrice: '₹39,900/yr',
     description: 'Ultimate visibility and tools for high-volume sellers.',
     features: [
       <span key="pro-f1"><span className="font-bold text-gray-900">Top of Search</span> Placement</span>,
@@ -175,7 +175,9 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
               <div className="flex-grow">
                 <div className="flex items-center gap-3">
                   {plan.icon && <plan.icon className={`w-7 h-7 ${plan.color === 'amber' ? 'text-amber-500' : plan.color === 'red' ? 'text-red-500' : 'text-gray-500'}`} />}
-                  <h3 className={`text-xl font-bold ${isPro ? 'text-amber-900' : 'text-gray-800'}`}>{plan.tier}</h3>
+                  <h3 className={`text-xl font-bold ${isPro ? 'text-amber-900' : 'text-gray-800'}`}>
+                    {plan.tier}{plan.tier !== 'Personal' ? ' Seller' : ''}
+                  </h3>
                 </div>
 
                 <div className="mt-4 flex flex-col items-center justify-start min-h-[100px]">

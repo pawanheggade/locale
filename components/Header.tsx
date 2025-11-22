@@ -143,9 +143,14 @@ const HeaderComponent: React.FC<HeaderProps> = ({
               role="button"
               tabIndex={0}
               aria-label="Go to all posts and clear filters"
-              className="text-2xl sm:text-3xl font-bold text-gray-800 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-lg transition-[transform,opacity] active:scale-95"
+              className="text-2xl sm:text-3xl font-bold text-gray-800 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-lg transition-[transform,opacity] active:scale-95 flex items-baseline"
             >
-              locale
+              <span>l</span>
+              <span className="relative inline-flex flex-col items-center">
+                o
+                <span className="absolute top-[82%] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-red-600"></span>
+              </span>
+              <span>cale</span>
             </h1>
         </div>
         
