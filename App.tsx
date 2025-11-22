@@ -35,6 +35,7 @@ import { cn } from './lib/utils';
 import { NewPostsIndicator } from './components/NewPostsIndicator';
 import { SubscriptionPage } from './components/SubscriptionModal';
 import { generateHistoryBasedRecommendations } from './utils/posts';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
 
@@ -974,6 +975,8 @@ export const App: React.FC = () => {
           )}
         </main>
         
+        <OfflineIndicator />
+
         {!currentAccount && (view === 'all' || view === 'postDetail' || view === 'account') && (
           <GuestPrompt
             onSignIn={() => openModal({ type: 'login' })}
