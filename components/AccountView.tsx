@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialLink, SocialPlatform } from '../types';
 import { PostList } from './PostList';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, ArchiveBoxIcon, HeartIcon, MapPinIcon, SpinnerIcon, ChartBarIcon, Square2StackIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, WalletIcon, ShoppingBagIcon, DocumentDuplicateIcon, CheckIcon } from './Icons';
@@ -25,37 +25,24 @@ interface AccountViewProps {
   onOpenAnalytics: () => void;
 }
 
-const SocialLinkButton: React.FC<{ link: SocialLink }> = ({ link }) => {
-    let Icon = GlobeAltIcon;
-    let colorClass = 'text-gray-600';
-
-    switch (link.platform) {
-        case 'facebook': Icon = FacebookIcon; colorClass = 'text-blue-600'; break;
-        case 'twitter': Icon = XIcon; colorClass = 'text-black'; break;
-        case 'instagram': Icon = InstagramIcon; colorClass = 'text-pink-600'; break;
-        case 'youtube': Icon = YouTubeIcon; colorClass = 'text-red-600'; break;
-        case 'website': Icon = GlobeAltIcon; colorClass = 'text-gray-600'; break;
+const getSocialIcon = (platform: SocialPlatform) => {
+    switch (platform) {
+        case 'facebook': return <FacebookIcon className="w-4 h-4 text-blue-600" />;
+        case 'twitter': return <XIcon className="w-4 h-4 text-black" />;
+        case 'instagram': return <InstagramIcon className="w-4 h-4 text-pink-600" />;
+        case 'youtube': return <YouTubeIcon className="w-4 h-4 text-red-600" />;
+        case 'website': return <GlobeAltIcon className="w-4 h-4 text-gray-600" />;
+        default: return <GlobeAltIcon className="w-4 h-4 text-gray-600" />;
     }
-
-    return (
-        <Button 
-            as="a"
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="glass"
-            size="icon-sm"
-            className={colorClass}
-        >
-            <Icon className="w-5 h-5" />
-        </Button>
-    );
 };
 
 export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics }) => {
   const { addToast, openModal } = useUI();
   const [isAnimatingLike, setIsAnimatingLike] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isSocialDropdownOpen, setIsSocialDropdownOpen] = useState(false);
+  const socialDropdownRef = useRef<HTMLDivElement>(null);
+  
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
 
   const accountPosts = useMemo(() => {
@@ -133,6 +120,18 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         setActiveTab('all');
     }
   }, [showCatalogTab, showSaleTab, showPinsTab, showArchivesTab, activeTab, isBusinessAccount, postCategories]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (socialDropdownRef.current && !socialDropdownRef.current.contains(event.target as Node)) {
+            setIsSocialDropdownOpen(false);
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const displayedPosts = useMemo(() => {
     if (activeTab === 'catalogue') return []; // Catalogue handled separately
@@ -224,8 +223,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const showSocialLinks = sortedSocialLinks.length > 0;
   const showBusinessDetails = hasBusinessDetails && account.subscription.tier !== 'Personal';
   
-  const cardTitle = isOwnAccount ? "Manage Profile" : "Connect";
-
   return (
     <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
       {/* Profile Header */}
@@ -276,6 +273,81 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 </button>
                              </div>
                              <p className="text-sm text-gray-500 mt-1">Joined {formatMonthYear(account.joinDate)}</p>
+
+                             {/* Primary Actions & Social Links */}
+                             <div className="flex flex-wrap items-center gap-2 mt-3 justify-center sm:justify-start">
+                                {isOwnAccount ? (
+                                    <>
+                                        <Button onClick={() => onEditAccount(account)} variant="glass" size="sm" className="gap-2">
+                                            <PencilIcon className="w-4 h-4" />
+                                            <span>Edit Profile</span>
+                                        </Button>
+                                        
+                                        {/* Catalogue Actions (Manage/Upload Only) */}
+                                        {canHaveCatalog && (
+                                            <Button onClick={handleManageCatalog} variant="glass" size="sm" className="gap-1.5">
+                                                <Square2StackIcon className="w-4 h-4 text-gray-600" />
+                                                <span>{hasCatalogContent ? 'Manage Catalogs' : 'Upload Catalogs'}</span>
+                                            </Button>
+                                        )}
+
+                                        {(account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') && (
+                                            <Button onClick={onOpenAnalytics} variant="glass" size="sm" className="gap-2">
+                                                <ChartBarIcon className="w-4 h-4" />
+                                                <span>Analytics</span>
+                                            </Button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Button
+                                        onClick={() => {
+                                            onToggleLike(account.id);
+                                            setIsAnimatingLike(true);
+                                            if (navigator.vibrate) {
+                                                navigator.vibrate(5);
+                                            }
+                                        }}
+                                        onAnimationEnd={() => setIsAnimatingLike(false)}
+                                        variant={isLiked ? "glass-red-light" : "glass"}
+                                        className={cn('gap-2', isAnimatingLike && 'animate-like-pop')}
+                                        size="sm"
+                                    >
+                                        <HeartIcon isFilled={isLiked} className="w-4 h-4" /> {isLiked ? 'Liked' : 'Like'}
+                                    </Button>
+                                )}
+
+                                {/* Social Dropdown */}
+                                {showSocialLinks && (
+                                    <div className="relative" ref={socialDropdownRef}>
+                                        <Button 
+                                            onClick={() => setIsSocialDropdownOpen(!isSocialDropdownOpen)} 
+                                            variant="glass" 
+                                            size="sm" 
+                                            className="gap-2"
+                                        >
+                                            <GlobeAltIcon className="w-4 h-4 text-gray-600" />
+                                            <span>Social</span>
+                                        </Button>
+                                        {isSocialDropdownOpen && (
+                                            <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 z-20 p-1 animate-zoom-in origin-top-left">
+                                                {sortedSocialLinks.map((link, index) => (
+                                                    <a
+                                                        key={index}
+                                                        href={link.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-sm text-gray-700 rounded-xl"
+                                                        onClick={() => setIsSocialDropdownOpen(false)}
+                                                    >
+                                                        {getSocialIcon(link.platform)}
+                                                        <span className="capitalize">{link.platform}</span>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -349,61 +421,11 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
       {/* Info Cards Grid (Connect & Business) */}
       <div className="flex flex-col md:flex-row gap-4 mt-4 w-full">
         <div className="w-full md:w-full flex flex-col items-center">
-            <div className={cn("w-full flex flex-row flex-wrap items-center justify-between gap-4 p-6 bg-white rounded-lg shadow-md", showBusinessDetails ? "mb-4" : "")}>
-                <h3 className="text-lg font-bold text-gray-800">{cardTitle}</h3>
-                
-                {/* Actions Container: Primary Actions + Catalogue Actions + Socials */}
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Primary Actions */}
-                    {isOwnAccount ? (
-                        <>
-                            <Button onClick={() => onEditAccount(account)} variant="glass" size="sm" className="gap-2">
-                                <PencilIcon className="w-4 h-4" />
-                                <span>Edit Profile</span>
-                            </Button>
-                            
-                            {/* Catalogue Actions (Manage/Upload Only) */}
-                            {canHaveCatalog && (
-                                <Button onClick={handleManageCatalog} variant="glass" size="sm" className="gap-1.5 animate-fade-in-up">
-                                    <Square2StackIcon className="w-4 h-4 text-gray-600" />
-                                    <span>{hasCatalogContent ? 'Manage Catalogs' : 'Upload Catalogs'}</span>
-                                </Button>
-                            )}
-
-                            {(account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') && (
-                                <Button onClick={onOpenAnalytics} variant="glass" size="sm" className="gap-2">
-                                    <ChartBarIcon className="w-4 h-4" />
-                                    <span>Analytics</span>
-                                </Button>
-                            )}
-                        </>
-                    ) : (
-                        <Button
-                            onClick={() => {
-                                onToggleLike(account.id);
-                                setIsAnimatingLike(true);
-                                if (navigator.vibrate) {
-                                    navigator.vibrate(5);
-                                }
-                            }}
-                            onAnimationEnd={() => setIsAnimatingLike(false)}
-                            variant={isLiked ? "glass-red-light" : "glass"}
-                            className={cn('gap-2', isAnimatingLike && 'animate-like-pop')}
-                            size="sm"
-                        >
-                            <HeartIcon isFilled={isLiked} className="w-4 h-4" /> {isLiked ? 'Liked' : 'Like'}
-                        </Button>
-                    )}
-
-                    {/* Social Links */}
-                    {showSocialLinks && sortedSocialLinks.map((link, index) => (
-                        <SocialLinkButton key={index} link={link} />
-                    ))}
-                </div>
             
-                {/* Contact Options (in Body) */}
-                {showContactOptions && (
-                    <div className="flex flex-wrap w-full gap-3 mt-4 pt-4 border-t border-gray-100">
+            {/* Contact Options Card - Only show if there are options */}
+            {showContactOptions && (
+                <div className={cn("w-full p-6 bg-white rounded-lg shadow-md", showBusinessDetails ? "mb-4" : "")}>
+                    <div className="flex flex-wrap w-full gap-3">
                         {availableMethods.map((method) => (
                             <Button
                                 key={method.key}
@@ -419,28 +441,27 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 }}
                                 target={method.key === 'message' ? '_blank' : undefined}
                                 rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
-                                variant="glass"
+                                variant="glass-red"
                                 size="sm"
-                                className="gap-2 flex-1 justify-center"
+                                className="gap-2 flex-1 justify-center text-white"
                             >
-                                <method.Icon className="w-4 h-4 text-red-500" />
+                                <method.Icon className="w-4 h-4 text-white" />
                                 <span>{method.label}</span>
                             </Button>
                         ))}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
             {showBusinessDetails && (
                 <div className="bg-white rounded-lg shadow-md p-6 w-full">
-                    <div className="flex items-center justify-between mb-4 border-b pb-2">
-                        <h3 className="text-lg font-bold text-gray-800">Business Details</h3>
-                        {account.taxInfo && (
-                            <p className="text-sm text-gray-500 font-mono">Tax ID: {account.taxInfo}</p>
-                        )}
-                    </div>
+                    {/* Business Details Header Text removed */}
+                    {account.taxInfo && (
+                        <div className="flex items-center justify-start mb-4 border-b pb-2">
+                            <p className="text-sm text-gray-500 font-mono text-left">Tax ID: {account.taxInfo}</p>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {/* Removed Tax Info from here as it is in header */}
                         {account.paymentMethods && account.paymentMethods.length > 0 && (
                             <div className="flex items-start gap-3">
                                 <div className="p-2 bg-gray-100 rounded-full shrink-0">

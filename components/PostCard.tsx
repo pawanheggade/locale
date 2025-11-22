@@ -122,17 +122,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
       onClick={() => onViewDetails(post)}
-      onKeyDown={(e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          const target = e.target as HTMLElement;
-          if (target.closest('button, a')) {
-              return;
-          }
-          onViewDetails(post);
-        }
-      }}
-      tabIndex={0}
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
@@ -183,7 +172,15 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
               isCompact ? 'text-base' : 'text-lg'
             )}
           >
-            {post.title}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(post);
+              }}
+              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 hover:text-red-600 transition-colors"
+            >
+              {post.title}
+            </button>
           </h3>
           
           <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} size={isCompact ? 'x-small' : 'small'} className="mt-2" isExpired={isExpired} showOriginalPriceOnSale={!isCompact} />
@@ -207,7 +204,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           {!hideExpiry && post.expiryDate && (
             <div className={cn("flex items-center gap-2 mt-3", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-500')}>
               <ClockIcon className="w-4 h-4" />
-              <span>{formatTimeRemaining(post.expiryDate)}</span>
+              <span aria-label={`Expires ${formatTimeRemaining(post.expiryDate)}`}>{formatTimeRemaining(post.expiryDate)}</span>
             </div>
           )}
         </div>

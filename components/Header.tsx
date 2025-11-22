@@ -147,8 +147,10 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             >
               <span>l</span>
               <span className="relative inline-flex flex-col items-center">
-                o
-                <span className="absolute top-[82%] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-red-600"></span>
+                <span>o</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
+                  <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="3" strokeLinejoin="round" />
+                </svg>
               </span>
               <span>cale</span>
             </h1>

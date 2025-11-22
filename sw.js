@@ -1,5 +1,6 @@
 
 const CACHE_NAME = 'locale-app-v1';
+const MAP_CACHE_NAME = 'locale-map-tiles-v1';
 
 // Files to cache immediately
 const PRECACHE_URLS = [
@@ -21,7 +22,8 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Delete old app caches but keep the map cache to preserve offline tiles
+          if (cacheName !== CACHE_NAME && cacheName !== MAP_CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
@@ -35,6 +37,34 @@ self.addEventListener('fetch', (event) => {
 
   // Ignore non-http requests (e.g. chrome-extension)
   if (!url.protocol.startsWith('http')) return;
+
+  // Map Tiles Strategy: Cache First
+  // This specifically handles OpenStreetMap tiles to ensure they are cached separately
+  // and persist longer/independently of app updates.
+  if (url.hostname.includes('tile.openstreetmap.org')) {
+    event.respondWith(
+      caches.open(MAP_CACHE_NAME).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          return fetch(event.request).then((networkResponse) => {
+            // Only cache valid responses
+            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+              return networkResponse;
+            }
+            const responseToCache = networkResponse.clone();
+            cache.put(event.request, responseToCache);
+            return networkResponse;
+          }).catch(() => {
+             // If offline and not in cache, we can't do much for a specific tile.
+             // Leaflet will handle the missing tile visual.
+          });
+        });
+      })
+    );
+    return;
+  }
 
   // Image Caching Strategy: Cache First, fall back to Network
   // Matches image destinations or common image extensions

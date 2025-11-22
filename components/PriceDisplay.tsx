@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { formatCurrency } from '../utils/formatters';
 import { SaleBadge } from './Badges';
@@ -50,21 +51,28 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price, salePrice, pr
             <div className="flex flex-row items-baseline gap-2 drop-shadow-md min-w-0">
                 {onSale ? (
                     <>
+                        <span className="sr-only">Sale Price:</span>
                         <p className={`${currentSize.sale} font-extrabold ${isExpired ? currentColors.expired : currentColors.sale} truncate`}>
                             {formatCurrency(salePrice!)}
                             {unitText}
                         </p>
                         {showOriginalPriceOnSale && (
-                            <p className={`${currentSize.original} font-medium ${isExpired ? currentColors.expired : currentColors.original} line-through truncate`}>
-                                {formatCurrency(price!)}
-                            </p>
+                            <>
+                                <span className="sr-only">Original Price:</span>
+                                <p className={`${currentSize.original} font-medium ${isExpired ? currentColors.expired : currentColors.original} line-through truncate`}>
+                                    {formatCurrency(price!)}
+                                </p>
+                            </>
                         )}
                     </>
                 ) : (
-                    <p className={`${currentSize.normal} font-extrabold ${isExpired ? `${currentColors.expired} line-through` : currentColors.normal} truncate`}>
-                        {formatCurrency(price)}
-                        {unitText}
-                    </p>
+                    <>
+                        <span className="sr-only">Price:</span>
+                        <p className={`${currentSize.normal} font-extrabold ${isExpired ? `${currentColors.expired} line-through` : currentColors.normal} truncate`}>
+                            {formatCurrency(price)}
+                            {unitText}
+                        </p>
+                    </>
                 )}
             </div>
 
