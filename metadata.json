@@ -1,0 +1,7 @@
+{
+  "name": "locale",
+  "description": "hyperlocal community",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

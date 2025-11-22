@@ -1,0 +1,113 @@
+
+import React, { useState, useRef } from 'react';
+import { CatalogItem } from '../types';
+import ModalShell from './ModalShell';
+import { Button } from './ui/Button';
+import { TrashIcon, DocumentDuplicateIcon, PlusIcon } from './Icons';
+import { cn } from '../lib/utils';
+
+interface ManageCatalogModalProps {
+    catalog: CatalogItem[];
+    onClose: () => void;
+    onAdd: (files: File[]) => Promise<void>;
+    onRemove: (itemId: string) => Promise<void>;
+}
+
+export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog, onClose, onAdd, onRemove }) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = Array.from(e.target.files || []);
+        if (selectedFiles.length > 0) {
+            setIsSubmitting(true);
+            await onAdd(selectedFiles);
+            setIsSubmitting(false);
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleRemove = async (id: string) => {
+        setIsSubmitting(true);
+        await onRemove(id);
+        setIsSubmitting(false);
+    };
+
+    const renderFooter = () => (
+        <Button variant="glass" onClick={onClose}>
+            Done
+        </Button>
+    );
+
+    return (
+        <ModalShell
+            panelRef={modalRef}
+            onClose={onClose}
+            title="Manage Catalogs"
+            footer={renderFooter()}
+            panelClassName="w-full max-w-lg"
+            titleId="manage-catalog-title"
+        >
+            <div className="p-6 space-y-6">
+                {/* Add New Files Section */}
+                <div 
+                    className={cn(
+                        "border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors hover:bg-gray-50",
+                        isSubmitting && "opacity-50 pointer-events-none"
+                    )}
+                    onClick={() => !isSubmitting && fileInputRef.current?.click()}
+                >
+                    <input 
+                        ref={fileInputRef} 
+                        type="file" 
+                        className="hidden" 
+                        multiple
+                        accept=".pdf,image/*" 
+                        onChange={handleFileChange}
+                        disabled={isSubmitting}
+                    />
+                    <PlusIcon className="w-8 h-8 text-gray-400 mb-2" />
+                    <p className="text-sm font-medium text-gray-900">Click to add files</p>
+                    <p className="text-xs text-gray-500">PDF or Images (Max 10MB each)</p>
+                </div>
+
+                {/* Existing Files List */}
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Current Files ({catalog.length})</h3>
+                    {catalog.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">No files in catalogs.</p>
+                    ) : (
+                        <ul className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            {catalog.map((item) => (
+                                <li key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {item.type === 'image' ? (
+                                            <img src={item.url} alt="" className="w-10 h-10 object-cover rounded bg-white" />
+                                        ) : (
+                                            <div className="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded">
+                                                <DocumentDuplicateIcon className="w-5 h-5" />
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium text-gray-700 truncate max-w-[180px] sm:max-w-xs" title={item.name}>{item.name}</span>
+                                    </div>
+                                    <Button 
+                                        variant="glass" 
+                                        size="icon-sm" 
+                                        onClick={() => handleRemove(item.id)}
+                                        disabled={isSubmitting}
+                                        className="text-red-600 hover:text-red-700"
+                                        aria-label="Remove file"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
+        </ModalShell>
+    );
+};

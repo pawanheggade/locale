@@ -1,0 +1,97 @@
+
+import React from 'react';
+import { cn } from '../../lib/utils';
+import { SpinnerIcon } from '../Icons';
+
+const buttonVariants = {
+  variant: {
+    default: 'bg-red-600 text-white shadow-md shadow-red-500/20 hover:bg-red-700 active:bg-red-800',
+    destructive: 'bg-red-100 text-red-700 border border-red-200',
+    outline: 'border border-gray-300 bg-white text-gray-700',
+    secondary: 'bg-gray-100 text-gray-700 border border-gray-200',
+    ghost: 'border border-transparent bg-transparent text-gray-700 hover:bg-gray-100',
+    link: 'text-red-600 underline-offset-4',
+    glass: 'glass-button-pill text-gray-700',
+    'glass-dark': 'glass-button-pill-dark text-white',
+    'glass-red': 'glass-button-pill-red',
+    'glass-amber': 'glass-button-pill-amber',
+    'glass-red-light': 'glass-button-pill-red-light',
+    'glass-amber-light': 'glass-button-pill-amber-light',
+  },
+  size: {
+    default: 'h-10 px-4 py-2 text-sm',
+    sm: 'h-9 px-3 text-sm',
+    xs: 'h-7 px-2.5 text-xs',
+    lg: 'h-11 px-8',
+    icon: 'h-10 w-10',
+    'icon-sm': 'h-9 w-9',
+    'icon-lg': 'h-12 w-12',
+  },
+};
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  as?: 'button' | 'a';
+  variant?: keyof typeof buttonVariants.variant;
+  size?: keyof typeof buttonVariants.size;
+  isLoading?: boolean;
+  href?: string;
+  target?: string;
+  rel?: string;
+}
+
+const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
+  ({ className, as = 'button', variant = 'default', size = 'default', isLoading = false, children, ...props }, ref) => {
+    const Comp: any = as;
+    return (
+      <Comp
+        className={cn(
+          'inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+          buttonVariants.variant[variant],
+          buttonVariants.size[size],
+          size === 'xs' && 'text-xs',
+          className
+        )}
+        ref={ref}
+        disabled={isLoading || props.disabled}
+        {...props}
+      >
+        {isLoading ? <SpinnerIcon className="h-5 w-5" /> : children}
+      </Comp>
+    );
+  }
+);
+Button.displayName = 'Button';
+
+interface TabButtonProps {
+  onClick: () => void;
+  isActive: boolean;
+  children: React.ReactNode;
+  size?: 'sm' | 'default';
+  className?: string;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size = 'default', className }) => {
+  const paddingClass = size === 'sm' ? 'px-3 py-1 text-sm' : 'px-4 py-1.5 text-sm sm:text-base';
+  
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'flex-shrink-0 flex items-center gap-2 font-semibold rounded-full transition-all duration-200 border',
+        paddingClass,
+        isActive
+          ? 'glass-button-pill-red-light shadow-sm border-red-200'
+          : 'glass-button-pill text-gray-600 border-gray-200/50 hover:bg-white/60',
+        className
+      )}
+      role="tab"
+      aria-selected={isActive}
+    >
+      {children}
+    </button>
+  );
+};
+TabButton.displayName = 'TabButton';
+
+
+export { Button, TabButton };

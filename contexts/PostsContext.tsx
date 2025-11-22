@@ -1,0 +1,222 @@
+
+import React, { createContext, useContext, useMemo, useCallback } from 'react';
+import { Post, PostCategory, DisplayablePost } from '../types';
+import { usePersistentState } from '../hooks/usePersistentState';
+import { useLargePersistentState } from '../hooks/useLargePersistentState';
+import { useUI } from './UIContext';
+import { initialPosts } from '../data/posts';
+import { useCategoryManager } from '../hooks/useCategoryManager';
+import { useAuth } from './AuthContext';
+
+const initialCategoriesData: PostCategory[] = ['Groceries', 'Furniture', 'Lighting', 'Decor', 'Textiles', 'Artwork', 'Design Services'].sort((a, b) => a.localeCompare(b));
+const initialPriceUnits = ['Fixed', 'Hour', 'Day', 'Week', 'Month', 'Session', 'Visit', 'Project', 'Room', 'Sq. Ft.', 'Sq. M.', 'Cu. Ft.', 'Cu. M.', 'Meter', 'Ft.', 'Yard', 'Inch', 'Cm.', 'Kg', 'Gm', 'Lb', 'Oz'];
+const POSTS_KEY = 'localeAppPosts';
+const ARCHIVED_POSTS_KEY = 'localeAppArchivedPosts';
+const CATEGORIES_KEY = 'localeAppCategories';
+const PRICE_UNITS_KEY = 'localeAppPriceUnits';
+
+interface PostsContextType {
+  posts: DisplayablePost[];
+  archivedPosts: DisplayablePost[];
+  categories: PostCategory[];
+  allAvailableTags: string[];
+  priceUnits: string[];
+
+  findPostById: (postId: string) => DisplayablePost | undefined;
+  refreshPosts: () => void;
+  createPost: (postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string) => Post;
+  addPostSilently: (postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string) => Post;
+  updatePost: (updatedPost: Post) => Promise<Post>;
+  archivePost: (postId: string) => void;
+  unarchivePost: (postId: string) => void;
+  deletePostPermanently: (postId: string) => void;
+  togglePinPost: (postId: string) => void;
+  
+  addCategory: (name: string) => void;
+  updateCategory: (oldName: string, newName: string) => void;
+  deleteCategory: (name: string) => void;
+
+  addPriceUnit: (name: string) => void;
+  updatePriceUnit: (oldName: string, newName: string) => void;
+  deletePriceUnit: (name: string) => void;
+}
+
+const PostsContext = createContext<PostsContextType | undefined>(undefined);
+
+export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { addToast } = useUI();
+    const { accountsById, checkAvailabilityAlerts } = useAuth();
+    
+    // Use LargePersistentState for posts (images/content)
+    const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(POSTS_KEY, initialPosts);
+    const [rawArchivedPosts, setRawArchivedPosts] = useLargePersistentState<Post[]>(ARCHIVED_POSTS_KEY, []);
+    
+    // Keep simple storage for small strings
+    const [categories, setCategories] = usePersistentState<PostCategory[]>(CATEGORIES_KEY, initialCategoriesData);
+    const [priceUnits, setPriceUnits] = usePersistentState<string[]>(PRICE_UNITS_KEY, initialPriceUnits);
+
+    const posts = useMemo(() => {
+        return rawPosts.map(p => ({ ...p, author: accountsById.get(p.authorId) }));
+    }, [rawPosts, accountsById]);
+
+    const archivedPosts = useMemo(() => {
+        return rawArchivedPosts.map(p => ({ ...p, author: accountsById.get(p.authorId) }));
+    }, [rawArchivedPosts, accountsById]);
+
+
+    const { 
+        addCategory, 
+        updateCategory, 
+        deleteCategory 
+    } = useCategoryManager({
+        items: rawPosts,
+        archivedItems: rawArchivedPosts,
+        categories,
+        setCategories,
+        setItems: setRawPosts,
+        setArchivedItems: setRawArchivedPosts,
+        addToast,
+        itemTypeLabel: 'Category',
+        field: 'category',
+        shouldSort: true
+    });
+
+    const {
+        addCategory: addPriceUnit,
+        updateCategory: updatePriceUnit,
+        deleteCategory: deletePriceUnit
+    } = useCategoryManager({
+        items: rawPosts,
+        archivedItems: rawArchivedPosts,
+        categories: priceUnits,
+        setCategories: setPriceUnits,
+        setItems: setRawPosts,
+        setArchivedItems: setRawArchivedPosts,
+        addToast,
+        itemTypeLabel: 'Price unit',
+        field: 'priceUnit',
+        shouldSort: false // Preserve order for price units mostly, or let user append
+    });
+
+    const allAvailableTags = useMemo(() => {
+        const allTags = new Set<string>();
+        rawPosts.forEach(post => { post.tags.forEach(tag => allTags.add(tag)); });
+        return Array.from(allTags).sort();
+    }, [rawPosts]);
+    
+    const findPostById = useCallback((postId: string): DisplayablePost | undefined => {
+        return posts.find(p => p.id === postId) || archivedPosts.find(p => p.id === postId);
+    }, [posts, archivedPosts]);
+      
+    const refreshPosts = useCallback(() => {
+        setRawPosts(prev => prev.map(p => ({ ...p, lastUpdated: Date.now() })));
+    }, [setRawPosts]);
+    
+    const addPostSilently = useCallback((postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string): Post => {
+        const newPost: Post = { ...postData, id: Date.now().toString(), isLiked: false, authorId };
+        setRawPosts(prev => [newPost, ...prev]);
+        return newPost;
+    }, [setRawPosts]);
+
+    const createPost = useCallback((postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string): Post => {
+        const newPost = addPostSilently(postData, authorId);
+        addToast('Post created successfully!', 'success');
+        return newPost;
+    }, [addPostSilently, addToast]);
+      
+    const updatePost = useCallback(async (updatedPost: Post): Promise<Post> => {
+        let updated: Post | undefined;
+        const isArchived = rawArchivedPosts.some(p => p.id === updatedPost.id);
+        if (isArchived) {
+            setRawArchivedPosts(prev => prev.map(p => {
+                if (p.id === updatedPost.id) {
+                    updated = { ...updatedPost, lastUpdated: Date.now() };
+                    return updated;
+                }
+                return p;
+            }));
+        } else {
+            setRawPosts(prev => prev.map(p => {
+                if (p.id === updatedPost.id) {
+                    updated = { ...updatedPost, lastUpdated: Date.now() };
+                    return updated;
+                }
+                return p;
+            }));
+        }
+        addToast('Post updated!', 'success');
+        if (!updated) throw new Error("Post not found for update");
+
+        // Check if the update made the item available and trigger alerts
+        checkAvailabilityAlerts(updated);
+
+        return updated;
+    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
+    
+    const archivePost = useCallback((postId: string) => {
+        const postToArchive = rawPosts.find(p => p.id === postId);
+        if (postToArchive) {
+            setRawPosts(prev => prev.filter(p => p.id !== postId));
+            setRawArchivedPosts(prev => [{...postToArchive, isPinned: false}, ...prev]); // Unpin when archiving
+            addToast('Post archived.', 'success');
+        }
+    }, [rawPosts, setRawPosts, setRawArchivedPosts, addToast]);
+      
+    const unarchivePost = useCallback((postId: string) => {
+        const postToUnarchive = rawArchivedPosts.find(p => p.id === postId);
+        if (postToUnarchive) {
+            setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
+            setRawPosts(prev => [postToUnarchive, ...prev]);
+            addToast('Post unarchived and is now live.', 'success');
+            // Check if unarchiving made the item available (assuming it's not expired)
+            checkAvailabilityAlerts(postToUnarchive);
+        }
+    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
+    
+    const deletePostPermanently = useCallback((postId: string) => {
+        setRawPosts(prev => prev.filter(p => p.id !== postId));
+        setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
+        addToast('Post permanently deleted.', 'success');
+    }, [setRawPosts, setRawArchivedPosts, addToast]);
+
+    const togglePinPost = useCallback((postId: string) => {
+        const post = findPostById(postId);
+        if (!post) {
+            addToast('Post not found.', 'error');
+            return;
+        }
+
+        setRawPosts(prev => prev.map(p =>
+            p.id === postId ? { ...p, isPinned: !p.isPinned } : p
+        ));
+        addToast(post.isPinned ? 'Post unpinned.' : 'Post pinned to profile.', 'success');
+    }, [findPostById, setRawPosts, addToast]);
+    
+    const value = useMemo(() => ({
+        posts, archivedPosts, categories, allAvailableTags, priceUnits,
+        findPostById, refreshPosts, createPost, addPostSilently, updatePost, archivePost, unarchivePost, deletePostPermanently,
+        togglePinPost,
+        addCategory, updateCategory, deleteCategory,
+        addPriceUnit, updatePriceUnit, deletePriceUnit,
+    }), [
+        posts, archivedPosts, categories, allAvailableTags, priceUnits,
+        findPostById, refreshPosts, createPost, addPostSilently, updatePost, archivePost, unarchivePost, deletePostPermanently,
+        togglePinPost,
+        addCategory, updateCategory, deleteCategory,
+        addPriceUnit, updatePriceUnit, deletePriceUnit,
+    ]);
+
+    return (
+        <PostsContext.Provider value={value}>
+            {children}
+        </PostsContext.Provider>
+    );
+};
+
+export const usePosts = () => {
+    const context = useContext(PostsContext);
+    if (context === undefined) {
+        throw new Error('usePosts must be used within a PostsProvider');
+    }
+    return context;
+};
