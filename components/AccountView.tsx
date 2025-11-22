@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialLink, SocialPlatform } from '../types';
 import { PostList } from './PostList';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, ArchiveBoxIcon, HeartIcon, MapPinIcon, SpinnerIcon, ChartBarIcon, Square2StackIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, WalletIcon, ShoppingBagIcon, DocumentDuplicateIcon, CheckIcon, GitHubIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, ArchiveBoxIcon, HeartIcon, MapPinIcon, SpinnerIcon, ChartBarIcon, Square2StackIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, WalletIcon, ShoppingBagIcon, DocumentDuplicateIcon, CheckIcon } from './Icons';
 import { formatMonthYear, formatDaysRemaining } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -34,7 +34,6 @@ const SocialLinkButton: React.FC<{ link: SocialLink }> = ({ link }) => {
         case 'twitter': Icon = XIcon; colorClass = 'text-black'; break;
         case 'instagram': Icon = InstagramIcon; colorClass = 'text-pink-600'; break;
         case 'youtube': Icon = YouTubeIcon; colorClass = 'text-red-600'; break;
-        case 'github': Icon = GitHubIcon; colorClass = 'text-gray-900'; break;
         case 'website': Icon = GlobeAltIcon; colorClass = 'text-gray-600'; break;
     }
 
@@ -213,7 +212,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   // Sort Social Links according to requested order
   const sortedSocialLinks = useMemo(() => {
     if (!account.socialLinks) return [];
-    const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram', 'facebook', 'twitter', 'github'];
+    const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram', 'facebook', 'twitter'];
     return [...account.socialLinks].sort((a, b) => {
         const indexA = platformOrder.indexOf(a.platform);
         const indexB = platformOrder.indexOf(b.platform);
@@ -225,8 +224,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const showSocialLinks = sortedSocialLinks.length > 0;
   const showBusinessDetails = hasBusinessDetails && account.subscription.tier !== 'Personal';
   
-  // Determine if Connect card should show (Primary Actions are always visible)
-  const showConnectCard = true;
   const cardTitle = isOwnAccount ? "Manage Profile" : "Connect";
 
   return (

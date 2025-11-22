@@ -55,7 +55,7 @@ export interface CatalogItem {
   name: string;
 }
 
-export type SocialPlatform = 'website' | 'instagram' | 'twitter' | 'facebook' | 'youtube' | 'github';
+export type SocialPlatform = 'website' | 'instagram' | 'twitter' | 'facebook' | 'youtube';
 
 export interface SocialLink {
   platform: SocialPlatform;

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { AlertIcon, EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon } from './Icons';
@@ -75,7 +76,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         instagram: '',
         twitter: '',
         facebook: '',
-        youtube: ''
+        youtube: '',
     });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
