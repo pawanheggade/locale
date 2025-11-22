@@ -188,16 +188,16 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'} size="sm">
                     Notifications
                     {unreadGeneralCount > 0 && (
-                        <span className={activeTab === 'notifications' ? "text-red-600 font-normal" : "text-gray-400 font-normal"}>
-                            ({unreadGeneralCount})
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 h-5 min-w-[1.25rem] rounded-full flex items-center justify-center">
+                            {unreadGeneralCount}
                         </span>
                     )}
                 </TabButton>
                 <TabButton onClick={() => setActiveTab('alerts')} isActive={activeTab === 'alerts'} size="sm">
                     Alerts
                     {totalAlertsTabBadge > 0 && (
-                        <span className={activeTab === 'alerts' ? "text-red-600 font-normal" : "text-gray-400 font-normal"}>
-                            ({totalAlertsTabBadge})
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 h-5 min-w-[1.25rem] rounded-full flex items-center justify-center">
+                            {totalAlertsTabBadge}
                         </span>
                     )}
                 </TabButton>
