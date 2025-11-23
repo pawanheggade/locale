@@ -12,6 +12,9 @@ import { Textarea } from './ui/Textarea';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
+import { useLocationInput } from '../hooks/useLocationInput';
+import LocationInput from './LocationInput';
+import LocationPickerMap from './LocationPickerMap';
 
 const DESCRIPTION_MAX_LENGTH = 150;
 
@@ -27,6 +30,7 @@ interface AccountFormData {
     messageNumber: string;
     taxInfo: string;
     address: string;
+    coordinates?: { lat: number; lng: number } | null;
     googleMapsUrl: string;
     appleMapsUrl: string;
     businessName: string;
@@ -44,9 +48,10 @@ interface AccountFormProps {
     formId: string;
     isSubmitting?: boolean;
     isSellerSignup?: boolean;
+    onToggleMap?: (isOpen: boolean) => void;
 }
 
-export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, allAccounts, onSubmit, formId, isSellerSignup = false }) => {
+export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, allAccounts, onSubmit, formId, isSellerSignup = false, onToggleMap }) => {
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -58,7 +63,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     const [mobile, setMobile] = useState('');
     const [messageNumber, setMessageNumber] = useState('');
     const [taxInfo, setTaxInfo] = useState('');
-    const [address, setAddress] = useState('');
     const [googleMapsUrl, setGoogleMapsUrl] = useState('');
     const [appleMapsUrl, setAppleMapsUrl] = useState('');
     const [businessName, setBusinessName] = useState('');
@@ -69,7 +73,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
     const [isVerifyingGst, setIsVerifyingGst] = useState(false);
     const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
+    const [showMapPicker, setShowMapPicker] = useState(false);
     
+    const locationInput = useLocationInput(
+        account?.address || '',
+        account?.coordinates || null
+    );
+
     // Social Media State
     const [socials, setSocials] = useState<Record<SocialPlatform, string>>({
         website: '',
@@ -93,7 +103,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             setMobile(account.mobile || '');
             setMessageNumber(account.messageNumber || '');
             setTaxInfo(account.taxInfo || '');
-            setAddress(account.address || '');
             setGoogleMapsUrl(account.googleMapsUrl || '');
             setAppleMapsUrl(account.appleMapsUrl || '');
             setBusinessName(account.businessName || '');
@@ -118,9 +127,24 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         }
     }, [account, isEditing, isSellerSignup]);
 
+    const handleMapToggle = (isOpen: boolean) => {
+        setShowMapPicker(isOpen);
+        if (onToggleMap) onToggleMap(isOpen);
+    };
+
     const validate = (fieldToValidate?: 'name' | 'username' | 'email' | 'password' | 'confirmPassword' | 'mobile' | 'messageNumber' | 'googleMapsUrl' | 'address'): boolean => {
         const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
-        const formData = { name, username, email, password, confirmPassword, mobile, messageNumber, googleMapsUrl, address };
+        const formData = { 
+            name, 
+            username, 
+            email, 
+            password, 
+            confirmPassword, 
+            mobile, 
+            messageNumber, 
+            googleMapsUrl, 
+            address: locationInput.location 
+        };
         const validationErrors = validateAccountData(
             formData,
             allAccounts,
@@ -220,6 +244,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        await locationInput.verify();
+        
         if (!validate()) {
             return;
         }
@@ -242,7 +268,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             mobile: mobile.trim(),
             messageNumber: messageNumber.trim(),
             taxInfo: taxInfo.trim(),
-            address: address.trim(),
+            address: locationInput.location.trim(),
+            coordinates: locationInput.coordinates,
             googleMapsUrl: googleMapsUrl.trim(),
             appleMapsUrl: appleMapsUrl.trim(),
             businessName: businessName.trim(),
@@ -260,6 +287,19 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     };
 
     const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
+
+    if (showMapPicker) {
+        return (
+            <LocationPickerMap
+                initialCoordinates={locationInput.coordinates}
+                onLocationSelect={(loc) => {
+                    locationInput.selectFromMap(loc);
+                    handleMapToggle(false);
+                }}
+                onCancel={() => handleMapToggle(false)}
+            />
+        );
+    }
 
     return (
         <form id={formId} onSubmit={handleSubmit} className="space-y-4">
@@ -434,6 +474,24 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     <p className="mt-1 text-xs text-gray-700">Number for messaging apps like WhatsApp.</p>
                 </div>
 
+                <div>
+                    <LocationInput
+                        id="account-address"
+                        label="Location (Optional)"
+                        value={locationInput.location}
+                        onValueChange={locationInput.setLocation}
+                        onSuggestionSelect={locationInput.selectSuggestion}
+                        onVerify={locationInput.verify}
+                        onOpenMapPicker={() => handleMapToggle(true)}
+                        suggestions={locationInput.suggestions}
+                        status={locationInput.status}
+                        error={locationInput.error}
+                        formError={errors.address}
+                        placeholder="e.g., 123 Main St, Mumbai"
+                    />
+                    <p className="mt-1 text-xs text-gray-700">This location helps calculate distance for others. It may be displayed publicly.</p>
+                </div>
+
                 {/* Social Profiles */}
                 <div className="pt-2">
                     <Label>Social Profiles</Label>
@@ -526,22 +584,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 )}
                             </div>
                             <p className="mt-1 text-xs text-gray-700">If different from your personal name. Auto-fills from valid GSTIN.</p>
-                        </div>
-                        <div>
-                            <Label htmlFor="account-address">Address (Optional)</Label>
-                            <Input
-                                type="text"
-                                id="account-address"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                                onBlur={() => validate('address')}
-                                className={`mt-1 ${errors.address ? 'border-red-500' : ''}`}
-                                placeholder="e.g., 123 Main St, Mumbai"
-                                aria-invalid={!!errors.address}
-                                aria-describedby="account-address-error"
-                            />
-                            <p className="mt-1 text-xs text-gray-700">Your business or pickup address. This may be displayed publicly.</p>
-                            {errors.address && <p id="account-address-error" className="mt-1 text-sm text-red-600">{errors.address}</p>}
                         </div>
                         <div>
                             <Label htmlFor="account-google-maps">Google Maps Location</Label>

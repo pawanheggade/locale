@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, Subscription } from '../types';
 import ModalShell from './ModalShell';
@@ -20,6 +21,7 @@ interface AccountModalProps {
 export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCreate, onUpdate, onUpgrade, allAccounts, accountToEdit, isSellerSignup, targetTier }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(true);
 
@@ -33,7 +35,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
   const isEditing = mode === 'edit';
   const isUpgrading = mode === 'upgrade';
 
-  const title = isEditing ? 'Edit Account'
+  const title = isMapPickerOpen ? 'Select Location' 
+    : isEditing ? 'Edit Account'
     : isUpgrading ? 'Become a Seller'
     : (isSellerSignup ? 'Create a Seller Account' : 'Create New Account');
   
@@ -63,16 +66,20 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
     }
   };
 
-  const renderFooter = () => (
-    <>
-      <Button variant="glass" onClick={onClose} className="mr-auto">
-        Cancel
-      </Button>
-      <Button type="submit" form="account-form" isLoading={isSubmitting} className="w-36" variant="glass-red">
-        {submitText}
-      </Button>
-    </>
-  );
+  const renderFooter = () => {
+    if (isMapPickerOpen) return null;
+
+    return (
+      <>
+        <Button variant="glass" onClick={onClose} className="mr-auto">
+          Cancel
+        </Button>
+        <Button type="submit" form="account-form" isLoading={isSubmitting} className="w-36" variant="glass-red">
+          {submitText}
+        </Button>
+      </>
+    );
+  };
 
   return (
     <ModalShell
@@ -82,9 +89,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
       footer={renderFooter()}
       panelClassName="w-full max-w-md"
       titleId="account-modal-title"
+      trapFocus={!isMapPickerOpen} // Disable trap when map is open to avoid conflict with internal map focus
     >
-      <div className="p-4 sm:p-6">
-        {isUpgrading && (
+      {/* When map is open, AccountForm handles rendering the map view itself to replace the form content */}
+      <div className={isMapPickerOpen ? "p-0" : "p-4 sm:p-6"}>
+        {!isMapPickerOpen && isUpgrading && (
           <p className="text-sm text-gray-600 mb-4">You're upgrading to the <span className="font-bold">{targetTier}</span> plan. Please provide your seller information to complete the process. Your account will be submitted for review.</p>
         )}
         <AccountForm
@@ -95,8 +104,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
           isSubmitting={isSubmitting}
           formId="account-form"
           isSellerSignup={isSellerSignup || isUpgrading}
+          onToggleMap={setIsMapPickerOpen}
         />
-        {formError && (
+        {!isMapPickerOpen && formError && (
           <div role="alert" className="mt-4 bg-red-50 border border-red-200 text-red-800 p-3 rounded-md flex items-center gap-2">
             <AlertIcon className="w-5 h-5 flex-shrink-0" />
             <p className="text-sm">{formError}</p>

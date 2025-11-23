@@ -40,7 +40,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ title, categor
                     className={cn(inputBaseStyles, "flex-grow")}
                     aria-label={`New ${title.toLowerCase()} category name`}
                 />
-                <Button onClick={handleAdd} variant="default">Add</Button>
+                <Button onClick={handleAdd} variant="glass-red">Add</Button>
             </div>
             <ul className="space-y-2">
                 {categories.map((cat) => (
@@ -60,8 +60,8 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ title, categor
                             <span className="font-medium text-gray-900">{cat}</span>
                         )}
                         <div className="flex gap-2">
-                            <Button variant="outline" size="icon-sm" onClick={() => setEditing({ oldName: cat, newName: cat })} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
-                            <Button variant="outline" size="icon-sm" onClick={() => onDelete(cat)} className="text-red-600 border-red-200 hover:bg-red-50" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
+                            <Button variant="glass" size="icon-sm" onClick={() => setEditing({ oldName: cat, newName: cat })} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                            <Button variant="glass" size="icon-sm" onClick={() => onDelete(cat)} className="text-red-600 hover:bg-red-50" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
                         </div>
                     </li>
                 ))}

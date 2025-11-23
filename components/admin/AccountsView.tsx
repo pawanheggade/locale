@@ -93,7 +93,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                                 <option value="Basic">Basic</option>
                                 <option value="Verified">Verified</option>
                                 <option value="Business">Business</option>
-                                <option value="Business Pro">Business Pro</option>
+                                <option value="Organisation">Organisation</option>
                             </Select>
                         </div>
                     ) : (
@@ -105,13 +105,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                     <div className="flex items-center justify-end gap-2">
                         {account.status === 'pending' && (
                             <>
-                                <Button variant="outline" size="icon-sm" onClick={() => onApproveAccount(account.id)} className="text-green-600 border-green-200 hover:bg-green-50" title="Approve"><CheckIcon className="w-4 h-4"/></Button>
-                                <Button variant="outline" size="icon-sm" onClick={() => onRejectAccount(account)} className="text-red-600 border-red-200 hover:bg-red-50" title="Reject"><XMarkIcon className="w-4 h-4"/></Button>
+                                <Button variant="glass" size="icon-sm" onClick={() => onApproveAccount(account.id)} className="text-green-600 hover:bg-green-50" title="Approve"><CheckIcon className="w-4 h-4"/></Button>
+                                <Button variant="glass" size="icon-sm" onClick={() => onRejectAccount(account)} className="text-red-600 hover:bg-red-50" title="Reject"><XMarkIcon className="w-4 h-4"/></Button>
                             </>
                         )}
-                        <Button variant="outline" size="icon-sm" onClick={() => onEditAccount(account)} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                        <Button variant="glass" size="icon-sm" onClick={() => onEditAccount(account)} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
                         {!isCurrentUser && (
-                            <Button variant="outline" size="icon-sm" onClick={() => onToggleAccountStatus(account)} className="text-gray-600 hover:bg-gray-50" title={account.status === 'active' ? 'Archive' : 'Reactivate'}>{account.status === 'active' ? <ArchiveBoxIcon className="w-4 h-4"/> : <ArrowUturnLeftIcon className="w-4 h-4"/>}</Button>
+                            <Button variant="glass" size="icon-sm" onClick={() => onToggleAccountStatus(account)} className="text-gray-600 hover:bg-gray-50" title={account.status === 'active' ? 'Archive' : 'Reactivate'}>{account.status === 'active' ? <ArchiveBoxIcon className="w-4 h-4"/> : <ArrowUturnLeftIcon className="w-4 h-4"/>}</Button>
                         )}
                     </div>
                 </td>

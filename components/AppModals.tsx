@@ -157,13 +157,29 @@ export const AppModals: React.FC<AppModalsProps> = (props) => {
       case 'viewSavedSearches':
         return <SavedSearchesModal savedSearches={savedSearches} onLoad={handleLoadSearch} onDelete={handleDeleteSearch} onClose={closeModal} />;
       case 'setPriceAlert':
-        return <SetPriceAlertModal post={activeModal.data} onClose={closeModal} onSetAlert={(price) => handleSetPriceAlert(activeModal.data.id, price)} existingAlert={priceAlerts.find(a => a.postId === activeModal.data.id)} onDeleteAlert={() => deletePriceAlert(activeModal.data.id)} />;
+        return <SetPriceAlertModal 
+            post={activeModal.data} 
+            onClose={closeModal} 
+            onSetAlert={(price) => handleSetPriceAlert(activeModal.data.id, price)} 
+            existingAlert={priceAlerts.find(a => a.postId === activeModal.data.id)} 
+            onDeleteAlert={() => {
+                openModal({
+                    type: 'confirmation',
+                    data: {
+                        title: 'Remove Price Alert',
+                        message: 'Are you sure you want to remove the price drop alert for this item?',
+                        onConfirm: () => deletePriceAlert(activeModal.data.id),
+                        confirmText: 'Remove',
+                    }
+                });
+            }} 
+        />;
       case 'addToBag':
         return <AddToBagModal post={activeModal.data} onClose={closeModal} onSave={(qty) => {handleAddToBag(activeModal.data.id, qty); closeModal();}} onRemove={() => {handleRemoveBagItem(bag.find(i => i.postId === activeModal.data.id)!.id); closeModal();}} existingItem={bag.find(i => i.postId === activeModal.data.id)} isSubmitting={false} />;
       case 'saveToList':
         return <SaveToListModal bagItemId={activeModal.data.bagItemId} onClose={closeModal} />;
       case 'settings':
-        return <SettingsModal settings={notificationSettings} onSettingsChange={handleUpdateNotificationSettings} onClose={closeModal} onArchiveAccount={() => openModal({type: 'confirmation', data: { title: 'Archive Account', message: 'Are you sure you want to archive your account? This will sign you out and hide your profile.', confirmText: 'Archive', onConfirm: handleArchiveCurrentAccountConfirm, confirmClassName: 'bg-amber-600 text-white hover:bg-amber-700'}})} onSignOut={() => { closeModal(); onSignOut(); }} currentAccount={currentAccount!} />;
+        return <SettingsModal settings={notificationSettings} onSettingsChange={handleUpdateNotificationSettings} onClose={closeModal} onArchiveAccount={() => openModal({type: 'confirmation', data: { title: 'Archive Account', message: 'Are you sure you want to archive your account? This will sign you out and hide your profile.', confirmText: 'Archive', onConfirm: handleArchiveCurrentAccountConfirm, confirmClassName: 'glass-button-pill-amber-light'}})} onSignOut={() => { closeModal(); onSignOut(); }} currentAccount={currentAccount!} />;
       case 'notifications':
         return <NotificationsModal notifications={userNotifications} alerts={priceAlerts} availabilityAlerts={availabilityAlerts} posts={posts} onDismiss={(id) => setNotifications(p => p.map(n => n.id === id ? {...n, isRead: true} : n))} onDismissAll={() => setNotifications(p => p.map(n => ({...n, isRead: true})))} onNotificationClick={handleNotificationClick} onDeleteAlert={deletePriceAlert} onDeleteAvailabilityAlert={deleteAvailabilityAlert} onClose={closeModal} />;
       case 'contactStore':

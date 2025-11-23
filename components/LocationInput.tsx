@@ -1,6 +1,5 @@
-
 import React, { useEffect, useRef } from 'react';
-import { SpinnerIcon, MapPinIcon, CheckIcon, AlertIcon } from './Icons';
+import { SpinnerIcon, MapPinIcon, CheckIcon, AlertIcon, CrosshairsIcon } from './Icons';
 import { LocationStatus } from '../hooks/useLocationInput';
 import { useSuggestionKeyboardNav } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
@@ -105,7 +104,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         aria-label="Use my current location" 
                         title="Use my current location"
                     >
-                        {status === 'geolocating' ? <SpinnerIcon className="w-5 h-5"/> : <MapPinIcon className="w-5 h-5"/>}
+                        {status === 'geolocating' ? <SpinnerIcon className="w-5 h-5"/> : <CrosshairsIcon className="w-5 h-5"/>}
                     </Button>
                 )}
                 <Button 

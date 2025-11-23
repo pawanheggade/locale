@@ -1,4 +1,5 @@
 
+
 import { Account } from '../types';
 
 // Helper for readability
@@ -107,7 +108,7 @@ export const mockAccounts: Account[] = [
     messageNumber: '7654321098',
     status: 'active',
     subscription: {
-      tier: 'Business Pro',
+      tier: 'Organisation',
       renewalDate: Date.now() + 25 * 24 * 60 * 60 * 1000,
     },
     taxInfo: '07BBBCDE1234F1Z5',

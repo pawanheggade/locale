@@ -139,15 +139,15 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{timeSince(item.timestamp)}</td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 {activeTab === 'inbox' ? (
-                    <Button variant="outline" size="icon-sm" onClick={() => onToggleFeedbackArchive(item.id)} className="text-amber-600 border-amber-200 hover:bg-amber-50" title="Archive">
+                    <Button variant="glass" size="icon-sm" onClick={() => onToggleFeedbackArchive(item.id)} className="text-amber-600 hover:bg-amber-50" title="Archive">
                         <ArchiveBoxIcon className="w-4 h-4" />
                     </Button>
                 ) : (
                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon-sm" onClick={() => onToggleFeedbackArchive(item.id)} className="text-gray-600 hover:bg-gray-50" title="Unarchive">
+                        <Button variant="glass" size="icon-sm" onClick={() => onToggleFeedbackArchive(item.id)} className="text-gray-600 hover:bg-gray-50" title="Unarchive">
                             <ArrowUturnLeftIcon className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="icon-sm" onClick={() => onDeleteFeedback(item.id)} className="text-red-600 border-red-200 hover:bg-red-50" title="Delete">
+                        <Button variant="glass" size="icon-sm" onClick={() => onDeleteFeedback(item.id)} className="text-red-600 hover:bg-red-50" title="Delete">
                             <TrashIcon className="w-4 h-4" />
                         </Button>
                     </div>

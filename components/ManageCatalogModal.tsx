@@ -5,6 +5,7 @@ import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { TrashIcon, DocumentDuplicateIcon, PlusIcon } from './Icons';
 import { cn } from '../lib/utils';
+import { useUI } from '../contexts/UIContext';
 
 interface ManageCatalogModalProps {
     catalog: CatalogItem[];
@@ -17,6 +18,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+    const { openModal } = useUI();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
@@ -29,10 +31,19 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
         }
     };
 
-    const handleRemove = async (id: string) => {
-        setIsSubmitting(true);
-        await onRemove(id);
-        setIsSubmitting(false);
+    const requestRemove = (id: string) => {
+        openModal({
+            type: 'confirmation',
+            data: {
+                title: 'Remove Item',
+                message: 'Are you sure you want to remove this item from your catalog?',
+                onConfirm: async () => {
+                    await onRemove(id);
+                    openModal({ type: 'manageCatalog' }); // Re-open
+                },
+                confirmText: 'Remove',
+            }
+        })
     };
 
     const renderFooter = () => (
@@ -95,7 +106,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
                                     <Button 
                                         variant="glass" 
                                         size="icon-sm" 
-                                        onClick={() => handleRemove(item.id)}
+                                        onClick={() => requestRemove(item.id)}
                                         disabled={isSubmitting}
                                         className="text-red-600 hover:text-red-700"
                                         aria-label="Remove file"

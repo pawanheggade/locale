@@ -94,9 +94,9 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ reports, allPosts, for
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{timeSince(report.timestamp)}</td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={report.onView}>View</Button>
-                    <Button variant="outline" size="sm" className="text-green-600 border-green-200 hover:bg-green-50" onClick={() => onReportAction(report, 'dismiss')}>Dismiss</Button>
-                    <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => onReportAction(report, 'delete')}>Delete Content</Button>
+                    <Button variant="glass" size="sm" onClick={report.onView}>View</Button>
+                    <Button variant="glass" size="sm" className="text-green-600 hover:bg-green-50" onClick={() => onReportAction(report, 'dismiss')}>Dismiss</Button>
+                    <Button variant="glass" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => onReportAction(report, 'delete')}>Delete Content</Button>
                 </div>
             </td>
         </tr>

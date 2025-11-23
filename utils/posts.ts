@@ -1,4 +1,5 @@
 
+
 import { Post, DisplayablePost, Account, FiltersState, Subscription } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -85,7 +86,7 @@ export const findSimilarPosts = (
 
 export const isAccountEligibleToPin = (account: Account | null): boolean => {
     if (!account) return false;
-    return account.subscription.tier === 'Verified' || account.subscription.tier === 'Business' || account.subscription.tier === 'Business Pro';
+    return account.subscription.tier === 'Verified' || account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
 };
 
 export const applyFiltersToPosts = (
@@ -169,7 +170,7 @@ export const sortFilteredPosts = (
     return filteredPosts; // Already sorted by AI
   }
 
-  const tierRank: Record<Subscription['tier'], number> = { 'Business Pro': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
+  const tierRank: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
 
   const sorted = [...filteredPosts];
   sorted.sort((a, b) => {
@@ -236,7 +237,7 @@ export const generateHistoryBasedRecommendations = (
 
   const recommendations = Array.from(recommendedPosts.values());
   
-  const tierRank: Record<Subscription['tier'], number> = { 'Business Pro': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
+  const tierRank: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
 
   // Sort by subscription tier, then similarity score, then date
   recommendations.sort((a, b) => {

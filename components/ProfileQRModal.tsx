@@ -28,7 +28,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
       switch (account.subscription.tier) {
           case 'Verified': return { border: 'border-red-500', footer: 'bg-red-500' };
           case 'Business': return { border: 'border-amber-500', footer: 'bg-amber-500' };
-          case 'Business Pro': return { border: 'border-amber-600', footer: 'bg-amber-600' };
+          case 'Organisation': return { border: 'border-amber-600', footer: 'bg-amber-600' };
           default: return { border: 'border-black', footer: 'bg-black' };
       }
   }, [account.subscription.tier]);
@@ -124,7 +124,16 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
             {/* Card Footer */}
             <div className={`${colorClasses.footer} p-5 flex justify-center items-center`}>
-                <h1 className="text-3xl font-bold text-white tracking-tighter">locale</h1>
+                <h1 className="text-3xl font-bold text-white tracking-tighter flex items-baseline">
+                    <span>l</span>
+                    <span className="relative inline-flex flex-col items-center">
+                        <span>o</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
+                            <path d="M2 2L6 10L10 2H2Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+                        </svg>
+                    </span>
+                    <span>cale</span>
+                </h1>
             </div>
         </div>
 

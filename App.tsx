@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Media, PostCategory, DisplayablePost, PostActions, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -125,26 +127,8 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                if (isMountedRef.current) {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    });
-                }
-            },
-            (error) => {
-                // Log the specific error message and code for easier debugging
-                // We suppress the toast on initial load to avoid annoying the user if permissions are blocked
-                console.warn(`Geolocation error: ${error.message} (Code: ${error.code})`);
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    }
-  }, []);
+  // Automatic geolocation check removed to prevent permission prompt loops.
+  // User must explicitly request location features (e.g. Find Nearby).
 
   const handleRefresh = useCallback(() => {
     if (isRefreshing) return;
@@ -287,8 +271,19 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteFeedback = (feedbackId: string) => {
-      setFeedbackList(prev => prev.filter(f => f.id !== feedbackId));
-      addToast('Feedback deleted.', 'success');
+      openModal({
+          type: 'confirmation',
+          data: {
+              title: 'Delete Feedback',
+              message: 'Are you sure you want to delete this feedback?',
+              onConfirm: () => {
+                  setFeedbackList(prev => prev.filter(f => f.id !== feedbackId));
+                  addToast('Feedback deleted.', 'success');
+              },
+              confirmText: 'Delete',
+              confirmClassName: 'bg-red-600 text-white',
+          }
+      });
   };
 
   const handleMarkFeedbackAsRead = (feedbackId: string) => {
@@ -296,22 +291,51 @@ export const App: React.FC = () => {
   };
 
   const handleBulkFeedbackAction = (ids: string[], action: 'markRead' | 'archive' | 'unarchive' | 'delete') => {
-      setFeedbackList(prev => {
-          if (action === 'delete') {
-              return prev.filter(f => !ids.includes(f.id));
-          }
-          return prev.map(f => {
-              if (ids.includes(f.id)) {
-                  if (action === 'markRead') return { ...f, isRead: true };
-                  if (action === 'archive') return { ...f, isArchived: true };
-                  if (action === 'unarchive') return { ...f, isArchived: false };
+      if (action === 'delete') {
+          openModal({
+              type: 'confirmation',
+              data: {
+                  title: 'Delete Feedback',
+                  message: `Are you sure you want to delete ${ids.length} feedback items?`,
+                  onConfirm: () => {
+                      setFeedbackList(prev => prev.filter(f => !ids.includes(f.id)));
+                      addToast(`${ids.length} feedback items deleted.`, 'success');
+                  },
+                  confirmText: 'Delete',
+                  confirmClassName: 'bg-red-600 text-white',
               }
-              return f;
           });
-      });
-      const actionText = action === 'delete' ? 'deleted' : 'updated';
-      addToast(`${ids.length} feedback items ${actionText}.`, 'success');
+      } else {
+          setFeedbackList(prev => {
+              return prev.map(f => {
+                  if (ids.includes(f.id)) {
+                      if (action === 'markRead') return { ...f, isRead: true };
+                      if (action === 'archive') return { ...f, isArchived: true };
+                      if (action === 'unarchive') return { ...f, isArchived: false };
+                  }
+                  return f;
+              });
+          });
+          addToast(`${ids.length} feedback items updated.`, 'success');
+      }
   };
+
+  const handleClearRecentSearchesConfirm = useCallback(() => {
+      if (recentSearches.length === 0) return;
+      openModal({
+          type: 'confirmation',
+          data: {
+              title: 'Clear Recent Searches',
+              message: 'Are you sure you want to clear your search history?',
+              onConfirm: () => {
+                  setRecentSearches([]);
+                  addToast('Search history cleared.', 'success');
+              },
+              confirmText: 'Clear History',
+              confirmClassName: 'bg-red-600 text-white',
+          }
+      });
+  }, [recentSearches.length, openModal, setRecentSearches, addToast]);
 
   const handleAiSearchSubmitWithHistory = useCallback((query: string) => {
     handleSearchSubmit(query);
@@ -637,9 +661,22 @@ export const App: React.FC = () => {
   }, [savedSearches, dispatchFilterAction, closeModal, addToast]);
   
   const handleDeleteSearch = useCallback((searchId: string) => {
-      deleteSavedSearch(searchId);
-      addToast('Saved search deleted.', 'success');
-  }, [deleteSavedSearch, addToast]);
+      openModal({
+          type: 'confirmation',
+          data: {
+              title: 'Delete Saved Search',
+              message: 'Are you sure you want to delete this saved search?',
+              onConfirm: () => {
+                  deleteSavedSearch(searchId);
+                  addToast('Saved search deleted.', 'success');
+                  // Re-open the saved searches modal so the user can continue managing
+                  setTimeout(() => openModal({ type: 'viewSavedSearches' }), 0);
+              },
+              confirmText: 'Delete',
+              confirmClassName: 'bg-red-600 text-white',
+          }
+      });
+  }, [deleteSavedSearch, addToast, openModal]);
   
   const handleArchiveCurrentAccountConfirm = useCallback(async () => {
       if (currentAccount) {
@@ -905,7 +942,7 @@ export const App: React.FC = () => {
           autoCompleteSuggestions={allAvailableTags}
           recentSearches={recentSearches}
           onRemoveRecentSearch={(q) => setRecentSearches(p => p.filter(s => s !== q))}
-          onClearRecentSearches={() => setRecentSearches([])}
+          onClearRecentSearches={handleClearRecentSearchesConfirm}
           isAiSearchEnabled={filterState.isAiSearchEnabled}
           onToggleAiSearch={handleToggleAiSearch}
           isAiSearching={filterState.isAiSearching}

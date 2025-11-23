@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Subscription } from '../types';
 import { UserCircleIconSolid } from './Icons';
@@ -26,7 +27,7 @@ const sizeClasses = {
 const ringClasses: Partial<Record<Subscription['tier'], string>> = {
   'Verified': 'ring-2 ring-red-400 ring-offset-2 ring-offset-white',
   'Business': 'ring-2 ring-amber-400 ring-offset-2 ring-offset-white',
-  'Business Pro': 'ring-4 ring-amber-500 ring-offset-2 ring-offset-white',
+  'Organisation': 'ring-4 ring-amber-500 ring-offset-2 ring-offset-white',
   'Basic': '', // No ring for basic
   'Personal': '', // No ring for personal
 };

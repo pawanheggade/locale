@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -160,9 +161,19 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
   };
   
   const handleClearChecked = () => {
-    setIsClearing(true);
-    clearCheckedBagItems();
-    setIsClearing(false);
+    openModal({
+      type: 'confirmation',
+      data: {
+        title: 'Clear Checked Items',
+        message: 'Are you sure you want to remove all checked items from your bag?',
+        onConfirm: () => {
+             setIsClearing(true);
+             clearCheckedBagItems();
+             setIsClearing(false);
+        },
+        confirmText: 'Clear Checked',
+      }
+    });
   };
 
   const handleViewDetails = (post: Post) => {
@@ -250,7 +261,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
         message: `This will copy all items from this list to your bag. The list will not be changed. Items already in your bag will have their quantity increased.`,
         onConfirm: () => addListToBag(list.id),
         confirmText: 'Add to Bag',
-        confirmClassName: 'bg-red-600 text-white',
+        confirmClassName: 'glass-button-pill-red',
       },
     });
   };

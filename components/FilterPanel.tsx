@@ -81,6 +81,22 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     }
   };
 
+  const handleClearFiltersConfirm = () => {
+      openModal({
+          type: 'confirmation',
+          data: {
+              title: 'Clear All Filters',
+              message: 'Are you sure you want to clear all active filters and search criteria?',
+              onConfirm: () => {
+                  onClearFilters();
+                  // Do not re-open panel, user wants to see results.
+              },
+              confirmText: 'Clear All',
+              confirmClassName: 'bg-red-600 text-white',
+          }
+      });
+  };
+
   const isTypeFilterActive = filterState.filterType !== 'all';
   const isCategoryFilterActive = filterState.filterCategory !== 'all';
   const isPriceFilterActive = filterState.minPrice !== '' || filterState.maxPrice !== '';
@@ -139,7 +155,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <div className="p-4 sm:p-6 space-y-6">
           {isAnyFilterActive && (
             <Button
-              onClick={onClearFilters}
+              onClick={handleClearFiltersConfirm}
               variant="glass"
               className="w-full gap-2 text-base font-medium text-gray-700"
             >

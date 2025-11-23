@@ -40,7 +40,7 @@ export interface Post {
 }
 
 export interface Subscription {
-  tier: 'Personal' | 'Basic' | 'Verified' | 'Business' | 'Business Pro';
+  tier: 'Personal' | 'Basic' | 'Verified' | 'Business' | 'Organisation';
   renewalDate: number | null;
   isTrial?: boolean;
   trialEndDate?: number | null;

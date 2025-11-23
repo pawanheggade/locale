@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Account, Subscription, ModalState } from '../types';
 import { CheckIcon, CheckBadgeIcon, CheckBadgeIconSolid } from './Icons';
@@ -78,7 +79,7 @@ const plans = [
     color: 'amber'
   },
   {
-    tier: 'Business Pro',
+    tier: 'Organisation',
     price: '₹3,990/mo',
     annualPrice: '₹39,900/yr',
     description: 'Ultimate visibility and tools for high-volume sellers.',
@@ -105,7 +106,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
     const isPersonalUser = currentAccount.subscription.tier === 'Personal';
     
     // If a personal user selects ANY seller plan, they need to fill the seller form.
-    if (isPersonalUser && (tier === 'Basic' || tier === 'Verified' || tier === 'Business' || tier === 'Business Pro')) {
+    if (isPersonalUser && (tier === 'Basic' || tier === 'Verified' || tier === 'Business' || tier === 'Organisation')) {
         openModal({ type: 'upgradeToSeller', data: { tier } });
     } else {
         // This covers seller-to-seller changes and seller-to-personal downgrades.
@@ -129,7 +130,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
           const planIndex = plans.findIndex(p => p.tier === plan.tier);
           const currentIndex = plans.findIndex(p => p.tier === currentTier);
           const isUpgrade = currentIndex < planIndex;
-          const isPro = plan.tier === 'Business Pro';
+          const isPro = plan.tier === 'Organisation';
           
           let buttonText: string;
 

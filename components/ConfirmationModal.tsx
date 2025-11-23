@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Button } from './ui/Button';
 import { ConfirmationModalData } from '../types';
@@ -28,9 +29,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <Button 
         onClick={onConfirm} 
         isLoading={isConfirming}
-        className={cn(
-          confirmClassName ? confirmClassName : 'glass-button-pill-red'
-        )}
+        variant="glass-red"
+        className={confirmClassName}
       >
         {confirmText}
       </Button>

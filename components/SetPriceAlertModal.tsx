@@ -45,9 +45,9 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
   };
   
   const handleDelete = () => {
-    setIsSubmitting(true);
+    // Just trigger the delete action. The parent will handle confirmation (and swapping modals).
+    // Do NOT call onClose here if the parent opens a confirmation modal, as that will be handled by the openModal call replacement.
     onDeleteAlert();
-    onClose();
   };
 
   const renderFooter = () => (
@@ -65,7 +65,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
               variant="glass-red-light"
               onClick={handleDelete}
               isLoading={isSubmitting}
-              className="gap-2"
+              className="gap-2 text-red-600"
           >
               <TrashIcon className="w-5 h-5" />
               Remove

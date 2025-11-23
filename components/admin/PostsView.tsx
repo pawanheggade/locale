@@ -46,9 +46,9 @@ export const PostsView: React.FC<PostsViewProps> = ({ allPosts, onEditPost, onDe
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{timeSince(post.lastUpdated)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="xs" onClick={() => onViewPost(post)}>View</Button>
-                        <Button variant="outline" size="xs" onClick={() => onEditPost(post.id)}>Edit</Button>
-                        <Button variant="outline" size="xs" onClick={() => onDeletePost(post.id)} className="text-red-600 border-red-200 hover:bg-red-50">Delete</Button>
+                        <Button variant="glass" size="xs" onClick={() => onViewPost(post)}>View</Button>
+                        <Button variant="glass" size="xs" onClick={() => onEditPost(post.id)}>Edit</Button>
+                        <Button variant="glass" size="xs" onClick={() => onDeletePost(post.id)} className="text-red-600 hover:bg-red-50">Delete</Button>
                     </div>
                 </td>
             </tr>
