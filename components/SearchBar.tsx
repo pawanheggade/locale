@@ -120,7 +120,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => onSearchChange(e.target.value)}
         onFocus={inputProps.onFocus}
         onKeyDown={handleKeyDown} 
-        className="block w-full bg-gray-100 border border-gray-200/80 rounded-full py-2.5 pl-11 pr-32 sm:pr-40 text-sm text-gray-900 placeholder-gray-500 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 shadow-sm focus:shadow-md transition-all duration-200 truncate"
+        // Increased py-3 for taller field, placeholder-gray-600 for visibility
+        // Reduced sm:pr-36 to sm:pr-28 to allow more placeholder text visibility
+        className="block w-full bg-gray-100 border border-gray-200/80 rounded-full py-3 pl-11 pr-32 sm:pr-28 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 shadow-sm focus:shadow-md transition-all duration-200 truncate"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"

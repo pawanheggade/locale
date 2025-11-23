@@ -84,6 +84,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   isVisible,
   onBack,
 }) => {
+  // Use 640px (sm) as breakpoint so tablets and desktops get the full placeholder
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     
   const placeholder = useMemo(() => isMobile
     ? (isAiSearchEnabled ? 'Ask AI…' : 'Search…')
-    : (isAiSearchEnabled ? 'Ask AI anything...' : 'Search for products, services, events...'), 
+    : (isAiSearchEnabled ? 'Ask AI anything...' : 'Search products, services, events...'), 
   [isMobile, isAiSearchEnabled]);
 
   const handleBagClick = () => {
@@ -125,7 +126,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
       isScrolled && 'shadow-sm',
       !isVisible && '-translate-y-full' // Hide via transform
     )}>
-      <div className={`px-4 sm:px-6 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 sm:gap-x-4 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      <div className={`px-4 sm:px-6 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 sm:gap-x-2 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="glass" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
@@ -156,8 +157,9 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </h1>
         </div>
         
-        <div className="flex justify-center px-0 sm:px-2 md:px-4 min-w-0">
-            <div className="w-full max-w-md md:max-w-xl lg:max-w-3xl mx-auto">
+        <div className="flex justify-center px-0 min-w-0">
+            {/* Increased max-width constraints to allow search bar to grow larger */}
+            <div className="w-full max-w-2xl lg:max-w-4xl mx-auto">
                 <SearchBar 
                     searchQuery={searchQuery}
                     onSearchChange={onSearchChange}
