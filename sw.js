@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'locale-app-v1';
-const MAP_CACHE_NAME = 'locale-map-tiles-v1';
+const CACHE_NAME = 'locale-app-v2';
+const MAP_CACHE_NAME = 'locale-map-tiles-v2';
 
 // Files to cache immediately
 const PRECACHE_URLS = [
@@ -114,4 +114,37 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+});
+
+// --- Push Notification Listeners ---
+
+self.addEventListener('push', (event) => {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'New Notification';
+  const options = {
+    body: data.body || 'You have a new update.',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    data: data.url || '/'
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((windowClients) => {
+      // If a window is already open, focus it.
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window.
+      if (clients.openWindow) {
+        return clients.openWindow(event.notification.data || '/');
+      }
+    })
+  );
 });

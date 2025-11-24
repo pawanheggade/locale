@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Media, PostCategory, DisplayablePost, PostActions, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -34,7 +32,6 @@ import { CreatePostPage } from './components/CreatePostPage';
 import { AccountAnalyticsView } from './components/AccountAnalyticsView';
 import { useDebounce } from './hooks/useDebounce';
 import { cn } from './lib/utils';
-import { NewPostsIndicator } from './components/NewPostsIndicator';
 import { SubscriptionPage } from './components/SubscriptionModal';
 import { generateHistoryBasedRecommendations } from './utils/posts';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -71,7 +68,7 @@ export const App: React.FC = () => {
     savedSearches, addSavedSearch, deleteSavedSearch
   } = useAuth();
   const { 
-    posts: allDisplayablePosts, archivedPosts, refreshPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, archivePost, unarchivePost, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
+    posts: allDisplayablePosts, archivedPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, archivePost, unarchivePost, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
     togglePinPost, addPostSilently, priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit,
   } = usePosts();
   const { posts: forumPosts, getPostWithComments, addPost: addForumPost, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
@@ -108,10 +105,6 @@ export const App: React.FC = () => {
   const [termsContent, setTermsContent] = usePersistentState<string>('localeAppTermsContent', initialTermsContent);
   const [privacyContent, setPrivacyContent] = usePersistentState<string>('localeAppPrivacyContent', initialPrivacyContent);
   
-  // Real-time update state
-  const [hasNewPosts, setHasNewPosts] = useState(false);
-  const knownPostIdsRef = useRef<Set<string>>(new Set());
-  
   // Header visibility state
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollTopRef = useRef(0);
@@ -121,37 +114,18 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     isMountedRef.current = true;
-    setIsInitialLoading(false); // Remove initial load simulation
+    setIsInitialLoading(false); 
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  // Automatic geolocation check removed to prevent permission prompt loops.
-  // User must explicitly request location features (e.g. Find Nearby).
-
   const handleRefresh = useCallback(() => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    setHasNewPosts(false); // Reset indicator on manual refresh
-    
-    // Simulate a network delay. A pull-to-refresh action is asynchronous by nature.
-    // Removing the delay entirely causes UI state updates to be batched,
-    // preventing the loading indicator from showing.
-    setTimeout(() => {
-        if (isMountedRef.current) {
-            refreshPosts();
-            setIsRefreshing(false);
-            addToast('Feed updated!', 'success');
-            // After refresh, all currently visible posts are "known"
-            setTimeout(() => {
-                if (isMountedRef.current) {
-                    knownPostIdsRef.current = new Set(allDisplayablePosts.map(p => p.id));
-                }
-            }, 100);
-        }
-    }, 1000);
-  }, [isRefreshing, refreshPosts, addToast, allDisplayablePosts]);
+    // Force a full page reload to clear any stale state and ensure a fresh start
+    window.location.reload();
+  }, [isRefreshing]);
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
 
@@ -161,53 +135,12 @@ export const App: React.FC = () => {
             openModal({ type: 'login' });
             return;
         }
-        // FIX: Removed incorrect type annotation `any[]` when calling the action.
         return action(...args);
     };
   }, [currentAccount, openModal]);
 
   const toggleLikePost = withAuthCheck(rawToggleLikePost);
   const toggleLikeAccount = withAuthCheck(rawToggleLikeAccount);
-
-  // Initialize known post IDs
-  useEffect(() => {
-    if (allDisplayablePosts.length > 0 && knownPostIdsRef.current.size === 0) {
-        knownPostIdsRef.current = new Set(allDisplayablePosts.map(p => p.id));
-    }
-  }, [allDisplayablePosts]);
-
-  // Detect new posts from state and show indicator
-  useEffect(() => {
-    if (view !== 'all' || mainView !== 'grid' || isInitialLoading) return;
-
-    const currentPostIds = new Set(allDisplayablePosts.map(p => p.id));
-    if (currentPostIds.size <= knownPostIdsRef.current.size) {
-        knownPostIdsRef.current = currentPostIds;
-        return;
-    }
-
-    const newPostExists = [...currentPostIds].some(id => !knownPostIdsRef.current.has(id));
-
-    if (newPostExists) {
-        // Trigger Saved Search Check for potential alerts
-        const newPosts = allDisplayablePosts.filter(p => !knownPostIdsRef.current.has(p.id));
-        checkSavedSearchesMatches(newPosts);
-
-        if (mainContentRef.current && mainContentRef.current.scrollTop > 50) {
-            setHasNewPosts(true);
-        } else {
-            knownPostIdsRef.current = currentPostIds;
-        }
-    }
-  }, [allDisplayablePosts, view, mainView, isInitialLoading, checkSavedSearchesMatches]);
-  
-  const handleShowNewPosts = () => {
-      if (mainContentRef.current) {
-          mainContentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      setHasNewPosts(false);
-      knownPostIdsRef.current = new Set(allDisplayablePosts.map(p => p.id));
-  };
 
   const handleSearchSubmit = useCallback((query: string) => {
     const trimmedQuery = query.trim();
@@ -390,7 +323,6 @@ export const App: React.FC = () => {
       newView: AppView,
       options: { postId?: string; account?: Account, forumPostId?: string } = {}
   ) => {
-      // Check if we are already at the destination to prevent duplicate history entries
       const isSameView = view === newView;
       const isSamePost = viewingPostId === (options.postId || null);
       const isSameAccount = viewingAccount?.id === (options.account?.id || null);
@@ -519,16 +451,13 @@ export const App: React.FC = () => {
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     },
     onShowOnMap: async (target: string | Account) => {
-      // Save current state before navigating away, so 'back' works correctly.
       setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
 
       if (typeof target === 'string') {
-        // This is a post ID. Navigate to the map view.
         setView('all');
         setMainView('map');
         setPostToFocusOnMap(target);
       } else {
-        // This is an account.
         const account = target as Account;
         let coords = account.coordinates;
         if (!coords && account.address) {
@@ -546,7 +475,6 @@ export const App: React.FC = () => {
 
         if (coords) {
           setLocationToFocus({ coords, name: account.name });
-          // Navigate to the map view
           setView('all');
           setMainView('map');
         } else {
@@ -556,7 +484,6 @@ export const App: React.FC = () => {
     },
     onToggleLikeAccount: toggleLikeAccount,
     onTogglePinPost: togglePinPost,
-    // Forum Actions
     onViewForumPost: (postId: string) => {
       navigateTo('forumPostDetail', { forumPostId: postId });
     },
@@ -567,7 +494,6 @@ export const App: React.FC = () => {
     toggleLikePost, openModal, archivePost, unarchivePost, deletePostPermanently, navigateTo, findPostById,
     withAuthCheck, accountsById, dispatchFilterAction, setPostToFocusOnMap,
     setLocationToFocus, toggleLikeAccount, togglePinPost, addToast, setIsGeocoding, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
-    // State needed for history
     view, mainView, viewingPostId, viewingAccount, viewingForumPostId
   ]);
 
@@ -645,7 +571,7 @@ export const App: React.FC = () => {
               maxPrice: filterState.maxPrice,
               filterTags: filterState.filterTags,
           },
-          enableAlerts: false, // Default to false
+          enableAlerts: false,
       };
       addSavedSearch(newSavedSearch);
       addToast('Search saved!', 'success');
@@ -669,7 +595,6 @@ export const App: React.FC = () => {
               onConfirm: () => {
                   deleteSavedSearch(searchId);
                   addToast('Saved search deleted.', 'success');
-                  // Re-open the saved searches modal so the user can continue managing
                   setTimeout(() => openModal({ type: 'viewSavedSearches' }), 0);
               },
               confirmText: 'Delete',
@@ -699,14 +624,10 @@ export const App: React.FC = () => {
     const lastScrollTop = lastScrollTopRef.current;
     const scrollDelta = currentScrollTop - lastScrollTop;
     
-    // Only change state if user scrolled a significant amount to prevent jitter
-    // Lowered threshold to 4 to catch smoother/slower scrolls
     if (Math.abs(scrollDelta) > 4) {
         if (scrollDelta > 0 && currentScrollTop > 60) {
-             // Scrolling down and not at the very top
              if (isHeaderVisible) setIsHeaderVisible(false);
         } else if (scrollDelta < 0) {
-             // Scrolling up
              if (!isHeaderVisible) setIsHeaderVisible(true);
         }
     }
@@ -714,12 +635,7 @@ export const App: React.FC = () => {
     lastScrollTopRef.current = currentScrollTop;
     
     setIsScrolled(currentScrollTop > 10);
-
-    if (hasNewPosts && currentScrollTop < 10) {
-      setHasNewPosts(false);
-      knownPostIdsRef.current = new Set(allDisplayablePosts.map(p => p.id));
-    }
-  }, [isHeaderVisible, hasNewPosts, allDisplayablePosts]);
+  }, [isHeaderVisible]);
 
   const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
 
@@ -730,10 +646,6 @@ export const App: React.FC = () => {
           return;
       }
       
-      // We deliberately exclude likedPostIds and viewedPostIds from dependencies here.
-      // We want recommendations to be calculated based on the snapshot of likes/views
-      // at the time of load/refresh/login, NOT on every single interaction.
-      // This keeps the list stable and prevents items from jumping around.
       const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
       const viewedPosts = viewedPostIds
           .map(id => allDisplayablePosts.find(p => p.id === id))
@@ -742,7 +654,6 @@ export const App: React.FC = () => {
       const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
       setRecommendedPostIds(newRecs.map(p => p.id));
       
-      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAccount?.id, isRefreshing, isInitialLoading]);
 
   const recommendations = useMemo(() => {
@@ -859,7 +770,7 @@ export const App: React.FC = () => {
                     onDeleteCategory={deleteCategory}
                     onUpdateSubscription={updateSubscription}
                     reports={reports}
-                    onReportAction={() => {}} // Placeholder
+                    onReportAction={() => {}} 
                     feedbackList={feedbackList}
                     onDeleteFeedback={handleDeleteFeedback}
                     onToggleFeedbackArchive={handleToggleFeedbackArchive}
@@ -987,9 +898,9 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            "relative flex-1 overflow-y-auto bg-gray-50 pt-16", // Added padding top to compensate for fixed header
+            "relative flex-1 overflow-y-auto bg-gray-50 pt-16", 
             isInitialLoading && "overflow-hidden",
-            isPulling && "overflow-hidden" // Prevents scrolling while pulling
+            isPulling && "overflow-hidden" 
           )}
         >
           {view === 'all' && mainView === 'grid' ? (
@@ -1000,7 +911,6 @@ export const App: React.FC = () => {
                 className={!isPulling ? 'transition-transform duration-300' : ''}
               >
                 <ErrorBoundary>
-                  {hasNewPosts && <NewPostsIndicator onClick={handleShowNewPosts} />}
                   {renderCurrentView()}
                 </ErrorBoundary>
               </div>
