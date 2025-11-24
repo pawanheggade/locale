@@ -5,6 +5,7 @@ import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { ShareIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { useUI } from '../contexts/UIContext';
+import { SubscriptionBadge } from './SubscriptionBadge';
 
 interface ProfileQRModalProps {
   account: Account;
@@ -33,6 +34,20 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
   ctx.quadraticCurveTo(x, y, x + radius, y);
   ctx.closePath();
 }
+
+const getBadgeSvg = (tier: string) => {
+    if (tier === 'Organisation') {
+        // Amber-600 #d97706 - Solid
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#d97706" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
+    }
+    
+    let color = '#111827'; 
+    if (tier === 'Verified') color = '#ef4444'; // red-500
+    if (tier === 'Business') color = '#f59e0b'; // amber-500
+
+    // Outline
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+};
 
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -106,12 +121,31 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
         ctx.fillStyle = '#111827'; // gray-900
         ctx.fillText(account.name, cardWidth / 2, textY + 16);
         
+        // Draw Badge on Canvas if applicable
+        if (account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') {
+            const nameWidth = ctx.measureText(account.name).width;
+            const badgeSvg = getBadgeSvg(account.subscription.tier);
+            const badgeImg = new Image();
+            badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
+            
+            await new Promise((resolve) => {
+                badgeImg.onload = resolve;
+                badgeImg.onerror = resolve; // continue even if badge fails
+            });
+
+            const badgeSize = 24;
+            const badgeX = (cardWidth / 2) + (nameWidth / 2) + 6;
+            const badgeY = (textY + 16) - (badgeSize / 2) - 7; // Adjust vertical centering visually
+            
+            ctx.drawImage(badgeImg, badgeX, badgeY, badgeSize, badgeSize);
+        }
+        
         // Username
         ctx.font = '500 14px sans-serif';
         ctx.fillStyle = '#6b7280'; // gray-500
         ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
 
-        // 5. Locale Logo (Divider removed, adjusted Y position)
+        // 5. Locale Logo
         const logoY = textY + 94; 
         ctx.font = '500 20px sans-serif';
         ctx.fillStyle = '#000000'; // Black text
@@ -202,6 +236,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     }
   };
 
+  const shouldShowBadge = account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic';
+
   return (
     <ModalShell
       panelRef={modalRef}
@@ -222,7 +258,12 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                 
                 {/* Name & Username */}
                 <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 leading-tight">{account.name}</h2>
+                    <div className="flex items-center justify-center gap-1.5">
+                        <h2 className="text-2xl font-bold text-gray-900 leading-tight">{account.name}</h2>
+                        {shouldShowBadge && (
+                            <SubscriptionBadge tier={account.subscription.tier} iconOnly className="w-6 h-6 mt-0.5" />
+                        )}
+                    </div>
                     <p className="text-gray-500 font-medium mt-1">@{account.username}</p>
                 </div>
 

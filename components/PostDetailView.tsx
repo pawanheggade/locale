@@ -226,7 +226,9 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                     title={post.eventCoordinates ? "View on Map" : undefined}
                                 >
                                     <MapPinIcon className={cn("w-5 h-5 text-red-400 shrink-0", post.eventCoordinates ? "group-hover:text-red-600 transition-colors" : "text-red-400")} />
-                                    <span className="truncate">Location: <span className={cn("font-semibold text-red-400", post.eventCoordinates ? "group-hover:underline decoration-red-400 underline-offset-2 group-hover:text-red-600" : "")}>{post.eventLocation}</span></span>
+                                    <span className={cn("truncate font-semibold text-red-400", post.eventCoordinates ? "group-hover:underline decoration-red-400 underline-offset-2 group-hover:text-red-600" : "")}>
+                                        {post.eventLocation}
+                                    </span>
                                 </div>
                             )}
                         </>
@@ -240,29 +242,31 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                         )
                     )}
 
+                    {post.type !== PostType.EVENT && (
                     <div 
                         className={cn(
                             "flex items-center gap-2 min-w-0 text-red-400", 
-                            (post.type !== PostType.EVENT && post.coordinates) ? "cursor-pointer hover:text-red-600 group transition-colors" : ""
+                            post.coordinates ? "cursor-pointer hover:text-red-600 group transition-colors" : ""
                         )}
                         onClick={() => {
-                            if (post.type !== PostType.EVENT && post.coordinates) {
+                            if (post.coordinates) {
                                 onShowOnMap(post.id);
                             }
                         }}
-                        role={post.type !== PostType.EVENT && post.coordinates ? "button" : undefined}
-                        tabIndex={post.type !== PostType.EVENT && post.coordinates ? 0 : undefined}
+                        role={post.coordinates ? "button" : undefined}
+                        tabIndex={post.coordinates ? 0 : undefined}
                         onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && post.type !== PostType.EVENT && post.coordinates) {
+                            if ((e.key === 'Enter' || e.key === ' ') && post.coordinates) {
                                 e.preventDefault();
                                 onShowOnMap(post.id);
                             }
                         }}
-                        title={post.type !== PostType.EVENT && post.coordinates ? "View on Map" : undefined}
+                        title={post.coordinates ? "View on Map" : undefined}
                     >
-                      <MapPinIcon className={cn("w-5 h-5 text-red-400 shrink-0", (post.type !== PostType.EVENT && post.coordinates) ? "group-hover:text-red-600 transition-colors" : "text-red-400")} />
-                      <span className={cn("truncate", (post.type !== PostType.EVENT && post.coordinates) ? "group-hover:underline decoration-red-400 underline-offset-2" : "")}>{post.location}</span>
+                      <MapPinIcon className={cn("w-5 h-5 text-red-400 shrink-0", post.coordinates ? "group-hover:text-red-600 transition-colors" : "text-red-400")} />
+                      <span className={cn("truncate", post.coordinates ? "group-hover:underline decoration-red-400 underline-offset-2" : "")}>{post.location}</span>
                     </div>
+                    )}
                 </div>
                 
                 <div className="mt-6 prose prose-sm max-w-none">

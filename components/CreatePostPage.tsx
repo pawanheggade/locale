@@ -198,13 +198,21 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     e.preventDefault();
     setIsSubmitting(true);
     
-    await locationInput.verify();
-    if (type === PostType.EVENT) await eventLocationInput.verify();
+    // For events, we use eventLocation as the main location
+    if (type === PostType.EVENT) {
+        await eventLocationInput.verify();
+    } else {
+        await locationInput.verify();
+    }
+
+    // Map fields for validation. For events, we treat the event location as the 'required' main location.
+    const effectiveLocation = type === PostType.EVENT ? eventLocationInput.location : locationInput.location;
+    const effectiveHasCoordinates = type === PostType.EVENT ? !!eventLocationInput.coordinates : !!locationInput.coordinates;
 
     const validationErrors = validatePostData({
         title, description, price, isOnSale, salePrice, type,
-        location: locationInput.location,
-        hasCoordinates: !!locationInput.coordinates,
+        location: effectiveLocation,
+        hasCoordinates: effectiveHasCoordinates,
         eventLocation: eventLocationInput.location,
         eventStartDate, hasExpiry, expiryDate,
     }, { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE });
@@ -218,7 +226,16 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     if (Object.keys(validationErrors).length > 0) {
         setIsSubmitting(false);
         const firstErrorKey = Object.keys(validationErrors)[0];
-        const errorElement = document.getElementById(`post-${firstErrorKey}`);
+        let elementId = `post-${firstErrorKey}`;
+        
+        // Redirect focus for location error in Event mode
+        if (type === PostType.EVENT && (firstErrorKey === 'location' || firstErrorKey === 'eventLocation')) {
+             elementId = 'event-location';
+        } else if (firstErrorKey === 'eventStartDate') {
+             elementId = 'event-start-date';
+        }
+
+        const errorElement = document.getElementById(elementId);
         if(errorElement) errorElement.focus();
         return;
     }
@@ -230,8 +247,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     const postData: Omit<Post, 'id' | 'isLiked' | 'authorId'> = {
         title: title.trim(),
         description: description.trim(),
-        location: locationInput.location,
-        coordinates: locationInput.coordinates,
+        // Use event location as main location for events to ensure they appear on map/filter correctly
+        location: type === PostType.EVENT ? eventLocationInput.location : locationInput.location,
+        coordinates: type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates,
         type,
         category,
         price: price ? parseFloat(price) : undefined,
@@ -413,21 +431,23 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                       )}
                   </div>
 
-                  <div>
-                      <LocationInput
-                          id="post-location"
-                          label={type === PostType.EVENT ? "Main Location (e.g., City)" : "Location"}
-                          value={locationInput.location}
-                          onValueChange={locationInput.setLocation}
-                          onSuggestionSelect={locationInput.selectSuggestion}
-                          onVerify={locationInput.verify}
-                          onOpenMapPicker={() => setShowMapPicker(true)}
-                          suggestions={locationInput.suggestions}
-                          status={locationInput.status}
-                          error={locationInput.error}
-                          formError={errors.location}
-                      />
-                  </div>
+                  {type !== PostType.EVENT && (
+                      <div>
+                          <LocationInput
+                              id="post-location"
+                              label="Location"
+                              value={locationInput.location}
+                              onValueChange={locationInput.setLocation}
+                              onSuggestionSelect={locationInput.selectSuggestion}
+                              onVerify={locationInput.verify}
+                              onOpenMapPicker={() => setShowMapPicker(true)}
+                              suggestions={locationInput.suggestions}
+                              status={locationInput.status}
+                              error={locationInput.error}
+                              formError={errors.location}
+                          />
+                      </div>
+                  )}
                   
                   {type === PostType.EVENT && (
                       <div className="p-4 bg-gray-50 border rounded-lg space-y-4 animate-fade-in-up">
