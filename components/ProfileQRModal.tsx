@@ -1,37 +1,180 @@
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
-import { Avatar } from './Avatar';
-import { ShareIcon } from './Icons';
+import { ShareIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { useUI } from '../contexts/UIContext';
-import { SubscriptionBadge } from './SubscriptionBadge';
 
 interface ProfileQRModalProps {
   account: Account;
   onClose: () => void;
 }
 
+const tierColors: Record<string, string> = {
+    'Verified': '#ef4444',     // red-500
+    'Business': '#f59e0b',     // amber-500
+    'Organisation': '#d97706', // amber-600
+    'Basic': '#111827',        // gray-900
+    'Personal': '#111827'      // gray-900
+};
+
+// Helper to draw rounded rectangles on canvas
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const { addToast } = useUI();
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  // Generate URL to the profile (simplified for this implementation)
   const profileUrl = `${window.location.origin}/?account=${account.id}`;
   const encodedUrl = encodeURIComponent(profileUrl);
-  
-  // Use a high error correction level (H) so the center image doesn't break scanning
   const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodedUrl}&ecc=H&margin=10&color=000000&bgcolor=FFFFFF`;
 
-  const colorClasses = useMemo(() => {
+  const borderColor = useMemo(() => {
       switch (account.subscription.tier) {
-          case 'Verified': return { border: 'border-red-500', footer: 'bg-red-500' };
-          case 'Business': return { border: 'border-amber-500', footer: 'bg-amber-500' };
-          case 'Organisation': return { border: 'border-amber-600', footer: 'bg-amber-600' };
-          default: return { border: 'border-black', footer: 'bg-black' };
+          case 'Verified': return 'border-red-500';
+          case 'Business': return 'border-amber-500';
+          case 'Organisation': return 'border-amber-600';
+          default: return 'border-gray-900';
       }
   }, [account.subscription.tier]);
+
+  const handleDownload = async () => {
+    setIsGenerating(true);
+    try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas context failed');
+
+        // Configuration
+        const scale = 3; // High resolution factor
+        const cardWidth = 320;
+        const padding = 24;
+        const contentHeight = 480; 
+        
+        const width = cardWidth * scale;
+        const height = contentHeight * scale;
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.scale(scale, scale);
+
+        // 1. White Background & Shape
+        ctx.fillStyle = '#FFFFFF';
+        // Fill entire canvas white first
+        ctx.fillRect(0, 0, cardWidth, contentHeight); 
+        
+        // 2. Colored Border
+        const tierColor = tierColors[account.subscription.tier] || '#111827';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = tierColor;
+        // Inset border by half linewidth so it doesn't clip
+        roundRect(ctx, 2.5, 2.5, cardWidth - 5, contentHeight - 5, 24); 
+        ctx.stroke();
+
+        // 3. Load & Draw QR Code
+        const qrImg = new Image();
+        qrImg.crossOrigin = 'anonymous';
+        qrImg.src = qrCodeApiUrl;
+        await new Promise((resolve, reject) => {
+            qrImg.onload = resolve;
+            qrImg.onerror = reject;
+        });
+        
+        const qrSize = cardWidth - (padding * 2);
+        ctx.drawImage(qrImg, padding, padding, qrSize, qrSize);
+
+        // 4. Text (Name & Username)
+        const textY = padding + qrSize + 16;
+        ctx.textAlign = 'center';
+        
+        // Name
+        ctx.font = 'bold 22px sans-serif';
+        ctx.fillStyle = '#111827'; // gray-900
+        ctx.fillText(account.name, cardWidth / 2, textY + 16);
+        
+        // Username
+        ctx.font = '500 14px sans-serif';
+        ctx.fillStyle = '#6b7280'; // gray-500
+        ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
+
+        // 5. Locale Logo (Divider removed, adjusted Y position)
+        const logoY = textY + 94; 
+        ctx.font = '500 20px sans-serif';
+        ctx.fillStyle = '#000000'; // Black text
+        
+        const text = "locale";
+        const textMeasure = ctx.measureText(text);
+        const textX = (cardWidth - textMeasure.width) / 2;
+        
+        // Draw "locale"
+        ctx.textAlign = 'left';
+        ctx.fillText(text, textX, logoY);
+        
+        // Draw Triangle Icon under 'o'
+        const lWidth = ctx.measureText('l').width;
+        const oWidth = ctx.measureText('o').width;
+        
+        const triangleCenterX = textX + lWidth + (oWidth / 2) + 1; // Approx center of 'o'
+        const triangleTopY = logoY + 6; 
+
+        ctx.save();
+        ctx.translate(triangleCenterX - 6, triangleTopY); // Center the 12px wide SVG
+        
+        ctx.beginPath();
+        // Triangle Path: M2 2L6 10L10 2H2Z combined with M1 7H11
+        ctx.moveTo(2, 2);
+        ctx.lineTo(6, 10);
+        ctx.lineTo(10, 2);
+        ctx.lineTo(2, 2);
+        
+        ctx.moveTo(1, 7);
+        ctx.lineTo(11, 7);
+        
+        ctx.strokeStyle = '#DC2626'; // red-600
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        ctx.restore();
+
+        // 6. Convert & Download
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${account.username}-qr-card.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                addToast('QR Card downloaded!', 'success');
+            } else {
+                throw new Error('Blob creation failed');
+            }
+        }, 'image/png');
+
+    } catch (error) {
+      console.error('Download failed', error);
+      addToast('Failed to generate QR card.', 'error');
+    } finally {
+        setIsGenerating(false);
+    }
+  };
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -42,101 +185,72 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
           url: profileUrl,
         });
       } catch (error: any) {
-        // Robustly ignore AbortError (user cancelled)
+        // Ignore abort/cancel errors
         const isAbort = error.name === 'AbortError' || 
                         (typeof error.message === 'string' && (
                             error.message.toLowerCase().includes('abort') || 
                             error.message.toLowerCase().includes('cancel')
-                        )) ||
-                        (typeof error === 'string' && (
-                            error.toLowerCase().includes('abort') ||
-                            error.toLowerCase().includes('cancel')
                         ));
         if (!isAbort) {
             console.error('Error sharing:', error);
+            addToast('Could not open share menu', 'error');
         }
       }
     } else {
       navigator.clipboard.writeText(profileUrl);
-      addToast('Profile link copied to clipboard!', 'success');
+      addToast('Profile link copied to clipboard', 'success');
     }
   };
-
-  const renderFooter = () => (
-    <div className="flex w-full justify-between gap-3">
-        <Button variant="glass" onClick={onClose}>Close</Button>
-        <Button variant="glass-red" onClick={handleShare} className="gap-2 flex-1">
-            <ShareIcon className="w-5 h-5" />
-            Share Profile
-        </Button>
-    </div>
-  );
 
   return (
     <ModalShell
       panelRef={modalRef}
       onClose={onClose}
-      title="Profile Code"
-      footer={renderFooter()}
-      panelClassName="w-full max-w-sm"
+      title="Profile QR Code"
       titleId="profile-qr-title"
+      panelClassName="w-full max-w-sm p-0 overflow-hidden rounded-2xl"
     >
-      <div className="p-6 flex flex-col items-center justify-center bg-gray-50">
-        
-        {/* The Card Container */}
-        <div className={`w-full max-w-[280px] bg-white border-4 ${colorClasses.border} rounded-3xl overflow-hidden shadow-2xl flex flex-col transform transition-transform hover:scale-[1.02]`}>
-            
-            {/* Card Body */}
-            <div className="p-8 flex flex-col items-center bg-white">
-                <div className="relative w-full aspect-square mb-5">
-                    {/* QR Code Image */}
-                    <img 
-                        src={qrCodeApiUrl} 
-                        alt={`QR Code for ${account.name}`} 
-                        className="w-full h-full object-contain"
-                    />
-                    
-                    {/* Centered Profile Picture Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="p-1.5 bg-white rounded-full shadow-sm">
-                            <Avatar 
-                                src={account.avatarUrl} 
-                                alt={account.name} 
-                                size="md"
-                                className="w-12 h-12" 
-                            />
-                        </div>
-                    </div>
+      <div className="flex flex-col items-center">
+        <div className="p-8 pb-6 bg-white w-full flex flex-col items-center">
+            {/* Unified Card Container */}
+            <div className={`relative p-6 rounded-3xl border-[5px] ${borderColor} bg-white shadow-sm flex flex-col items-center w-full max-w-[280px]`}>
+                
+                {/* QR Code */}
+                <div className="relative mb-4 w-full aspect-square">
+                    <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-full h-full object-contain rounded-lg" />
+                </div>
+                
+                {/* Name & Username */}
+                <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 leading-tight">{account.name}</h2>
+                    <p className="text-gray-500 font-medium mt-1">@{account.username}</p>
                 </div>
 
-                <div className="text-center space-y-1">
-                    <div className="flex items-center justify-center gap-1.5 px-1">
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight break-words line-clamp-2">{account.name}</h2>
-                        <div className="flex-shrink-0">
-                            <SubscriptionBadge tier={account.subscription.tier} iconOnly />
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-center gap-1.5">
-                        <p className="text-sm text-gray-500 font-medium">@{account.username}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Card Footer */}
-            <div className={`${colorClasses.footer} p-5 flex justify-center items-center`}>
-                <h1 className="text-3xl font-bold text-white tracking-tighter flex items-baseline">
+                {/* Locale Logo */}
+                <div className="flex items-baseline text-black font-medium text-xl select-none pointer-events-none">
                     <span>l</span>
                     <span className="relative inline-flex flex-col items-center">
                         <span>o</span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
-                            <path d="M2 2L6 10L10 2H2Z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
+                            <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </span>
                     <span>cale</span>
-                </h1>
+                </div>
             </div>
         </div>
 
+        {/* Footer Actions */}
+        <div className="w-full bg-gray-50 border-t p-4 flex gap-3 justify-center">
+            <Button onClick={handleDownload} variant="glass" className="flex-1 justify-center" disabled={isGenerating}>
+                {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ArrowDownTrayIcon className="w-5 h-5 mr-2" />}
+                {isGenerating ? 'Saving...' : 'Download'}
+            </Button>
+            <Button onClick={handleShare} variant="glass-dark" className="flex-1 justify-center">
+                <ShareIcon className="w-5 h-5 mr-2" />
+                Share Profile
+            </Button>
+        </div>
       </div>
     </ModalShell>
   );

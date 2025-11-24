@@ -185,20 +185,34 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           
           <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} size={isCompact ? 'x-small' : 'small'} className="mt-2" isExpired={isExpired} showOriginalPriceOnSale={!isCompact} />
           
-          <div className={cn("flex items-center gap-2 mt-2 text-gray-500", isCompact ? 'text-xs' : 'text-sm')}>
-            {coordsToUse && (
-                <Button
-                    onClick={(e) => { e.stopPropagation(); onShowOnMap(post.id); }}
-                    variant="glass"
-                    size="xs"
-                    className="flex-shrink-0 gap-1.5"
-                    aria-label="Show on maps"
-                >
-                    <MapPinIcon className="w-4 h-4" />
-                    Maps
-                </Button>
-            )}
-            <div className="truncate min-w-0" title={locationToDisplay}>{locationToDisplay}</div>
+          <div className={cn("flex items-center gap-1.5 mt-2 min-w-0", isCompact ? 'text-xs' : 'text-sm')}>
+             <div
+                className={cn(
+                    "flex items-center gap-1.5 min-w-0 text-red-400",
+                    coordsToUse ? "cursor-pointer hover:text-red-600 group transition-colors" : ""
+                )}
+                onClick={(e) => {
+                    if (coordsToUse) {
+                        e.stopPropagation();
+                        onShowOnMap(post.id);
+                    }
+                }}
+                role={coordsToUse ? "button" : undefined}
+                tabIndex={coordsToUse ? 0 : undefined}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && coordsToUse) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onShowOnMap(post.id);
+                    }
+                }}
+                title={coordsToUse ? "View on Map" : undefined}
+             >
+                <MapPinIcon className={cn("w-4 h-4 shrink-0", coordsToUse ? "text-red-400 group-hover:text-red-600 transition-colors" : "text-red-400")} />
+                <span className={cn("truncate", coordsToUse ? "group-hover:underline decoration-red-400 underline-offset-2" : "")}>
+                    {locationToDisplay}
+                </span>
+             </div>
           </div>
           
           {!hideExpiry && post.expiryDate && (

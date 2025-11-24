@@ -126,7 +126,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
       isScrolled && 'shadow-sm',
       !isVisible && '-translate-y-full' // Hide via transform
     )}>
-      <div className={`px-4 sm:px-6 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 sm:gap-x-2 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      <div className={`px-4 sm:px-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-1 sm:gap-x-1 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="glass" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
@@ -144,13 +144,13 @@ const HeaderComponent: React.FC<HeaderProps> = ({
               role="button"
               tabIndex={0}
               aria-label="Go to all posts and clear filters"
-              className="text-2xl sm:text-3xl font-bold text-gray-800 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-lg transition-[transform,opacity] active:scale-95 flex items-baseline"
+              className="text-2xl sm:text-3xl font-medium text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline"
             >
               <span>l</span>
               <span className="relative inline-flex flex-col items-center">
                 <span>o</span>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
-                  <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="3" strokeLinejoin="round" />
+                  <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
               <span>cale</span>

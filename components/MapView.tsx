@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { DisplayablePost, PostType } from '../types';
+import { DisplayablePost, PostType, Subscription } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
 import { useMap } from '../hooks/useMap';
@@ -52,49 +52,58 @@ const compactPrice = (price: number | undefined | null): string => {
 };
 
 const createMarkerIcon = (post: DisplayablePost) => {
-    let typeColor: string, borderColor: string, textColor: string, priceBgColor: string, priceTextColor: string;
+    const tier = post.author?.subscription?.tier || 'Personal';
+    
+    let tierColorBg: string;
+    let tierColorBorder: string;
+    let ringColor: string;
 
-    switch (post.type) {
-      case PostType.SERVICE:
-        typeColor = 'bg-white';
-        borderColor = 'border-t-white';
-        textColor = 'text-gray-800';
-        priceBgColor = 'bg-gray-800';
-        priceTextColor = 'text-white';
+    switch (tier) {
+      case 'Business':
+      case 'Organisation':
+        tierColorBg = 'bg-amber-500';
+        tierColorBorder = 'border-t-amber-500';
+        ringColor = 'ring-amber-500';
         break;
-      case PostType.EVENT:
-        typeColor = 'bg-gray-800';
-        borderColor = 'border-t-gray-800';
-        textColor = 'text-white';
-        priceBgColor = 'bg-black/30';
-        priceTextColor = 'text-white';
+      case 'Verified':
+        tierColorBg = 'bg-red-500';
+        tierColorBorder = 'border-t-red-500';
+        ringColor = 'ring-red-500';
         break;
-      case PostType.PRODUCT:
+      case 'Basic':
+      case 'Personal':
       default:
-        typeColor = 'bg-gray-800';
-        borderColor = 'border-t-gray-800';
-        textColor = 'text-white';
-        priceBgColor = 'bg-white';
-        priceTextColor = 'text-gray-800';
+        tierColorBg = 'bg-gray-900';
+        tierColorBorder = 'border-t-gray-900';
+        ringColor = 'ring-gray-900';
         break;
     }
     
     const priceText = compactPrice(post.price);
+    const isServiceOrEvent = post.type === PostType.SERVICE || post.type === PostType.EVENT;
+
+    // Products: Colored Header, White Body
+    // Services/Events: White Header, Colored Body
+    const headerClass = isServiceOrEvent ? 'bg-white text-gray-900' : `${tierColorBg} text-white`;
+    const bodyClass = isServiceOrEvent ? `${tierColorBg} text-white` : 'bg-white text-gray-900';
+    const arrowClass = isServiceOrEvent ? tierColorBorder : 'border-t-white';
 
     const iconHtml = `
-      <div class="custom-marker marker-pop-in-animation cursor-pointer group flex flex-col items-center">
-        <div class="marker-content ${typeColor} ${textColor} rounded-lg shadow-lg text-center transform-gpu">
-          <div class="text-xs font-semibold px-2.5 pt-1 truncate max-w-[90px]" title="${post.title}">
-            ${post.title}
+      <div style="transform: translate(-50%, -100%); position: absolute; left: 0; top: 0; width: max-content;">
+        <div class="custom-marker marker-pop-in-animation cursor-pointer group flex flex-col items-center">
+          <div class="marker-content bg-white rounded-lg shadow-lg text-center transform-gpu ring-1 ${ringColor} overflow-hidden w-[120px]">
+            <div class="text-xs font-semibold px-1 py-1 whitespace-normal leading-tight ${headerClass}" title="${post.title}">
+              ${post.title}
+            </div>
+            <div class="text-sm font-bold px-1 py-1 ${bodyClass}">
+              ${priceText}
+            </div>
           </div>
-          <div class="text-sm font-bold ${priceBgColor} ${priceTextColor} px-2 pb-1 pt-0.5 rounded-b-lg">
-            ${priceText}
+          <div class="marker-arrow w-0 h-0
+            border-l-[6px] border-l-transparent
+            border-r-[6px] border-r-transparent
+            border-t-[6px] ${arrowClass} -mt-[1px] filter drop-shadow-sm">
           </div>
-        </div>
-        <div class="marker-arrow w-0 h-0
-          border-l-[6px] border-l-transparent
-          border-r-[6px] border-r-transparent
-          border-t-[6px] ${borderColor}">
         </div>
       </div>
     `;
@@ -102,8 +111,8 @@ const createMarkerIcon = (post: DisplayablePost) => {
     return L.divIcon({
       html: iconHtml,
       className: '', // important to remove default styling
-      iconSize: L.point(100, 50),
-      iconAnchor: L.point(50, 50),
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
     });
 };
 

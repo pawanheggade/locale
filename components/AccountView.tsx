@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, DocumentDuplicateIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, DocumentDuplicateIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -298,7 +299,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             </div>
                             {account.taxInfo && (
                                 <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-                                    <DocumentDuplicateIcon className="w-3.5 h-3.5" />
+                                    <DocumentIcon className="w-3.5 h-3.5" />
                                     <span>Tax ID: {account.taxInfo}</span>
                                 </div>
                             )}
@@ -398,14 +399,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                 {/* Internal Map Link (Pin + Address) */}
                 {account.address && (
                     <div 
-                        className="flex items-center gap-1.5 cursor-pointer hover:text-gray-900 transition-colors group min-w-0"
+                        className="flex items-center gap-1.5 cursor-pointer text-red-400 hover:text-red-600 transition-colors group min-w-0"
                         onClick={() => onShowOnMap(account)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
                         title="View on Map"
                     >
-                        <MapPinIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-900 transition-colors shrink-0" />
+                        <MapPinIcon className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors shrink-0" />
                         <span>{account.address}</span>
                     </div>
                 )}
