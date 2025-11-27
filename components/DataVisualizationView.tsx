@@ -35,7 +35,6 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
   const categoryChartRef = useRef<HTMLCanvasElement>(null);
   const typeChartRef = useRef<HTMLCanvasElement>(null);
   const activityChartRef = useRef<HTMLCanvasElement>(null);
-  const postLikesChartRef = useRef<HTMLCanvasElement>(null);
 
   const commonOptions = useMemo(() => ({
     responsive: true,
@@ -165,68 +164,10 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
     };
   }, [allPosts, commonOptions]);
 
-  const postLikesData = useMemo(() => {
-    const postLikes: { [key: string]: number } = {};
-    const accountPostIds = new Set(allPosts.map(p => p.id));
-
-    // Tally likes from all users in the system
-    if (accounts) {
-      for (const acc of accounts) {
-        if (acc.likedPostIds) {
-          for (const likedPostId of acc.likedPostIds) {
-            if (accountPostIds.has(likedPostId)) {
-              postLikes[likedPostId] = (postLikes[likedPostId] || 0) + 1;
-            }
-          }
-        }
-      }
-    }
-
-    const sortedPosts = allPosts
-      .map(post => ({ ...post, likes: postLikes[post.id] || 0 }))
-      .filter(post => post.likes > 0)
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 10); // Top 10
-
-    return {
-      labels: sortedPosts.map(p => p.title),
-      data: sortedPosts.map(p => p.likes),
-      hasData: sortedPosts.length > 0,
-    };
-  }, [allPosts, accounts]);
-
-  const postLikesChartConfig = useMemo(() => {
-    return {
-      type: 'bar',
-      data: {
-        labels: postLikesData.labels,
-        datasets: [{
-          label: '# of Likes',
-          data: postLikesData.data,
-          backgroundColor: 'rgba(239, 68, 68, 0.6)',
-          borderColor: 'rgba(220, 38, 38, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        ...commonOptions,
-        indexAxis: 'y', // Horizontal bar chart
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: 'Most Liked Posts', font: { size: 16 } }
-        },
-        scales: {
-          x: { beginAtZero: true, ticks: { stepSize: 1 } }
-        }
-      }
-    };
-  }, [postLikesData, commonOptions]);
-
   // --- Initialize charts using the custom hook ---
   useChart(categoryChartRef, categoryChartConfig);
   useChart(typeChartRef, typeChartConfig);
   useChart(activityChartRef, activityChartConfig);
-  useChart(postLikesChartRef, postLikesChartConfig);
 
   return (
     <div className="p-4 bg-gray-50 rounded-xl">
@@ -262,18 +203,6 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
             </div>
           </>
         )}
-        <div className="bg-white p-6 rounded-xl col-span-1 lg:col-span-2">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Performance</h2>
-            {postLikesData.hasData ? (
-                <div className="relative h-96">
-                    <canvas ref={postLikesChartRef}></canvas>
-                </div>
-            ) : (
-                <div className="relative h-96 flex items-center justify-center text-gray-600">
-                    <p>No posts have received likes yet.</p>
-                </div>
-            )}
-        </div>
       </div>
     </div>
   );
