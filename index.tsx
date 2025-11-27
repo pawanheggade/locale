@@ -1,10 +1,8 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { AppProviders } from './contexts/AppProviders';
 import ErrorBoundary from './components/ErrorBoundary';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -21,6 +19,3 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
-
-// Unregister the service worker to disable offline functionality and fix caching issues.
-serviceWorkerRegistration.unregister();
