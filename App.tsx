@@ -108,6 +108,20 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // If we are viewing an account and the master list of accounts updates,
+    // refresh the `viewingAccount` state with the latest data from the context.
+    // This ensures that profile edits are reflected live.
+    if (viewingAccount && accountsById.has(viewingAccount.id)) {
+      const freshAccount = accountsById.get(viewingAccount.id);
+      // A simple stringify check is a safe way to prevent re-render loops
+      // caused by new object references on every render.
+      if (freshAccount && JSON.stringify(freshAccount) !== JSON.stringify(viewingAccount)) {
+        setViewingAccount(freshAccount);
+      }
+    }
+  }, [accountsById, viewingAccount]);
+
   const handleUpdateNotificationSettings = (newSettings: NotificationSettings) => {
     setNotificationSettings(newSettings);
     addToast('Settings saved!', 'success');

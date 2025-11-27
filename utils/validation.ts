@@ -1,8 +1,9 @@
 
+
 import { Account, Post } from '../types';
 
 // A subset of Account fields relevant for validation
-interface AccountValidationData {
+export interface AccountValidationData {
     name?: string;
     username?: string;
     email?: string;

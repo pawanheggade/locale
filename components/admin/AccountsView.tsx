@@ -64,6 +64,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                             selectedValue={account.role}
                             onSelect={(newRole) => onUpdateAccountRole(account.id, newRole as 'account' | 'admin')}
                             className="w-28"
+                            variant="overlay"
                         />
                     )}
                 </td>
@@ -79,6 +80,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                         selectedValue={account.subscription.tier}
                         onSelect={(newTier) => onUpdateSubscription(account.id, newTier as Subscription['tier'])}
                         className="w-36"
+                        variant="overlay"
                     />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatFullDate(account.joinDate)}</td>

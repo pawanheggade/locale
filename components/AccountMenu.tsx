@@ -31,7 +31,8 @@ const MenuItem: React.FC<{
   badgeCount?: number;
   animateBadge?: boolean;
 }> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
-    <Button onClick={onClick} variant="ghost" className="w-full justify-start gap-3 p-3 h-auto rounded-lg" role="menuitem">
+    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl" role="menuitem">
+      <div className="w-full flex items-center justify-start gap-3 p-3">
         <div className="relative w-6 h-6 flex items-center justify-center">
             {icon}
             {badgeCount > 0 && (
@@ -39,6 +40,7 @@ const MenuItem: React.FC<{
             )}
         </div>
         <span className="text-sm font-semibold text-gray-600">{label}</span>
+      </div>
     </Button>
 );
 
@@ -138,7 +140,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
 
             {isAccountMenuOpen && (
                 <div
-                  className={`absolute right-0 mt-2 w-72 origin-top-right bg-white rounded-lg border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
+                  className={`absolute right-0 mt-2 w-72 origin-top-right bg-white rounded-xl border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
                   role="menu"
                   aria-orientation="vertical"
                   tabIndex={-1}
@@ -148,10 +150,10 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         <Button
                             onClick={() => handleMenuAction(onEditProfile)} 
                             variant="ghost"
-                            className="w-full h-auto text-left p-4 border-b bg-gray-50 rounded-t-lg rounded-b-none"
+                            className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
                             role="menuitem"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="w-full flex items-center gap-3 p-4">
                                 <Avatar 
                                     src={currentAccount.avatarUrl} 
                                     alt={currentAccount.name} 
@@ -168,10 +170,10 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         <Button 
                             onClick={() => handleMenuAction(handleAccountViewToggle)} 
                             variant="ghost"
-                            className="w-full h-auto text-left p-4 border-b bg-gray-50 rounded-t-lg rounded-b-none"
+                            className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
                             role="menuitem"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="w-full flex items-center gap-3 p-4">
                                 <Avatar 
                                     src={currentAccount.avatarUrl} 
                                     alt={currentAccount.name} 
@@ -210,13 +212,13 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         <div className="my-1 h-px bg-gray-100" role="separator" />
                         <div className="px-2" role="none">
                            <div className="grid grid-cols-2 gap-2">
-                               <Button onClick={() => handleMenuAction(handleViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-lg" role="menuitem">
+                               <Button onClick={() => handleMenuAction(handleViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-xl" role="menuitem">
                                     <div className="w-6 h-6 flex items-center justify-center text-gray-600">
                                        {mainView === 'grid' ? <MapPinIcon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
                                     </div>
                                     <span className="text-xs font-semibold text-gray-600">{mainView === 'grid' ? 'Maps' : 'Grid'}</span>
                                 </Button>
-                                <Button onClick={() => handleMenuAction(handleGridViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-lg" role="menuitem">
+                                <Button onClick={() => handleMenuAction(handleGridViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-xl" role="menuitem">
                                      <div className="w-6 h-6 flex items-center justify-center text-gray-600">
                                        {gridView === 'default' ? <Squares3X3Icon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
                                     </div>
@@ -229,7 +231,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             <>
                                 <div className="my-1 h-px bg-gray-100" role="separator" />
                                 <div className="p-2" role="none">
-                                    <Button onClick={() => handleMenuAction(() => onViewChange('admin'))} variant="ghost" className="w-full justify-center gap-4 px-4 py-2.5 text-base h-auto font-medium text-gray-600 rounded-lg" role="menuitem">
+                                    <Button onClick={() => handleMenuAction(() => onViewChange('admin'))} variant="ghost" className="w-full justify-center gap-4 px-4 py-2.5 text-base h-auto font-medium text-gray-600 rounded-xl" role="menuitem">
                                         <UserIcon className="w-6 h-6 text-gray-600" />
                                         <span>Admin Panel</span>
                                     </Button>

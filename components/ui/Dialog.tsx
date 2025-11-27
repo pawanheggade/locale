@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -89,7 +90,7 @@ const DialogContent = React.forwardRef<
       right: { open: 'animate-slide-in-right', close: 'animate-slide-out-right' }
   };
   const panelPositionClasses = {
-    center: 'rounded-lg max-h-[90vh]',
+    center: 'rounded-xl max-h-[90vh]',
     right: 'h-full'
   };
 

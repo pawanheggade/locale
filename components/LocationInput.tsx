@@ -6,6 +6,7 @@ import { LocationStatus } from '../hooks/useLocationInput';
 import { useSuggestionKeyboardNav } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { cn, inputBaseStyles } from '../lib/utils';
 
 interface LocationInputProps {
     id?: string;
@@ -69,7 +70,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         onKeyDown={handleKeyDown}
                         onBlur={onVerify}
                         placeholder={placeholder}
-                        className={className} // className is now passed from FormField
+                        className={cn(inputBaseStyles, 'h-10 px-3 py-2 pr-10', className)}
                         autoComplete="off"
                         required={required}
                         role="combobox"

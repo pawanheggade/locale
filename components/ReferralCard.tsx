@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Account } from '../types';
 import { ShareIcon } from './Icons';
@@ -33,11 +34,11 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
     };
 
     return (
-        <div className="bg-amber-50 border-2 border-dashed border-amber-300 rounded-lg p-4 text-center">
+        <div className="bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl p-4 text-center">
             <h3 className="text-lg font-semibold text-amber-900">Refer & Earn!</h3>
             <p className="mt-1 text-sm text-amber-800 max-w-md mx-auto">Refer someone to sign up as a seller and you'll get a <span className="font-bold">3-month Business subscription bonus!</span></p>
             <p className="mt-3 text-sm text-gray-600">Your unique referral code:</p>
-            <div className="mt-2 flex items-center justify-center gap-2 p-3 bg-white rounded-lg border border-amber-200 max-w-xs mx-auto">
+            <div className="mt-2 flex items-center justify-center gap-2 p-3 bg-white rounded-xl border border-amber-200 max-w-xs mx-auto">
                 <p className="text-xl font-bold text-gray-800 tracking-widest">{account.referralCode}</p>
             </div>
             

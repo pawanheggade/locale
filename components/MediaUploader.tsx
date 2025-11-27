@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, DragEvent, ChangeEvent, KeyboardEvent } from 'react';
 import { MediaUpload } from '../hooks/useMediaUploader';
 import { XMarkIcon, SpinnerIcon, AlertIcon } from './Icons';
@@ -16,7 +15,7 @@ interface MediaUploaderProps {
 
 const MediaPreview: React.FC<{ upload: MediaUpload; onRemove: () => void; }> = ({ upload, onRemove }) => {
     return (
-        <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border group">
+        <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden border group">
             {upload.type === 'video' ? (
                  <video src={upload.previewUrl} className="w-full h-full object-cover" />
             ) : (
@@ -163,7 +162,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ mediaUploads, hand
                 tabIndex={0}
                 aria-label="Upload media. Click or drag and drop files here."
                 className={cn(
-                    'flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
+                    'flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
                     isDraggingOver ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
                 )}
             >
@@ -183,7 +182,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ mediaUploads, hand
                             onDrop={(e) => handleItemDrop(e, index)}
                             onDragEnd={handleDragEnd}
                             className={cn(
-                                'cursor-grab active:cursor-grabbing transition-all duration-200 transform relative rounded-lg',
+                                'cursor-grab active:cursor-grabbing transition-all duration-200 transform relative rounded-xl',
                                 draggedIndex === index ? 'opacity-50' : 'opacity-100',
                                 dragOverIndex === index && draggedIndex !== index ? 'scale-105 ring-2 ring-red-500 ring-offset-2 z-10 shadow-lg' : ''
                             )}

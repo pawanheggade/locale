@@ -306,10 +306,10 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
             icon={<ShoppingBagIcon className="text-gray-300" />}
             title=""
             description="No items in your bag."
-            className="py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200"
+            className="py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
           />
         ) : (
-          <div className="bg-white rounded-lg overflow-hidden">
+          <div className="bg-white rounded-xl overflow-hidden">
             <ul className="divide-y divide-gray-200">
               {inBagItems.map((item) => {
                 const { id, quantity } = item;
@@ -354,7 +354,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
         </div>
         
         {showCreateListForm && (
-            <form onSubmit={handleCreateListSubmit} className="p-4 mb-4 bg-gray-50 rounded-lg flex items-center gap-2 animate-fade-in-up">
+            <form onSubmit={handleCreateListSubmit} className="p-4 mb-4 bg-gray-50 rounded-xl flex items-center gap-2 animate-fade-in-up">
                 <Input 
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
@@ -372,7 +372,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                 icon={<DocumentIcon className="w-12 h-12 text-gray-300" />}
                 title=""
                 description="Create lists to organize items you want to save."
-                className="py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200"
+                className="py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
             />
         ) : (
             <Accordion type="multiple" className="w-full space-y-2">
@@ -382,7 +382,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                 const listTotalPrice = itemsInList.reduce((sum, item) => sum + (item.post.salePrice ?? item.post.price) * item.quantity, 0);
                 
                 return (
-                <AccordionItem key={list.id} value={list.id} className="bg-white rounded-lg overflow-hidden">
+                <AccordionItem key={list.id} value={list.id} className="bg-white rounded-xl overflow-hidden">
                     <AccordionTrigger className="px-4 py-3">
                         <div className="flex flex-1 items-center justify-between mr-2">
                           <div className="flex flex-col items-start min-w-0 text-left">

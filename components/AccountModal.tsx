@@ -34,6 +34,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
 
   const isEditing = mode === 'edit';
   const isUpgrading = mode === 'upgrade';
+  const isCreating = mode === 'create';
 
   const title = isMapPickerOpen ? 'Select Location' 
     : isEditing ? 'Edit Account'
@@ -67,7 +68,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
   };
 
   const renderFooter = () => {
-    if (isMapPickerOpen) return null;
+    if (isMapPickerOpen || isCreating) return null;
 
     return (
       <>

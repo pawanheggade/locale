@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
@@ -81,7 +82,7 @@ const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, curren
                       role="button"
                       tabIndex={0}
                       aria-label={`View profile of ${account.name}`}
-                      className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
+                      className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
                     >
                       <Avatar src={account.avatarUrl} alt={account.name} size="2xl" tier={account.subscription.tier} className="ring-offset-2 ring-offset-white" />
                       <h2 className="mt-4 text-xl font-bold text-gray-800">{account.name}</h2>

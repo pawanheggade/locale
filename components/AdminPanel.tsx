@@ -82,7 +82,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
   ];
 
   return (
-    <div className="bg-white rounded-lg p-4 sm:p-6 lg:p-8">
+    <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Admin Panel</h1>
         {/* Dropdown for smaller screens */}

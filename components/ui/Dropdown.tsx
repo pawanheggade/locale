@@ -76,8 +76,8 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
     };
 
     const buttonStyles = {
-      default: 'border border-gray-300 bg-white rounded-md h-10 px-3',
-      overlay: 'border-b-2 border-gray-300 bg-transparent rounded-none h-10 px-1 focus-visible:border-red-500',
+      default: 'border border-gray-300 bg-white rounded-md h-10 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
+      overlay: 'bg-transparent border-0 rounded-none h-10 px-1 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-b-2 focus-visible:border-red-500',
     };
 
     return (
@@ -87,7 +87,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
-          className={cn('flex items-center justify-between w-full text-left text-sm text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500', buttonStyles[variant])}
+          className={cn('flex items-center justify-between w-full text-left text-sm text-gray-800', buttonStyles[variant])}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
         >

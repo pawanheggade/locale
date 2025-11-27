@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,7 +23,7 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
     return (
         <div 
             onClick={() => onViewForumPost(post.id)} 
-            className="bg-white rounded-lg border border-gray-200/80 p-4 flex gap-4 cursor-pointer transition-shadow"
+            className="bg-white rounded-xl border border-gray-200/80 p-4 flex gap-4 cursor-pointer transition-shadow"
         >
             <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
             <div className="flex-1 min-w-0">
@@ -77,7 +78,7 @@ export const ForumView: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200/80 mb-6 overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200/80 mb-6 overflow-hidden">
                 <div className="flex flex-col sm:flex-row justify-between items-center border-b border-gray-200">
                      <div className="flex space-x-4 px-4 overflow-x-auto hide-scrollbar w-full sm:w-auto">
                         <TabButton onClick={() => setActiveCategory('All')} isActive={activeCategory === 'All'} size="sm">All</TabButton>

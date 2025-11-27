@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent } from 'react';
 import { Post, PostType, Media, PostCategory, Account, ContactOption } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -297,7 +296,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
               <h1 className="text-3xl font-bold text-gray-800 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
               <form id="create-post-form" onSubmit={handleSubmit} className="space-y-6">
                   {needsSellerDetails && (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg animate-fade-in-up">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in-up">
                           <h3 className="font-semibold text-amber-900">Complete Your Seller Profile</h3>
                           <p className="text-sm text-amber-800 mb-4">Before you can post, please set your payment and delivery options. This helps buyers know how they can purchase from you.</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -426,7 +425,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                   )}
                   
                   {type === PostType.EVENT && (
-                      <div className="p-4 bg-gray-50 border rounded-lg space-y-4 animate-fade-in-up">
+                      <div className="p-4 bg-gray-50 border rounded-xl space-y-4 animate-fade-in-up">
                           <h3 className="font-semibold text-gray-800">Event Details</h3>
                           <FormField id="event-location" label="Venue / Event Location" error={errors.eventLocation || eventLocationInput.error}>
                               <LocationInput

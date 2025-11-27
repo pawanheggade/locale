@@ -1,3 +1,5 @@
+
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, DocumentDuplicateIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
@@ -207,7 +209,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   url: profileUrl,
               });
           } catch (err: any) {
-              // Handle share cancellation errors robustly
               const isAbort = 
                   err.name === 'AbortError' || 
                   err.code === 20 ||
@@ -228,7 +229,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   };
 
   return (
-    <div className="pb-20 bg-white min-h-screen animate-fade-in">
+    <div className="pb-20 bg-gray-50 min-h-screen animate-fade-in">
       {/* Banner Section */}
       <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
         {account.bannerUrl ? (
@@ -236,256 +237,137 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
         )}
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none"></div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Content Wrapper */}
-        <div className="relative mt-4 pb-6">
-            
-            {/* Top Row: Avatar, Identity, Desktop Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-end gap-4 mb-6">
-                <div className="flex items-end gap-4 w-full sm:w-auto">
-                    <div 
-                        className="relative p-1 bg-white rounded-full shrink-0 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                        onClick={() => openModal({ type: 'profileQR', data: account })}
-                        title="View Profile QR Code"
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { 
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                openModal({ type: 'profileQR', data: account });
-                            }
-                        }}
-                    >
-                        <Avatar 
-                            src={account.avatarUrl} 
-                            alt={account.name} 
-                            size="3xl" 
-                            tier={account.subscription.tier} 
-                            className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-white"
-                        />
-                    </div>
-                    
-                    {/* Identity - Moved beside Avatar */}
-                    <div className="mb-1 flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                            <SubscriptionBadge tier={account.subscription.tier} className="mt-1" />
-                        </div>
-                        <div className="mt-1 flex flex-col gap-1">
-                            <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
-                            <div className="flex items-center gap-1.5 text-gray-600 text-sm">
-                                <CalendarIcon className="w-4 h-4" />
-                                <span>Joined {formatMonthYear(account.joinDate)}</span>
-                            </div>
-                            {account.taxInfo && (
-                                <div className="flex items-center gap-1.5 text-gray-600 text-sm">
-                                    <DocumentIcon className="w-4 h-4" />
-                                    <span>Tax ID: {account.taxInfo}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Desktop Actions */}
-                <div className="hidden sm:flex gap-2 mb-1 shrink-0">
-                    {isOwnAccount ? (
-                        <>
-                            <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4">
-                                <PencilIcon className="w-4 h-4" />
-                                Edit Profile
-                            </Button>
-                            <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2">
-                                <ChartBarIcon className="w-4 h-4" />
-                                Analytics
-                            </Button>
-                            <SocialsDropdown links={sortedSocialLinks} size="sm" />
-                            <Button variant="overlay-dark" size="sm" onClick={handleShareProfile} title="Share Profile">
-                                <ShareIcon className="w-4 h-4" />
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            {contactMethods.map(method => (
-                                <Button
-                                    key={method.key}
-                                    as="a"
-                                    href={method.href}
-                                    target={method.key === 'message' ? '_blank' : undefined}
-                                    rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
-                                    onClick={(e) => handleContactAction(e, method)}
-                                    variant="overlay-dark"
-                                    size="icon-sm"
-                                    title={method.label}
-                                >
-                                    <method.icon className="w-4 h-4" />
-                                </Button>
-                            ))}
-
-                            <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
-
-                            <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile">
-                                <ShareIcon className="w-4 h-4" />
-                            </Button>
-
-                            <LikeButton
-                                isLiked={isLiked}
-                                onToggle={() => onToggleLike(account.id)}
-                                variant={isLiked ? "pill-lightred" : "pill-red"}
-                                size="sm"
-                                className="gap-2 px-6 ml-2"
-                                includeLabel
-                                iconClassName="w-4 h-4"
-                            />
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* Bio */}
-            {account.description && (
-                <p className="text-gray-600 text-sm sm:text-base leading-relaxed mt-4 mb-4">
-                    {account.description}
-                </p>
-            )}
-
-            {/* Meta Info Row - Unified Address and Icons */}
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-                
-                {/* Unified Map Icons Group - Moved to front */}
-                {(account.googleMapsUrl || account.appleMapsUrl) && (
-                    <div className="flex items-center gap-3 shrink-0">
-                        {/* Google Maps */}
-                        {account.googleMapsUrl && (
-                            <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1" title="Google Maps">
-                                <GoogleIcon className="w-4 h-4" />
-                            </a>
-                        )}
-                        {/* Apple Maps */}
-                        {account.appleMapsUrl && (
-                            <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1" title="Apple Maps">
-                                <AppleIcon className="w-4 h-4" />
-                            </a>
-                        )}
-                    </div>
-                )}
-
-                {/* Internal Map Link (Pin + Address) */}
-                {account.address && (
-                    <div 
-                        className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
-                        onClick={() => onShowOnMap(account)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
-                        title="View on Map"
-                    >
-                        <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
-                        <span>{account.address}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Mobile Actions */}
-            <div className="mt-6 flex gap-3 sm:hidden">
-                {isOwnAccount ? (
-                    <>
-                        <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}>
-                            <PencilIcon className="w-4 h-4" />
-                            Edit
-                        </Button>
-                        <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}>
-                            <ChartBarIcon className="w-4 h-4" />
-                            Analytics
-                        </Button>
-                        <SocialsDropdown links={sortedSocialLinks} size="icon" />
-                        <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share">
-                            <ShareIcon className="w-4 h-4" />
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <LikeButton
-                            isLiked={isLiked}
-                            onToggle={() => onToggleLike(account.id)}
-                            variant={isLiked ? "pill-lightred" : "pill-red"}
-                            className="flex-1 justify-center gap-2"
-                            includeLabel
-                        />
-
-                        {contactMethods.map(method => (
-                            <Button
-                                key={method.key}
-                                as="a"
-                                href={method.href}
-                                target={method.key === 'message' ? '_blank' : undefined}
-                                rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
-                                onClick={(e) => handleContactAction(e, method)}
-                                variant="overlay-dark"
-                                size="icon"
-                                title={method.label}
-                            >
-                                <method.icon className="w-4 h-4" />
-                            </Button>
-                        ))}
-
-                        <SocialsDropdown links={sortedSocialLinks} size="icon" />
-
-                        <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share">
-                            <ShareIcon className="w-4 h-4" />
-                        </Button>
-                    </>
-                )}
-            </div>
+        
+        {/* Profile Header Card */}
+        <div className="relative bg-white rounded-xl p-4 sm:p-6 mt-6 border border-gray-200/80">
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
+              
+              <div className="flex items-end gap-4">
+                  <Avatar 
+                      src={account.avatarUrl} 
+                      alt={account.name} 
+                      tier={account.subscription.tier} 
+                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white"
+                  />
+                  <div className="mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
+                          <SubscriptionBadge tier={account.subscription.tier} className="mt-1" />
+                      </div>
+                      <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
+                        <div className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4" /><span>Joined {formatMonthYear(account.joinDate)}</span></div>
+                        {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4" /><span>Tax ID: {account.taxInfo}</span></div>)}
+                      </div>
+                  </div>
+              </div>
+              
+              <div className="hidden sm:flex items-center gap-2 mb-1 shrink-0">
+                  {isOwnAccount ? (
+                      <>
+                          <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4"><PencilIcon className="w-4 h-4" />Edit Profile</Button>
+                          <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2"><ChartBarIcon className="w-4 h-4" />Analytics</Button>
+                          <SocialsDropdown links={sortedSocialLinks} size="sm" />
+                          <Button variant="overlay-dark" size="sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
+                      </>
+                  ) : (
+                      <>
+                          {contactMethods.map(method => (
+                              <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => handleContactAction(e, method)} variant="overlay-dark" size="icon-sm" title={method.label}>
+                                  <method.icon className="w-4 h-4" />
+                              </Button>
+                          ))}
+                          <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
+                          <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
+                          <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account.id)} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
+                      </>
+                  )}
+              </div>
+          </div>
+          
+          <div className="mt-4">
+              {account.description && (
+                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">{account.description}</p>
+              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
+                  {account.address && (
+                      <div className="flex items-center gap-3 min-w-0">
+                           {(account.googleMapsUrl || account.appleMapsUrl) && (
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                  {account.googleMapsUrl && (
+                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Google Maps">
+                                          <GoogleIcon className="w-4 h-4" />
+                                      </a>
+                                  )}
+                                  {account.appleMapsUrl && (
+                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Apple Maps">
+                                          <AppleIcon className="w-4 h-4" />
+                                      </a>
+                                  )}
+                              </div>
+                          )}
+                          <div
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
+                              onClick={() => onShowOnMap(account)}
+                              className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
+                          >
+                              <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
+                              <span className="group-hover:underline">{account.address}</span>
+                          </div>
+                      </div>
+                  )}
+              </div>
+          </div>
+          
+          <div className="mt-6 flex gap-3 sm:hidden">
+             {isOwnAccount ? (
+                  <>
+                      <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}><PencilIcon className="w-4 h-4" />Edit</Button>
+                      <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}><ChartBarIcon className="w-4 h-4" />Analytics</Button>
+                      <SocialsDropdown links={sortedSocialLinks} size="icon" />
+                      <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
+                  </>
+              ) : (
+                  <>
+                      <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account.id)} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
+                      {contactMethods.map(method => (
+                          <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => handleContactAction(e, method)} variant="overlay-dark" size="icon" title={method.label}>
+                              <method.icon className="w-4 h-4" />
+                          </Button>
+                      ))}
+                      <SocialsDropdown links={sortedSocialLinks} size="icon" />
+                      <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
+                  </>
+              )}
+          </div>
+          
+          {isOwnAccount && (
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                  <ReferralCard account={account} />
+              </div>
+          )}
         </div>
 
-        {/* Seller Info / Referral Section for Own Profile - Moved Above Tabs */}
-        {isOwnAccount && (
-            <div className="mb-6 border-t border-gray-100 pt-6">
-                <ReferralCard account={account} />
+        {/* Content Section */}
+        <div className="bg-white rounded-xl border border-gray-200/80 mt-6 overflow-hidden">
+          <div className="border-b border-gray-200">
+            <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
+                {showPinsTab && <TabButton onClick={() => setActiveTab('pins')} isActive={activeTab === 'pins'}>Pins</TabButton>}
+                <TabButton onClick={() => setActiveTab('all')} isActive={activeTab === 'all'}>Posts</TabButton>
+                {showSaleTab && <TabButton onClick={() => setActiveTab('sale')} isActive={activeTab === 'sale'}>Sale</TabButton>}
+                {showCatalogTab && <TabButton onClick={() => setActiveTab('catalogs')} isActive={activeTab === 'catalogs'}>Catalogs</TabButton>}
+                {postCategories.map(cat => (<TabButton key={cat} onClick={() => setActiveTab(cat)} isActive={activeTab === cat}>{cat}</TabButton>))}
+                {showArchivesTab && <TabButton onClick={() => setActiveTab('archives')} isActive={activeTab === 'archives'}>Archived</TabButton>}
             </div>
-        )}
+          </div>
 
-        {/* Tabs */}
-        <div className="bg-white border-b border-gray-200 mb-6 overflow-x-auto hide-scrollbar">
-            <div className="flex space-x-6 px-4 sm:px-6 min-w-max">
-                {showPinsTab && (
-                    <TabButton onClick={() => setActiveTab('pins')} isActive={activeTab === 'pins'}>
-                        Pins
-                    </TabButton>
-                )}
-                <TabButton onClick={() => setActiveTab('all')} isActive={activeTab === 'all'}>
-                    Posts
-                </TabButton>
-                {showSaleTab && (
-                    <TabButton onClick={() => setActiveTab('sale')} isActive={activeTab === 'sale'}>
-                        Sale
-                    </TabButton>
-                )}
-                {showCatalogTab && (
-                    <TabButton onClick={() => setActiveTab('catalogs')} isActive={activeTab === 'catalogs'}>
-                        Catalogs
-                    </TabButton>
-                )}
-                {postCategories.map(cat => (
-                    <TabButton key={cat} onClick={() => setActiveTab(cat)} isActive={activeTab === cat}>
-                        {cat}
-                    </TabButton>
-                ))}
-                {showArchivesTab && (
-                    <TabButton onClick={() => setActiveTab('archives')} isActive={activeTab === 'archives'}>
-                        Archived
-                    </TabButton>
-                )}
-            </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="min-h-[300px]">
+          <div className="p-4 sm:p-6 min-h-[300px]">
             {activeTab === 'catalogs' ? (
                 <div className="space-y-4 animate-fade-in">
                     {isOwnAccount && (
@@ -501,7 +383,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             {account.catalog.map((item) => (
                                 <div 
                                     key={item.id} 
-                                    onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog } })}
+                                    onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
                                     className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
                                 >
                                     <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
@@ -522,7 +404,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             icon={<DocumentDuplicateIcon />}
                             title="No Catalogs"
                             description="No catalog items available."
-                            className="bg-gray-50 rounded-lg"
+                            className="bg-gray-50 rounded-xl"
                         />
                     )}
                 </div>
@@ -545,6 +427,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                     )}
                 </div>
             )}
+          </div>
         </div>
       </div>
     </div>
