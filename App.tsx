@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { DisplayablePost, PostActions, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -416,7 +417,7 @@ export const App: React.FC = () => {
         else { addToast(`Could not find location for ${account.name}.`, 'error'); }
       }
     },
-// FIX: Changed onToggleLikeAccount to accept an Account object to match the interface, and pass the ID to the context function.
+    // FIX: Updated onToggleLikeAccount to accept an Account object as required by the PostActions interface, and correctly pass the account's ID to the underlying context function.
     onToggleLikeAccount: (account: Account) => { if(!currentAccount) openModal({type:'login'}); else toggleLikeAccount(account.id); },
     onTogglePinPost: togglePinPost,
     onViewForumPost: (postId) => navigateTo('forumPostDetail', { forumPostId: postId }),
@@ -500,7 +501,6 @@ export const App: React.FC = () => {
         case 'bag': return currentAccount ? <BagView onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} allAccounts={accounts} /> : null;
         case 'admin':
             return currentAccount?.role === 'admin' ? <AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={deleteAccount} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={approveAccount} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* handle deletion logic for post/comment via context methods if exposed or added here */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={(postId) => showConfirmation({title: 'Delete Post', message: 'Are you sure?', onConfirm: () => deletePostPermanently(postId), confirmText: 'Delete'})} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /> : null;
-// FIX: Changed postActions.onToggleLikeAccount call to pass the full account object.
         case 'account': return viewingAccount ? <AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} onEditAccount={() => openModal({ type: 'editAccount', data: viewingAccount })} archivedPosts={archivedPosts} allAccounts={accounts} isLiked={currentAccount?.likedAccountIds?.includes(viewingAccount.id) ?? false} onToggleLike={(account: Account) => postActions.onToggleLikeAccount!(account)} onShowOnMap={postActions.onShowOnMap} isGeocoding={isGeocoding} onOpenAnalytics={() => navigateTo('accountAnalytics', { account: viewingAccount })} /> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <ForumsView />;

@@ -179,7 +179,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                  <button 
                     key={tag}
                     onClick={(e) => { e.stopPropagation(); onFilterByTag(tag); }}
-                    className="text-[10px] text-gray-600 cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
+                    className="text-[10px] text-gray-600 hover:text-gray-900 hover:underline cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                  >
                     #{tag}
                  </button>
