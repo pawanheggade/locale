@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useIsMounted } from './useIsMounted';
 
 const POSTS_PER_PAGE = 8;
 
@@ -13,13 +15,9 @@ export const useInfiniteScroll = <T extends { id: string }>(allItems: T[], isIni
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const isMountedRef = useRef(true);
-  const prevAllItemsRef = useRef<T[]>([]);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
+  const isMounted = useIsMounted();
+  // We still need a ref to track previous items for comparison without triggering effects
+  const prevAllItemsRef = React.useRef<T[]>([]);
 
   // Update list when the source array changes
   useEffect(() => {
@@ -38,14 +36,14 @@ export const useInfiniteScroll = <T extends { id: string }>(allItems: T[], isIni
         // List changed structurally (filter, sort, new posts, or initial load) -> Reset to page 1
         setCurrentPage(1);
         const initialItems = allItems.slice(0, POSTS_PER_PAGE);
-        if (isMountedRef.current) {
+        if (isMounted()) {
             setDisplayedItems(initialItems);
             setHasMore(allItems.length > POSTS_PER_PAGE);
         }
     } else {
         // List is structurally the same, just data updates.
         // Preserve current page/scroll, but update the objects in displayedItems to reflect data changes.
-        if (isMountedRef.current) {
+        if (isMounted()) {
              const currentCount = currentPage * POSTS_PER_PAGE;
              // We re-slice to get the updated object references (e.g., with new 'isLiked' state)
              const updatedDisplayedItems = allItems.slice(0, currentCount);
@@ -56,7 +54,7 @@ export const useInfiniteScroll = <T extends { id: string }>(allItems: T[], isIni
     }
 
     prevAllItemsRef.current = allItems;
-  }, [allItems, isInitialLoading, currentPage]);
+  }, [allItems, isInitialLoading, currentPage, isMounted]);
 
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore) return;
@@ -65,7 +63,7 @@ export const useInfiniteScroll = <T extends { id: string }>(allItems: T[], isIni
 
     // Simulate network delay for loading more items
     setTimeout(() => {
-      if (!isMountedRef.current) {
+      if (!isMounted()) {
         return;
       }
       
@@ -77,7 +75,8 @@ export const useInfiniteScroll = <T extends { id: string }>(allItems: T[], isIni
       setHasMore(allItems.length > newItems.length);
       setIsLoadingMore(false);
     }, 500);
-  }, [isLoadingMore, hasMore, currentPage, allItems]);
+  }, [isLoadingMore, hasMore, currentPage, allItems, isMounted]);
 
   return { displayedItems, hasMore, loadMore, isLoadingMore };
 };
+import React from 'react';

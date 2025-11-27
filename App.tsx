@@ -38,6 +38,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { SettingsPage } from './components/SettingsPage';
 import { ActivityPage } from './components/ActivityPage';
 import { useConfirmationModal } from './hooks/useConfirmationModal';
+import { useIsMounted } from './hooks/useIsMounted';
 
 interface HistoryItem {
     view: AppView;
@@ -72,6 +73,7 @@ export const App: React.FC = () => {
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
   const { activeModal, openModal, closeModal, addToast } = useUI();
   const showConfirmation = useConfirmationModal();
+  const isMounted = useIsMounted();
 
   const { filterState, dispatchFilterAction, handleAiSearchSubmit, handleToggleAiSearch, onClearFilters, isAnyFilterActive } = useFilters();
   const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
@@ -101,16 +103,11 @@ export const App: React.FC = () => {
   const lastScrollTopRef = useRef(0);
 
   const mainContentRef = useRef<HTMLDivElement>(null);
-  const isMountedRef = useRef(true);
 
   const [notificationSettings, setNotificationSettings] = usePersistentState<NotificationSettings>(NOTIFICATION_SETTINGS_KEY, { expiryAlertsEnabled: true, expiryThresholdDays: 3 });
 
   useEffect(() => {
-    isMountedRef.current = true;
     setIsInitialLoading(false); 
-    return () => {
-      isMountedRef.current = false;
-    };
   }, []);
 
   useEffect(() => {
@@ -179,12 +176,12 @@ export const App: React.FC = () => {
     setIsRefreshing(true);
     refreshPosts(); 
     setTimeout(() => {
-        if (isMountedRef.current) {
+        if (isMounted()) {
             setIsRefreshing(false);
             addToast('Refreshed', 'success');
         }
     }, 800);
-  }, [isRefreshing, refreshPosts, addToast]);
+  }, [isRefreshing, refreshPosts, addToast, isMounted]);
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
 
@@ -419,7 +416,7 @@ export const App: React.FC = () => {
           setIsGeocoding(true);
           try { coords = await geocodeLocation(account.address); } 
           catch (e) { addToast('Failed to find location', 'error'); } 
-          finally { if (isMountedRef.current) setIsGeocoding(false); }
+          finally { if (isMounted()) setIsGeocoding(false); }
         }
         if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
         else { addToast(`Could not find location for ${account.name}.`, 'error'); }
@@ -434,7 +431,7 @@ export const App: React.FC = () => {
     withAuthCheck, accountsById, dispatchFilterAction, setPostToFocusOnMap,
     setLocationToFocus, togglePinPost, addToast, setIsGeocoding, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
     view, mainView, viewingPostId, viewingAccount, viewingForumPostId, priceAlerts, toggleLikePost, toggleLikeAccount, showConfirmation,
-    deletePriceAlert, setPriceAlert, incrementProfileViews
+    deletePriceAlert, setPriceAlert, incrementProfileViews, isMounted
   ]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
@@ -456,9 +453,9 @@ export const App: React.FC = () => {
       } catch (error) {
           addToast('Failed to find nearby posts', 'error');
       } finally {
-          if (isMountedRef.current) setIsFindingNearby(false);
+          if (isMounted()) setIsFindingNearby(false);
       }
-  }, [isFindingNearby, allDisplayablePosts, addToast, closeModal, navigateTo]);
+  }, [isFindingNearby, allDisplayablePosts, addToast, closeModal, navigateTo, isMounted]);
   
   const handleScroll = useCallback(() => {
     if (!mainContentRef.current) return;
