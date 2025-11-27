@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { ChevronDownIcon, SearchIcon } from '../Icons';
-import { cn } from '../../lib/utils';
+import { cn, overlayInputBaseStyles } from '../../lib/utils';
 import { Input } from './Input';
 
 export interface MultiSelectDropdownItem {
@@ -46,7 +46,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   const buttonStyles = {
     default: 'border border-gray-300 bg-white rounded-md h-10 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500',
-    overlay: 'bg-transparent border-0 rounded-none h-10 px-1 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-b-2 focus-visible:border-red-500',
+    overlay: overlayInputBaseStyles,
   };
 
   return (
