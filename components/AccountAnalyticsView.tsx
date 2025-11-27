@@ -14,21 +14,30 @@ interface AccountAnalyticsViewProps {
 }
 
 export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ account, accountPosts, allCategories, allAccounts }) => {
-  const totalPostLikes = useMemo(() => {
-    const postIds = new Set(accountPosts.map(p => p.id));
-    let totalLikes = 0;
+  
+  // Calculate like stats once for both the stat card and the table
+  const { postsWithStats, totalPostLikes } = useMemo(() => {
+    const likeCounts = new Map<string, number>();
+    
+    // 1. Build a map of all likes in the system
     if (allAccounts) {
-      for (const acc of allAccounts) {
-        if (acc.likedPostIds) {
-          for (const likedPostId of acc.likedPostIds) {
-            if (postIds.has(likedPostId)) {
-              totalLikes++;
-            }
-          }
-        }
-      }
+        allAccounts.forEach(acc => {
+            acc.likedPostIds?.forEach(postId => {
+                likeCounts.set(postId, (likeCounts.get(postId) || 0) + 1);
+            });
+        });
     }
-    return totalLikes;
+
+    // 2. Map stats to the account's posts
+    const enrichedPosts = accountPosts.map(post => ({
+        ...post,
+        likeCount: likeCounts.get(post.id) || 0
+    }));
+
+    // 3. Sum total likes for this account
+    const totalLikes = enrichedPosts.reduce((sum, post) => sum + post.likeCount, 0);
+
+    return { postsWithStats: enrichedPosts, totalPostLikes: totalLikes };
   }, [accountPosts, allAccounts]);
 
   return (
@@ -46,10 +55,10 @@ export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ acco
       </div>
 
       <div className="mb-8">
-        <DataVisualizationView allPosts={accountPosts} categories={allCategories} accounts={allAccounts} account={account} />
+        <DataVisualizationView allPosts={accountPosts} categories={allCategories} account={account} />
       </div>
 
-      <PostPerformanceTable posts={accountPosts} allAccounts={allAccounts} />
+      <PostPerformanceTable postsWithStats={postsWithStats} />
     </div>
   );
 };

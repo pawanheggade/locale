@@ -1,35 +1,19 @@
 
-import React, { useMemo } from 'react';
-import { DisplayablePost, Account } from '../types';
+import React from 'react';
+import { DisplayablePost } from '../types';
 import { DataTable } from './admin/DataTable';
 import { useSort } from '../hooks/useSort';
 import { formatCurrency, formatFullDate } from '../utils/formatters';
 
-interface PostPerformanceTableProps {
-    posts: DisplayablePost[];
-    allAccounts: Account[];
-}
-
-interface PostWithStats extends DisplayablePost {
+export interface PostWithStats extends DisplayablePost {
     likeCount: number;
 }
 
-export const PostPerformanceTable: React.FC<PostPerformanceTableProps> = ({ posts, allAccounts }) => {
-    // Calculate likes for each post based on allAccounts data
-    const postsWithStats = useMemo(() => {
-        const likeCounts = new Map<string, number>();
-        allAccounts.forEach(acc => {
-            acc.likedPostIds?.forEach(postId => {
-                likeCounts.set(postId, (likeCounts.get(postId) || 0) + 1);
-            });
-        });
+interface PostPerformanceTableProps {
+    postsWithStats: PostWithStats[];
+}
 
-        return posts.map(post => ({
-            ...post,
-            likeCount: likeCounts.get(post.id) || 0
-        }));
-    }, [posts, allAccounts]);
-
+export const PostPerformanceTable: React.FC<PostPerformanceTableProps> = ({ postsWithStats }) => {
     const { items: sortedPosts, requestSort, sortConfig } = useSort(postsWithStats, { key: 'likeCount', direction: 'desc' });
 
     const columns = [

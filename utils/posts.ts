@@ -1,7 +1,10 @@
 
 
+
 import { Post, DisplayablePost, Account, FiltersState, Subscription } from '../types';
 import { haversineDistance } from './geocoding';
+
+const TIER_RANK: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
 
 export const getPostStatus = (expiryDate: number | null | undefined): { isExpired: boolean, isExpiringSoon: boolean, isExpiringThisWeek: boolean } => {
   if (!expiryDate) {
@@ -170,8 +173,6 @@ export const sortFilteredPosts = (
     return filteredPosts; // Already sorted by AI
   }
 
-  const tierRank: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
-
   const sorted = [...filteredPosts];
   sorted.sort((a, b) => {
     const localeChoiceComparison = (b.isLocaleChoice ? 1 : 0) - (a.isLocaleChoice ? 1 : 0);
@@ -195,7 +196,7 @@ export const sortFilteredPosts = (
     
     const tierA = a.author?.subscription?.tier ?? 'Basic';
     const tierB = b.author?.subscription?.tier ?? 'Basic';
-    const tierComparison = (tierRank[tierB] ?? 0) - (tierRank[tierA] ?? 0);
+    const tierComparison = (TIER_RANK[tierB] ?? 0) - (TIER_RANK[tierA] ?? 0);
     if (tierComparison !== 0) return tierComparison;
 
     return parseInt(b.id) - parseInt(a.id);
@@ -237,14 +238,12 @@ export const generateHistoryBasedRecommendations = (
 
   const recommendations = Array.from(recommendedPosts.values());
   
-  const tierRank: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
-
   // Sort by subscription tier, then similarity score, then date
   recommendations.sort((a, b) => {
     const tierA = a.author?.subscription?.tier ?? 'Personal';
     const tierB = b.author?.subscription?.tier ?? 'Personal';
 
-    const tierComparison = (tierRank[tierB] ?? 0) - (tierRank[tierA] ?? 0);
+    const tierComparison = (TIER_RANK[tierB] ?? 0) - (TIER_RANK[tierA] ?? 0);
     if (tierComparison !== 0) return tierComparison;
 
     const scoreComparison = (b.score || 0) - (a.score || 0);

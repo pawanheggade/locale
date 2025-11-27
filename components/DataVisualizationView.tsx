@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useMemo } from 'react';
 import { Account, DisplayablePost, PostCategory, PostType } from '../types';
 import { UserIcon, ArchiveBoxIcon, HeartIcon } from './Icons';
@@ -43,14 +44,18 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
   }), []);
 
   // --- Data preparation with useMemo ---
+  // Optimization: Only calculate totals if we are NOT viewing a specific account.
+  // When viewing a specific account, these stat cards are hidden anyway.
   const totals = useMemo(() => {
+    if (account) return null;
+    
     const totalAccounts = accounts.length;
     const totalPosts = allPosts.length;
     const totalProfileViews = accounts.reduce((sum, acc) => sum + (acc.profileViews || 0), 0);
     const totalLikes = accounts.reduce((sum, acc) => sum + (acc.likeCount || 0), 0);
     const totalPostLikes = accounts.reduce((sum, acc) => sum + (acc.likedPostIds?.length || 0), 0);
     return { totalAccounts, totalPosts, totalProfileViews, totalLikes, totalPostLikes };
-  }, [accounts, allPosts]);
+  }, [accounts, allPosts, account]);
 
   const categoryChartConfig = useMemo(() => {
     const categoryCounts = categories.map(category => 
@@ -171,7 +176,7 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
 
   return (
     <div className="p-4 bg-gray-50 rounded-xl">
-      {!account && accounts.length > 0 && (
+      {!account && totals && (
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6 mb-6">
             <StatCard title="Accounts" value={totals.totalAccounts} icon={<UserIcon className="w-10 h-10 text-red-600" />} />
             <StatCard title="Posts" value={totals.totalPosts} icon={<ArchiveBoxIcon className="w-10 h-10 text-red-600" />} />
@@ -181,28 +186,24 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
         </div>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {!account && (
-          <>
-            <div className="bg-white p-6 rounded-xl col-span-1 lg:col-span-2">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Activity</h2>
-              <div className="relative h-80">
-                <canvas ref={activityChartRef}></canvas>
-              </div>
+        <div className="bg-white p-6 rounded-xl col-span-1 lg:col-span-2">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Activity</h2>
+            <div className="relative h-80">
+            <canvas ref={activityChartRef}></canvas>
             </div>
-            <div className="bg-white p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Types</h2>
-              <div className="relative h-80">
-                <canvas ref={typeChartRef}></canvas>
-              </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Types</h2>
+            <div className="relative h-80">
+            <canvas ref={typeChartRef}></canvas>
             </div>
-            <div className="bg-white p-6 rounded-xl">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Categories</h2>
-              <div className="relative h-80">
-                <canvas ref={categoryChartRef}></canvas>
-              </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Categories</h2>
+            <div className="relative h-80">
+            <canvas ref={categoryChartRef}></canvas>
             </div>
-          </>
-        )}
+        </div>
       </div>
     </div>
   );

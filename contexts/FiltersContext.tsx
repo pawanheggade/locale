@@ -7,7 +7,7 @@ import { useUI } from './UIContext';
 
 const FILTERS_STORAGE_KEY = 'localeAppFilters';
 
-const initialState: FiltersState = {
+export const initialFiltersState: FiltersState = {
   searchQuery: '',
   filterType: 'all',
   filterCategory: 'all',
@@ -50,14 +50,14 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
         minPrice: action.payload.minPrice,
         maxPrice: action.payload.maxPrice,
         filterTags: action.payload.filterTags,
-        filterExpiringSoon: initialState.filterExpiringSoon,
-        filterShowExpired: initialState.filterShowExpired,
-        filterLast7Days: initialState.filterLast7Days,
-        filterDistance: initialState.filterDistance,
-        aiSmartFilterResults: initialState.aiSmartFilterResults,
+        filterExpiringSoon: initialFiltersState.filterExpiringSoon,
+        filterShowExpired: initialFiltersState.filterShowExpired,
+        filterLast7Days: initialFiltersState.filterLast7Days,
+        filterDistance: initialFiltersState.filterDistance,
+        aiSmartFilterResults: initialFiltersState.aiSmartFilterResults,
       };
     case 'CLEAR_FILTERS': return {
-      ...initialState,
+      ...initialFiltersState,
       isAiSearchEnabled: state.isAiSearchEnabled
     };
     default:
@@ -97,7 +97,7 @@ interface FiltersContextType {
 const FiltersContext = createContext<FiltersContextType | undefined>(undefined);
 
 export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialState, initFilters);
+  const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialFiltersState, initFilters);
   const { posts } = usePosts();
   const { addToast } = useUI();
 

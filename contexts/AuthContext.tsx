@@ -1,7 +1,6 @@
 
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment } from '../types';
+import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment, FiltersState } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
@@ -9,6 +8,7 @@ import { mockAccounts } from '../data/accounts';
 import { fileToDataUrl } from '../utils/media';
 import { applyFiltersToPosts, getPostStatus } from '../utils/posts';
 import { initialTermsContent, initialPrivacyContent } from '../data/pageContent';
+import { initialFiltersState } from './FiltersContext';
 
 const ACCOUNTS_KEY = 'localeAppAccounts';
 const CURRENT_ACCOUNT_ID_KEY = 'localeAppCurrentAccountId';
@@ -719,7 +719,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (alertsEnabledSearches.length === 0) return;
         
         alertsEnabledSearches.forEach(search => {
-            const filterStateCompat: any = { searchQuery: search.filters.searchQuery, filterType: search.filters.filterType, filterCategory: search.filters.filterCategory, minPrice: search.filters.minPrice, maxPrice: search.filters.maxPrice, filterTags: search.filters.filterTags, filterExpiringSoon: false, filterShowExpired: false, filterLast7Days: false, filterDistance: 0, isAiSearchEnabled: false, aiSmartFilterResults: null };
+            const filterStateCompat: FiltersState = {
+                ...initialFiltersState,
+                ...search.filters,
+                // Ensure transient fields are reset if needed, though initialFiltersState handles it
+            };
             const matches = applyFiltersToPosts(newPosts as any[], newPosts as any[], filterStateCompat, search.filters.searchQuery, null, currentAccount);
             if (matches.length > 0) {
                 addNotification({ recipientId: currentAccountId, message: `${matches.length} new item(s) found for your search "${search.name}".`, type: 'search_alert' });
