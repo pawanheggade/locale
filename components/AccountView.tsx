@@ -1,9 +1,7 @@
-
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Account, DisplayablePost, SocialPlatform, SocialLink } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, DocumentDuplicateIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
-import { formatMonthYear } from '../utils/formatters';
+import { Account, DisplayablePost, SocialPlatform, SocialLink, DisplayableForumPost } from '../types';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
+import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
 import { Button, ButtonProps, TabButton } from './ui/Button';
@@ -14,6 +12,8 @@ import { ReferralCard } from './ReferralCard';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { EmptyState } from './EmptyState';
 import { LikeButton } from './LikeButton';
+import { useForum } from '../contexts/ForumContext';
+import { usePostActions } from '../contexts/PostActionsContext';
 
 interface AccountViewProps {
   account: Account;
@@ -82,60 +82,116 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
     );
 };
 
+const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
+    <div
+        onClick={onClick}
+        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors border"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
+    >
+        <div className="flex flex-col items-center text-center text-gray-600 w-12">
+            <div className="font-bold text-lg text-gray-800">{post.score}</div>
+            <div className="text-xs">votes</div>
+        </div>
+        <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-gray-800 truncate">{post.title}</h4>
+            <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                <span>{timeSince(post.timestamp)}</span>
+                <span className="flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-3 h-3" /> {post.commentCount}</span>
+                <span className="font-medium px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{post.category}</span>
+            </div>
+        </div>
+    </div>
+);
+
+
 export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics }) => {
   const { addToast, openModal } = useUI();
+  const { posts: allForumPosts } = useForum();
+  const { onViewForumPost } = usePostActions();
   
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
 
-  const accountPosts = useMemo(() => {
-    return posts.filter(post => post.authorId === account.id);
-  }, [posts, account.id]);
-  
-  const pinnedPosts = useMemo(() => {
-    return accountPosts.filter(p => p.isPinned);
-  }, [accountPosts]);
-
-  const accountArchivedPosts = useMemo(() => {
-    if (!isOwnAccount) return [];
-    return archivedPosts.filter(post => post.authorId === account.id);
-  }, [archivedPosts, account.id, isOwnAccount]);
-  
+  // --- DATA PREPARATION ---
+  const accountPosts = useMemo(() => posts.filter(post => post.authorId === account.id), [posts, account.id]);
+  const userForumPosts = useMemo(() => allForumPosts.filter(post => post.authorId === account.id).sort((a, b) => b.timestamp - a.timestamp), [allForumPosts, account.id]);
+  const pinnedPosts = useMemo(() => accountPosts.filter(p => p.isPinned), [accountPosts]);
+  const accountArchivedPosts = useMemo(() => isOwnAccount ? archivedPosts.filter(post => post.authorId === account.id) : [], [archivedPosts, account.id, isOwnAccount]);
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
-  
-  const salePosts = useMemo(() => {
-    if (!isBusinessAccount) return [];
-    return accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice);
-  }, [isBusinessAccount, accountPosts]);
-
-  const postCategories = useMemo(() => {
-    if (!isBusinessAccount) {
-        return [];
-    }
-    const categories = new Set(accountPosts.map(p => p.category));
-    return Array.from(categories).sort();
-  }, [isBusinessAccount, accountPosts]);
-
+  const salePosts = useMemo(() => isBusinessAccount ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isBusinessAccount, accountPosts]);
+  const postCategories = useMemo(() => isBusinessAccount ? Array.from(new Set(accountPosts.map(p => p.category))).sort() : [], [isBusinessAccount, accountPosts]);
   const canHaveCatalog = account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic';
   const hasCatalogContent = account.catalog && account.catalog.length > 0;
   
-  // Tab Visibility Logic
-  const showCatalogTab = canHaveCatalog && (hasCatalogContent || isOwnAccount);
-  const showSaleTab = isBusinessAccount && salePosts.length > 0;
-  const showPinsTab = pinnedPosts.length > 0;
-  const showArchivesTab = isOwnAccount && accountArchivedPosts.length > 0;
-  
-  // Initial Tab State
-  const [activeTab, setActiveTab] = useState<string>('all');
+  // --- TAB MANAGEMENT ---
+  const availableTabs = useMemo(() => {
+    const tabs = [];
+    
+    // The main posts tab is always an option, though might be empty.
+    tabs.push({ id: 'all', label: 'Posts' });
 
+    if (pinnedPosts.length > 0) {
+        tabs.unshift({ id: 'pins', label: 'Pins' }); // Add to the front
+    }
+    
+    if (userForumPosts.length > 0) {
+        tabs.push({ id: 'forums', label: 'Forums' });
+    }
+
+    if (salePosts.length > 0) {
+        tabs.push({ id: 'sale', label: 'Sale' });
+    }
+
+    if (hasCatalogContent) {
+        tabs.push({ id: 'catalogs', label: 'Catalogs' });
+    }
+
+    if (isBusinessAccount) {
+        postCategories.forEach(cat => tabs.push({ id: cat, label: cat }));
+    }
+
+    if (isOwnAccount && accountArchivedPosts.length > 0) {
+        tabs.push({ id: 'archives', label: 'Archived' });
+    }
+
+    return tabs;
+  }, [
+    pinnedPosts.length,
+    userForumPosts.length,
+    salePosts.length,
+    hasCatalogContent,
+    isBusinessAccount,
+    postCategories,
+    isOwnAccount,
+    accountArchivedPosts.length,
+  ]);
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const isPersonal = account.subscription.tier === 'Personal';
+    // Prioritize 'forums' for personal accounts if they have posts
+    if (isPersonal && userForumPosts.length > 0) {
+        return 'forums';
+    }
+    // Then prioritize 'pins' for anyone
+    const defaultTab = availableTabs.find(t => t.id === 'pins') || availableTabs[0];
+    return defaultTab?.id || 'all';
+  });
+  
+  // Effect to select a default tab or reset if the current one disappears
   useEffect(() => {
-      if (showPinsTab) {
-          setActiveTab('pins');
-      } else if (showCatalogTab && !accountPosts.length && hasCatalogContent) {
-          setActiveTab('catalogs');
-      } else {
-          setActiveTab('all');
-      }
-  }, [showPinsTab, showCatalogTab, hasCatalogContent, accountPosts.length]);
+    const isCurrentTabVisible = availableTabs.some(t => t.id === activeTab);
+    if (!isCurrentTabVisible && availableTabs.length > 0) {
+        const isPersonal = account.subscription.tier === 'Personal';
+        // Same priority logic as initialization for resetting the tab
+        if (isPersonal && userForumPosts.length > 0 && availableTabs.some(t => t.id === 'forums')) {
+            setActiveTab('forums');
+        } else {
+            const defaultTab = availableTabs.find(t => t.id === 'pins') || availableTabs[0];
+            setActiveTab(defaultTab.id);
+        }
+    }
+  }, [availableTabs, activeTab, account.subscription.tier, userForumPosts]);
 
   const contactMethods = useMemo(() => {
     const subject = encodeURIComponent(`Inquiry from Locale`);
@@ -182,7 +238,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [account.socialLinks]);
 
   const displayedPosts = useMemo(() => {
-    if (activeTab === 'catalogs') return [];
+    if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'pins') return pinnedPosts;
     if (activeTab === 'archives') return accountArchivedPosts;
@@ -270,6 +326,11 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   {isOwnAccount ? (
                       <>
                           <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4"><PencilIcon className="w-4 h-4" />Edit Profile</Button>
+                           {canHaveCatalog && (
+                                <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })} className="gap-2">
+                                    <DocumentIcon className="w-4 h-4" />Manage Catalog
+                                </Button>
+                            )}
                           <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2"><ChartBarIcon className="w-4 h-4" />Analytics</Button>
                           <SocialsDropdown links={sortedSocialLinks} size="sm" />
                           <Button variant="overlay-dark" size="sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
@@ -329,6 +390,9 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
              {isOwnAccount ? (
                   <>
                       <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}><PencilIcon className="w-4 h-4" />Edit</Button>
+                      {canHaveCatalog && (
+                            <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => openModal({ type: 'manageCatalog' })}><DocumentIcon className="w-4 h-4" />Catalog</Button>
+                      )}
                       <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}><ChartBarIcon className="w-4 h-4" />Analytics</Button>
                       <SocialsDropdown links={sortedSocialLinks} size="icon" />
                       <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
@@ -347,7 +411,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               )}
           </div>
           
-          {isOwnAccount && (
+          {isOwnAccount && account.subscription.tier === 'Personal' && (
               <div className="mt-6 border-t border-gray-100 pt-6">
                   <ReferralCard account={account} />
               </div>
@@ -358,29 +422,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         <div className="bg-white rounded-xl border border-gray-200/80 mt-6 overflow-hidden">
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
-                {showPinsTab && <TabButton onClick={() => setActiveTab('pins')} isActive={activeTab === 'pins'}>Pins</TabButton>}
-                <TabButton onClick={() => setActiveTab('all')} isActive={activeTab === 'all'}>Posts</TabButton>
-                {showSaleTab && <TabButton onClick={() => setActiveTab('sale')} isActive={activeTab === 'sale'}>Sale</TabButton>}
-                {showCatalogTab && <TabButton onClick={() => setActiveTab('catalogs')} isActive={activeTab === 'catalogs'}>Catalogs</TabButton>}
-                {postCategories.map(cat => (<TabButton key={cat} onClick={() => setActiveTab(cat)} isActive={activeTab === cat}>{cat}</TabButton>))}
-                {showArchivesTab && <TabButton onClick={() => setActiveTab('archives')} isActive={activeTab === 'archives'}>Archived</TabButton>}
+              {availableTabs.map(tab => (
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                      {tab.label}
+                  </TabButton>
+              ))}
             </div>
           </div>
 
           <div className="p-4 sm:p-6 min-h-[300px]">
             {activeTab === 'catalogs' ? (
                 <div className="space-y-4 animate-fade-in">
-                    {isOwnAccount && (
-                        <div className="flex justify-end items-center mb-4">
-                            <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })}>
-                                Manage
-                            </Button>
-                        </div>
-                    )}
-                    
-                    {account.catalog && account.catalog.length > 0 ? (
+                    {hasCatalogContent ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {account.catalog.map((item) => (
+                            {account.catalog!.map((item) => (
                                 <div 
                                     key={item.id} 
                                     onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
@@ -390,7 +445,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                         {item.type === 'image' ? (
                                             <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <DocumentDuplicateIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
+                                            <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
                                         )}
                                     </div>
                                     <div className="p-3 border-t border-gray-100 bg-white relative z-10">
@@ -401,29 +456,42 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                         </div>
                     ) : (
                         <EmptyState
-                            icon={<DocumentDuplicateIcon />}
-                            title="No Catalogs"
-                            description="No catalog items available."
+                            icon={<DocumentIcon />}
+                            title="No Catalog Items"
+                            description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
                             className="bg-gray-50 rounded-xl"
                         />
                     )}
                 </div>
+            ) : activeTab === 'forums' ? (
+                <div className="animate-fade-in">
+                    <div className="space-y-4">
+                        {userForumPosts.map(post => (
+                            <ForumPostRow key={post.id} post={post} onClick={() => onViewForumPost(post.id)} />
+                        ))}
+                    </div>
+                </div>
             ) : (
                 <div className="animate-fade-in">
-                    {isOwnAccount && activeTab === 'archives' && displayedPosts.length === 0 ? (
-                        <EmptyState
-                            icon={<ArchiveBoxIcon />}
-                            title="No Archived Posts"
-                            description="Posts you archive will appear here."
-                            className="py-20"
-                        />
-                    ) : (
+                    {displayedPosts.length > 0 ? (
                         <PostList 
                             posts={displayedPosts} 
                             currentAccount={currentAccount}
                             isArchived={activeTab === 'archives'}
                             variant="compact"
                         />
+                    ) : (
+                       (activeTab === 'all' || activeTab === 'archives') && (
+                           <EmptyState
+                                icon={<ArchiveBoxIcon />}
+                                title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"}
+                                description={isOwnAccount 
+                                    ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.")
+                                    : "This seller hasn't created any posts yet."
+                                }
+                                className="py-20"
+                            />
+                       )
                     )}
                 </div>
             )}

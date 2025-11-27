@@ -1,7 +1,6 @@
 
 
 import React, { useState, useEffect, useRef } from 'react';
-// FIX: Import AccountValidationData for strong typing
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData, AccountValidationData } from '../utils/validation';
@@ -139,11 +138,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (onToggleMap) onToggleMap(isOpen);
     };
 
-    // FIX: Changed type of fieldToValidate from `keyof ReturnType<typeof validateAccountData>` to `keyof AccountValidationData`
-    // This fixes the error where a general string was passed to a function expecting specific keys.
     const validate = (fieldToValidate?: keyof AccountValidationData, forStep1: boolean = false): boolean => {
         const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
-        // FIX: Added explicit type for formData
         const formData: AccountValidationData = { 
             name, 
             username, 
@@ -256,7 +252,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const handleNext = () => {
         let stepIsValid = true;
-        // FIX: Corrected the type here to match the new `validate` signature.
         const fieldsToValidate: (keyof AccountValidationData)[] = ['name', 'username', 'email', 'password', 'confirmPassword'];
         fieldsToValidate.forEach(field => {
             if (!validate(field, true)) {

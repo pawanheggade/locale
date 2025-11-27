@@ -26,14 +26,14 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
     forumCategories, onAddForumCategory, onUpdateForumCategory, onDeleteForumCategory,
     priceUnits, onAddPriceUnit, onUpdatePriceUnit, onDeletePriceUnit
 }) => {
-    const [activeTab, setActiveTab] = useState<'marketplace' | 'forum' | 'units'>('marketplace');
+    const [activeTab, setActiveTab] = useState<'marketplace' | 'forums' | 'units'>('marketplace');
 
     return (
         <div>
             <div className="mb-4 border-b border-gray-200">
                 <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist">
                     <TabButton onClick={() => setActiveTab('marketplace')} isActive={activeTab === 'marketplace'}>Marketplace</TabButton>
-                    <TabButton onClick={() => setActiveTab('forum')} isActive={activeTab === 'forum'}>Forum</TabButton>
+                    <TabButton onClick={() => setActiveTab('forums')} isActive={activeTab === 'forums'}>Forums</TabButton>
                     <TabButton onClick={() => setActiveTab('units')} isActive={activeTab === 'units'}>Units</TabButton>
                 </nav>
             </div>
@@ -45,9 +45,9 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
                     onUpdate={onUpdateCategory}
                     onDelete={onDeleteCategory}
                 />
-            ) : activeTab === 'forum' ? (
+            ) : activeTab === 'forums' ? (
                 <CategoryManager
-                    title="Forum"
+                    title="Forums"
                     categories={forumCategories}
                     onAdd={onAddForumCategory}
                     onUpdate={onUpdateForumCategory}

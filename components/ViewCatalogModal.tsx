@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
-import { DocumentDuplicateIcon, ChevronLeftIcon, ChevronRightIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
+import { DocumentIcon, ChevronLeftIcon, ChevronRightIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { cn } from '../lib/utils';
 
 interface ViewCatalogModalProps {
@@ -110,7 +110,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                                 <img src={item.url} alt="" className="w-10 h-10 object-cover rounded bg-gray-200 flex-shrink-0" />
                             ) : (
                                 <div className="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded flex-shrink-0">
-                                    <DocumentDuplicateIcon className="w-5 h-5" />
+                                    <DocumentIcon className="w-5 h-5" />
                                 </div>
                             )}
                             <span className={cn("text-sm truncate max-w-[120px]", selectedIndex === index ? "font-semibold text-gray-900" : "text-gray-600")}>

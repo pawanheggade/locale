@@ -113,7 +113,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     };
 
     const iconClass = "w-6 h-6";
-    const isPersonal = currentAccount.subscription.tier === 'Personal';
 
     return (
         <div ref={accountMenuRef}>
@@ -146,47 +145,25 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                   tabIndex={-1}
                   aria-labelledby="account-menu-button"
                 >
-                    {isPersonal ? (
-                        <Button
-                            onClick={() => handleMenuAction(onEditProfile)} 
-                            variant="ghost"
-                            className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
-                            role="menuitem"
-                        >
-                            <div className="w-full flex items-center gap-3 p-4">
-                                <Avatar 
-                                    src={currentAccount.avatarUrl} 
-                                    alt={currentAccount.name} 
-                                    size="lg" 
-                                    tier={currentAccount.subscription.tier} 
-                                />
-                                <div>
-                                    <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
-                                    <p className="text-sm text-gray-600">Edit Profile</p>
-                                </div>
+                    <Button 
+                        onClick={() => handleMenuAction(handleAccountViewToggle)} 
+                        variant="ghost"
+                        className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
+                        role="menuitem"
+                    >
+                        <div className="w-full flex items-center justify-start gap-3 p-4">
+                            <Avatar 
+                                src={currentAccount.avatarUrl} 
+                                alt={currentAccount.name} 
+                                size="lg" 
+                                tier={currentAccount.subscription.tier} 
+                            />
+                            <div>
+                                <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
+                                <p className="text-sm text-gray-600">View Profile</p>
                             </div>
-                        </Button>
-                    ) : (
-                        <Button 
-                            onClick={() => handleMenuAction(handleAccountViewToggle)} 
-                            variant="ghost"
-                            className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
-                            role="menuitem"
-                        >
-                            <div className="w-full flex items-center gap-3 p-4">
-                                <Avatar 
-                                    src={currentAccount.avatarUrl} 
-                                    alt={currentAccount.name} 
-                                    size="lg" 
-                                    tier={currentAccount.subscription.tier} 
-                                />
-                                <div>
-                                    <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
-                                    <p className="text-sm text-gray-600">View Profile</p>
-                                </div>
-                            </div>
-                        </Button>
-                    )}
+                        </div>
+                    </Button>
                     <div className="py-1" role="none">
                         <div className="p-2" role="none">
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
@@ -201,7 +178,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                                 </Button>
                             )}
                             <div className="grid grid-cols-2 gap-2">
-                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('forum'))} icon={<UserIcon className="w-6 h-6 text-gray-600" />} label="Forum" />
+                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('forums'))} icon={<UserIcon className="w-6 h-6 text-gray-600" />} label="Forums" />
                                 <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-6 h-6 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                                 <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-6 h-6 text-gray-600" />} label="Likes" />
                                 <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-6 h-6 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />

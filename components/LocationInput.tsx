@@ -84,6 +84,11 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                             <SpinnerIcon className="w-5 h-5 text-gray-400" />
                         </div>
                     )}
+                    {status === 'verified' && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <CheckIcon className="w-5 h-5 text-green-600" />
+                        </div>
+                    )}
                 </div>
                 {onUseMyLocation && (
                     <Button 
@@ -140,15 +145,6 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                     })}
                 </ul>
             )}
-            
-            <div className="mt-1.5 min-h-[20px]">
-                {status === 'verified' && (
-                    <div className="flex items-center gap-1.5 text-xs text-green-700 animate-fade-in-up">
-                        <CheckIcon className="w-4 h-4 text-green-600" />
-                        <span className="font-medium">Location Verified</span>
-                    </div>
-                )}
-            </div>
         </div>
     );
 };

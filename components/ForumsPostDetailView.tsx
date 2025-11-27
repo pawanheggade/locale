@@ -19,7 +19,7 @@ interface ForumPostDetailViewProps {
   onBack: () => void;
 }
 
-export const ForumPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
+export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();

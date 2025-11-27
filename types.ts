@@ -248,7 +248,7 @@ export type ModalState =
   | { type: 'profileQR', data: Account };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forum' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity';
 
 
 // --- Context API Action Types ---

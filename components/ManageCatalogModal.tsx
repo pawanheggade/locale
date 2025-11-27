@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
-import { TrashIcon, DocumentDuplicateIcon, PlusIcon } from './Icons';
+import { TrashIcon, DocumentIcon, PlusIcon } from './Icons';
 import { cn } from '../lib/utils';
 import { useUI } from '../contexts/UIContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
@@ -95,7 +95,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
                                             <img src={item.url} alt="" className="w-10 h-10 object-cover rounded bg-white" />
                                         ) : (
                                             <div className="w-10 h-10 flex items-center justify-center bg-red-100 text-red-600 rounded">
-                                                <DocumentDuplicateIcon className="w-5 h-5" />
+                                                <DocumentIcon className="w-5 h-5" />
                                             </div>
                                         )}
                                         <span className="text-sm font-medium text-gray-600 truncate max-w-[180px] sm:max-w-xs" title={item.name}>{item.name}</span>
