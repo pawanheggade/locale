@@ -1,6 +1,4 @@
 
-
-
 import { Post, DisplayablePost, Account, FiltersState, Subscription } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -22,6 +20,12 @@ export const getPostStatus = (expiryDate: number | null | undefined): { isExpire
   const isExpiringThisWeek = !isExpired && expiryDate <= sevenDaysFromNow;
 
   return { isExpired, isExpiringSoon, isExpiringThisWeek };
+};
+
+export const wasPostEdited = (post: { id: string; lastUpdated: number }): boolean => {
+    // A post is considered edited if lastUpdated is significantly later than its creation ID timestamp
+    // Using 60 seconds buffer to account for immediate creation glitches
+    return post.lastUpdated > parseInt(post.id, 10) + 60000;
 };
 
 // Extracts keywords from text, filtering out common stop words.

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { PostType } from '../types';
 import { cn } from '../lib/utils';
@@ -36,7 +37,7 @@ const FilterBadge: React.FC<FilterBadgeProps> = ({ label, onClick, title, size =
         <button
             onClick={onClick}
             className={cn(
-                'uppercase font-bold tracking-wider text-gray-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
+                'uppercase font-bold tracking-wider text-gray-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm hover:text-gray-900',
                 sizeClasses, 
                 className
             )}

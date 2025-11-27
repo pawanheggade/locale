@@ -179,7 +179,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
       case 'createForumPost':
         return <CreateForumPostModal onClose={closeModal} onSubmit={(data) => { createForumPost(data); closeModal(); }} />;
       case 'upgradeToSeller':
-          // FIX: Pass a function to onUpgrade that correctly calls upgradeToSeller with the accountId.
           return <AccountModal mode="upgrade" accountToEdit={currentAccount!} allAccounts={accounts} onClose={closeModal} onUpgrade={(sellerData, tier) => upgradeToSeller(currentAccount!.id, sellerData, tier)} targetTier={activeModal.data.tier} />;
       case 'feedback':
           return <FeedbackModal onClose={closeModal} onSubmit={(c) => { addFeedback(c); closeModal(); }} />;

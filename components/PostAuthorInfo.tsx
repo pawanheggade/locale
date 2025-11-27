@@ -2,6 +2,7 @@
 import React from 'react';
 import { Account, DisplayablePost } from '../types';
 import { timeSince } from '../utils/formatters';
+import { wasPostEdited } from '../utils/posts';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
 
@@ -20,7 +21,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, on
   const metaClasses = size === 'small' ? 'text-xs' : 'text-sm';
   const wrapperPadding = size === 'small' ? 'p-1 -ml-1' : 'p-2 -ml-2';
   
-  const wasUpdated = post.lastUpdated && post.lastUpdated > parseInt(post.id, 10) + 60000;
+  const wasUpdated = wasPostEdited(post);
   const displayName = author.businessName || author.name;
   
   const currentColors = {

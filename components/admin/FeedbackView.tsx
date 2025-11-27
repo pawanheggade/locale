@@ -1,6 +1,7 @@
+
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Feedback, Account } from '../../types';
-import { timeSince } from '../../utils/formatters';
+import { timeSince, formatFullDateTime } from '../../utils/formatters';
 import { useSort } from '../../hooks/useSort';
 import { Button, TabButton } from '../ui/Button';
 import { DataTable } from './DataTable';
@@ -221,7 +222,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                         </div>
                         <div>
                              <h4 className="text-sm font-semibold text-gray-600">Date</h4>
-                             <p className="text-gray-900">{new Date(selectedFeedback.timestamp).toLocaleString()}</p>
+                             <p className="text-gray-900">{formatFullDateTime(selectedFeedback.timestamp)}</p>
                         </div>
                         <div>
                             <h4 className="text-sm font-semibold text-gray-600">Content</h4>
