@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { Account, DisplayablePost, PostCategory, PostType } from '../types';
 import { UserIcon, ArchiveBoxIcon, HeartIcon } from './Icons';
 import { StatCard } from './StatCard';
+import { formatShortDate } from '../utils/formatters';
 
 // Let TypeScript know that Chart.js is available globally
 declare var Chart: any;
@@ -129,7 +130,7 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
 
     for (let i = 29; i >= 0; i--) {
         const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-        last30DaysLabels.push(date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+        last30DaysLabels.push(formatShortDate(date));
     }
     
     allPosts.forEach(post => {

@@ -1,9 +1,13 @@
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { DisplayablePost, PostType, Subscription } from '../types';
 import { formatCurrency, formatCompactCurrency } from '../utils/formatters';
 import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
 import { useMap } from '../hooks/useMap';
 import { Button } from './ui/Button';
+import { TIER_STYLES } from '../lib/utils';
+import { STORAGE_KEYS } from '../lib/constants';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 // Declare Leaflet global object
 declare var L: any;
@@ -28,8 +32,6 @@ interface MapState {
   zoom: number;
 }
 
-const MAP_STATE_KEY = 'localeMapViewState';
-
 const MapSkeleton: React.FC = () => {
     return (
         <div className="h-full w-full bg-gray-300 flex items-center justify-center animate-pulse">
@@ -43,45 +45,20 @@ const MapSkeleton: React.FC = () => {
 
 const createMarkerIcon = (post: DisplayablePost) => {
     const tier = post.author?.subscription?.tier || 'Personal';
-    
-    let tierColorBg: string;
-    let tierColorBorder: string;
-    let ringColor: string;
-
-    switch (tier) {
-      case 'Business':
-      case 'Organisation':
-        tierColorBg = 'bg-amber-500';
-        tierColorBorder = 'border-t-amber-500';
-        ringColor = 'ring-amber-500';
-        break;
-      case 'Verified':
-        tierColorBg = 'bg-red-500';
-        tierColorBorder = 'border-t-red-500';
-        ringColor = 'ring-red-500';
-        break;
-      case 'Basic':
-      case 'Personal':
-      default:
-        tierColorBg = 'bg-gray-900';
-        tierColorBorder = 'border-t-gray-900';
-        ringColor = 'ring-gray-900';
-        break;
-    }
+    const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
+    const arrowBorderClass = styles.bgColor.replace('bg-', 'border-t-');
     
     const priceText = formatCompactCurrency(post.price);
     const isServiceOrEvent = post.type === PostType.SERVICE || post.type === PostType.EVENT;
 
-    // Products: Colored Header, White Body
-    // Services/Events: White Header, Colored Body
-    const headerClass = isServiceOrEvent ? 'bg-white text-gray-900' : `${tierColorBg} text-white`;
-    const bodyClass = isServiceOrEvent ? `${tierColorBg} text-white` : 'bg-white text-gray-900';
-    const arrowClass = isServiceOrEvent ? tierColorBorder : 'border-t-white';
+    const headerClass = isServiceOrEvent ? 'bg-white text-gray-900' : `${styles.bgColor} text-white`;
+    const bodyClass = isServiceOrEvent ? `${styles.bgColor} text-white` : 'bg-white text-gray-900';
+    const arrowClass = isServiceOrEvent ? arrowBorderClass : 'border-t-white';
 
     const iconHtml = `
       <div style="transform: translate(-50%, -100%); position: absolute; left: 0; top: 0; width: max-content;">
         <div class="custom-marker marker-pop-in-animation cursor-pointer group flex flex-col items-center">
-          <div class="marker-content bg-white rounded-lg text-center transform-gpu ring-1 ${ringColor} overflow-hidden w-[120px]">
+          <div class="marker-content bg-white rounded-lg text-center transform-gpu ring-1 ${styles.ringColor} overflow-hidden w-[120px]">
             <div class="text-xs font-semibold px-1 py-1 whitespace-normal leading-tight ${headerClass}" title="${post.title}">
               ${post.title}
             </div>
@@ -100,7 +77,7 @@ const createMarkerIcon = (post: DisplayablePost) => {
 
     return L.divIcon({
       html: iconHtml,
-      className: '', // important to remove default styling
+      className: '', 
       iconSize: [0, 0],
       iconAnchor: [0, 0],
     });
@@ -117,18 +94,11 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
   const markersRef = useRef<Record<string, any>>({});
   const displayedMarkerIdsRef = useRef(new Set<string>());
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  const isMounted = useIsMounted();
 
   const initialMapState = useMemo(() => {
     try {
-      const savedStateJSON = localStorage.getItem(MAP_STATE_KEY);
+      const savedStateJSON = localStorage.getItem(STORAGE_KEYS.MAP_STATE);
       if (savedStateJSON) {
         const savedState: MapState = JSON.parse(savedStateJSON);
         return { center: [savedState.lat, savedState.lng] as [number, number], zoom: savedState.zoom };
@@ -136,27 +106,21 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     } catch (error) {
       console.error("Failed to read map state from localStorage", error);
     }
-    // Default center on India if no saved state
     return { center: [20.5937, 78.9629] as [number, number], zoom: 5 };
   }, []);
 
   const mapInstanceRef = useMap(mapRef, { ...initialMapState, zoomControl: false });
 
-  // Initialize map logic (clusters, controls, event listeners)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // We are using custom zoom buttons now, so no L.control.zoom()
-
-    // Set max bounds to restrict scrolling to the world map (approx -85 to 85 lat)
     const southWest = L.latLng(-85, -180);
     const northEast = L.latLng(85, 180);
     const bounds = L.latLngBounds(southWest, northEast);
     map.setMaxBounds(bounds);
-    map.setMinZoom(2); // Prevent zooming out too far
+    map.setMinZoom(2);
 
-    // Initialize MarkerClusterGroup only once
     if (!clusterGroupRef.current) {
       clusterGroupRef.current = L.markerClusterGroup({
         chunkedLoading: true,
@@ -191,7 +155,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
         const zoom = map.getZoom();
         const mapState: MapState = { lat: center.lat, lng: center.lng, zoom: zoom };
         try {
-          localStorage.setItem(MAP_STATE_KEY, JSON.stringify(mapState));
+          localStorage.setItem(STORAGE_KEYS.MAP_STATE, JSON.stringify(mapState));
         } catch (error) {
           console.error("Failed to save map state to localStorage", error);
         }
@@ -199,14 +163,13 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     };
 
     const handleMapClick = () => {
-        if (isMountedRef.current) setSelectedPostId(null);
+        if (isMounted()) setSelectedPostId(null);
     };
     
     map.on('moveend', saveMapState);
     map.on('zoomend', saveMapState);
     map.on('click', handleMapClick);
 
-    // Cleanup listeners
     return () => {
       if (map) {
         map.off('moveend', saveMapState);
@@ -214,13 +177,11 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
         map.off('click', handleMapClick);
       }
     };
-  }, [mapInstanceRef]);
+  }, [mapInstanceRef, isMounted]);
 
-  // Center map on initial user location
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (map && userLocation && !hasCenteredOnUser.current) {
-      // Don't re-center if a specific post is being focused
       if (!postToFocusOnMap) {
         map.setView([userLocation.lat, userLocation.lng], 13);
       }
@@ -228,7 +189,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     }
   }, [userLocation, mapInstanceRef, postToFocusOnMap]);
 
-  // Update markers when posts change (Diffing Algorithm)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const clusterGroup = clusterGroupRef.current;
@@ -241,7 +201,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     const markersToAdd: any[] = [];
     const markersToRemove: any[] = [];
 
-    // Find markers to remove
     currentPostIds.forEach(postId => {
         if (!newPostIds.has(postId)) {
             const markerToRemove = markersRef.current[postId];
@@ -252,7 +211,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
         }
     });
 
-    // Find markers to add
     for (const post of postsWithCoords) {
       if (!currentPostIds.has(post.id)) {
           const coords = post.type === PostType.EVENT && post.eventCoordinates ? post.eventCoordinates : post.coordinates;
@@ -286,7 +244,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
               marker.bindPopup(popupContent, { offset: L.point(0, -25) });
               
               marker.on('popupopen', (e: any) => {
-                  if (isMountedRef.current) setSelectedPostId(post.id);
+                  if (isMounted()) setSelectedPostId(post.id);
                   const popupEl = e.popup.getElement();
                   if (!popupEl) return;
 
@@ -302,7 +260,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
                   }
               });
         
-              marker.on('popupclose', () => { if (isMountedRef.current) setSelectedPostId(null); });
+              marker.on('popupclose', () => { if (isMounted()) setSelectedPostId(null); });
               
               markersRef.current[post.id] = marker;
               markersToAdd.push(marker);
@@ -330,9 +288,8 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
         }
         isInitialLoadRef.current = false;
     }
-  }, [posts, onViewPostDetails, mapInstanceRef]);
+  }, [posts, onViewPostDetails, mapInstanceRef, isMounted]);
 
-  // Effect to manage marker selection styling
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([postId, marker]) => {
         const leafletMarker = marker as any;
@@ -348,7 +305,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     });
   }, [selectedPostId]);
 
-  // Update user location marker
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -359,17 +315,16 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
         } else {
             const userIcon = L.divIcon({
                 html: `<div class="user-location-marker"><div class="pulse-blue"></div></div>`,
-                className: '', // important to remove default styling
+                className: '',
                 iconSize: L.point(40, 40),
                 iconAnchor: L.point(20, 20),
             });
             userLocationMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
                 icon: userIcon,
-                zIndexOffset: 1000 // Ensure it's on top
+                zIndexOffset: 1000
             }).addTo(map);
         }
     } else {
-        // Remove marker if user location is lost
         if (userLocationMarkerRef.current) {
             userLocationMarkerRef.current.remove();
             userLocationMarkerRef.current = null;
@@ -377,7 +332,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     }
   }, [userLocation, mapInstanceRef]);
   
-  // Effect to focus on a specific post
   useEffect(() => {
     const map = mapInstanceRef.current;
     const clusterGroup = clusterGroupRef.current;
@@ -395,7 +349,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     
   }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef]);
   
-  // Effect to focus on a specific location
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (locationToFocus && map) {
@@ -420,11 +373,11 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
                 tempMarkerRef.current.remove();
                 tempMarkerRef.current = null;
             }
-        }, 10000); // Remove after 10 seconds
+        }, 10000); 
 
         onLocationFocusComplete();
 
-        return () => clearTimeout(timer); // Cleanup timer on re-run or unmount
+        return () => clearTimeout(timer);
     }
   }, [locationToFocus, onLocationFocusComplete, mapInstanceRef]);
 

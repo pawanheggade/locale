@@ -6,19 +6,12 @@ import { Button } from './ui/Button';
 import { ShareIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { useUI } from '../contexts/UIContext';
 import { SubscriptionBadge } from './SubscriptionBadge';
+import { TIER_STYLES } from '../lib/utils';
 
 interface ProfileQRModalProps {
   account: Account;
   onClose: () => void;
 }
-
-const tierColors: Record<string, string> = {
-    'Verified': '#ef4444',     // red-500
-    'Business': '#f59e0b',     // amber-500
-    'Organisation': '#d97706', // amber-600
-    'Basic': '#111827',        // gray-900
-    'Personal': '#111827'      // gray-900
-};
 
 // Helper to draw rounded rectangles on canvas
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
@@ -36,17 +29,15 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
 }
 
 const getBadgeSvg = (tier: string) => {
+    // Uses the centralized HEX codes
+    const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
+    
     if (tier === 'Organisation') {
-        // Amber-600 #d97706 - Solid
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#d97706" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${styles.hex}" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
     }
     
-    let color = '#111827'; 
-    if (tier === 'Verified') color = '#ef4444'; // red-500
-    if (tier === 'Business') color = '#f59e0b'; // amber-500
-
-    // Outline
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1 1.043 3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+    // Outline style for others
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
 };
 
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
@@ -58,14 +49,9 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
   const encodedUrl = encodeURIComponent(profileUrl);
   const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodedUrl}&ecc=H&margin=10&color=000000&bgcolor=FFFFFF`;
 
-  const borderColor = useMemo(() => {
-      switch (account.subscription.tier) {
-          case 'Verified': return 'border-red-500';
-          case 'Business': return 'border-amber-500';
-          case 'Organisation': return 'border-amber-600';
-          default: return 'border-gray-900';
-      }
-  }, [account.subscription.tier]);
+  // Determine border color class for the UI (not canvas)
+  const styles = TIER_STYLES[account.subscription.tier] || TIER_STYLES.Personal;
+  const borderColorClass = styles.borderColor;
 
   const handleDownload = async () => {
     setIsGenerating(true);
@@ -92,10 +78,10 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
         // Fill entire canvas white first
         ctx.fillRect(0, 0, cardWidth, contentHeight); 
         
-        // 2. Colored Border
-        const tierColor = tierColors[account.subscription.tier] || '#111827';
+        // 2. Colored Border using centralized Hex
         ctx.lineWidth = 5;
-        ctx.strokeStyle = tierColor;
+        ctx.strokeStyle = styles.hex;
+        
         // Inset border by half linewidth so it doesn't clip
         roundRect(ctx, 2.5, 2.5, cardWidth - 5, contentHeight - 5, 24); 
         ctx.stroke();
@@ -219,7 +205,6 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
           url: profileUrl,
         });
       } catch (error: any) {
-        // Ignore abort/cancel errors
         const isAbort = error.name === 'AbortError' || 
                         (typeof error.message === 'string' && (
                             error.message.toLowerCase().includes('abort') || 
@@ -249,7 +234,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
       <div className="flex flex-col items-center">
         <div className="p-8 pb-6 bg-white w-full flex flex-col items-center">
             {/* Unified Card Container */}
-            <div className={`relative p-6 rounded-3xl border-[5px] ${borderColor} bg-white shadow-sm flex flex-col items-center w-full max-w-[280px]`}>
+            <div className={`relative p-6 rounded-3xl border-[5px] ${borderColorClass} bg-white shadow-sm flex flex-col items-center w-full max-w-[280px]`}>
                 
                 {/* QR Code */}
                 <div className="relative mb-4 w-full aspect-square">

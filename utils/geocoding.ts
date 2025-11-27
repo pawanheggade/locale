@@ -1,4 +1,6 @@
+
 import { handleApiError, withRetry } from './gemini';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface Coordinates {
   lat: number;
@@ -9,11 +11,9 @@ interface GeocodingCache {
   [location: string]: Coordinates | null;
 }
 
-const GEOCODING_CACHE_KEY = 'localeGeocodingCache';
-
 const getCache = (): GeocodingCache => {
   try {
-    const cachedData = window.localStorage.getItem(GEOCODING_CACHE_KEY);
+    const cachedData = window.localStorage.getItem(STORAGE_KEYS.GEOCODING_CACHE);
     return cachedData ? JSON.parse(cachedData) : {};
   } catch (error) {
     console.error('Error reading geocoding cache:', error);
@@ -23,7 +23,7 @@ const getCache = (): GeocodingCache => {
 
 const setCache = (cache: GeocodingCache) => {
   try {
-    window.localStorage.setItem(GEOCODING_CACHE_KEY, JSON.stringify(cache));
+    window.localStorage.setItem(STORAGE_KEYS.GEOCODING_CACHE, JSON.stringify(cache));
   } catch (error) {
     console.error('Error saving geocoding cache:', error);
   }
@@ -109,8 +109,6 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
     if (data && data.display_name) {
       return data.display_name;
     }
-    // Handle cases where the API returns a valid response but no address (e.g., in the middle of the ocean)
-    // without throwing an error that gets misinterpreted as a network failure.
     if (data && data.error) {
         console.error('Nominatim API error:', data.error);
         throw new Error(data.error);
@@ -124,7 +122,7 @@ export const reverseGeocode = async (lat: number, lng: number): Promise<string> 
 };
 
 export const haversineDistance = (coords1: Coordinates, coords2: Coordinates): number => {
-  const R = 6371; // Radius of the Earth in km
+  const R = 6371; 
   const dLat = (coords2.lat - coords1.lat) * (Math.PI / 180);
   const dLng = (coords2.lng - coords1.lng) * (Math.PI / 180);
   const lat1 = coords1.lat * (Math.PI / 180);

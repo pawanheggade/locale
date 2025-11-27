@@ -1,5 +1,4 @@
 
-
 import * as React from 'react';
 import { useRef } from 'react';
 import { Notification, Account } from '../types';
@@ -10,6 +9,7 @@ import { usePosts } from '../contexts/PostsContext';
 import { useForum } from '../contexts/ForumContext';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
+import { useActivity } from '../contexts/ActivityContext';
 
 // Modal Imports
 import { ConfirmationModal } from './ConfirmationModal';
@@ -56,12 +56,17 @@ export const AppModals: React.FC<AppModalsProps> = ({
     isFindingNearby, handleFindNearby, userLocation, onSignOut
 }) => {
     const { 
-        currentAccount, accounts, bag, priceAlerts, 
+        currentAccount, accounts, bag, 
         login, socialLogin, createAccount, updateAccount, upgradeToSeller, 
-        addReport, addForumReport, setPriceAlert, deletePriceAlert, 
+        addReport, addForumReport, 
         addToBag, removeBagItem, savedSearches, addSavedSearch, deleteSavedSearch, 
         addCatalogItems, removeCatalogItem, addFeedback, termsContent, privacyContent,
     } = useAuth();
+    
+    const { 
+      priceAlerts, setPriceAlert, deletePriceAlert 
+    } = useActivity();
+
     const { addPost: createForumPost } = useForum();
     const { addToast } = useUI();
     const { dispatchFilterAction } = useFilters();

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, PencilIcon, PinIcon, BellIcon } from './Icons';
@@ -6,6 +7,7 @@ import { getPostStatus, isAccountEligibleToPin } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { useAuth } from '../contexts/AuthContext';
+import { useActivity } from '../contexts/ActivityContext';
 import { LocaleChoiceBadge, CategoryBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/Card';
@@ -28,7 +30,8 @@ interface PostCardProps {
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
   const { onToggleLikePost, onViewDetails, onAddToBag, onContactStore, onRequestService, onViewAccount, onShowOnMap, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert, onFilterByCategory, onFilterByTag } = usePostActions();
-  const { likedPostIds, bag, availabilityAlerts } = useAuth();
+  const { likedPostIds, bag } = useAuth();
+  const { availabilityAlerts } = useActivity();
   
   const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
   const isLiked = likedPostIds.has(post.id);
@@ -210,7 +213,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 title={coordsToUse ? "View on Map" : undefined}
              >
                 <MapPinIcon className={cn("w-4 h-4 shrink-0", coordsToUse ? "text-red-400 transition-colors" : "text-red-400")} />
-                <span className={cn("truncate", coordsToUse ? "decoration-red-400 underline-offset-2" : "")}>
+                <span className={cn("truncate group-hover:underline", coordsToUse ? "decoration-red-400 underline-offset-2" : "")}>
                     {locationToDisplay}
                 </span>
              </div>

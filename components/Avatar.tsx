@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Subscription } from '../types';
 import { UserCircleIconSolid } from './Icons';
-import { cn } from '../lib/utils';
+import { cn, TIER_STYLES } from '../lib/utils';
 
 interface AvatarProps {
   src?: string;
@@ -23,14 +23,6 @@ const sizeClasses = {
   '3xl': 'w-32 h-32',
 };
 
-const ringClasses: Partial<Record<Subscription['tier'], string>> = {
-  'Verified': 'ring-2 ring-red-400 ring-offset-2 ring-offset-white',
-  'Business': 'ring-2 ring-amber-400 ring-offset-2 ring-offset-white',
-  'Organisation': 'ring-4 ring-amber-500 ring-offset-2 ring-offset-white',
-  'Basic': '', // No ring for basic
-  'Personal': '', // No ring for personal
-};
-
 export const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Avatar', size = 'md', tier, className, onClick }) => {
   const [error, setError] = useState(false);
   
@@ -38,9 +30,17 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Avatar', size = 'md'
       setError(false);
   }, [src]);
 
-  const ringClass = tier ? (ringClasses[tier] || '') : '';
+  // Determine ring class based on tier styles
+  let ringClass = '';
+  if (tier && TIER_STYLES[tier]) {
+      const styles = TIER_STYLES[tier];
+      if (tier === 'Organisation') {
+          ringClass = `ring-4 ${styles.ringColor} ring-offset-2 ring-offset-white`;
+      } else if (tier === 'Verified' || tier === 'Business') {
+          ringClass = `ring-2 ${styles.ringColor} ring-offset-2 ring-offset-white`;
+      }
+  }
   
-  // Using a separate class string for the container/icon to ensure proper sizing and styling
   const baseClasses = cn(
     'rounded-full object-cover flex-shrink-0 bg-gray-200 transition-opacity duration-300',
     sizeClasses[size],

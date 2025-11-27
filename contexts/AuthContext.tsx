@@ -1,32 +1,19 @@
 
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment, FiltersState, ConfirmationModalData } from '../types';
+import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
 import { mockAccounts } from '../data/accounts';
 import { fileToDataUrl } from '../utils/media';
-import { applyFiltersToPosts, getPostStatus } from '../utils/posts';
 import { initialTermsContent, initialPrivacyContent } from '../data/pageContent';
-import { initialFiltersState } from './FiltersContext';
+import { STORAGE_KEYS } from '../lib/constants';
 
-const ACCOUNTS_KEY = 'localeAppAccounts';
-const CURRENT_ACCOUNT_ID_KEY = 'localeAppCurrentAccountId';
-const USER_DATA_KEY = 'localeAppAllUsersData';
-const REPORTS_KEY = 'localeAppReports';
-const FEEDBACK_KEY = 'localeAppFeedback';
-const TERMS_KEY = 'localeAppTermsContent';
-const PRIVACY_KEY = 'localeAppPrivacyContent';
 const APPROX_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface UserSpecificData {
     bag: BagItem[];
     savedLists: SavedList[];
-    priceAlerts: PriceAlert[];
-    availabilityAlerts: AvailabilityAlert[];
-    notifications: Notification[];
-    notifiedPostIds: string[];
     viewedPostIds: string[];
 }
 
@@ -35,10 +22,6 @@ type AllUsersData = Record<string, UserSpecificData>;
 const initialUserSpecificData: UserSpecificData = {
     bag: [],
     savedLists: [],
-    priceAlerts: [],
-    availabilityAlerts: [],
-    notifications: [],
-    notifiedPostIds: [],
     viewedPostIds: [],
 };
 
@@ -65,10 +48,6 @@ interface AuthContextType {
   
   bag: BagItem[];
   savedLists: SavedList[];
-  priceAlerts: PriceAlert[];
-  availabilityAlerts: AvailabilityAlert[];
-  notifications: Notification[];
-  notifiedPostIds: string[];
   viewedPostIds: string[];
   addToBag: (postId: string, quantity: number) => void;
   updateBagItem: (itemId: string, updates: Partial<Pick<BagItem, 'quantity' | 'isChecked' | 'savedListIds'>>) => void;
@@ -79,16 +58,8 @@ interface AuthContextType {
   renameSavedList: (listId: string, newName: string) => void;
   deleteListAndMoveItems: (listId: string) => void;
   addListToBag: (listId: string) => void;
-  setPriceAlert: (postId: string, targetPrice: number) => void;
-  deletePriceAlert: (postId: string) => void;
-  setAvailabilityAlert: (postId: string) => void;
-  deleteAvailabilityAlert: (postId: string) => void;
-  checkAvailabilityAlerts: (post: Post) => void;
-  addNotification: (notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-  setNotifiedPostIds: (postIds: string[]) => void;
-  addPostToViewHistory: (postId: string) => void;
   
+  addPostToViewHistory: (postId: string) => void;
   addCatalogItems: (files: File[]) => Promise<void>;
   removeCatalogItem: (itemId: string) => Promise<void>;
   
@@ -96,7 +67,6 @@ interface AuthContextType {
   addSavedSearch: (search: SavedSearch) => void;
   deleteSavedSearch: (searchId: string) => void;
   toggleSavedSearchAlert: (searchId: string) => void;
-  checkSavedSearchesMatches: (newPosts: Post[]) => void;
 
   // Admin & Global Data
   reports: Report[];
@@ -112,6 +82,8 @@ interface AuthContextType {
   setTermsContent: React.Dispatch<React.SetStateAction<string>>;
   privacyContent: string;
   setPrivacyContent: React.Dispatch<React.SetStateAction<string>>;
+
+  incrementProfileViews: (accountId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -119,16 +91,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { addToast, openModal } = useUI();
 
-    const [accounts, setAccounts] = useLargePersistentState<Account[]>(ACCOUNTS_KEY, mockAccounts);
-    const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(CURRENT_ACCOUNT_ID_KEY, null);
-    const [savedSearches, setSavedSearches] = usePersistentState<SavedSearch[]>('localeAppSavedSearches', []);
-    const [allUsersData, setAllUsersData] = useLargePersistentState<AllUsersData>(USER_DATA_KEY, {});
+    const [accounts, setAccounts] = useLargePersistentState<Account[]>(STORAGE_KEYS.ACCOUNTS, mockAccounts);
+    const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(STORAGE_KEYS.CURRENT_ACCOUNT_ID, null);
+    const [savedSearches, setSavedSearches] = usePersistentState<SavedSearch[]>(STORAGE_KEYS.RECENT_SEARCHES, []);
+    const [allUsersData, setAllUsersData] = useLargePersistentState<AllUsersData>(STORAGE_KEYS.USER_DATA, {});
     
     // Global/Admin Data
-    const [reports, setReports] = usePersistentState<Report[]>(REPORTS_KEY, []);
-    const [feedbackList, setFeedbackList] = usePersistentState<Feedback[]>(FEEDBACK_KEY, []);
-    const [termsContent, setTermsContent] = usePersistentState<string>(TERMS_KEY, initialTermsContent);
-    const [privacyContent, setPrivacyContent] = usePersistentState<string>(PRIVACY_KEY, initialPrivacyContent);
+    const [reports, setReports] = usePersistentState<Report[]>(STORAGE_KEYS.REPORTS, []);
+    const [feedbackList, setFeedbackList] = usePersistentState<Feedback[]>(STORAGE_KEYS.FEEDBACK, []);
+    const [termsContent, setTermsContent] = usePersistentState<string>(STORAGE_KEYS.TERMS, initialTermsContent);
+    const [privacyContent, setPrivacyContent] = usePersistentState<string>(STORAGE_KEYS.PRIVACY, initialPrivacyContent);
 
     const currentAccount = useMemo(() => {
         if (!currentAccountId) return null;
@@ -167,33 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const showConfirmation = useCallback((data: ConfirmationModalData) => {
         openModal({ type: 'confirmation', data });
     }, [openModal]);
-
-    const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => {
-        const newNotification: Notification = {
-            ...notificationData,
-            id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: Date.now(),
-            isRead: false,
-        };
-
-        setAllUsersData(prev => {
-            const recipientId = notificationData.recipientId;
-            const userSpecificData = prev[recipientId] || initialUserSpecificData;
-            
-            return {
-                ...prev,
-                [recipientId]: {
-                    ...userSpecificData,
-                    notifications: [newNotification, ...userSpecificData.notifications]
-                }
-            };
-        });
-        
-        // Browser notification for current user
-        if (notificationData.recipientId === currentAccountId && 'Notification' in window && Notification.permission === 'granted') {
-             new Notification('Locale', { body: notificationData.message });
-        }
-    }, [setAllUsersData, currentAccountId]);
     
     const addReport = useCallback((postId: string, reason: string) => {
         if (!currentAccount) return;
@@ -236,7 +181,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [currentAccount, setFeedbackList, addToast]);
 
     const login = useCallback((account: Account, rememberMe: boolean) => {
-        // Automatically reactivate user-archived accounts
         if (account.status === 'archived' && !account.archivedByAdmin) {
              setAccounts(prev => prev.map(a => a.id === account.id ? { ...a, status: 'active', archivedByAdmin: false } : a));
              addToast('Welcome back! Your account has been reactivated.', 'success');
@@ -244,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setCurrentAccountId(account.id);
         if (!rememberMe) {
-            localStorage.removeItem(CURRENT_ACCOUNT_ID_KEY);
+            localStorage.removeItem(STORAGE_KEYS.CURRENT_ACCOUNT_ID);
         }
     }, [setCurrentAccountId, setAccounts, addToast]);
 
@@ -281,13 +225,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setAccounts(prev => prev.map(acc => {
                         if (acc.id === referrer.id) {
                             const newReferralCount = (acc.referralCount || 0) + 1;
-                            
                             const THREE_MONTHS_MS = 3 * APPROX_MONTH_MS;
                             const currentRenewal = (acc.subscription.renewalDate && acc.subscription.renewalDate > Date.now()) ? acc.subscription.renewalDate : Date.now();
-                            
-                            const newRenewalDate = acc.subscription.tier === 'Business' 
-                                ? currentRenewal + THREE_MONTHS_MS 
-                                : Date.now() + THREE_MONTHS_MS;
+                            const newRenewalDate = acc.subscription.tier === 'Business' ? currentRenewal + THREE_MONTHS_MS : Date.now() + THREE_MONTHS_MS;
 
                             const newSubscription: Subscription = {
                                 tier: 'Business',
@@ -295,12 +235,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                                 isTrial: false,
                                 trialEndDate: null,
                             };
-                            
-                            addNotification({ 
-                                recipientId: referrer.id, 
-                                message: `Your referral was successful! You've received a 3-month Business subscription bonus.`, 
-                                type: 'referral_bonus' 
-                            });
                             
                             return { ...acc, referralCount: newReferralCount, subscription: newSubscription };
                         }
@@ -319,14 +253,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (isSeller) {
           addToast('Seller account created! It is now under review.', 'success');
-          addNotification({ recipientId: newAccount.id, message: 'Your seller account has been submitted and is pending review by our team.', type: 'account_pending' });
         } else {
           addToast(`Welcome, ${newAccount.name}! Your account has been created.`, 'success');
         }
         login(newAccount, true);
 
         return newAccount;
-    }, [accounts, setAccounts, addToast, login, addNotification]);
+    }, [accounts, setAccounts, addToast, login]);
 
     const socialLogin = useCallback(async (provider: 'google' | 'apple') => {
         const mockUser = provider === 'google' ? { email: 'google.user@example.com', name: 'Google User', username: 'google_user', avatarUrl: 'https://i.pravatar.cc/150?u=google-user' } : { email: 'apple.user@example.com', name: 'Apple User', username: 'apple_user', avatarUrl: 'https://i.pravatar.cc/150?u=apple-user' };
@@ -356,7 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const trialEndDate = Date.now() + 14 * 24 * 60 * 60 * 1000;
                     subscription = { tier: newTier, renewalDate: trialEndDate, isTrial: true, trialEndDate };
                     addToast(`You've started a 14-day free trial of the ${newTier} plan! Your account is now under review.`, 'success');
-                } else { // 'Basic' tier
+                } else { 
                     subscription = { tier: 'Basic', renewalDate: null, isTrial: false, trialEndDate: null };
                     addToast(`Your account has been upgraded to Basic and is now under review.`, 'success');
                 }
@@ -365,8 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addNotification({ recipientId: accountId, message: 'Your seller account details have been submitted and are pending review.', type: 'account_pending' });
-    }, [setAccounts, addToast, addNotification]);
+    }, [setAccounts, addToast]);
       
     const toggleLikeAccount = useCallback((accountIdToLike: string) => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
@@ -459,24 +391,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const approveAccount = useCallback((accountId: string) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId && acc.status === 'pending') {
-                addNotification({ recipientId: accountId, message: 'Congratulations! Your seller account has been approved.', type: 'account_approved' });
                 return { ...acc, status: 'active' };
             }
             return acc;
         }));
         addToast("Account approved.", "success");
-    }, [setAccounts, addToast, addNotification]);
+    }, [setAccounts, addToast]);
 
     const rejectAccount = useCallback((accountId: string) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId && acc.status === 'pending') {
-                addNotification({ recipientId: accountId, message: 'Your seller account application has been rejected. Please contact support for more information.', type: 'account_rejected' });
                 return { ...acc, status: 'rejected' };
             }
             return acc;
         }));
         addToast("Account rejected.", "success");
-    }, [setAccounts, addToast, addNotification]);
+    }, [setAccounts, addToast]);
 
     const addToBag = useCallback((postId: string, quantity: number) => {
         if (!currentAccountId) return;
@@ -621,71 +551,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToast(`${itemsAddedCount} item(s) from "${list.name}" added to bag.`, 'success');
     }, [currentAccountId, currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
 
-    const setPriceAlert = useCallback((postId: string, targetPrice: number) => {
-        const existingAlertIndex = currentUserData.priceAlerts.findIndex(alert => alert.postId === postId);
-        const newAlerts = [...currentUserData.priceAlerts];
-        if (existingAlertIndex > -1) {
-            newAlerts[existingAlertIndex] = { ...newAlerts[existingAlertIndex], targetPrice };
-        } else {
-            newAlerts.push({ id: `alert-${Date.now()}`, postId, targetPrice });
-        }
-        updateCurrentUserSpecificData({ priceAlerts: newAlerts });
-        addToast('Price alert set!', 'success');
-    }, [currentUserData.priceAlerts, updateCurrentUserSpecificData, addToast]);
-
-    const deletePriceAlert = useCallback((postId: string) => {
-        updateCurrentUserSpecificData({ priceAlerts: currentUserData.priceAlerts.filter(alert => alert.postId !== postId) });
-        addToast('Price alert removed.', 'success');
-    }, [currentUserData.priceAlerts, updateCurrentUserSpecificData, addToast]);
-
-    const setAvailabilityAlert = useCallback((postId: string) => {
-        const existingAlert = currentUserData.availabilityAlerts.find(alert => alert.postId === postId);
-        if (!existingAlert) {
-            const newAlert: AvailabilityAlert = { id: `avail-${Date.now()}`, postId };
-            updateCurrentUserSpecificData({ availabilityAlerts: [...currentUserData.availabilityAlerts, newAlert] });
-            addToast('You will be notified when this item is available.', 'success');
-        }
-    }, [currentUserData.availabilityAlerts, updateCurrentUserSpecificData, addToast]);
-
-    const deleteAvailabilityAlert = useCallback((postId: string) => {
-        updateCurrentUserSpecificData({ availabilityAlerts: currentUserData.availabilityAlerts.filter(alert => alert.postId !== postId) });
-        addToast('Availability alert removed.', 'success');
-    }, [currentUserData.availabilityAlerts, updateCurrentUserSpecificData, addToast]);
-
-    const checkAvailabilityAlerts = useCallback((post: Post) => {
-        const { isExpired } = getPostStatus(post.expiryDate);
-        if (isExpired) return;
-        setAllUsersData(prev => {
-            const newData = { ...prev };
-            let changed = false;
-            Object.keys(newData).forEach(userId => {
-                const userData = newData[userId];
-                if (!userData.availabilityAlerts) return;
-                const alertIndex = userData.availabilityAlerts.findIndex(a => a.postId === post.id);
-                if (alertIndex > -1) {
-                    const newAlerts = [...userData.availabilityAlerts];
-                    newAlerts.splice(alertIndex, 1);
-                    const newNotification: Notification = { id: `notif-avail-${Date.now()}-${userId}`, recipientId: userId, message: `Good news! "${post.title}" is now available.`, timestamp: Date.now(), isRead: false, type: 'search_alert', postId: post.id };
-                    newData[userId] = { ...userData, availabilityAlerts: newAlerts, notifications: [newNotification, ...userData.notifications] };
-                    changed = true;
-                    if (userId === currentAccountId && 'Notification' in window && Notification.permission === 'granted') {
-                         new Notification('Item Available', { body: newNotification.message });
-                    }
-                }
-            });
-            return changed ? newData : prev;
-        });
-    }, [setAllUsersData, currentAccountId]);
-
-    const setNotifications = useCallback((valueOrUpdater: React.SetStateAction<Notification[]>) => {
-        const newNotifications = typeof valueOrUpdater === 'function' ? valueOrUpdater(currentUserData.notifications) : valueOrUpdater;
-        updateCurrentUserSpecificData({ notifications: newNotifications });
-    }, [currentUserData.notifications, updateCurrentUserSpecificData]);
-
-    const setNotifiedPostIds = useCallback((postIds: string[]) => {
-        updateCurrentUserSpecificData({ notifiedPostIds: postIds });
-    }, [updateCurrentUserSpecificData]);
-
     const addPostToViewHistory = useCallback((postId: string) => {
         if (!currentAccountId) return;
         const currentHistory = currentUserData.viewedPostIds || [];
@@ -724,24 +589,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSavedSearches(prev => prev.map(search => search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search));
     }, [setSavedSearches]);
 
-    const checkSavedSearchesMatches = useCallback((newPosts: Post[]) => {
-        if (!currentAccountId || savedSearches.length === 0) return;
-        const alertsEnabledSearches = savedSearches.filter(s => s.enableAlerts);
-        if (alertsEnabledSearches.length === 0) return;
-        
-        alertsEnabledSearches.forEach(search => {
-            const filterStateCompat: FiltersState = {
-                ...initialFiltersState,
-                ...search.filters,
-                // Ensure transient fields are reset if needed, though initialFiltersState handles it
-            };
-            const matches = applyFiltersToPosts(newPosts as any[], newPosts as any[], filterStateCompat, search.filters.searchQuery, null, currentAccount);
-            if (matches.length > 0) {
-                addNotification({ recipientId: currentAccountId, message: `${matches.length} new item(s) found for your search "${search.name}".`, type: 'search_alert' });
-            }
-        });
-    }, [currentAccountId, savedSearches, currentAccount, addNotification]);
-
     const addSavedSearch = useCallback((search: SavedSearch) => {
         setSavedSearches(prev => [...prev, search]);
     }, [setSavedSearches]);
@@ -750,22 +597,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSavedSearches(prev => prev.filter(s => s.id !== searchId));
     }, [setSavedSearches]);
 
+    const incrementProfileViews = useCallback((accountId: string) => {
+        setAccounts(prev => prev.map(acc => {
+            if (acc.id === accountId) {
+                return { ...acc, profileViews: (acc.profileViews || 0) + 1 };
+            }
+            return acc;
+        }));
+    }, [setAccounts]);
+
     const value = useMemo(() => ({
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
-        bag: currentUserData.bag, savedLists: currentUserData.savedLists, priceAlerts: currentUserData.priceAlerts, availabilityAlerts: currentUserData.availabilityAlerts, notifications: currentUserData.notifications, notifiedPostIds: currentUserData.notifiedPostIds, viewedPostIds: currentUserData.viewedPostIds,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert, checkAvailabilityAlerts, addNotification, setNotifications, setNotifiedPostIds, addPostToViewHistory, addCatalogItems, removeCatalogItem,
-        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert, checkSavedSearchesMatches,
-        // Admin/Global
+        bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
         reports, addReport, addForumReport, setReports,
         feedbackList, addFeedback, setFeedbackList,
         termsContent, setTermsContent,
-        privacyContent, setPrivacyContent
+        privacyContent, setPrivacyContent,
+        incrementProfileViews
     }), [
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert, checkAvailabilityAlerts, addNotification, setNotifications, setNotifiedPostIds, addPostToViewHistory, addCatalogItems, removeCatalogItem,
-        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert, checkSavedSearchesMatches,
-        reports, addReport, addForumReport, setReports, feedbackList, addFeedback, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
+        reports, addReport, addForumReport, setReports, feedbackList, addFeedback, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent, incrementProfileViews
     ]);
 
     return (

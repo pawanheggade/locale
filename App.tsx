@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { DisplayablePost, PostActions, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -18,6 +15,7 @@ import { useFilters } from './contexts/FiltersContext';
 import { useAuth } from './contexts/AuthContext';
 import { usePosts } from './contexts/PostsContext';
 import { useForum } from './contexts/ForumContext';
+import { useActivity } from './contexts/ActivityContext';
 import { usePostFilters } from './hooks/usePostFilters';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
@@ -55,12 +53,17 @@ export const App: React.FC = () => {
   const { 
     currentAccount, accounts, accountsById, signOut: authSignOut, 
     likedPostIds, deleteAccount, toggleAccountStatus, updateSubscription, updateAccountRole, approveAccount, rejectAccount, upgradeToSeller, updateAccountDetails,
-    bag, notifications, setNotifications, priceAlerts, setPriceAlert, deletePriceAlert, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
+    bag, 
     addPostToViewHistory, viewedPostIds, savedSearches,
     reports, setReports, feedbackList, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent,
-    addReport, addForumReport, addFeedback, toggleLikePost, toggleLikeAccount
+    addReport, addForumReport, addFeedback, toggleLikePost, toggleLikeAccount, incrementProfileViews
   } = useAuth();
   
+  const { 
+    notifications, markAsRead, priceAlerts, setPriceAlert, deletePriceAlert, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
+    addNotification
+  } = useActivity();
+
   const { 
     posts: allDisplayablePosts, archivedPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, archivePost, unarchivePost, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
     togglePinPost, priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
@@ -111,13 +114,8 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // If we are viewing an account and the master list of accounts updates,
-    // refresh the `viewingAccount` state with the latest data from the context.
-    // This ensures that profile edits are reflected live.
     if (viewingAccount && accountsById.has(viewingAccount.id)) {
       const freshAccount = accountsById.get(viewingAccount.id);
-      // A simple stringify check is a safe way to prevent re-render loops
-      // caused by new object references on every render.
       if (freshAccount && JSON.stringify(freshAccount) !== JSON.stringify(viewingAccount)) {
         setViewingAccount(freshAccount);
       }
@@ -150,6 +148,10 @@ export const App: React.FC = () => {
         addPostToViewHistory(options.postId);
       }
 
+      if (newView === 'account' && options.account) {
+          incrementProfileViews(options.account.id);
+      }
+
       setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
 
       setView(newView);
@@ -157,10 +159,10 @@ export const App: React.FC = () => {
       setViewingAccount(options.account || null);
       setViewingForumPostId(options.forumPostId || null);
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, currentAccount, addPostToViewHistory, addToast]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, currentAccount, addPostToViewHistory, addToast, incrementProfileViews]);
 
   const handleNotificationClick = useCallback((notification: Notification) => {
-    setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n));
+    markAsRead(notification.id);
     
     if (notification.postId) {
         navigateTo('postDetail', { postId: notification.postId });
@@ -170,7 +172,7 @@ export const App: React.FC = () => {
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
-  }, [setNotifications, navigateTo, accountsById]);
+  }, [markAsRead, navigateTo, accountsById]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -370,7 +372,7 @@ export const App: React.FC = () => {
     onSetPriceAlert: withAuthCheck((postId) => { const post = findPostById(postId); if (post) openModal({ type: 'setPriceAlert', data: post }); }),
     onToggleAvailabilityAlert: withAuthCheck((postId) => {
        const existing = availabilityAlerts.find(a => a.postId === postId);
-       existing ? deletePriceAlert(postId) : setAvailabilityAlert(postId);
+       existing ? deleteAvailabilityAlert(postId) : setAvailabilityAlert(postId);
     }),
     onAddToBag: withAuthCheck((postId) => { const post = findPostById(postId); if (post) openModal({ type: 'addToBag', data: post }); }),
     onViewBag: () => navigateTo('bag'),
@@ -384,7 +386,13 @@ export const App: React.FC = () => {
       const post = findPostById(postId);
       if (author && post) openModal({ type: 'contactStore', data: { author, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
     }),
-    onViewAccount: (accountId) => { const account = accountsById.get(accountId); if (account) navigateTo('account', { account }); },
+    onViewAccount: (accountId) => { 
+        const account = accountsById.get(accountId); 
+        if (account) {
+            incrementProfileViews(accountId);
+            navigateTo('account', { account }); 
+        }
+    },
     onFilterByCategory: (category) => {
       if (mainView !== 'grid' || view !== 'all') { setMainView('grid'); setView('all'); }
       dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: category });
@@ -417,7 +425,6 @@ export const App: React.FC = () => {
         else { addToast(`Could not find location for ${account.name}.`, 'error'); }
       }
     },
-    // FIX: Updated onToggleLikeAccount to accept an Account object as required by the PostActions interface, and correctly pass the account's ID to the underlying context function.
     onToggleLikeAccount: (account: Account) => { if(!currentAccount) openModal({type:'login'}); else toggleLikeAccount(account.id); },
     onTogglePinPost: togglePinPost,
     onViewForumPost: (postId) => navigateTo('forumPostDetail', { forumPostId: postId }),
@@ -425,8 +432,9 @@ export const App: React.FC = () => {
   }), [
     currentAccount, openModal, archivePost, unarchivePost, deletePostPermanently, navigateTo, findPostById,
     withAuthCheck, accountsById, dispatchFilterAction, setPostToFocusOnMap,
-    setLocationToFocus, togglePinPost, addToast, setIsGeocoding, availabilityAlerts, setAvailabilityAlert, deletePriceAlert,
-    view, mainView, viewingPostId, viewingAccount, viewingForumPostId, priceAlerts, toggleLikePost, toggleLikeAccount, showConfirmation
+    setLocationToFocus, togglePinPost, addToast, setIsGeocoding, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
+    view, mainView, viewingPostId, viewingAccount, viewingForumPostId, priceAlerts, toggleLikePost, toggleLikeAccount, showConfirmation,
+    deletePriceAlert, setPriceAlert, incrementProfileViews
   ]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
@@ -500,7 +508,7 @@ export const App: React.FC = () => {
         case 'likes': return currentAccount ? <LikesView likedPosts={likedPosts} onViewAccount={postActions.onViewAccount} currentAccount={currentAccount} allAccounts={accounts} /> : null;
         case 'bag': return currentAccount ? <BagView onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} allAccounts={accounts} /> : null;
         case 'admin':
-            return currentAccount?.role === 'admin' ? <AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={deleteAccount} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={approveAccount} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* handle deletion logic for post/comment via context methods if exposed or added here */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={(postId) => showConfirmation({title: 'Delete Post', message: 'Are you sure?', onConfirm: () => deletePostPermanently(postId), confirmText: 'Delete'})} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /> : null;
+            return currentAccount?.role === 'admin' ? <AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={deleteAccount} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={(postId) => showConfirmation({title: 'Delete Post', message: 'Are you sure?', onConfirm: () => deletePostPermanently(postId), confirmText: 'Delete'})} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /> : null;
         case 'account': return viewingAccount ? <AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} onEditAccount={() => openModal({ type: 'editAccount', data: viewingAccount })} archivedPosts={archivedPosts} allAccounts={accounts} isLiked={currentAccount?.likedAccountIds?.includes(viewingAccount.id) ?? false} onToggleLike={(account: Account) => postActions.onToggleLikeAccount!(account)} onShowOnMap={postActions.onShowOnMap} isGeocoding={isGeocoding} onOpenAnalytics={() => navigateTo('accountAnalytics', { account: viewingAccount })} /> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <ForumsView />;
@@ -526,8 +534,8 @@ export const App: React.FC = () => {
                 alerts={priceAlerts}
                 availabilityAlerts={availabilityAlerts}
                 posts={allDisplayablePosts as Post[]}
-                onDismiss={(id) => setNotifications(p => p.map(n => n.id === id ? {...n, isRead: true} : n))}
-                onDismissAll={() => setNotifications(p => p.map(n => ({...n, isRead: true})))}
+                onDismiss={(id) => markAsRead(id)}
+                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
                 onNotificationClick={handleNotificationClick}
                 onDeleteAlert={deletePriceAlert}
                 onDeleteAvailabilityAlert={deleteAvailabilityAlert}

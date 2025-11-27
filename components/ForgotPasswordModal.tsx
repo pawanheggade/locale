@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ModalShell from './ModalShell';
 import { EnvelopeIcon } from './Icons';
@@ -5,6 +6,7 @@ import { InputWithIcon } from './InputWithIcon';
 import { useUI } from '../contexts/UIContext';
 import { Button } from './ui/Button';
 import { FormField } from './FormField';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface ForgotPasswordModalProps {
   onClose: () => void;
@@ -15,15 +17,8 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
-    const isMountedRef = useRef(true);
+    const isMounted = useIsMounted();
     const { addToast } = useUI();
-
-    useEffect(() => {
-        isMountedRef.current = true;
-        return () => {
-          isMountedRef.current = false;
-        };
-    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,7 +31,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
 
         setIsSubmitting(true);
         // In a real app, this would be an API call.
-        if (isMountedRef.current) {
+        if (isMounted()) {
             setIsSubmitting(false);
             addToast(`If an account exists for ${email}, a password reset link has been sent.`, 'success');
             onClose();

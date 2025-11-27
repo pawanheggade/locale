@@ -62,6 +62,10 @@ export const formatFullDateTime = (timestamp: number): string => {
     });
 };
 
+export const formatShortDate = (date: Date): string => {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
 export const timeSince = (timestamp: number): string => {
   const now = Date.now();
   const seconds = Math.floor((now - timestamp) / 1000);

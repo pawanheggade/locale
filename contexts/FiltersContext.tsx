@@ -4,8 +4,7 @@ import { PostType, FilterAction, FiltersState, SavedSearchFilters } from '../typ
 import { performAiSearch } from '../utils/gemini';
 import { usePosts } from './PostsContext';
 import { useUI } from './UIContext';
-
-const FILTERS_STORAGE_KEY = 'localeAppFilters';
+import { STORAGE_KEYS } from '../lib/constants';
 
 export const initialFiltersState: FiltersState = {
   searchQuery: '',
@@ -67,7 +66,7 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
 
 const initFilters = (defaultState: FiltersState): FiltersState => {
   try {
-    const stored = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    const stored = window.localStorage.getItem(STORAGE_KEYS.FILTERS);
     if (stored) {
       const parsed = JSON.parse(stored);
       // Merge with default state to ensure compatibility and reset transient fields
@@ -105,7 +104,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const { isAiSearching, isAiSearchEnabled, aiSmartFilterResults, ...persistentState } = filterState;
     try {
-      window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(persistentState));
+      window.localStorage.setItem(STORAGE_KEYS.FILTERS, JSON.stringify(persistentState));
     } catch (e) {
       console.error("Failed to save filters to storage:", e);
     }

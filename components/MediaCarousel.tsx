@@ -4,6 +4,7 @@ import { Media } from '../types';
 import { useCarousel } from '../hooks/useCarousel';
 import { ChevronLeftIcon, ChevronRightIcon, SpinnerIcon } from './Icons';
 import { Button } from './ui/Button';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface MediaCarouselProps {
     id: string;
@@ -23,7 +24,6 @@ const ImageWithLoader: React.FC<{ src: string; alt: string; className: string }>
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
 
-    // Reset state if src changes
     useEffect(() => {
         setIsLoading(true);
         setHasError(false);
@@ -72,8 +72,7 @@ const VideoWithLoader: React.FC<{
         internalRef.current = el;
         videoRef(el);
         
-        // Check immediately if ready (important for cached videos or remounts to prevent flash)
-        if (el && el.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+        if (el && el.readyState >= 2) {
             setIsLoaded(true);
         }
     }, [videoRef]);
@@ -117,7 +116,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
 }) => {
     const getInitialIndex = () => {
         try {
-            const savedState = localStorage.getItem(`media-carousel-state-${id}`);
+            const savedState = localStorage.getItem(`${STORAGE_KEYS.MEDIA_CAROUSEL_PREFIX}${id}`);
             if (savedState) {
                 const parsedState = JSON.parse(savedState);
                 if (typeof parsedState.currentIndex === 'number' && parsedState.currentIndex < media.length) {
@@ -127,7 +126,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
         } catch (error) {
             console.error('Error reading carousel state from localStorage:', error);
         }
-        return 0; // Default to 0 if nothing found or an error occurs
+        return 0;
     };
     
     const { currentIndex, goToNext, goToPrevious } = useCarousel({ itemCount: media.length, loop, initialIndex: getInitialIndex() });
@@ -136,7 +135,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
     useEffect(() => {
         try {
             const stateToSave = JSON.stringify({ currentIndex });
-            localStorage.setItem(`media-carousel-state-${id}`, stateToSave);
+            localStorage.setItem(`${STORAGE_KEYS.MEDIA_CAROUSEL_PREFIX}${id}`, stateToSave);
         } catch (error) {
             console.error('Error saving carousel state to localStorage:', error);
         }
@@ -150,8 +149,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
         videoRefs.current.forEach((videoEl, index) => {
             if (!videoEl) return;
             const isCurrentMedia = index === currentIndex;
-            // Only autoplay if it's the current slide, in view, and muted by default.
-            // This prevents videos in modals from autoplaying with sound.
             const shouldPlay = isInView && isCurrentMedia && defaultMuted && media[index]?.type === 'video';
 
             if (shouldPlay) {
@@ -232,7 +229,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
                     <Button onClick={handleNextClick} variant="overlay" size="icon-sm" aria-label="Next media" className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-white">
                         <ChevronRightIcon className="w-6 h-6" />
                     </Button>
-                    {/* Indicator dots with a gradient background for visibility */}
                     <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 flex justify-center items-end pb-2">
                         <div className="flex space-x-2">
                             {media.map((_, index) => (

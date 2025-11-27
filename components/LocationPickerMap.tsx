@@ -4,6 +4,7 @@ import { reverseGeocode } from '../utils/geocoding';
 import { SpinnerIcon } from './Icons';
 import { useMap } from '../hooks/useMap';
 import { Button } from './ui/Button';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 declare var L: any;
 
@@ -16,7 +17,7 @@ interface LocationPickerMapProps {
 export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoordinates, onLocationSelect, onCancel }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const markerInstance = useRef<any>(null);
-  const isMountedRef = useRef(true);
+  const isMounted = useIsMounted();
 
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(initialCoordinates);
   const [selectedAddress, setSelectedAddress] = useState<string>('');
@@ -29,13 +30,6 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
 
   const mapInstanceRef = useMap(mapRef, mapOptions);
   
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   const updateMarker = useCallback((latlng: { lat: number; lng: number }) => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -46,10 +40,10 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
       markerInstance.current = L.marker(latlng).addTo(map);
     }
     map.panTo(latlng);
-    if (isMountedRef.current) {
+    if (isMounted()) {
         setSelectedCoords(latlng);
     }
-  }, [mapInstanceRef]);
+  }, [mapInstanceRef, isMounted]);
   
   // Fetch address on coordinate change
   useEffect(() => {
@@ -57,23 +51,23 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
       setIsLoading(true);
       reverseGeocode(selectedCoords.lat, selectedCoords.lng)
         .then(address => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setSelectedAddress(address);
             }
         })
         .catch(error => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 console.error("Reverse geocoding failed:", error);
                 setSelectedAddress(error instanceof Error ? error.message : 'Could not determine address.');
             }
         })
         .finally(() => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setIsLoading(false);
             }
         });
     }
-  }, [selectedCoords]);
+  }, [selectedCoords, isMounted]);
   
   // Initialize map interaction logic
   useEffect(() => {

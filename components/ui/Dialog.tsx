@@ -1,10 +1,10 @@
 
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { XMarkIcon, ChevronLeftIcon } from '../Icons';
 import { Button } from './Button';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 interface DialogProps {
   open: boolean;
@@ -15,22 +15,17 @@ interface DialogProps {
 
 const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position = 'center' }) => {
   const [isClosing, setIsClosing] = useState(false);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
+  const isMounted = useIsMounted();
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
-      if (isMountedRef.current) {
+      if (isMounted()) {
         onOpenChange(false);
         setIsClosing(false);
       }
     }, 300); // Animation duration must match CSS
-  }, [onOpenChange]);
+  }, [onOpenChange, isMounted]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

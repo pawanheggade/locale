@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, CheckBadgeIconSolid } from './Icons';
@@ -5,6 +6,7 @@ import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { Avatar } from './Avatar';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface AccountMenuProps {
     currentAccount: Account;
@@ -65,25 +67,18 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const accountMenuRef = useRef<HTMLDivElement>(null);
-    const isMountedRef = useRef(true);
+    const isMounted = useIsMounted();
     const animateBadge = useBadgeAnimation(bagCount);
-
-    useEffect(() => {
-        isMountedRef.current = true;
-        return () => {
-          isMountedRef.current = false;
-        };
-    }, []);
 
     const closeMenu = useCallback(() => {
         setIsClosing(true);
         setTimeout(() => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setIsAccountMenuOpen(false);
                 setIsClosing(false);
             }
         }, 300); // Animation duration
-    }, []);
+    }, [isMounted]);
     
     const toggleMenu = () => {
         if (isAccountMenuOpen) {

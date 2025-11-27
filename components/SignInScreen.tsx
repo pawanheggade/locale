@@ -1,11 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Account } from '../types';
 import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
 import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
 import { FormField } from './FormField';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface SignInScreenProps {
   accounts: Account[];
@@ -25,14 +26,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  const isMounted = useIsMounted();
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,13 +41,11 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
     if (foundAccount && foundAccount.password === password) {
         if (foundAccount.status === 'active' || foundAccount.status === 'pending' || foundAccount.role === 'admin') {
             onLogin(foundAccount, rememberMe);
-            // Do not set isLoading to false here, as the component will unmount immediately.
         } else if (foundAccount.status === 'archived') {
             if (foundAccount.archivedByAdmin) {
                 setError('This account has been archived by an administrator. Please contact support.');
                 setIsLoading(false);
             } else {
-                // User archived it themselves. Proceed to login (which will reactivate it).
                 onLogin(foundAccount, rememberMe);
             }
         } else {
@@ -62,7 +54,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         }
     } else {
         setTimeout(() => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setError('Invalid username/email or password.');
                 setIsLoading(false);
             }
@@ -80,7 +72,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
 
   return (
     <div className="animate-fade-in space-y-6">
-        {/* Quick Login Section */}
         {activeAccounts.length > 0 && (
             <div className="text-center">
                 <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Quick Sign in</h3>
@@ -103,7 +94,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             </div>
         )}
         
-        {/* Separator */}
         {activeAccounts.length > 0 && (
             <div className="relative">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
@@ -111,7 +101,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             </div>
         )}
 
-        {/* Main Login Form */}
         <form onSubmit={handleLoginSubmit} className="space-y-4">
             <FormField id="identifier" label="Username or Email">
                 <InputWithIcon
@@ -133,7 +122,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                     required
                 />
             </FormField>
-
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -159,7 +147,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             </div>
         </form>
 
-        {/* Social Logins */}
         <div className="space-y-3">
              <div className="relative">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
@@ -175,7 +162,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             </div>
         </div>
 
-        {/* Sign Up Section */}
         <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
             <div className="text-center text-base text-gray-800">
                 <span>Don't have an account? </span>
@@ -183,7 +169,6 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-2 text-center text-xs text-gray-600">
             By signing in, you agree to our{' '}
             <Button variant="link" size="sm" onClick={onOpenTermsModal} className="px-0 h-auto underline text-xs text-gray-600 hover:text-gray-900">Terms of Service</Button> and{' '}

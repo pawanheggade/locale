@@ -1,7 +1,8 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { fileToDataUrl, compressImage } from '../utils/media';
 import { useUI } from '../contexts/UIContext';
+import { useIsMounted } from './useIsMounted';
 
 export interface MediaUpload {
   id: string;
@@ -23,17 +24,11 @@ interface UseMediaUploaderOptions {
 export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: UseMediaUploaderOptions) => {
   const [mediaUploads, setMediaUploads] = useState<MediaUpload[]>([]);
   const { addToast } = useUI();
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
-  }, []);
+  const isMounted = useIsMounted();
 
   // Cleanup object URLs to prevent memory leaks
   useEffect(() => {
     return () => {
-      // Use a function to get the latest state during cleanup
       setMediaUploads(currentUploads => {
         currentUploads.forEach(upload => {
           if (upload.previewUrl.startsWith('blob:')) {
@@ -47,7 +42,7 @@ export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: 
 
   const processFile = useCallback(async (file: File, uploadId: string) => {
     const progressInterval = setInterval(() => {
-      if (!isMountedRef.current) {
+      if (!isMounted()) {
         clearInterval(progressInterval);
         return;
       }
@@ -61,17 +56,17 @@ export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: 
 
       clearInterval(progressInterval);
 
-      if (isMountedRef.current) {
+      if (isMounted()) {
         setMediaUploads(prev => prev.map(u => u.id === uploadId ? { ...u, status: 'complete', progress: 100, finalUrl } : u));
       }
     } catch (err) {
       clearInterval(progressInterval);
       console.error('File processing error:', err);
-      if (isMountedRef.current) {
+      if (isMounted()) {
         setMediaUploads(prev => prev.map(u => u.id === uploadId ? { ...u, status: 'error', error: 'Upload failed' } : u));
       }
     }
-  }, []);
+  }, [isMounted]);
 
   const handleFiles = useCallback((files: File[]) => {
     const MAX_SIZE_BYTES = maxFileSizeMB * 1024 * 1024;

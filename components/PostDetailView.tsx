@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
@@ -8,6 +9,7 @@ import { PostAuthorInfo } from './PostAuthorInfo';
 import { PostActionsDropdown } from './PostActionsDropdown';
 import { usePosts } from '../contexts/PostsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useActivity } from '../contexts/ActivityContext';
 import { LocaleChoiceBadge, CategoryBadge, TypeBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
 import { usePostActions } from '../contexts/PostActionsContext';
@@ -46,7 +48,8 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   const { onToggleLikePost, onArchive, onEdit, onViewMedia, onSetPriceAlert, onAddToBag, onContactStore, onRequestService, onViewAccount, onFilterByTag, onShowOnMap, onUnarchive, onToggleLikeAccount, onFilterByCategory, onReportItem, onShare, onFilterByType, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = postActions;
   
   const { posts } = usePosts();
-  const { accountsById, likedPostIds, bag, priceAlerts, availabilityAlerts } = useAuth();
+  const { accountsById, likedPostIds, bag } = useAuth();
+  const { priceAlerts, availabilityAlerts } = useActivity();
   const { archivedPosts } = usePosts();
 
   useEffect(() => {
@@ -261,7 +264,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                     {!isOwnPost && (
                         <LikeButton
                             isLiked={isAuthorLiked}
-// FIX: Changed onToggleLikeAccount to pass the full author object instead of just the ID.
                             onToggle={() => { if (onToggleLikeAccount && post.author) onToggleLikeAccount(post.author); }}
                             className={cn(
                                 'p-0',

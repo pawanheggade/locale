@@ -7,13 +7,10 @@ import { useUI } from './UIContext';
 import { initialPosts } from '../data/posts';
 import { useCategoryManager } from '../hooks/useCategoryManager';
 import { useAuth } from './AuthContext';
+import { STORAGE_KEYS } from '../lib/constants';
 
 const initialCategoriesData: PostCategory[] = ['Groceries', 'Furniture', 'Lighting', 'Decor', 'Textiles', 'Artwork', 'Design Services'].sort((a, b) => a.localeCompare(b));
 const initialPriceUnits = ['Fixed', 'Hour', 'Day', 'Week', 'Month', 'Session', 'Visit', 'Project', 'Room', 'Sq. Ft.', 'Sq. M.', 'Cu. Ft.', 'Cu. M.', 'Meter', 'Ft.', 'Yard', 'Inch', 'Cm.', 'Kg', 'Gm', 'Lb', 'Oz'];
-const POSTS_KEY = 'localeAppPosts';
-const ARCHIVED_POSTS_KEY = 'localeAppArchivedPosts';
-const CATEGORIES_KEY = 'localeAppCategories';
-const PRICE_UNITS_KEY = 'localeAppPriceUnits';
 
 interface PostsContextType {
   posts: DisplayablePost[];
@@ -48,12 +45,12 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const { accountsById, checkAvailabilityAlerts } = useAuth();
     
     // Use LargePersistentState for posts (images/content)
-    const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(POSTS_KEY, initialPosts);
-    const [rawArchivedPosts, setRawArchivedPosts] = useLargePersistentState<Post[]>(ARCHIVED_POSTS_KEY, []);
+    const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(STORAGE_KEYS.POSTS, initialPosts);
+    const [rawArchivedPosts, setRawArchivedPosts] = useLargePersistentState<Post[]>(STORAGE_KEYS.ARCHIVED_POSTS, []);
     
     // Keep simple storage for small strings
-    const [categories, setCategories] = usePersistentState<PostCategory[]>(CATEGORIES_KEY, initialCategoriesData);
-    const [priceUnits, setPriceUnits] = usePersistentState<string[]>(PRICE_UNITS_KEY, initialPriceUnits);
+    const [categories, setCategories] = usePersistentState<PostCategory[]>(STORAGE_KEYS.CATEGORIES, initialCategoriesData);
+    const [priceUnits, setPriceUnits] = usePersistentState<string[]>(STORAGE_KEYS.PRICE_UNITS, initialPriceUnits);
 
     const posts = useMemo(() => {
         return rawPosts.map(p => ({ ...p, author: accountsById.get(p.authorId) }));
@@ -147,7 +144,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addToast('Post updated!', 'success');
         if (!updated) throw new Error("Post not found for update");
 
-        // Check if the update made the item available and trigger alerts
         checkAvailabilityAlerts(updated);
 
         return updated;
@@ -168,7 +164,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
             setRawPosts(prev => [postToUnarchive, ...prev]);
             addToast('Post unarchived and is now live.', 'success');
-            // Check if unarchiving made the item available (assuming it's not expired)
             checkAvailabilityAlerts(postToUnarchive);
         }
     }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);

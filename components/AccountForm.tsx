@@ -1,6 +1,5 @@
 
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData, AccountValidationData } from '../utils/validation';
@@ -21,62 +20,70 @@ import { useAuth } from '../contexts/AuthContext';
 
 const DESCRIPTION_MAX_LENGTH = 150;
 
-interface AccountFormData {
-    name: string;
-    username: string;
-    email: string;
-    password?: string;
-    description: string;
-    avatarUrl: string;
-    bannerUrl?: string;
-    mobile: string;
-    messageNumber: string;
-    taxInfo: string;
-    address: string;
-    coordinates?: { lat: number; lng: number } | null;
-    googleMapsUrl: string;
-    appleMapsUrl: string;
-    businessName: string;
-    paymentMethods: string[];
-    deliveryOptions: string[];
-    contactOptions: ContactOption[];
-    socialLinks: SocialLink[];
-}
-
 interface AccountFormProps {
     account?: Account | null;
     isEditing: boolean;
     allAccounts: Account[];
-    onSubmit: (formData: Partial<AccountFormData>, confirmPassword?: string, referralCode?: string) => Promise<void>;
+    onSubmit: (formData: Partial<Account>, confirmPassword?: string, referralCode?: string) => Promise<void>;
     formId: string;
     isSubmitting?: boolean;
     isSellerSignup?: boolean;
     onToggleMap?: (isOpen: boolean) => void;
 }
 
+// Initial state for the reducer
+const initialState = {
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    description: '',
+    avatarUrl: '',
+    bannerUrl: '',
+    mobile: '',
+    messageNumber: '',
+    taxInfo: '',
+    googleMapsUrl: '',
+    appleMapsUrl: '',
+    businessName: '',
+    paymentMethods: [] as string[],
+    deliveryOptions: [] as string[],
+    contactOptions: [] as ContactOption[],
+    referralCode: '',
+    socials: {
+        website: '',
+        instagram: '',
+        twitter: '',
+        facebook: '',
+        youtube: '',
+    } as Record<SocialPlatform, string>,
+};
+
+type FormState = typeof initialState;
+type Action = 
+    | { type: 'SET_FIELD'; field: keyof FormState; value: any }
+    | { type: 'SET_SOCIAL'; platform: SocialPlatform; value: string }
+    | { type: 'RESET'; payload: Partial<FormState> };
+
+const formReducer = (state: FormState, action: Action): FormState => {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value };
+        case 'SET_SOCIAL':
+            return { ...state, socials: { ...state.socials, [action.platform]: action.value } };
+        case 'RESET':
+            return { ...state, ...action.payload };
+        default:
+            return state;
+    }
+};
+
 export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, allAccounts, onSubmit, formId, isSubmitting, isSellerSignup = false, onToggleMap }) => {
     const { currentAccount } = useAuth();
+    const [state, dispatch] = useReducer(formReducer, initialState);
     const [step, setStep] = useState(1);
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [description, setDescription] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState('');
-    const [bannerUrl, setBannerUrl] = useState('');
-    const [mobile, setMobile] = useState('');
-    const [messageNumber, setMessageNumber] = useState('');
-    const [taxInfo, setTaxInfo] = useState('');
-    const [googleMapsUrl, setGoogleMapsUrl] = useState('');
-    const [appleMapsUrl, setAppleMapsUrl] = useState('');
-    const [businessName, setBusinessName] = useState('');
-    const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-    const [deliveryOptions, setDeliveryOptions] = useState<string[]>([]);
-    const [contactOptions, setContactOptions] = useState<ContactOption[]>(isSellerSignup ? ['email', 'mobile', 'message'] : ['email']);
-    const [referralCode, setReferralCode] = useState('');
     const [errors, setErrors] = useState<Record<string, string | undefined>>({});
-    const [isVerifyingGst, setIsVerifyingGst] = useState(false);
     const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
     const [showMapPicker, setShowMapPicker] = useState(false);
     
@@ -85,53 +92,51 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         !isEditing && currentAccount?.coordinates ? currentAccount.coordinates : null
     );
 
-    // Social Media State
-    const [socials, setSocials] = useState<Record<SocialPlatform, string>>({
-        website: '',
-        instagram: '',
-        twitter: '',
-        facebook: '',
-        youtube: '',
-    });
-
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
     const isCreating = !isEditing;
 
     useEffect(() => {
         if (account) {
-            setName(account.name || '');
-            setUsername(account.username || '');
-            setEmail(account.email || '');
-            setDescription(account.description || '');
-            setAvatarUrl(account.avatarUrl || '');
-            setBannerUrl(account.bannerUrl || '');
-            setMobile(account.mobile || '');
-            setMessageNumber(account.messageNumber || '');
-            setTaxInfo(account.taxInfo || '');
-            setGoogleMapsUrl(account.googleMapsUrl || '');
-            setAppleMapsUrl(account.appleMapsUrl || '');
-            setBusinessName(account.businessName || '');
-            setPaymentMethods(account.paymentMethods || []);
-            setDeliveryOptions(account.deliveryOptions || []);
-            // When upgrading, don't load old contact options. Default to all selected.
-            if (!(isEditing && isSellerSignup)) {
-                setContactOptions(account.contactOptions || ['email']);
-            }
-            
-            // Populate social links
-            if (account.socialLinks) {
-                const newSocials = { ...socials };
-                account.socialLinks.forEach(link => {
-                    // Check if the platform exists in our current state structure (handles deprecated platforms like linkedin gracefully)
-                    if (link.platform in newSocials) {
-                        newSocials[link.platform] = link.url;
-                    }
-                });
-                setSocials(newSocials);
-            }
+            const socials = { ...initialState.socials };
+            account.socialLinks?.forEach(link => {
+                if (link.platform in socials) socials[link.platform] = link.url;
+            });
+
+            dispatch({
+                type: 'RESET',
+                payload: {
+                    name: account.name || '',
+                    username: account.username || '',
+                    email: account.email || '',
+                    description: account.description || '',
+                    avatarUrl: account.avatarUrl || '',
+                    bannerUrl: account.bannerUrl || '',
+                    mobile: account.mobile || '',
+                    messageNumber: account.messageNumber || '',
+                    taxInfo: account.taxInfo || '',
+                    googleMapsUrl: account.googleMapsUrl || '',
+                    appleMapsUrl: account.appleMapsUrl || '',
+                    businessName: account.businessName || '',
+                    paymentMethods: account.paymentMethods || [],
+                    deliveryOptions: account.deliveryOptions || [],
+                    contactOptions: (isEditing && isSellerSignup) ? ['email'] : (account.contactOptions || ['email']),
+                    socials,
+                }
+            });
         }
     }, [account, isEditing, isSellerSignup]);
+
+    const handleFieldChange = (field: keyof FormState, value: any) => {
+        dispatch({ type: 'SET_FIELD', field, value });
+        if (errors[field]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field as string];
+                return newErrors;
+            });
+        }
+    };
 
     const handleMapToggle = (isOpen: boolean) => {
         setShowMapPicker(isOpen);
@@ -140,19 +145,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const validate = (fieldToValidate?: keyof AccountValidationData, forStep1: boolean = false): boolean => {
         const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
-        const formData: AccountValidationData = { 
-            name, 
-            username, 
-            email, 
-            password, 
-            confirmPassword, 
-            mobile, 
-            messageNumber, 
-            googleMapsUrl, 
+        const validationData: AccountValidationData = { 
+            name: state.name, 
+            username: state.username, 
+            email: state.email, 
+            password: state.password, 
+            confirmPassword: state.confirmPassword, 
+            mobile: state.mobile, 
+            messageNumber: state.messageNumber, 
+            googleMapsUrl: state.googleMapsUrl, 
             address: locationInput.location 
         };
+        
         const validationErrors = validateAccountData(
-            formData,
+            validationData,
             allAccounts,
             isEditing,
             account?.id,
@@ -160,17 +166,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             isSeller
         );
         
-        const fieldsToValidate = fieldToValidate ? [fieldToValidate] : Object.keys(validationErrors);
-        
         if (!forStep1) {
-            if (isSeller && contactOptions.length === 0) {
+            if (isSeller && state.contactOptions.length === 0) {
                 validationErrors.contactOptions = 'As a seller, you must select at least one contact method.';
             }
 
-            // Validate Social Links
             const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-            (Object.keys(socials) as SocialPlatform[]).forEach(platform => {
-                const url = socials[platform].trim();
+            (Object.keys(state.socials) as SocialPlatform[]).forEach(platform => {
+                const url = state.socials[platform].trim();
                 if (url && !urlRegex.test(url)) {
                     validationErrors[`social-${platform}`] = 'Please enter a valid URL.';
                 }
@@ -190,60 +193,30 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         const file = event.target.files?.[0];
         if (file) {
             try {
-                // Max width larger for banners
                 const maxWidth = type === 'banner' ? 1200 : 400;
                 const compressedFile = await compressImage(file, { maxWidth, quality: 0.8 });
                 const dataUrl = await fileToDataUrl(compressedFile);
-                if (type === 'avatar') setAvatarUrl(dataUrl);
-                else setBannerUrl(dataUrl);
+                handleFieldChange(type === 'avatar' ? 'avatarUrl' : 'bannerUrl', dataUrl);
             } catch (error) {
                 console.error(`Failed to process ${type}:`, error);
-                setErrors(prev => ({ ...prev, [type]: `Failed to process image. Please try another file.` }));
+                setErrors(prev => ({ ...prev, [type]: `Failed to process image.` }));
             }
         }
     };
 
-    const handleSocialChange = (platform: SocialPlatform, value: string) => {
-        setSocials(prev => ({ ...prev, [platform]: value }));
-        if (errors[`social-${platform}`]) {
-             setErrors(prev => {
-                 const newErrors = { ...prev };
-                 delete newErrors[`social-${platform}`];
-                 return newErrors;
-             });
-        }
-    };
-
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>, setter: (val: string) => void, fieldName: keyof AccountValidationData) => {
-        // Remove non-digits and limit to 10 characters
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'mobile' | 'messageNumber') => {
         const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-        setter(val);
-        
-        // Clear error if present (validation will run again on blur)
-        if (errors[fieldName]) {
-            setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[fieldName];
-                return newErrors;
-            });
-        }
+        handleFieldChange(fieldName, val);
     };
 
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setUsername(e.target.value);
+        handleFieldChange('username', e.target.value);
         setIsUsernameAvailable(false);
-        if (errors.username) {
-             setErrors(prev => {
-                 const newErrors = { ...prev };
-                 delete newErrors.username;
-                 return newErrors;
-             });
-        }
     };
 
     const handleUsernameBlur = () => {
         const isValid = validate('username');
-        if (isValid && username.trim()) {
+        if (isValid && state.username.trim()) {
             setIsUsernameAvailable(true);
         } else {
             setIsUsernameAvailable(false);
@@ -251,14 +224,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     };
 
     const handleNext = () => {
-        let stepIsValid = true;
         const fieldsToValidate: (keyof AccountValidationData)[] = ['name', 'username', 'email', 'password', 'confirmPassword'];
-        fieldsToValidate.forEach(field => {
-            if (!validate(field, true)) {
-                stepIsValid = false;
-            }
-        });
-
+        const stepIsValid = fieldsToValidate.every(field => validate(field, true));
         if (stepIsValid) {
             setStep(2);
         }
@@ -268,44 +235,30 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         e.preventDefault();
         await locationInput.verify();
         
-        if (!validate()) {
-            return;
-        }
+        if (!validate()) return;
         setErrors({});
 
-        // Enforce specific order: Website, YouTube, Instagram, Facebook, X
         const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram', 'facebook', 'twitter'];
-
         const socialLinks: SocialLink[] = platformOrder
-            .filter(platform => socials[platform] && socials[platform].trim() !== '')
-            .map(platform => ({ platform, url: socials[platform].trim() }));
+            .filter(platform => state.socials[platform] && state.socials[platform].trim() !== '')
+            .map(platform => ({ platform, url: state.socials[platform].trim() }));
 
-        const formData: Partial<AccountFormData> = {
-            name: name.trim(),
-            username: username.trim(),
-            email: email.trim(),
-            description: description.trim(),
-            avatarUrl: avatarUrl.trim(),
-            bannerUrl: bannerUrl.trim(),
-            mobile: mobile.trim(),
-            messageNumber: messageNumber.trim(),
-            taxInfo: taxInfo.trim(),
+        const submissionData: Partial<Account> = {
+            ...state,
+            name: state.name.trim(),
+            username: state.username.trim(),
+            email: state.email.trim(),
+            description: state.description.trim(),
             address: locationInput.location.trim(),
             coordinates: locationInput.coordinates,
-            googleMapsUrl: googleMapsUrl.trim(),
-            appleMapsUrl: appleMapsUrl.trim(),
-            businessName: businessName.trim(),
-            paymentMethods,
-            deliveryOptions,
-            contactOptions,
             socialLinks,
         };
 
         if (!isEditing) {
-            formData.password = password;
+            submissionData.password = state.password;
         }
 
-        await onSubmit(formData, confirmPassword, referralCode);
+        await onSubmit(submissionData, state.confirmPassword, state.referralCode);
     };
 
     const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
@@ -329,7 +282,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 <div className="space-y-4">
                      {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 1: Required Information</h3>}
 
-                    {/* Show all profile appearance fields in edit mode, but only in step 2 for create */}
                     {!isCreating && (
                         <div>
                              <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
@@ -339,112 +291,57 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                     className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
                                     onClick={() => bannerInputRef.current?.click()}
                                 >
-                                    {bannerUrl ? (
-                                        <img src={bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+                                    {state.bannerUrl ? (
+                                        <img src={state.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="flex flex-col items-center text-gray-600">
                                             <PhotoIcon className="w-8 h-8 mb-1" />
                                             <span className="text-xs">Click to upload banner</span>
                                         </div>
                                     )}
-                                    <input 
-                                        type="file" 
-                                        ref={bannerInputRef} 
-                                        onChange={(e) => handleFileChange(e, 'banner')} 
-                                        className="hidden" 
-                                        accept="image/png, image/jpeg, image/gif"
-                                    />
+                                    <input type="file" ref={bannerInputRef} onChange={(e) => handleFileChange(e, 'banner')} className="hidden" accept="image/png, image/jpeg, image/gif" />
                                 </div>
                             </div>
                             <div className="flex items-center gap-4 mt-4">
-                                <Avatar 
-                                    src={avatarUrl} 
-                                    alt="Profile avatar preview" 
-                                    size="xl"
-                                    className="border-2 border-gray-200 bg-gray-100"
-                                />
+                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-200 bg-gray-100" />
                                 <div>
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef} 
-                                        onChange={(e) => handleFileChange(e, 'avatar')} 
-                                        className="hidden" 
-                                        accept="image/png, image/jpeg, image/gif"
-                                    />
-                                    <Button 
-                                        type="button" 
-                                        onClick={() => fileInputRef.current?.click()}
-                                        variant="outline"
-                                        size="sm"
-                                    >
-                                        Upload Avatar
-                                    </Button>
+                                    <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'avatar')} className="hidden" accept="image/png, image/jpeg, image/gif" />
+                                    <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">Upload Avatar</Button>
                                 </div>
                             </div>
                         </div>
                     )}
                     <div className="pt-4 mt-4 border-t border-gray-200">
                         <FormField id="account-name" label="Name" error={errors.name}>
-                            <Input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => validate('name')} autoFocus />
+                            <Input type="text" value={state.name} onChange={(e) => handleFieldChange('name', e.target.value)} onBlur={() => validate('name')} autoFocus />
                         </FormField>
                     </div>
                     <div>
                         <FormField id="account-username" label="Username" error={errors.username}>
-                            <InputWithIcon
-                                type="text"
-                                value={username}
-                                onChange={handleUsernameChange}
-                                onBlur={handleUsernameBlur}
-                                icon={<span className="text-gray-600 sm:text-sm">@</span>}
-                            />
+                            <InputWithIcon type="text" value={state.username} onChange={handleUsernameChange} onBlur={handleUsernameBlur} icon={<span className="text-gray-600 sm:text-sm">@</span>} />
                         </FormField>
                         {isUsernameAvailable && !errors.username && (
-                            <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in">
-                                <CheckIcon className="w-4 h-4" /> Username available
-                            </p>
+                            <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in"><CheckIcon className="w-4 h-4" /> Username available</p>
                         )}
                     </div>
                     <FormField id="account-email" label="Email" error={errors.email}>
-                        <InputWithIcon
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onBlur={() => validate('email')}
-                            icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
-                        />
+                        <InputWithIcon type="email" value={state.email} onChange={(e) => handleFieldChange('email', e.target.value)} onBlur={() => validate('email')} icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />} />
                     </FormField>
 
                     {!isEditing && (
                         <>
                             <div>
                                 <FormField id="account-password" label="Password" error={errors.password}>
-                                    <InputWithIcon
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        onBlur={() => validate('password')}
-                                        icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
-                                    />
+                                    <InputWithIcon type="password" value={state.password} onChange={(e) => handleFieldChange('password', e.target.value)} onBlur={() => validate('password')} icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />} />
                                 </FormField>
-                                <PasswordStrengthMeter password={password} />
+                                <PasswordStrengthMeter password={state.password} />
                             </div>
                             <FormField id="account-confirm-password" label="Confirm Password" error={errors.confirmPassword}>
-                                <InputWithIcon
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    onBlur={() => validate('confirmPassword')}
-                                    icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
-                                />
+                                <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />} />
                             </FormField>
                             <div className="pt-4 border-t">
                                 <FormField id="referral-code" label="Referral Code (Optional)">
-                                    <Input
-                                        type="text"
-                                        value={referralCode}
-                                        onChange={(e) => setReferralCode(e.target.value)}
-                                        placeholder="e.g. PRIYA7582"
-                                    />
+                                    <Input type="text" value={state.referralCode} onChange={(e) => handleFieldChange('referralCode', e.target.value)} placeholder="e.g. PRIYA7582" />
                                 </FormField>
                             </div>
                         </>
@@ -461,50 +358,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
                             <div>
                                 <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
-                                <div 
-                                    className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
-                                    onClick={() => bannerInputRef.current?.click()}
-                                >
-                                    {bannerUrl ? (
-                                        <img src={bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
+                                <div className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => bannerInputRef.current?.click()}>
+                                    {state.bannerUrl ? (
+                                        <img src={state.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="flex flex-col items-center text-gray-600">
-                                            <PhotoIcon className="w-8 h-8 mb-1" />
-                                            <span className="text-xs">Click to upload banner</span>
-                                        </div>
+                                        <div className="flex flex-col items-center text-gray-600"><PhotoIcon className="w-8 h-8 mb-1" /><span className="text-xs">Click to upload banner</span></div>
                                     )}
-                                    <input 
-                                        type="file" 
-                                        ref={bannerInputRef} 
-                                        onChange={(e) => handleFileChange(e, 'banner')} 
-                                        className="hidden" 
-                                        accept="image/png, image/jpeg, image/gif"
-                                    />
+                                    <input type="file" ref={bannerInputRef} onChange={(e) => handleFileChange(e, 'banner')} className="hidden" accept="image/png, image/jpeg, image/gif" />
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <Avatar 
-                                    src={avatarUrl} 
-                                    alt="Profile avatar preview" 
-                                    size="xl"
-                                    className="border-2 border-gray-200 bg-gray-100"
-                                />
+                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-200 bg-gray-100" />
                                 <div>
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef} 
-                                        onChange={(e) => handleFileChange(e, 'avatar')} 
-                                        className="hidden" 
-                                        accept="image/png, image/jpeg, image/gif"
-                                    />
-                                    <Button 
-                                        type="button" 
-                                        onClick={() => fileInputRef.current?.click()}
-                                        variant="outline"
-                                        size="sm"
-                                    >
-                                        Upload Avatar
-                                    </Button>
+                                    <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'avatar')} className="hidden" accept="image/png, image/jpeg, image/gif" />
+                                    <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">Upload Avatar</Button>
                                 </div>
                             </div>
                         </div>
@@ -512,101 +379,40 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     
                     <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
                         {!isCreating && <h3 className="text-base font-medium text-gray-800">Additional Info</h3>}
-                        <FormField
-                            id="account-description"
-                            label="Bio"
-                            description={`${description.length} / ${DESCRIPTION_MAX_LENGTH}`}
-                        >
-                            <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
+                        <FormField id="account-description" label="Bio" description={`${state.description.length} / ${DESCRIPTION_MAX_LENGTH}`}>
+                            <Textarea rows={3} value={state.description} onChange={(e) => handleFieldChange('description', e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
                         </FormField>
                         <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
-                            <InputWithIcon
-                                type="tel"
-                                value={mobile}
-                                onChange={(e) => handlePhoneChange(e, setMobile, 'mobile')}
-                                onBlur={() => validate('mobile')}
-                                icon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                                placeholder="e.g. 9876543210"
-                                maxLength={10}
-                                inputMode="numeric"
-                            />
+                            <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                         </FormField>
                         <div>
                             <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
-                                <InputWithIcon
-                                    type="tel"
-                                    value={messageNumber}
-                                    onChange={(e) => handlePhoneChange(e, setMessageNumber, 'messageNumber')}
-                                    onBlur={() => validate('messageNumber')}
-                                    icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />}
-                                    placeholder="e.g. 9876543210"
-                                    maxLength={10}
-                                    inputMode="numeric"
-                                />
+                                <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                             </FormField>
                             <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
                         </div>
 
                         <div>
                             <FormField id="account-address" label="Location (Optional)" error={errors.address || locationInput.error}>
-                                <LocationInput
-                                    value={locationInput.location}
-                                    onValueChange={locationInput.setLocation}
-                                    onSuggestionSelect={locationInput.selectSuggestion}
-                                    onVerify={locationInput.verify}
-                                    onOpenMapPicker={() => handleMapToggle(true)}
-                                    suggestions={locationInput.suggestions}
-                                    status={locationInput.status}
-                                    placeholder="e.g., 123 Main St, Mumbai"
-                                />
+                                <LocationInput value={locationInput.location} onValueChange={locationInput.setLocation} onSuggestionSelect={locationInput.selectSuggestion} onVerify={locationInput.verify} onOpenMapPicker={() => handleMapToggle(true)} suggestions={locationInput.suggestions} status={locationInput.status} placeholder="e.g., 123 Main St, Mumbai" />
                             </FormField>
                             <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
                         </div>
 
-                        {/* Social Profiles */}
                         <div className="pt-2">
                             <span className="block text-sm font-medium text-gray-600 mb-2">Social Profiles</span>
                             <div className="space-y-3">
-                                <FormField id="social-website" label="" error={errors['social-website']}>
-                                    <InputWithIcon
-                                        placeholder="Website URL"
-                                        icon={<GlobeAltIcon className="w-5 h-5 text-gray-400"/>}
-                                        value={socials.website}
-                                        onChange={e => handleSocialChange('website', e.target.value)}
-                                    />
-                                </FormField>
-                                <FormField id="social-youtube" label="" error={errors['social-youtube']}>
-                                    <InputWithIcon
-                                        placeholder="YouTube URL"
-                                        icon={<YouTubeIcon className="w-5 h-5 text-gray-400"/>}
-                                        value={socials.youtube}
-                                        onChange={e => handleSocialChange('youtube', e.target.value)}
-                                    />
-                                </FormField>
-                                <FormField id="social-instagram" label="" error={errors['social-instagram']}>
-                                    <InputWithIcon
-                                        placeholder="Instagram URL"
-                                        icon={<InstagramIcon className="w-5 h-5 text-gray-400"/>}
-                                        value={socials.instagram}
-                                        onChange={e => handleSocialChange('instagram', e.target.value)}
-                                    />
-                                </FormField>
-                                <FormField id="social-facebook" label="" error={errors['social-facebook']}>
-                                    <InputWithIcon
-                                        placeholder="Facebook URL"
-                                        icon={<FacebookIcon className="w-5 h-5 text-gray-400"/>}
-                                        value={socials.facebook}
-                                        onChange={e => handleSocialChange('facebook', e.target.value)}
-                                    />
-                                </FormField>
-                                <FormField id="social-twitter" label="" error={errors['social-twitter']}>
-                                    <InputWithIcon
-                                        placeholder="X URL"
-                                        icon={<XIcon className="w-5 h-5 text-gray-400"/>}
-                                        value={socials.twitter}
-                                        onChange={e => handleSocialChange('twitter', e.target.value)}
-                                    />
-                                </FormField>
+                                {[
+                                    { id: 'website', icon: GlobeAltIcon, placeholder: 'Website URL' },
+                                    { id: 'youtube', icon: YouTubeIcon, placeholder: 'YouTube URL' },
+                                    { id: 'instagram', icon: InstagramIcon, placeholder: 'Instagram URL' },
+                                    { id: 'facebook', icon: FacebookIcon, placeholder: 'Facebook URL' },
+                                    { id: 'twitter', icon: XIcon, placeholder: 'X URL' }
+                                ].map(social => (
+                                    <FormField key={social.id} id={`social-${social.id}`} label="" error={errors[`social-${social.id}`]}>
+                                        <InputWithIcon placeholder={social.placeholder} icon={<social.icon className="w-5 h-5 text-gray-400"/>} value={state.socials[social.id as SocialPlatform]} onChange={e => dispatch({ type: 'SET_SOCIAL', platform: social.id as SocialPlatform, value: e.target.value })} />
+                                    </FormField>
+                                ))}
                             </div>
                         </div>
 
@@ -614,58 +420,28 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <div className="animate-fade-in-up space-y-4 pt-4 mt-4 border-t">
                                 <h3 className="text-base font-medium text-gray-800">Business Information</h3>
                                 <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
-                                    <Input
-                                        type="text"
-                                        value={taxInfo}
-                                        onChange={(e) => setTaxInfo(e.target.value)}
-                                        placeholder="e.g., GSTIN"
-                                        maxLength={15}
-                                    />
+                                    <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
                                 </FormField>
-                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name. Auto-fills from valid GSTIN.">
-                                    <div className="relative mt-1">
-                                        <Input
-                                            type="text"
-                                            value={businessName}
-                                            onChange={(e) => setBusinessName(e.target.value)}
-                                            placeholder="e.g., The Vintage Corner"
-                                            disabled={isVerifyingGst}
-                                        />
-                                        {isVerifyingGst && (
-                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                <SpinnerIcon className="w-5 h-5 text-gray-400" />
-                                            </div>
-                                        )}
-                                    </div>
+                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
+                                    <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
                                 </FormField>
                                 <div>
                                     <FormField id="account-google-maps" label="Google Maps Location" error={errors.googleMapsUrl}>
-                                        <Input
-                                            type="url"
-                                            value={googleMapsUrl}
-                                            onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                                            onBlur={() => validate('googleMapsUrl')}
-                                            placeholder="https://maps.app.goo.gl/..."
-                                        />
+                                        <Input type="url" value={state.googleMapsUrl} onChange={(e) => handleFieldChange('googleMapsUrl', e.target.value)} onBlur={() => validate('googleMapsUrl')} placeholder="https://maps.app.goo.gl/..." />
                                     </FormField>
                                     <p className="mt-1 text-xs text-gray-600">Share a link to your business on Google Maps. This is required for sellers.</p>
                                 </div>
                                 <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
-                                    <Input
-                                        type="url"
-                                        value={appleMapsUrl}
-                                        onChange={(e) => setAppleMapsUrl(e.target.value)}
-                                        placeholder="https://maps.apple.com/?q=..."
-                                    />
+                                    <Input type="url" value={state.appleMapsUrl} onChange={(e) => handleFieldChange('appleMapsUrl', e.target.value)} placeholder="https://maps.apple.com/?q=..." />
                                 </FormField>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <SellerOptionsForm
-                                        paymentMethods={paymentMethods}
-                                        onPaymentMethodsChange={setPaymentMethods}
-                                        deliveryOptions={deliveryOptions}
-                                        onDeliveryOptionsChange={setDeliveryOptions}
-                                        contactOptions={contactOptions}
-                                        onContactOptionsChange={setContactOptions}
+                                        paymentMethods={state.paymentMethods}
+                                        onPaymentMethodsChange={(val) => handleFieldChange('paymentMethods', val)}
+                                        deliveryOptions={state.deliveryOptions}
+                                        onDeliveryOptionsChange={(val) => handleFieldChange('deliveryOptions', val)}
+                                        contactOptions={state.contactOptions}
+                                        onContactOptionsChange={(val) => handleFieldChange('contactOptions', val)}
                                         isSeller={isSeller}
                                         error={errors.contactOptions}
                                     />
@@ -685,12 +461,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     )}
                     {step === 2 && (
                         <>
-                            <Button type="button" variant="overlay-dark" onClick={() => setStep(1)} className="mr-auto">
-                                Back
-                            </Button>
-                            <Button type="submit" isLoading={isSubmitting} variant="pill-red" className="w-36">
-                                Create Account
-                            </Button>
+                            <Button type="button" variant="overlay-dark" onClick={() => setStep(1)} className="mr-auto">Back</Button>
+                            <Button type="submit" isLoading={isSubmitting} variant="pill-red" className="w-36">Create Account</Button>
                         </>
                     )}
                 </div>

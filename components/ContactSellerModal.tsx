@@ -6,6 +6,7 @@ import { PhoneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons
 import { useUI } from '../contexts/UIContext';
 import { Avatar } from './Avatar';
 import { Button } from './ui/Button';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface ContactSellerModalProps {
   author: Account;
@@ -17,15 +18,8 @@ interface ContactSellerModalProps {
 
 export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, post, currentAccount, onClose, prefilledMessage }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const isMountedRef = useRef(true);
+  const isMounted = useIsMounted();
   const { addToast } = useUI();
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const contactMethods = useMemo(() => {
     const subject = encodeURIComponent(post ? `Inquiry about your post: "${post.title}" on Locale` : `Inquiry from Locale`);
@@ -95,7 +89,7 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                   rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
                   onClick={() => {
                     addToast(method.toast, 'success');
-                    setTimeout(() => { if (isMountedRef.current) onClose(); }, 500);
+                    setTimeout(() => { if (isMounted()) onClose(); }, 500);
                   }}
                   variant="overlay-dark"
                   className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left hover:bg-gray-50 rounded-lg"

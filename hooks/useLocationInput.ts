@@ -1,7 +1,8 @@
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { geocodeLocation, reverseGeocode, fetchLocationSuggestions } from '../utils/geocoding';
 import { useDebounce } from './useDebounce';
+import { useIsMounted } from './useIsMounted';
 
 export type LocationStatus = 'idle' | 'typing' | 'verifying' | 'geolocating' | 'verified' | 'error';
 
@@ -11,50 +12,44 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
     const [status, setStatus] = useState<LocationStatus>(initialCoords ? 'verified' : 'idle');
     const [error, setError] = useState<string | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
-    const isMountedRef = useRef(true);
-
+    
+    const isMounted = useIsMounted();
     const debouncedLocation = useDebounce(location, 300);
 
-    useEffect(() => {
-        isMountedRef.current = true;
-        return () => { isMountedRef.current = false; };
-    }, []);
-    
     useEffect(() => {
         if (status === 'typing' && debouncedLocation.trim().length > 2) {
             const fetch = async () => {
                 try {
                     const fetchedSuggestions = await fetchLocationSuggestions(debouncedLocation);
-                    if (isMountedRef.current) {
+                    if (isMounted()) {
                         setSuggestions(fetchedSuggestions);
-                        if (error) setError(null); // Clear previous error on success
+                        if (error) setError(null);
                     }
                 } catch (err) {
                     console.error('Failed to fetch location suggestions:', err);
-                    if (isMountedRef.current) {
+                    if (isMounted()) {
                         setSuggestions([]);
-                        // Set a non-blocking error message so user knows autocomplete is down
                         setError("Location suggestions unavailable.");
                     }
                 }
             };
             fetch();
         } else if (debouncedLocation.trim().length <= 2) {
-            if (isMountedRef.current) setSuggestions([]);
+            if (isMounted()) setSuggestions([]);
         }
-    }, [debouncedLocation, status]);
+    }, [debouncedLocation, status, isMounted]);
     
     const verifyLocation = useCallback(async (locationToVerify: string): Promise<{ lat: number; lng: number } | null> => {
-        if (!isMountedRef.current) return null;
+        if (!isMounted()) return null;
         setStatus('verifying');
         setError(null);
 
         try {
             const coords = await geocodeLocation(locationToVerify);
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 if (coords) {
                     const canonicalName = await reverseGeocode(coords.lat, coords.lng);
-                    if (isMountedRef.current) {
+                    if (isMounted()) {
                         setLocation(canonicalName);
                         setCoordinates(coords);
                         setStatus('verified');
@@ -68,14 +63,14 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
                 }
             }
         } catch (err) {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setError(err instanceof Error ? err.message : "Location verification failed.");
                 setCoordinates(null);
                 setStatus('error');
             }
         }
         return null;
-    }, []);
+    }, [isMounted]);
 
     const handleLocationChange = (newValue: string) => {
         setLocation(newValue);
@@ -109,7 +104,7 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
     const useMyLocation = useCallback(async (): Promise<{ lat: number, lng: number } | null> => {
         return new Promise((resolve) => {
             if (!navigator.geolocation) {
-                if (isMountedRef.current) {
+                if (isMounted()) {
                     setError("Geolocation is not supported by your browser.");
                     setStatus('error');
                 }
@@ -117,7 +112,7 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
                 return;
             }
     
-            if (!isMountedRef.current) {
+            if (!isMounted()) {
                 resolve(null);
                 return;
             }
@@ -132,12 +127,12 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
                     };
                     try {
                         const address = await reverseGeocode(coords.lat, coords.lng);
-                        if (isMountedRef.current) {
+                        if (isMounted()) {
                             selectFromMap({ ...coords, name: address });
                         }
                         resolve(coords);
                     } catch (err) {
-                         if (isMountedRef.current) {
+                         if (isMounted()) {
                             setError(err instanceof Error ? err.message : "Could not fetch address for your location.");
                             setStatus('error');
                             setLocation(`Lat: ${coords.lat.toFixed(4)}, Lng: ${coords.lng.toFixed(4)}`);
@@ -159,7 +154,7 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
                             message = "The request to get user location timed out.";
                             break;
                     }
-                    if (isMountedRef.current) {
+                    if (isMounted()) {
                         setError(message);
                         setStatus('error');
                     }
@@ -167,7 +162,7 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
                 }
             );
         });
-    }, []);
+    }, [isMounted]);
 
     const reset = useCallback(() => {
         setLocation('');

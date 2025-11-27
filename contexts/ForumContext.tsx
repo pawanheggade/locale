@@ -7,10 +7,7 @@ import { useAuth } from './AuthContext';
 import { mockForumPosts, mockForumComments, mockForumCategories } from '../data/forum';
 import { useUI } from './UIContext';
 import { useCategoryManager } from '../hooks/useCategoryManager';
-
-const FORUM_POSTS_KEY = 'localeAppForumPosts';
-const FORUM_COMMENTS_KEY = 'localeAppForumComments';
-const FORUM_CATEGORIES_KEY = 'localeAppForumCategories';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface ForumContextType {
   posts: DisplayableForumPost[];
@@ -39,9 +36,9 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const { currentAccount, accountsById, addNotification } = useAuth();
     const { addToast, openModal } = useUI();
 
-    const [rawPosts, setRawPosts] = useLargePersistentState<ForumPost[]>(FORUM_POSTS_KEY, mockForumPosts);
-    const [comments, setComments] = useLargePersistentState<ForumComment[]>(FORUM_COMMENTS_KEY, mockForumComments);
-    const [categories, setCategories] = usePersistentState<string[]>(FORUM_CATEGORIES_KEY, mockForumCategories);
+    const [rawPosts, setRawPosts] = useLargePersistentState<ForumPost[]>(STORAGE_KEYS.FORUM_POSTS, mockForumPosts);
+    const [comments, setComments] = useLargePersistentState<ForumComment[]>(STORAGE_KEYS.FORUM_COMMENTS, mockForumComments);
+    const [categories, setCategories] = usePersistentState<string[]>(STORAGE_KEYS.FORUM_CATEGORIES, mockForumCategories);
     
     const [activeCategory, setActiveCategory] = useState<string>('All');
 

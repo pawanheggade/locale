@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent } from 'react';
 import { Post, PostType, Media, PostCategory, Account, ContactOption } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -18,6 +19,7 @@ import { validatePostData } from '../utils/validation';
 import { MediaUploader } from './MediaUploader';
 import { usePosts } from '../contexts/PostsContext';
 import { FormField } from './FormField';
+import { STORAGE_KEYS } from '../lib/constants';
 
 interface CreatePostPageProps {
   onBack: () => void;
@@ -30,7 +32,6 @@ interface CreatePostPageProps {
   onUpdateCurrentAccountDetails?: (updatedAccount: Partial<Account>) => void;
 }
 
-const DRAFT_KEY = 'locale_post_draft_v2';
 const TITLE_MAX_LENGTH = 100;
 const DESCRIPTION_MAX_LENGTH = 500;
 const MAX_PRICE = 10000000; // 1 Crore
@@ -70,7 +71,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   );
   const eventLocationInput = useLocationInput();
 
-  // Seller details state
   const needsSellerDetails = currentAccount.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
   const [deliveryOptions, setDeliveryOptions] = useState<string[]>(currentAccount.deliveryOptions || []);
   const [paymentMethods, setPaymentMethods] = useState<string[]>(currentAccount.paymentMethods || []);
@@ -88,7 +88,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   useEffect(() => {
       if (!isEditing) {
           try {
-              const savedDraft = localStorage.getItem(DRAFT_KEY);
+              const savedDraft = localStorage.getItem(STORAGE_KEYS.POST_DRAFT);
               if (savedDraft) {
                   const draft = JSON.parse(savedDraft);
                   setTitle(draft.title || '');
@@ -107,7 +107,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   useEffect(() => {
     if (!isEditing) {
         const draft = { title, description, type, category, tags, price, priceUnit, media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })) };
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        localStorage.setItem(STORAGE_KEYS.POST_DRAFT, JSON.stringify(draft));
     }
   }, [title, description, type, category, tags, price, priceUnit, mediaUploads, isEditing]);
 
@@ -198,14 +198,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     e.preventDefault();
     setIsSubmitting(true);
     
-    // For events, we use eventLocation as the main location
     if (type === PostType.EVENT) {
         await eventLocationInput.verify();
     } else {
         await locationInput.verify();
     }
 
-    // Map fields for validation. For events, we treat the event location as the 'required' main location.
     const effectiveLocation = type === PostType.EVENT ? eventLocationInput.location : locationInput.location;
     const effectiveHasCoordinates = type === PostType.EVENT ? !!eventLocationInput.coordinates : !!locationInput.coordinates;
 
@@ -228,7 +226,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         const firstErrorKey = Object.keys(validationErrors)[0];
         let elementId = `post-${firstErrorKey}`;
         
-        // Redirect focus for location error in Event mode
         if (type === PostType.EVENT && (firstErrorKey === 'location' || firstErrorKey === 'eventLocation')) {
              elementId = 'event-location';
         } else if (firstErrorKey === 'eventStartDate') {
@@ -247,7 +244,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     const postData: Omit<Post, 'id' | 'isLiked' | 'authorId'> = {
         title: title.trim(),
         description: description.trim(),
-        // Use event location as main location for events to ensure they appear on map/filter correctly
         location: type === PostType.EVENT ? eventLocationInput.location : locationInput.location,
         coordinates: type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates,
         type,
@@ -270,7 +266,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         onNavigateToPost(updatedPost.id);
     } else if (onSubmitPost) {
         const newPost = onSubmitPost(postData);
-        localStorage.removeItem(DRAFT_KEY);
+        localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
         onNavigateToPost(newPost.id);
     }
   };

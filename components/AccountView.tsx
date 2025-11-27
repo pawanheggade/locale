@@ -1,8 +1,7 @@
 
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -106,6 +105,77 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
         </div>
     </div>
 );
+
+interface ProfileActionsProps {
+    isOwnAccount: boolean;
+    canHaveCatalog: boolean;
+    onEditAccount: () => void;
+    onOpenCatalog: () => void;
+    onOpenAnalytics: () => void;
+    socialLinks: SocialLink[];
+    onShare: () => void;
+    contactMethods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[];
+    onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
+    isLiked: boolean;
+    onToggleLike: () => void;
+    isMobile?: boolean;
+}
+
+const ProfileActions: React.FC<ProfileActionsProps> = ({ 
+    isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
+    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, isMobile 
+}) => {
+    // Styling constants based on viewport
+    const btnSize = isMobile ? 'sm' : 'sm';
+    const iconBtnSize = isMobile ? 'icon' : 'icon-sm';
+    const btnClass = isMobile ? 'justify-center gap-2 px-3' : 'gap-2 px-3';
+    
+    if (isOwnAccount) {
+        return (
+            <>
+                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onEditAccount}>
+                    <PencilIcon className="w-4 h-4" />
+                    {isMobile ? 'Edit' : <span className="hidden md:inline">Edit Profile</span>}
+                    {!isMobile && <span className="md:hidden">Edit</span>}
+                </Button>
+                {canHaveCatalog && (
+                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenCatalog}>
+                        <DocumentIcon className="w-4 h-4" />
+                        {isMobile ? 'Catalog' : <span className="hidden md:inline">Manage Catalog</span>}
+                        {!isMobile && <span className="md:hidden">Catalog</span>}
+                    </Button>
+                )}
+                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
+                    <ChartBarIcon className="w-4 h-4" />
+                    Analytics
+                </Button>
+                <div className={`h-5 border-l border-gray-200 mx-1 ${isMobile ? 'my-auto' : ''}`}></div>
+                <SocialsDropdown links={socialLinks} size={iconBtnSize} />
+                <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
+                    <ShareIcon className="w-4 h-4" />
+                </Button>
+            </>
+        );
+    }
+
+    return (
+        <>
+            {isMobile && (
+                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
+            )}
+            {contactMethods.map(method => (
+                <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
+                    <method.icon className="w-4 h-4" />
+                </Button>
+            ))}
+            <SocialsDropdown links={socialLinks} size={iconBtnSize} />
+            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
+            {!isMobile && (
+                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
+            )}
+        </>
+    );
+};
 
 
 export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics }) => {
@@ -325,43 +395,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               </div>
               
               <div className="hidden sm:flex items-center justify-end gap-2 mb-1">
-                  {isOwnAccount ? (
-                      <>
-                          <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-3">
-                              <PencilIcon className="w-4 h-4" />
-                              <span className="hidden md:inline">Edit Profile</span>
-                              <span className="md:hidden">Edit</span>
-                          </Button>
-                          {canHaveCatalog && (
-                              <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })} className="gap-2 px-3">
-                                  <DocumentIcon className="w-4 h-4" />
-                                  <span className="hidden md:inline">Manage Catalog</span>
-                                  <span className="md:hidden">Catalog</span>
-                              </Button>
-                          )}
-                          <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2 px-3">
-                              <ChartBarIcon className="w-4 h-4" />
-                              Analytics
-                          </Button>
-                          <div className="h-5 border-l border-gray-200 mx-1"></div>
-                          <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
-                          <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile">
-                              <ShareIcon className="w-4 h-4" />
-                          </Button>
-                      </>
-                  ) : (
-                      <>
-                          {contactMethods.map(method => (
-                              <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => handleContactAction(e, method)} variant="overlay-dark" size="icon-sm" title={method.label}>
-                                  <method.icon className="w-4 h-4" />
-                              </Button>
-                          ))}
-                          <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
-                          <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
-                          {/* FIX: The error indicates onToggleLike expects an Account, but was called with account.id. Changed to pass the full account object. */}
-                          <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account)} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
-                      </>
-                  )}
+                  <ProfileActions 
+                      isOwnAccount={isOwnAccount}
+                      canHaveCatalog={canHaveCatalog}
+                      onEditAccount={() => onEditAccount(account)}
+                      onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
+                      onOpenAnalytics={onOpenAnalytics}
+                      socialLinks={sortedSocialLinks}
+                      onShare={handleShareProfile}
+                      contactMethods={contactMethods}
+                      onContactAction={handleContactAction}
+                      isLiked={isLiked}
+                      onToggleLike={() => onToggleLike(account)}
+                      isMobile={false}
+                  />
               </div>
           </div>
           
@@ -402,29 +449,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           </div>
           
           <div className="mt-6 flex justify-end gap-2 sm:hidden">
-             {isOwnAccount ? (
-                  <>
-                      <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={() => onEditAccount(account)}><PencilIcon className="w-4 h-4" />Edit</Button>
-                      {canHaveCatalog && (
-                          <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={() => openModal({ type: 'manageCatalog' })}><DocumentIcon className="w-4 h-4" />Catalog</Button>
-                      )}
-                      <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={onOpenAnalytics}><ChartBarIcon className="w-4 h-4" />Analytics</Button>
-                      <div className="h-5 border-l border-gray-200 mx-1 my-auto"></div>
-                      <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
-                      <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
-                  </>
-              ) : (
-                  <>
-                      <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account)} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
-                      {contactMethods.map(method => (
-                          <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => handleContactAction(e, method)} variant="overlay-dark" size="icon" title={method.label}>
-                              <method.icon className="w-4 h-4" />
-                          </Button>
-                      ))}
-                      <SocialsDropdown links={sortedSocialLinks} size="icon" />
-                      <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
-                  </>
-              )}
+             <ProfileActions 
+                  isOwnAccount={isOwnAccount}
+                  canHaveCatalog={canHaveCatalog}
+                  onEditAccount={() => onEditAccount(account)}
+                  onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
+                  onOpenAnalytics={onOpenAnalytics}
+                  socialLinks={sortedSocialLinks}
+                  onShare={handleShareProfile}
+                  contactMethods={contactMethods}
+                  onContactAction={handleContactAction}
+                  isLiked={isLiked}
+                  onToggleLike={() => onToggleLike(account)}
+                  isMobile={true}
+              />
           </div>
           
           {isOwnAccount && account.subscription.tier === 'Personal' && (
@@ -439,7 +477,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
               {availableTabs.map(tab => (
-                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id'}>
                       {tab.label}
                   </TabButton>
               ))}

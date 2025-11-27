@@ -1,27 +1,27 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from './Icons';
 import { Button } from './ui/Button';
+import { STORAGE_KEYS } from '../lib/constants';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface GuestPromptProps {
     onSignIn: () => void;
     onCreateAccount: () => void;
 }
 
-const GUEST_PROMPT_DISMISSED_KEY = 'localeGuestPromptDismissed';
-
 export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAccount }) => {
     const [isVisible, setIsVisible] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
-    const isMountedRef = useRef(true);
+    const isMounted = useIsMounted();
 
     useEffect(() => {
-        isMountedRef.current = true;
         try {
-            const dismissed = sessionStorage.getItem(GUEST_PROMPT_DISMISSED_KEY);
+            const dismissed = sessionStorage.getItem(STORAGE_KEYS.GUEST_PROMPT);
             if (!dismissed) {
                 // Delay showing the prompt slightly to not be too jarring on load
                 setTimeout(() => {
-                    if (isMountedRef.current) {
+                    if (isMounted()) {
                         setIsVisible(true);
                     }
                 }, 2000);
@@ -29,19 +29,17 @@ export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAcco
         } catch (error) {
             console.error("Could not access sessionStorage:", error);
         }
-        
-        return () => { isMountedRef.current = false; };
-    }, []);
+    }, [isMounted]);
 
     const handleDismiss = () => {
         setIsClosing(true);
         try {
-            sessionStorage.setItem(GUEST_PROMPT_DISMISSED_KEY, 'true');
+            sessionStorage.setItem(STORAGE_KEYS.GUEST_PROMPT, 'true');
         } catch (error) {
             console.error("Could not write to sessionStorage:", error);
         }
         setTimeout(() => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setIsVisible(false);
             }
         }, 300); // Animation duration

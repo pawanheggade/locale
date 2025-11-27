@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import SearchBar from './SearchBar';
 import { ChevronLeftIcon, FunnelIcon } from './Icons';

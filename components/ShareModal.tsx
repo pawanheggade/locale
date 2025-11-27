@@ -1,11 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Post } from '../types';
 import ModalShell from './ModalShell';
 import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, ShareIcon } from './Icons';
 import { generatePostPreviewImage } from '../utils/media';
 import { useUI } from '../contexts/UIContext';
 import { Button } from './ui/Button';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface ShareModalProps {
   post: Post;
@@ -19,24 +20,23 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
-  const isMountedRef = useRef(true);
+  const isMounted = useIsMounted();
   const { addToast } = useUI();
   
   const shareUrl = `${window.location.origin}?post=${post.id}`;
   const shareText = `Check out this ${post.type.toLowerCase()} on Locale: "${post.title}"`;
 
   useEffect(() => {
-    isMountedRef.current = true;
     const generate = async () => {
         setIsGenerating(true);
         const blob = await generatePostPreviewImage(post);
-        if (isMountedRef.current && blob) {
+        if (isMounted() && blob) {
             setImageBlob(blob);
             const url = URL.createObjectURL(blob);
             setPreviewImageUrl(url);
             imageUrlRef.current = url;
         }
-        if (isMountedRef.current) {
+        if (isMounted()) {
             setIsGenerating(false);
         }
     };
@@ -44,19 +44,18 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
     generate();
 
     return () => {
-        isMountedRef.current = false;
         if (imageUrlRef.current) {
             URL.revokeObjectURL(imageUrlRef.current);
         }
     };
-  }, [post]);
+  }, [post, isMounted]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      if (isMountedRef.current) {
+      if (isMounted()) {
         setIsCopied(true);
         setTimeout(() => {
-            if (isMountedRef.current) {
+            if (isMounted()) {
                 setIsCopied(false);
             }
         }, 2000);
@@ -93,7 +92,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
             }
         }
     } else {
-        // Fallback for devices that can't share files
         try {
             await navigator.share({ title: post.title, text: shareText, url: shareUrl });
         } catch (error) {

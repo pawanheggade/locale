@@ -22,5 +22,5 @@ root.render(
   </React.StrictMode>
 );
 
-// Register the service worker for offline functionality
-serviceWorkerRegistration.register();
+// Unregister the service worker to disable offline functionality and fix caching issues.
+serviceWorkerRegistration.unregister();

@@ -1,9 +1,11 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from './Icons';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;
@@ -42,18 +44,11 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const isMountedRef = useRef(true);
+  const isMounted = useIsMounted();
   const postActions = usePostActions();
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   useClickOutside(menuRef, () => {
-      if (isMountedRef.current) setIsOpen(false);
+      if (isMounted()) setIsOpen(false);
   }, isOpen);
 
   const { onDeletePermanently, onEdit } = postActions;

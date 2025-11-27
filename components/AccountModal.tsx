@@ -5,11 +5,12 @@ import ModalShell from './ModalShell';
 import { AlertIcon } from './Icons';
 import { AccountForm } from './AccountForm';
 import { Button } from './ui/Button';
+import { useIsMounted } from '../hooks/useIsMounted';
 
 interface AccountModalProps {
   mode: 'create' | 'edit' | 'upgrade';
   onClose: () => void;
-  onCreate?: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'savedAccountIds' | 'referralCode' | 'referralCount' | 'referredBy'>, isSeller: boolean, referralCode?: string) => Promise<any>;
+  onCreate?: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'likedAccountIds' | 'referralCode' | 'referralCount' | 'referredBy'>, isSeller: boolean, referralCode?: string) => Promise<any>;
   onUpdate?: (updatedAccount: Account) => Promise<any>;
   onUpgrade?: (sellerData: Partial<Account>, tier: Subscription['tier']) => Promise<void>;
   allAccounts: Account[];
@@ -23,14 +24,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
   const [formError, setFormError] = useState('');
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  const isMounted = useIsMounted();
 
   const isEditing = mode === 'edit';
   const isUpgrading = mode === 'upgrade';
@@ -56,11 +50,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
       } else if (mode === 'create' && onCreate) {
         await onCreate(formData, !!isSellerSignup, referralCode);
       }
-      if (isMountedRef.current) {
+      if (isMounted()) {
         onClose();
       }
     } catch (error) {
-      if (isMountedRef.current) {
+      if (isMounted()) {
         setFormError('An unexpected error occurred. Please try again.');
         setIsSubmitting(false);
       }
