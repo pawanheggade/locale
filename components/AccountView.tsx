@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
@@ -24,7 +25,7 @@ interface AccountViewProps {
   archivedPosts: DisplayablePost[];
   allAccounts: Account[];
   isLiked: boolean;
-  onToggleLike: (accountId: string) => void;
+  onToggleLike: (account: Account) => void;
   onShowOnMap: (account: Account) => void;
   isGeocoding: boolean;
   onOpenAnalytics: () => void;
@@ -357,7 +358,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                           ))}
                           <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
                           <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
-                          <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account.id)} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
+                          {/* FIX: The error indicates onToggleLike expects an Account, but was called with account.id. Changed to pass the full account object. */}
+                          <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account)} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
                       </>
                   )}
               </div>
@@ -413,7 +415,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   </>
               ) : (
                   <>
-                      <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account.id)} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
+                      <LikeButton isLiked={isLiked} onToggle={() => onToggleLike(account)} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
                       {contactMethods.map(method => (
                           <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => handleContactAction(e, method)} variant="overlay-dark" size="icon" title={method.label}>
                               <method.icon className="w-4 h-4" />

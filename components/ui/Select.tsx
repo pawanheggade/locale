@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { Dropdown, DropdownItem } from './Dropdown';
@@ -26,8 +28,6 @@ const Select = React.forwardRef<
   const handleSelect = (selectedValue: string) => {
     if (onChange) {
       // Simulate a select change event for compatibility
-      // FIX: Cast to unknown first to satisfy TypeScript's strict type checking for simulated events.
-      // Also, removed spreading props as they are not part of a standard event target.
       const event = {
         target: { value: selectedValue },
         currentTarget: { value: selectedValue },

@@ -261,7 +261,8 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                     {!isOwnPost && (
                         <LikeButton
                             isLiked={isAuthorLiked}
-                            onToggle={() => { if(onToggleLikeAccount) onToggleLikeAccount(post.authorId); }}
+// FIX: Changed onToggleLikeAccount to pass the full author object instead of just the ID.
+                            onToggle={() => { if (onToggleLikeAccount && post.author) onToggleLikeAccount(post.author); }}
                             className={cn(
                                 'p-0',
                                 isAuthorLiked ? 'text-red-600' : 'text-gray-500'

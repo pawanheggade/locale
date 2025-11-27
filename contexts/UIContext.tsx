@@ -1,3 +1,5 @@
+
+
 import React, { createContext, useReducer, useContext, useMemo, useCallback, useRef, useEffect } from 'react';
 import { ToastMessage, ModalState } from '../types';
 
@@ -73,8 +75,6 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         onTimeout?: () => void
     ) => {
         const id = Date.now();
-        // FIX: The `onUndo` function passed to `addToast` expects a `toastId`, but the `ToastMessage` type
-        // expects a parameterless function. This closure passes the `id` to the handler, satisfying both.
         const toast: ToastMessage = {
             id,
             message,

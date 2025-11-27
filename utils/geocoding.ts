@@ -97,12 +97,7 @@ export const fetchLocationSuggestions = async (query: string): Promise<string[]>
 export const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   try {
     const data = await withRetry(async () => {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
-            headers: {
-                // Per Nominatim's usage policy, a valid User-Agent is required to prevent being blocked.
-                'User-Agent': 'Locale App v1.0 (for demonstration purposes)'
-            }
-        });
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         if (!response.ok) {
             const error: any = new Error(`Reverse geocoding API request failed with status ${response.status}`);
             error.status = response.status;

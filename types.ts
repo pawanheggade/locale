@@ -1,5 +1,6 @@
 
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -128,7 +129,7 @@ export interface PostActions {
   onFilterByType: (type: PostType) => void;
   onFilterByTag: (tag: string) => void;
   onShowOnMap: (target: string | Account) => void;
-  onToggleLikeAccount?: (accountId: string) => void;
+  onToggleLikeAccount?: (account: Account) => void;
   onTogglePinPost: (postId: string) => void;
   // Forum Actions
   onViewForumPost: (postId: string) => void;

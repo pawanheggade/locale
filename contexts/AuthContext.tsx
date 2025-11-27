@@ -1,6 +1,7 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment, FiltersState } from '../types';
+import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment, FiltersState, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
@@ -52,7 +53,6 @@ interface AuthContextType {
   createAccount: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'likedAccountIds' | 'referralCode'>, isSeller: boolean, referralCode?: string) => Promise<Account>;
   updateAccount: (updatedAccount: Account) => Promise<void>;
   updateAccountDetails: (updatedAccount: Account) => void;
-  // FIX: Make upgradeToSeller async to match similar functions and satisfy consumer props.
   upgradeToSeller: (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => Promise<void>;
   toggleLikeAccount: (accountId: string) => void;
   toggleLikePost: (postId: string) => { wasLiked: boolean };
@@ -117,7 +117,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { addToast } = useUI();
+    const { addToast, openModal } = useUI();
 
     const [accounts, setAccounts] = useLargePersistentState<Account[]>(ACCOUNTS_KEY, mockAccounts);
     const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(CURRENT_ACCOUNT_ID_KEY, null);
@@ -163,6 +163,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }));
     }, [currentAccountId, setAllUsersData]);
+
+    const showConfirmation = useCallback((data: ConfirmationModalData) => {
+        openModal({ type: 'confirmation', data });
+    }, [openModal]);
 
     const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => {
         const newNotification: Notification = {
@@ -433,12 +437,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setAccounts, addToast]);
 
     const deleteAccount = useCallback((accountId: string) => {
-        setAccounts(prev => prev.filter(acc => acc.id !== accountId));
-        if (accountId === currentAccountId) {
-            signOut();
-        }
-        addToast('Account deleted.', 'success');
-    }, [setAccounts, currentAccountId, signOut, addToast]);
+        showConfirmation({
+            title: 'Delete Account',
+            message: 'Are you sure you want to permanently delete this account? This action cannot be undone.',
+            onConfirm: () => {
+                setAccounts(prev => prev.filter(acc => acc.id !== accountId));
+                if (accountId === currentAccountId) {
+                    signOut();
+                }
+                addToast('Account deleted.', 'success');
+            },
+            confirmText: 'Delete Permanently',
+        });
+    }, [setAccounts, currentAccountId, signOut, addToast, showConfirmation]);
 
     const updateAccountRole = useCallback((accountId: string, role: 'account' | 'admin') => {
         setAccounts(prev => prev.map(acc => acc.id === accountId ? { ...acc, role } : acc));
