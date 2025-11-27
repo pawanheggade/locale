@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
@@ -322,18 +323,30 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   </div>
               </div>
               
-              <div className="hidden sm:flex items-center gap-2 mb-1 shrink-0">
+              <div className="hidden sm:flex items-center justify-end gap-2 mb-1">
                   {isOwnAccount ? (
                       <>
-                          <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4"><PencilIcon className="w-4 h-4" />Edit Profile</Button>
-                           {canHaveCatalog && (
-                                <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })} className="gap-2">
-                                    <DocumentIcon className="w-4 h-4" />Manage Catalog
-                                </Button>
-                            )}
-                          <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2"><ChartBarIcon className="w-4 h-4" />Analytics</Button>
-                          <SocialsDropdown links={sortedSocialLinks} size="sm" />
-                          <Button variant="overlay-dark" size="sm" onClick={handleShareProfile} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
+                          <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-3">
+                              <PencilIcon className="w-4 h-4" />
+                              <span className="hidden md:inline">Edit Profile</span>
+                              <span className="md:hidden">Edit</span>
+                          </Button>
+                          {canHaveCatalog && (
+                              <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })} className="gap-2 px-3">
+                                  <DocumentIcon className="w-4 h-4" />
+                                  <span className="hidden md:inline">Manage Catalog</span>
+                                  <span className="md:hidden">Catalog</span>
+                              </Button>
+                          )}
+                          <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2 px-3">
+                              <ChartBarIcon className="w-4 h-4" />
+                              Analytics
+                          </Button>
+                          <div className="h-5 border-l border-gray-200 mx-1"></div>
+                          <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
+                          <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile">
+                              <ShareIcon className="w-4 h-4" />
+                          </Button>
                       </>
                   ) : (
                       <>
@@ -386,16 +399,17 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               </div>
           </div>
           
-          <div className="mt-6 flex gap-3 sm:hidden">
+          <div className="mt-6 flex justify-end gap-2 sm:hidden">
              {isOwnAccount ? (
                   <>
-                      <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}><PencilIcon className="w-4 h-4" />Edit</Button>
+                      <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={() => onEditAccount(account)}><PencilIcon className="w-4 h-4" />Edit</Button>
                       {canHaveCatalog && (
-                            <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => openModal({ type: 'manageCatalog' })}><DocumentIcon className="w-4 h-4" />Catalog</Button>
+                          <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={() => openModal({ type: 'manageCatalog' })}><DocumentIcon className="w-4 h-4" />Catalog</Button>
                       )}
-                      <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}><ChartBarIcon className="w-4 h-4" />Analytics</Button>
-                      <SocialsDropdown links={sortedSocialLinks} size="icon" />
-                      <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
+                      <Button variant="overlay-dark" size="sm" className="justify-center gap-2 px-3" onClick={onOpenAnalytics}><ChartBarIcon className="w-4 h-4" />Analytics</Button>
+                      <div className="h-5 border-l border-gray-200 mx-1 my-auto"></div>
+                      <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
+                      <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share"><ShareIcon className="w-4 h-4" /></Button>
                   </>
               ) : (
                   <>
