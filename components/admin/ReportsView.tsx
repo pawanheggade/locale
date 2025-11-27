@@ -5,6 +5,8 @@ import { timeSince } from '../../utils/formatters';
 import { useSort } from '../../hooks/useSort';
 import { Button } from '../ui/Button';
 import { DataTable } from './DataTable';
+import { EmptyState } from '../EmptyState';
+import { FlagIcon } from '../Icons';
 
 interface ReportWithData extends Report {
     type: 'Marketplace Post' | 'Forum Post' | 'Forum Comment';
@@ -75,7 +77,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ reports, allPosts, for
     const { items: sortedReports, requestSort, sortConfig } = useSort(reportsWithData, { key: 'timestamp', direction: 'desc' });
     
     if (reports.length === 0) {
-        return <p className="text-gray-500">No active reports.</p>;
+        return (
+            <EmptyState
+                icon={<FlagIcon />}
+                title=""
+                description="No active reports."
+                className="py-12"
+            />
+        );
     }
 
     const columns = [
@@ -89,14 +98,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ reports, allPosts, for
     const renderRow = (report: ReportWithData) => (
         <tr key={report.id}>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-xs">{report.content}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.type}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-sm">{report.reason}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{timeSince(report.timestamp)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{report.type}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 truncate max-w-sm">{report.reason}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{timeSince(report.timestamp)}</td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex justify-end gap-2">
-                    <Button variant="glass" size="sm" onClick={report.onView}>View</Button>
-                    <Button variant="glass" size="sm" className="text-green-600 hover:bg-green-50" onClick={() => onReportAction(report, 'dismiss')}>Dismiss</Button>
-                    <Button variant="glass" size="sm" className="text-red-600 hover:bg-red-50" onClick={() => onReportAction(report, 'delete')}>Delete Content</Button>
+                    <Button variant="overlay-dark" size="sm" onClick={report.onView}>View</Button>
+                    <Button variant="overlay-dark" size="sm" className="text-green-600" onClick={() => onReportAction(report, 'dismiss')}>Dismiss</Button>
+                    <Button variant="overlay-red" size="sm" className="text-red-600" onClick={() => onReportAction(report, 'delete')}>Delete Content</Button>
                 </div>
             </td>
         </tr>

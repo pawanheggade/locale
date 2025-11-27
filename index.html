@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -29,80 +28,75 @@
       --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
-    /* --- Glassmorphism Effect for Buttons --- */
-    .glass-button-circular, .glass-button-pill {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s var(--ease-out-quad);
-    }
-    .glass-button-circular-dark, .glass-button-pill-dark {
-        background-color: rgba(30, 30, 30, 0.75) !important; /* Increased contrast */
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        color: white;
-        transition: all 0.3s var(--ease-out-quart);
-    }
-    
-    /* Red Glass Variant (Strong) */
-    .glass-button-circular-red, .glass-button-pill-red {
-        background-color: rgba(220, 38, 38, 0.85) !important; /* red-600 with high opacity */
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    /* Red Variant (Solid) - Default State */
+    .button-circular-red, .button-pill-red {
+        background-color: #dc2626 !important; /* red-600 */
+        border: 1px solid transparent;
         color: white !important;
         transition: all 0.2s var(--ease-out-quad);
     }
-
-    /* Amber Glass Variant (Strong) */
-    .glass-button-pill-amber {
-        background-color: rgba(245, 158, 11, 0.85) !important; /* amber-500 */
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        color: white !important;
-        transition: all 0.2s var(--ease-out-quad);
-    }
-
-    /* Light Variants (for secondary actions) */
-    .glass-button-pill-red-light {
-        background-color: rgba(254, 226, 226, 0.6) !important; /* red-100 equivalent */
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(220, 38, 38, 0.1);
-        color: #991b1b !important; /* red-800 */
-        transition: all 0.2s var(--ease-out-quad);
-    }
     
-    .glass-button-pill-amber-light {
-        background-color: rgba(254, 243, 199, 0.6) !important; /* amber-100 equivalent */
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(245, 158, 11, 0.1);
-        color: #92400e !important; /* amber-800 */
-        transition: all 0.2s var(--ease-out-quad);
-    }
-    
-    .glass-button-circular:active, .glass-button-circular-dark:active,
-    .glass-button-pill:active, .glass-button-pill-dark:active,
-    .glass-button-circular-red:active, .glass-button-pill-red:active,
-    .glass-button-pill-amber:active,
-    .glass-button-pill-red-light:active, .glass-button-pill-amber-light:active {
+    /* Active/Pressed state changes to Light Red */
+    .button-circular-red:active, .button-pill-red:active {
+        background-color: #ef4444 !important; /* red-500 */
         transform: translateY(0) scale(0.95) !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
     }
-    .glass-button-circular:focus-visible, .glass-button-circular-dark:focus-visible,
-    .glass-button-pill:focus-visible, .glass-button-pill-dark:focus-visible,
-    .glass-button-circular-red:focus-visible, .glass-button-pill-red:focus-visible {
+
+    /* Light Red Variant (Solid) - Active/Toggled State */
+    .button-pill-lightred, .button-circular-lightred {
+        background-color: #f87171 !important; /* red-400 */
+        border: 1px solid transparent;
+        color: white !important;
+        transition: all 0.2s var(--ease-out-quad);
+    }
+    
+    .button-pill-lightred:active, .button-circular-lightred:active {
+        background-color: #fca5a5 !important; /* red-300 */
+        transform: translateY(0) scale(0.95) !important;
+    }
+
+    .button-circular-red:focus-visible, .button-pill-red:focus-visible {
         outline: 2px solid #ef4444; /* red-500 */
         outline-offset: 2px;
     }
+
+    .button-pill-lightred:focus-visible, .button-circular-lightred:focus-visible {
+        outline: 2px solid #f87171; /* red-400 */
+        outline-offset: 2px;
+    }
+    
+    /* Amber Variant (Solid) */
+    .button-pill-amber {
+        background-color: #f59e0b !important; /* amber-500 */
+        border: 1px solid transparent;
+        color: white !important;
+        transition: all 0.2s var(--ease-out-quad);
+    }
+    .button-pill-amber:active {
+        background-color: #fbbf24 !important; /* amber-400 */
+        transform: translateY(0) scale(0.95) !important;
+    }
+    .button-pill-amber:focus-visible {
+        outline: 2px solid #f59e0b; /* amber-500 */
+        outline-offset: 2px;
+    }
+
+    /* Dark Variant (Solid) */
+    .button-pill-dark {
+        background-color: #111827 !important; /* gray-900 */
+        border: 1px solid transparent;
+        color: white !important;
+        transition: all 0.2s var(--ease-out-quad);
+    }
+    .button-pill-dark:active {
+        background-color: #374151 !important; /* gray-700 */
+        transform: translateY(0) scale(0.95) !important;
+    }
+    .button-pill-dark:focus-visible {
+        outline: 2px solid #111827; /* gray-900 */
+        outline-offset: 2px;
+    }
+
 
     /* --- Animations --- */
     @keyframes fade-in {
@@ -258,7 +252,6 @@
         height: 12px;
         border-radius: 50%;
         border: 2px solid white;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.4);
         position: relative;
         z-index: 1;
     }
@@ -307,7 +300,6 @@
     /* Custom styles for Leaflet popup */
     .leaflet-popup-content-wrapper {
       border-radius: 12px !important;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
       background-color: #fff !important;
     }
     .leaflet-popup-content {
@@ -328,7 +320,7 @@
     /* Selected state for custom marker */
     .marker-selected .marker-content {
         transform: translateY(-4px) scale(1.1) !important;
-        box-shadow: 0 0 0 3px white, 0 0 0 6px #ef4444, 0 8px 16px rgba(0,0,0,0.2) !important; /* Tailwind's red-500 ring */
+        box-shadow: 0 0 0 3px white, 0 0 0 6px #ef4444 !important; /* Tailwind's red-500 ring */
     }
 
     /* Custom Marker Cluster Styles */
@@ -340,7 +332,6 @@
         justify-content: center;
         align-items: center;
         border: 4px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
     }
     .marker-cluster div {
         text-align: center;

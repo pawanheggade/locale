@@ -35,20 +35,20 @@ export const PostsView: React.FC<PostsViewProps> = ({ allPosts, onEditPost, onDe
         return (
             <tr key={post.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{post.title}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.author?.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{post.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(post.price)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{post.author?.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{post.category}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatCurrency(post.price)}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${isExpired ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                         {isExpired ? 'Expired' : 'Active'}
                     </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{timeSince(post.lastUpdated)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{timeSince(post.lastUpdated)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
-                        <Button variant="glass" size="xs" onClick={() => onViewPost(post)}>View</Button>
-                        <Button variant="glass" size="xs" onClick={() => onEditPost(post.id)}>Edit</Button>
-                        <Button variant="glass" size="xs" onClick={() => onDeletePost(post.id)} className="text-red-600 hover:bg-red-50">Delete</Button>
+                        <Button variant="overlay-dark" size="xs" onClick={() => onViewPost(post)}>View</Button>
+                        <Button variant="overlay-dark" size="xs" onClick={() => onEditPost(post.id)}>Edit</Button>
+                        <Button variant="overlay-red" size="xs" onClick={() => onDeletePost(post.id)} className="text-red-600">Delete</Button>
                     </div>
                 </td>
             </tr>

@@ -1,11 +1,13 @@
 
+
 import React, { useState, useRef } from 'react';
-import { SpinnerIcon, AlertIcon, MapPinIcon, CrosshairsIcon } from './Icons';
+import { SpinnerIcon, MapPinIcon, CrosshairsIcon } from './Icons';
 import LocationPickerMap from './LocationPickerMap';
 import ModalShell from './ModalShell';
 import LocationInput from './LocationInput';
 import { useLocationInput } from '../hooks/useLocationInput';
 import { Button } from './ui/Button';
+import { FormField } from './FormField';
 
 interface FindNearbyModalProps {
   onClose: () => void;
@@ -70,31 +72,27 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
                 type="button"
                 onClick={handleUseMyLocationClick}
                 disabled={isSearching || locationInput.status === 'geolocating'}
-                variant="glass-red"
-                className="w-full flex items-center justify-center gap-2 h-12 text-base"
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2 h-12 text-base text-red-600 border-red-200 hover:bg-red-50"
               >
                 {isSearching || locationInput.status === 'geolocating' ? <SpinnerIcon className="w-6 h-6" /> : <CrosshairsIcon className="w-6 h-6" />}
                 Use My Current Location
               </Button>
             </div>
 
-            {locationInput.status === 'error' && locationInput.error && (
-                <div role="alert" className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-md flex items-center gap-2 animate-fade-in-up">
-                    <AlertIcon className="w-5 h-5 flex-shrink-0" />
-                    <p className="text-sm">{locationInput.error}</p>
-                </div>
-            )}
-
             <div className="relative flex items-center text-center">
               <div className="flex-grow border-t border-gray-300"></div>
-              <span className="flex-shrink mx-4 text-sm font-medium text-gray-500">OR</span>
+              <span className="flex-shrink mx-4 text-sm font-medium text-gray-600">OR</span>
               <div className="flex-grow border-t border-gray-300"></div>
             </div>
             
             <div className="space-y-4">
+              <FormField
+                id="location-search"
+                label="Search for a location"
+                error={locationInput.error || formError}
+              >
                <LocationInput
-                  id="location-search"
-                  label="Search for a location"
                   value={locationInput.location}
                   onValueChange={locationInput.setLocation}
                   onSuggestionSelect={locationInput.selectSuggestion}
@@ -103,10 +101,9 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
                   onOpenMapPicker={() => setShowMapPicker(true)}
                   suggestions={locationInput.suggestions}
                   status={locationInput.status}
-                  error={locationInput.error}
-                  formError={formError}
               />
-              <Button type="submit" disabled={isSearching} variant="glass-dark" className="w-full h-12 text-base">
+              </FormField>
+              <Button type="submit" disabled={isSearching} variant="pill-red" className="w-full h-12 text-base">
                 {isSearching ? <><SpinnerIcon className="w-5 h-5 mr-2" /> Searching...</> : 'Search at Location'}
               </Button>
             </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from './Icons';
 import { cn } from '../lib/utils';
@@ -11,34 +12,36 @@ interface VoteButtonsProps {
 }
 
 export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVote, orientation = 'vertical' }) => {
-  const containerClasses = orientation === 'vertical' ? 'flex flex-col items-center gap-1' : 'flex items-center gap-1';
-  const scoreClasses = orientation === 'vertical' ? '' : 'min-w-[2.5rem] text-center';
+  const containerClasses = orientation === 'vertical' ? 'flex flex-col items-center gap-0.5' : 'flex items-center gap-2';
+  const scoreClasses = orientation === 'vertical' ? 'text-sm my-0.5' : 'min-w-[1.5rem] text-center text-sm';
 
   return (
     <div className={cn(containerClasses, 'flex-shrink-0')}>
       <Button
-        variant="glass"
-        size="icon-sm"
         onClick={(e) => { e.stopPropagation(); onVote('up'); }}
+        variant="ghost"
+        size="icon-sm"
         className={cn(
+          "rounded transition-colors",
           userVote === 'up'
-            ? 'bg-red-100 text-red-600'
-            : 'text-gray-500'
+            ? 'text-red-600 bg-red-50'
+            : 'text-gray-400 hover:text-gray-600'
         )}
         aria-pressed={userVote === 'up'}
         aria-label="Upvote"
       >
         <ArrowUpIcon className="w-5 h-5" />
       </Button>
-      <span className={cn('font-bold text-gray-800 text-sm', scoreClasses)}>{score}</span>
+      <span className={cn('font-bold text-gray-700', scoreClasses)}>{score}</span>
       <Button
-        variant="glass"
-        size="icon-sm"
         onClick={(e) => { e.stopPropagation(); onVote('down'); }}
+        variant="ghost"
+        size="icon-sm"
         className={cn(
+          "rounded transition-colors",
           userVote === 'down'
-            ? 'bg-red-100 text-red-600'
-            : 'text-gray-500'
+            ? 'text-red-600 bg-red-50'
+            : 'text-gray-400 hover:text-gray-600'
         )}
         aria-pressed={userVote === 'down'}
         aria-label="Downvote"

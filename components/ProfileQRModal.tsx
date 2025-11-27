@@ -46,7 +46,7 @@ const getBadgeSvg = (tier: string) => {
     if (tier === 'Business') color = '#f59e0b'; // amber-500
 
     // Outline
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1 1.043 3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
 };
 
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
@@ -283,11 +283,11 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
         {/* Footer Actions */}
         <div className="w-full bg-gray-50 border-t p-4 flex gap-3 justify-center">
-            <Button onClick={handleDownload} variant="glass" className="flex-1 justify-center" disabled={isGenerating}>
+            <Button onClick={handleDownload} variant="outline" className="flex-1 justify-center" disabled={isGenerating}>
                 {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ArrowDownTrayIcon className="w-5 h-5 mr-2" />}
                 {isGenerating ? 'Saving...' : 'Download'}
             </Button>
-            <Button onClick={handleShare} variant="glass-dark" className="flex-1 justify-center">
+            <Button onClick={handleShare} variant="outline" className="flex-1 justify-center">
                 <ShareIcon className="w-5 h-5 mr-2" />
                 Share Profile
             </Button>

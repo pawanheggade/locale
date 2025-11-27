@@ -30,8 +30,8 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
 
     return (
         <div>
-            <div className="mb-4">
-                <nav className="flex space-x-2 p-1 bg-gray-100 rounded-full overflow-x-auto hide-scrollbar" role="tablist">
+            <div className="mb-4 border-b border-gray-200">
+                <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist">
                     <TabButton onClick={() => setActiveTab('marketplace')} isActive={activeTab === 'marketplace'}>Marketplace</TabButton>
                     <TabButton onClick={() => setActiveTab('forum')} isActive={activeTab === 'forum'}>Forum</TabButton>
                     <TabButton onClick={() => setActiveTab('units')} isActive={activeTab === 'units'}>Units</TabButton>

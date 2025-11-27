@@ -42,7 +42,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
             </div>
             
             <div className="mt-3 flex justify-center">
-                <Button onClick={handleShare} variant="glass-amber" size="sm" className="gap-2">
+                <Button onClick={handleShare} variant="outline" size="sm" className="gap-2 text-amber-700 border-amber-300 bg-white hover:bg-amber-50">
                     <ShareIcon className="w-4 h-4" />
                     Share Code
                 </Button>

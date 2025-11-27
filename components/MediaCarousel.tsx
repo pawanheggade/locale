@@ -1,7 +1,9 @@
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Media } from '../types';
 import { useCarousel } from '../hooks/useCarousel';
 import { ChevronLeftIcon, ChevronRightIcon, SpinnerIcon } from './Icons';
+import { Button } from './ui/Button';
 
 interface MediaCarouselProps {
     id: string;
@@ -224,8 +226,12 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
 
             {media.length > 1 && (
                 <>
-                    <button onClick={handlePreviousClick} aria-label="Previous media" className="absolute left-2 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-30 rounded-full p-1.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"><ChevronLeftIcon className="w-5 h-5" /></button>
-                    <button onClick={handleNextClick} aria-label="Next media" className="absolute right-2 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-30 rounded-full p-1.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white z-10"><ChevronRightIcon className="w-5 h-5" /></button>
+                    <Button onClick={handlePreviousClick} variant="overlay" size="icon-sm" aria-label="Previous media" className="absolute left-2 top-1/2 -translate-y-1/2 z-10 text-white">
+                        <ChevronLeftIcon className="w-6 h-6" />
+                    </Button>
+                    <Button onClick={handleNextClick} variant="overlay" size="icon-sm" aria-label="Next media" className="absolute right-2 top-1/2 -translate-y-1/2 z-10 text-white">
+                        <ChevronRightIcon className="w-6 h-6" />
+                    </Button>
                     {/* Indicator dots with a gradient background for visibility */}
                     <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 flex justify-center items-end pb-2">
                         <div className="flex space-x-2">

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import SearchBar from './SearchBar';
-import { ChevronLeftIcon } from './Icons';
+import { ChevronLeftIcon, FunnelIcon } from './Icons';
 import { Account, AppView } from '../types';
 import { AccountMenu } from './AccountMenu';
 import { Button } from './ui/Button';
@@ -32,8 +31,9 @@ interface HeaderProps {
   unreadNotificationsCount: number;
   currentAccount: Account | null;
   onOpenAccount: () => void;
+  onEditProfile: () => void;
   onOpenSubscriptionPage: () => void;
-  onOpenNotificationsModal: () => void;
+  onOpenActivityPage: () => void;
   onOpenCreateModal: () => void;
   onOpenLoginModal: () => void;
   onOpenSettingsModal: () => void;
@@ -71,8 +71,9 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   unreadNotificationsCount,
   currentAccount,
   onOpenAccount,
+  onEditProfile,
   onOpenSubscriptionPage,
-  onOpenNotificationsModal,
+  onOpenActivityPage,
   onOpenCreateModal,
   onOpenLoginModal,
   onOpenSettingsModal,
@@ -84,11 +85,10 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   isVisible,
   onBack,
 }) => {
-  // Use 640px (sm) as breakpoint so tablets and desktops get the full placeholder
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -104,10 +104,24 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     onOpenAccount();
   };
     
-  const placeholder = useMemo(() => isMobile
-    ? (isAiSearchEnabled ? 'Ask AI…' : 'Search…')
-    : (isAiSearchEnabled ? 'Ask AI anything...' : 'Search products, services, events...'), 
-  [isMobile, isAiSearchEnabled]);
+  const placeholder = useMemo(() => {
+    // AI Search Logic
+    if (isAiSearchEnabled) {
+        return windowWidth < 640 ? 'Ask AI' : 'Ask AI anything...';
+    }
+
+    // Standard Search Logic
+    if (windowWidth < 640) {
+        // Mobile: Minimal
+        return 'Search';
+    } else if (windowWidth < 1150) {
+        // Medium (Tablets/Small Laptops): Compact
+        return 'Search...';
+    } else {
+        // Large Desktop: Full text
+        return 'Search products, services, events...';
+    }
+  }, [windowWidth, isAiSearchEnabled]);
 
   const handleBagClick = () => {
     if (currentAccount) {
@@ -122,14 +136,13 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
-      'backdrop-blur-lg border-b border-black/5 bg-white/80', // Added bg for glass effect over scrolling content
-      isScrolled && 'shadow-sm',
+      'bg-white border-b border-gray-200', // Replaced glass effect with solid white
       !isVisible && '-translate-y-full' // Hide via transform
     )}>
       <div className={`px-4 sm:px-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-1 sm:gap-x-1 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
-              <Button variant="glass" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
+              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
                 <ChevronLeftIcon className="w-6 h-6" />
               </Button>
             )}
@@ -144,7 +157,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
               role="button"
               tabIndex={0}
               aria-label="Go to all posts and clear filters"
-              className="text-2xl sm:text-3xl font-medium text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline"
+              className="text-2xl sm:text-3xl font-medium text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline select-none"
             >
               <span>l</span>
               <span className="relative inline-flex flex-col items-center">
@@ -157,15 +170,15 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </h1>
         </div>
         
-        <div className="flex justify-center px-0 min-w-0">
+        <div className="flex justify-center px-2 min-w-0">
             {/* Increased max-width constraints to allow search bar to grow larger */}
-            <div className="w-full max-w-2xl lg:max-w-4xl mx-auto">
+            <div className="w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center gap-2">
                 <SearchBar 
                     searchQuery={searchQuery}
                     onSearchChange={onSearchChange}
                     onSearchSubmit={onSearchSubmit}
                     placeholder={placeholder}
-                    wrapperClassName="w-full"
+                    wrapperClassName="flex-1 min-w-0"
                     suggestions={autoCompleteSuggestions}
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
@@ -174,10 +187,21 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                     onToggleAiSearch={onToggleAiSearch}
                     onAiSearchSubmit={onAiSearchSubmit}
                     isAiSearching={isAiSearching}
-                    onOpenFilterPanel={onOpenFilterPanel}
-                    isAnyFilterActive={isAnyFilterActive}
-                    isFilterButtonDisabled={isViewToggleDisabled}
                 />
+                <Button 
+                    onClick={onOpenFilterPanel}
+                    disabled={isViewToggleDisabled}
+                    variant="overlay-dark"
+                    size="icon"
+                    className={cn(
+                        "shrink-0 transition-colors",
+                        isAnyFilterActive && "text-red-600"
+                    )}
+                    aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
+                    title={isAnyFilterActive ? "Filters active" : "Filters"}
+                >
+                    <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
+                </Button>
             </div>
         </div>
 
@@ -192,7 +216,8 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                         onViewChange={onViewChange}
                         currentView={currentView}
                         handleAccountViewToggle={handleAccountViewToggle}
-                        onOpenNotificationsModal={onOpenNotificationsModal}
+                        onEditProfile={onEditProfile}
+                        onOpenActivityPage={onOpenActivityPage}
                         mainView={mainView}
                         onMainViewChange={onMainViewChange}
                         gridView={gridView}
@@ -203,7 +228,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                     />
                 ) : (
                     <div className="flex items-center gap-2">
-                        <Button onClick={onOpenLoginModal} variant="glass-red" size="sm" className="px-4">Sign in</Button>
+                        <Button onClick={onOpenLoginModal} variant="pill-red" size="sm" className="px-4">Sign in</Button>
                     </div>
                 )}
             </div>

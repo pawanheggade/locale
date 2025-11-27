@@ -76,6 +76,7 @@ export interface Account {
   mobile?: string;
   messageNumber?: string;
   status: 'active' | 'archived' | 'pending' | 'rejected';
+  archivedByAdmin?: boolean;
   subscription: Subscription;
   taxInfo?: string;
   address?: string;
@@ -232,8 +233,6 @@ export type ModalState =
   | { type: 'setPriceAlert', data: Post }
   | { type: 'addToBag', data: Post }
   | { type: 'saveToList', data: { bagItemId: string } }
-  | { type: 'settings' }
-  | { type: 'notifications' }
   | { type: 'contactStore', data: { author: Account, post?: Post, prefilledMessage?: string } }
   | { type: 'createAccount', data?: { isSeller: boolean } }
   | { type: 'forgotPassword' }
@@ -249,7 +248,7 @@ export type ModalState =
   | { type: 'profileQR', data: Account };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forum' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forum' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity';
 
 
 // --- Context API Action Types ---

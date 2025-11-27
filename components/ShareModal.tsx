@@ -149,8 +149,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
             />
             <Button
               onClick={handleCopyLink}
-              variant="glass-red"
-              className="w-28 flex-shrink-0"
+              variant="outline"
+              className="w-28 flex-shrink-0 text-red-600 border-red-200 hover:bg-red-50"
               aria-label={isCopied ? 'Link copied' : 'Copy link'}
             >
               {isCopied ? <CheckIcon className="w-5 h-5" /> : <DocumentDuplicateIcon className="w-5 h-5" />}
@@ -166,7 +166,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                variant="glass"
+                variant="outline"
                 className="flex items-center justify-center gap-2 w-full h-auto py-2.5"
                 aria-label={`Share on ${name}`}
               >
@@ -180,7 +180,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
             <Button
               onClick={handleNativeShare}
               disabled={isGenerating || !imageBlob}
-              variant="glass-dark"
+              variant="outline"
               className="w-full flex items-center justify-center gap-2 h-12 text-base"
               aria-label="Share via system dialog"
             >

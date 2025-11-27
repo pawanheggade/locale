@@ -1,10 +1,11 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Post, PriceAlert } from '../types';
 import ModalShell from './ModalShell';
 import { AlertIcon, TrashIcon } from './Icons';
 import { formatCurrency } from '../utils/formatters';
 import { Button } from './ui/Button';
+import { FormField } from './FormField';
+import { CurrencyInput } from './ui/CurrencyInput';
 
 interface SetPriceAlertModalProps {
   post: Post;
@@ -16,6 +17,7 @@ interface SetPriceAlertModalProps {
 
 const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, onSetAlert, existingAlert, onDeleteAlert }) => {
   const [targetPrice, setTargetPrice] = useState('');
+  const [alertOnAnyDrop, setAlertOnAnyDrop] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -23,8 +25,18 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
   useEffect(() => {
     if (existingAlert) {
       setTargetPrice(existingAlert.targetPrice.toString());
+      if (existingAlert.targetPrice >= (post.price ?? 0)) {
+          setAlertOnAnyDrop(true);
+      }
     }
-  }, [existingAlert]);
+  }, [existingAlert, post.price]);
+
+  useEffect(() => {
+      if (alertOnAnyDrop) {
+          setTargetPrice(post.price?.toString() ?? '0');
+          if (error) setError('');
+      }
+  }, [alertOnAnyDrop, post.price, error]);
 
   const handleSetAlert = () => {
     const priceValue = parseFloat(targetPrice);
@@ -34,7 +46,8 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
       setError('Please enter a valid, positive price.');
       return;
     }
-    if (priceValue >= post.price) {
+    
+    if (!alertOnAnyDrop && post.price && priceValue >= post.price) {
       setError(`Your alert price must be less than the current price of ${formatCurrency(post.price)}.`);
       return;
     }
@@ -46,14 +59,13 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
   
   const handleDelete = () => {
     // Just trigger the delete action. The parent will handle confirmation (and swapping modals).
-    // Do NOT call onClose here if the parent opens a confirmation modal, as that will be handled by the openModal call replacement.
     onDeleteAlert();
   };
 
   const renderFooter = () => (
     <>
       <Button
-        variant="glass"
+        variant="overlay-dark"
         onClick={onClose}
         disabled={isSubmitting}
         className="mr-auto"
@@ -62,10 +74,10 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
       </Button>
       {existingAlert && (
           <Button
-              variant="glass-red-light"
+              variant="destructive"
               onClick={handleDelete}
               isLoading={isSubmitting}
-              className="gap-2 text-red-600"
+              className="gap-2"
           >
               <TrashIcon className="w-5 h-5" />
               Remove
@@ -76,7 +88,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
         onClick={handleSetAlert}
         isLoading={isSubmitting}
         className="w-32"
-        variant="glass-red"
+        variant="pill-red"
       >
         {existingAlert ? 'Update Alert' : 'Set Alert'}
       </Button>
@@ -94,35 +106,39 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
     >
       <div className="p-6">
         <div className="text-center mb-4">
-          <p className="text-sm text-gray-700">{post.title}</p>
+          <p className="text-sm text-gray-600">{post.title}</p>
           <p className="text-lg font-medium text-gray-800">Current Price: <span className="font-bold">{formatCurrency(post.price)}</span></p>
         </div>
-        <form onSubmit={(e) => { e.preventDefault(); handleSetAlert(); }} className="space-y-2">
-          <div>
-            <label htmlFor="target-price" className="block text-sm font-medium text-gray-800">
-              Notify me when price drops to or below
-            </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">₹</span>
-              </div>
-              <input
-                type="number"
-                id="target-price"
+        <form onSubmit={(e) => { e.preventDefault(); handleSetAlert(); }} className="space-y-4">
+           <FormField
+              id="target-price"
+              label="Notify me when price drops to or below"
+              error={error}
+           >
+              <CurrencyInput
                 value={targetPrice}
                 onChange={(e) => {
                   setTargetPrice(e.target.value);
+                  if (alertOnAnyDrop) setAlertOnAnyDrop(false);
                   if (error) setError('');
                 }}
-                className={`block w-full bg-gray-50 border-gray-200 rounded-md shadow-sm pl-7 pr-3 text-gray-900 focus:bg-white focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-colors duration-150 sm:text-sm ${error ? 'border-red-500' : 'border-gray-200'}`}
-                placeholder="0.00"
-                aria-describedby="target-price-error"
+                className="bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-500"
                 autoFocus
-                min="0"
-                step="0.01"
+                disabled={alertOnAnyDrop}
               />
-            </div>
-            {error && <p id="target-price-error" className="mt-2 text-sm text-red-600 flex items-center gap-1"><AlertIcon className="w-4 h-4" /> {error}</p>}
+           </FormField>
+
+          <div className="flex items-center">
+            <input
+              id="any-drop"
+              type="checkbox"
+              checked={alertOnAnyDrop}
+              onChange={(e) => setAlertOnAnyDrop(e.target.checked)}
+              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded cursor-pointer"
+            />
+            <label htmlFor="any-drop" className="ml-2 block text-sm text-gray-900 cursor-pointer">
+              Alert me on any price drop
+            </label>
           </div>
         </form>
       </div>

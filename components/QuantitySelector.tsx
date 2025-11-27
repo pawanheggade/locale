@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from './ui/Button';
-import { TrashIcon } from './Icons';
+import { TrashIcon, MinusIcon, PlusIcon } from './Icons';
 
 interface QuantitySelectorProps {
   value: string;
@@ -35,20 +34,19 @@ export const QuantitySelector: React.FC<QuantitySelectorProps> = ({
     ? "w-16 text-center text-lg font-bold text-gray-900 bg-gray-50 border border-gray-200 rounded-md focus:ring-red-500 focus:border-red-500"
     : "w-12 text-center text-base font-bold text-gray-900 bg-transparent border-x-0 border-t-0 border-b-2 border-gray-200 focus:ring-0 focus:border-red-500";
     
-  const buttonTextClass = size === 'lg' ? "text-gray-800 text-2xl font-bold" : "text-gray-800 text-lg";
+  const iconClass = size === 'lg' ? "w-6 h-6" : "w-5 h-5";
 
   return (
     <div className="flex items-center gap-2">
       <Button
-        variant="glass"
+        variant={showTrash ? 'overlay-red' : 'overlay-dark'}
         size={buttonSize}
         onClick={showTrash && onRemove ? onRemove : onDecrement}
-        className={showTrash ? "text-red-600" : buttonTextClass}
         aria-label={showTrash ? "Remove item" : "Decrease quantity"}
         title={showTrash ? "Remove item" : "Decrease quantity"}
         disabled={!showTrash && (isNaN(numValue) || numValue <= 1)}
       >
-        {showTrash ? <TrashIcon className={size === 'lg' ? "w-5 h-5" : "w-4 h-4"} /> : '-'}
+        {showTrash ? <TrashIcon className={iconClass} /> : <MinusIcon className={iconClass} />}
       </Button>
       <input
         type="number"
@@ -62,13 +60,13 @@ export const QuantitySelector: React.FC<QuantitySelectorProps> = ({
         autoFocus={autoFocus}
       />
       <Button
-        variant="glass"
+        variant="overlay-dark"
         size={buttonSize}
         onClick={onIncrement}
-        className={buttonTextClass}
         aria-label="Increase quantity"
+        title="Increase quantity"
       >
-        +
+        <PlusIcon className={iconClass} />
       </Button>
     </div>
   );

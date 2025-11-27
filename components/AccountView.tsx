@@ -1,15 +1,17 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, SocialLink } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, PencilIcon, HeartIcon, MapPinIcon, ChartBarIcon, FacebookIcon, XIcon, InstagramIcon, YouTubeIcon, GlobeAltIcon, ShareIcon, CalendarIcon, DocumentDuplicateIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
-import { Button, TabButton, ButtonProps } from './ui/Button';
+import { Button, ButtonProps, TabButton } from './ui/Button';
 import { cn } from '../lib/utils';
 import { Avatar } from './Avatar';
 import { PostList } from './PostList';
 import { ReferralCard } from './ReferralCard';
+import { useClickOutside } from '../hooks/useClickOutside';
+import { EmptyState } from './EmptyState';
+import { LikeButton } from './LikeButton';
 
 interface AccountViewProps {
   account: Account;
@@ -27,12 +29,12 @@ interface AccountViewProps {
 
 const getSocialIcon = (platform: SocialPlatform) => {
     switch (platform) {
-        case 'facebook': return <FacebookIcon className="w-5 h-5" />;
-        case 'twitter': return <XIcon className="w-5 h-5" />;
-        case 'instagram': return <InstagramIcon className="w-5 h-5" />;
-        case 'youtube': return <YouTubeIcon className="w-5 h-5" />;
-        case 'website': return <GlobeAltIcon className="w-5 h-5" />;
-        default: return <GlobeAltIcon className="w-5 h-5" />;
+        case 'facebook': return <FacebookIcon className="w-4 h-4" />;
+        case 'twitter': return <XIcon className="w-4 h-4" />;
+        case 'instagram': return <InstagramIcon className="w-4 h-4" />;
+        case 'youtube': return <YouTubeIcon className="w-4 h-4" />;
+        case 'website': return <GlobeAltIcon className="w-4 h-4" />;
+        default: return <GlobeAltIcon className="w-4 h-4" />;
     }
 };
 
@@ -40,15 +42,7 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen]);
+    useClickOutside(menuRef, () => setIsOpen(false), isOpen);
 
     if (!links || links.length === 0) return null;
 
@@ -56,15 +50,15 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
         <div className="relative" ref={menuRef}>
             <Button
                 onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-                variant="glass"
+                variant="overlay-dark"
                 size={size}
                 title="Social Profiles"
-                className={isOpen ? 'ring-2 ring-red-500' : ''}
+                className={isOpen ? 'text-red-600' : ''}
             >
-                <GlobeAltIcon className="w-5 h-5" />
+                <GlobeAltIcon className="w-4 h-4" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-30 animate-zoom-in overflow-hidden origin-top-right">
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl border border-gray-100 z-30 animate-zoom-in overflow-hidden origin-top-right">
                     <div className="py-1">
                         {links.map((link, idx) => (
                             <a
@@ -72,10 +66,10 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-sm text-gray-700"
+                                className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="text-gray-500">{getSocialIcon(link.platform)}</span>
+                                <span className="text-gray-600">{getSocialIcon(link.platform)}</span>
                                 <span className="capitalize font-medium">{link.platform}</span>
                             </a>
                         ))}
@@ -88,7 +82,6 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
 
 export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics }) => {
   const { addToast, openModal } = useUI();
-  const [isAnimatingLike, setIsAnimatingLike] = useState(false);
   
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
 
@@ -136,7 +129,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
       if (showPinsTab) {
           setActiveTab('pins');
       } else if (showCatalogTab && !accountPosts.length && hasCatalogContent) {
-          setActiveTab('catalogue');
+          setActiveTab('catalogs');
       } else {
           setActiveTab('all');
       }
@@ -187,7 +180,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [account.socialLinks]);
 
   const displayedPosts = useMemo(() => {
-    if (activeTab === 'catalogue') return [];
+    if (activeTab === 'catalogs') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'pins') return pinnedPosts;
     if (activeTab === 'archives') return accountArchivedPosts;
@@ -195,15 +188,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     // Category filter
     return accountPosts.filter(p => p.category === activeTab);
   }, [activeTab, salePosts, pinnedPosts, accountArchivedPosts, accountPosts]);
-
-  const handleLike = () => {
-      if (!currentAccount) {
-          openModal({ type: 'login' });
-          return;
-      }
-      if (!isLiked) setIsAnimatingLike(true);
-      onToggleLike(account.id);
-  };
 
   const handleContactAction = (e: React.MouseEvent, method: { toast: string }) => {
       if (!currentAccount) {
@@ -264,7 +248,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             <div className="flex flex-col sm:flex-row justify-between items-end gap-4 mb-6">
                 <div className="flex items-end gap-4 w-full sm:w-auto">
                     <div 
-                        className="relative p-1 bg-white rounded-full shadow-sm shrink-0 cursor-pointer transition-transform hover:scale-105 active:scale-95 group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                        className="relative p-1 bg-white rounded-full shrink-0 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                         onClick={() => openModal({ type: 'profileQR', data: account })}
                         title="View Profile QR Code"
                         role="button"
@@ -281,7 +265,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             alt={account.name} 
                             size="3xl" 
                             tier={account.subscription.tier} 
-                            className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-white shadow-inner"
+                            className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-white"
                         />
                     </div>
                     
@@ -292,14 +276,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             <SubscriptionBadge tier={account.subscription.tier} className="mt-1" />
                         </div>
                         <div className="mt-1 flex flex-col gap-1">
-                            <p className="text-gray-500 font-medium text-sm">@{account.username}</p>
-                            <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-                                <CalendarIcon className="w-3.5 h-3.5" />
+                            <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                            <div className="flex items-center gap-1.5 text-gray-600 text-sm">
+                                <CalendarIcon className="w-4 h-4" />
                                 <span>Joined {formatMonthYear(account.joinDate)}</span>
                             </div>
                             {account.taxInfo && (
-                                <div className="flex items-center gap-1.5 text-gray-500 text-sm">
-                                    <DocumentIcon className="w-3.5 h-3.5" />
+                                <div className="flex items-center gap-1.5 text-gray-600 text-sm">
+                                    <DocumentIcon className="w-4 h-4" />
                                     <span>Tax ID: {account.taxInfo}</span>
                                 </div>
                             )}
@@ -311,16 +295,16 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                 <div className="hidden sm:flex gap-2 mb-1 shrink-0">
                     {isOwnAccount ? (
                         <>
-                            <Button variant="glass-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4">
+                            <Button variant="overlay-dark" size="sm" onClick={() => onEditAccount(account)} className="gap-2 px-4">
                                 <PencilIcon className="w-4 h-4" />
                                 Edit Profile
                             </Button>
-                            <Button variant="glass" size="sm" onClick={onOpenAnalytics} className="gap-2">
+                            <Button variant="overlay-dark" size="sm" onClick={onOpenAnalytics} className="gap-2">
                                 <ChartBarIcon className="w-4 h-4" />
                                 Analytics
                             </Button>
                             <SocialsDropdown links={sortedSocialLinks} size="sm" />
-                            <Button variant="glass" size="sm" onClick={handleShareProfile} title="Share Profile">
+                            <Button variant="overlay-dark" size="sm" onClick={handleShareProfile} title="Share Profile">
                                 <ShareIcon className="w-4 h-4" />
                             </Button>
                         </>
@@ -334,35 +318,29 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     target={method.key === 'message' ? '_blank' : undefined}
                                     rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
                                     onClick={(e) => handleContactAction(e, method)}
-                                    variant="glass"
+                                    variant="overlay-dark"
                                     size="icon-sm"
                                     title={method.label}
                                 >
-                                    <method.icon className="w-5 h-5" />
+                                    <method.icon className="w-4 h-4" />
                                 </Button>
                             ))}
 
                             <SocialsDropdown links={sortedSocialLinks} size="icon-sm" />
 
-                            <Button variant="glass" size="icon-sm" onClick={handleShareProfile} title="Share Profile">
-                                <ShareIcon className="w-5 h-5" />
+                            <Button variant="overlay-dark" size="icon-sm" onClick={handleShareProfile} title="Share Profile">
+                                <ShareIcon className="w-4 h-4" />
                             </Button>
 
-                            <Button 
-                                onClick={handleLike} 
-                                onAnimationEnd={() => setIsAnimatingLike(false)}
-                                variant={isLiked ? "glass-red-light" : "glass-red"} 
-                                size="sm" 
-                                className={cn(
-                                    "gap-2 px-6 ml-2", 
-                                    isLiked ? "text-red-600" : "text-white", 
-                                    isAnimatingLike && "animate-like-pop"
-                                )}
-                                title={isLiked ? 'Unlike' : 'Like'}
-                            >
-                                <HeartIcon isFilled={isLiked} className="w-4 h-6" />
-                                <span>{isLiked ? 'Liked' : 'Like'}</span>
-                            </Button>
+                            <LikeButton
+                                isLiked={isLiked}
+                                onToggle={() => onToggleLike(account.id)}
+                                variant={isLiked ? "pill-lightred" : "pill-red"}
+                                size="sm"
+                                className="gap-2 px-6 ml-2"
+                                includeLabel
+                                iconClassName="w-4 h-4"
+                            />
                         </>
                     )}
                 </div>
@@ -370,7 +348,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
             {/* Bio */}
             {account.description && (
-                <p className="text-gray-700 text-sm sm:text-base leading-relaxed mt-4 mb-4">
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed mt-4 mb-4">
                     {account.description}
                 </p>
             )}
@@ -383,14 +361,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                     <div className="flex items-center gap-3 shrink-0">
                         {/* Google Maps */}
                         {account.googleMapsUrl && (
-                            <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#EA4335] transition-colors p-1" title="Google Maps">
-                                <GoogleIcon className="w-5 h-5" />
+                            <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1" title="Google Maps">
+                                <GoogleIcon className="w-4 h-4" />
                             </a>
                         )}
                         {/* Apple Maps */}
                         {account.appleMapsUrl && (
-                            <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-black transition-colors p-1" title="Apple Maps">
-                                <AppleIcon className="w-5 h-5" />
+                            <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1" title="Apple Maps">
+                                <AppleIcon className="w-4 h-4" />
                             </a>
                         )}
                     </div>
@@ -399,14 +377,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                 {/* Internal Map Link (Pin + Address) */}
                 {account.address && (
                     <div 
-                        className="flex items-center gap-1.5 cursor-pointer text-red-400 hover:text-red-600 transition-colors group min-w-0"
+                        className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
                         onClick={() => onShowOnMap(account)}
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
                         title="View on Map"
                     >
-                        <MapPinIcon className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors shrink-0" />
+                        <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
                         <span>{account.address}</span>
                     </div>
                 )}
@@ -416,34 +394,28 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             <div className="mt-6 flex gap-3 sm:hidden">
                 {isOwnAccount ? (
                     <>
-                        <Button variant="glass-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}>
+                        <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={() => onEditAccount(account)}>
                             <PencilIcon className="w-4 h-4" />
                             Edit
                         </Button>
-                        <Button variant="glass" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}>
+                        <Button variant="overlay-dark" className="flex-1 justify-center gap-2" onClick={onOpenAnalytics}>
                             <ChartBarIcon className="w-4 h-4" />
                             Analytics
                         </Button>
                         <SocialsDropdown links={sortedSocialLinks} size="icon" />
-                        <Button variant="glass" size="icon" onClick={handleShareProfile} title="Share">
-                            <ShareIcon className="w-5 h-5" />
+                        <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share">
+                            <ShareIcon className="w-4 h-4" />
                         </Button>
                     </>
                 ) : (
                     <>
-                        <Button 
-                            onClick={handleLike} 
-                            onAnimationEnd={() => setIsAnimatingLike(false)}
-                            variant={isLiked ? "glass-red-light" : "glass-red"}
-                            className={cn(
-                                "flex-1 justify-center gap-2", 
-                                isLiked ? "text-red-600" : "text-white",
-                                isAnimatingLike && "animate-like-pop"
-                            )}
-                        >
-                            <HeartIcon isFilled={isLiked} className="w-5 h-5" />
-                            <span>{isLiked ? 'Liked' : 'Like'}</span>
-                        </Button>
+                        <LikeButton
+                            isLiked={isLiked}
+                            onToggle={() => onToggleLike(account.id)}
+                            variant={isLiked ? "pill-lightred" : "pill-red"}
+                            className="flex-1 justify-center gap-2"
+                            includeLabel
+                        />
 
                         {contactMethods.map(method => (
                             <Button
@@ -453,18 +425,18 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 target={method.key === 'message' ? '_blank' : undefined}
                                 rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
                                 onClick={(e) => handleContactAction(e, method)}
-                                variant="glass"
+                                variant="overlay-dark"
                                 size="icon"
                                 title={method.label}
                             >
-                                <method.icon className="w-5 h-5" />
+                                <method.icon className="w-4 h-4" />
                             </Button>
                         ))}
 
                         <SocialsDropdown links={sortedSocialLinks} size="icon" />
 
-                        <Button variant="glass" size="icon" onClick={handleShareProfile} title="Share">
-                            <ShareIcon className="w-5 h-5" />
+                        <Button variant="overlay-dark" size="icon" onClick={handleShareProfile} title="Share">
+                            <ShareIcon className="w-4 h-4" />
                         </Button>
                     </>
                 )}
@@ -479,11 +451,11 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         )}
 
         {/* Tabs */}
-        <div className="bg-white border-b border-gray-200 mb-6 py-2 overflow-x-auto hide-scrollbar">
-            <div className="flex space-x-2 px-4 min-w-max">
+        <div className="bg-white border-b border-gray-200 mb-6 overflow-x-auto hide-scrollbar">
+            <div className="flex space-x-6 px-4 sm:px-6 min-w-max">
                 {showPinsTab && (
                     <TabButton onClick={() => setActiveTab('pins')} isActive={activeTab === 'pins'}>
-                        Pinned
+                        Pins
                     </TabButton>
                 )}
                 <TabButton onClick={() => setActiveTab('all')} isActive={activeTab === 'all'}>
@@ -495,8 +467,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                     </TabButton>
                 )}
                 {showCatalogTab && (
-                    <TabButton onClick={() => setActiveTab('catalogue')} isActive={activeTab === 'catalogue'}>
-                        Catalogue
+                    <TabButton onClick={() => setActiveTab('catalogs')} isActive={activeTab === 'catalogs'}>
+                        Catalogs
                     </TabButton>
                 )}
                 {postCategories.map(cat => (
@@ -514,11 +486,11 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
         {/* Tab Content */}
         <div className="min-h-[300px]">
-            {activeTab === 'catalogue' ? (
+            {activeTab === 'catalogs' ? (
                 <div className="space-y-4 animate-fade-in">
                     {isOwnAccount && (
                         <div className="flex justify-end items-center mb-4">
-                            <Button variant="glass" size="sm" onClick={() => openModal({ type: 'manageCatalog' })}>
+                            <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'manageCatalog' })}>
                                 Manage
                             </Button>
                         </div>
@@ -530,13 +502,13 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 <div 
                                     key={item.id} 
                                     onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog } })}
-                                    className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 aspect-[3/4] flex flex-col"
+                                    className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
                                 >
                                     <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
                                         {item.type === 'image' ? (
-                                            <img src={item.url} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                            <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <DocumentDuplicateIcon className="w-12 h-12 text-red-500 opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            <DocumentDuplicateIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
                                         )}
                                     </div>
                                     <div className="p-3 border-t border-gray-100 bg-white relative z-10">
@@ -546,20 +518,23 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg">
-                            <DocumentDuplicateIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500">No catalog items available.</p>
-                        </div>
+                        <EmptyState
+                            icon={<DocumentDuplicateIcon />}
+                            title="No Catalogs"
+                            description="No catalog items available."
+                            className="bg-gray-50 rounded-lg"
+                        />
                     )}
                 </div>
             ) : (
                 <div className="animate-fade-in">
                     {isOwnAccount && activeTab === 'archives' && displayedPosts.length === 0 ? (
-                        <div className="text-center py-20">
-                            <ArchiveBoxIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-700">No Archived Posts</h3>
-                            <p className="text-gray-500">Posts you archive will appear here.</p>
-                        </div>
+                        <EmptyState
+                            icon={<ArchiveBoxIcon />}
+                            title="No Archived Posts"
+                            description="Posts you archive will appear here."
+                            className="py-20"
+                        />
                     ) : (
                         <PostList 
                             posts={displayedPosts} 

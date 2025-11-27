@@ -53,7 +53,7 @@ export const handleApiError = (error: unknown, context: string): Error => {
 
     if (error && typeof error === 'object') {
         if ('status' in error) {
-            const status = error.status as number;
+            const status = (error as any).status as number;
             if (status === 429) {
                 return new Error(`We're experiencing high traffic. Please try again in a few moments.`);
             }
@@ -64,8 +64,8 @@ export const handleApiError = (error: unknown, context: string): Error => {
                  return new Error(`There was an issue with the request. If this persists, please contact support.`);
             }
         }
-        if ('message' in error && typeof error.message === 'string') {
-            const message = error.message.toLowerCase();
+        if ('message' in error && typeof (error as any).message === 'string') {
+            const message = (error as any).message.toLowerCase();
             if (message.includes('rate limit')) {
                 return new Error(`You've made too many requests. Please wait a moment before trying again.`);
             }
@@ -171,13 +171,9 @@ export const generateSearchSuggestions = async (query: string): Promise<string[]
     items: { type: Type.STRING, description: "A relevant search query suggestion." }
   };
 
-  try {
-      const result = await generateJsonContent<string[]>(prompt, schema, "AI suggestion generation", 0.7);
-      return result || [];
-  } catch (error) {
-      console.error((error as Error).message);
-      return [];
-  }
+  // We propagate the error here so the UI can decide whether to show a toast or fail silently.
+  const result = await generateJsonContent<string[]>(prompt, schema, "generating search suggestions", 0.7);
+  return result || [];
 };
 
 

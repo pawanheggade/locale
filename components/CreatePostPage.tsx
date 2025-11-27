@@ -18,6 +18,7 @@ import { useLocationInput } from '../hooks/useLocationInput';
 import { validatePostData } from '../utils/validation';
 import { MediaUploader } from './MediaUploader';
 import { usePosts } from '../contexts/PostsContext';
+import { FormField } from './FormField';
 
 interface CreatePostPageProps {
   onBack: () => void;
@@ -312,23 +313,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           {errors.sellerOptions && <p className="mt-2 text-sm text-red-600">{errors.sellerOptions}</p>}
                       </div>
                   )}
-                  <div>
-                      <div className="flex justify-between items-baseline">
-                          <Label htmlFor="post-title">Title</Label>
-                          <span className={`text-xs ${title.length > TITLE_MAX_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>{title.length} / {TITLE_MAX_LENGTH}</span>
-                      </div>
-                      <Input id="post-title" value={title} onChange={e => setTitle(e.target.value)} required maxLength={TITLE_MAX_LENGTH} />
-                      {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
-                  </div>
+                  <FormField id="post-title" label="Title" error={errors.title} description={`${title.length} / ${TITLE_MAX_LENGTH}`}>
+                      <Input value={title} onChange={e => setTitle(e.target.value)} required maxLength={TITLE_MAX_LENGTH} />
+                  </FormField>
 
-                  <div>
-                      <div className="flex justify-between items-baseline">
-                          <Label htmlFor="post-description">Description</Label>
-                          <span className={`text-xs ${description.length > DESCRIPTION_MAX_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>{description.length} / {DESCRIPTION_MAX_LENGTH}</span>
-                      </div>
-                      <Textarea id="post-description" value={description} onChange={e => setDescription(e.target.value)} required maxLength={DESCRIPTION_MAX_LENGTH} rows={5} />
-                      {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
-                  </div>
+                  <FormField id="post-description" label="Description" error={errors.description} description={`${description.length} / ${DESCRIPTION_MAX_LENGTH}`}>
+                      <Textarea value={description} onChange={e => setDescription(e.target.value)} required maxLength={DESCRIPTION_MAX_LENGTH} rows={5} />
+                  </FormField>
                   
                   <div>
                       <Label>Media</Label>
@@ -344,16 +335,15 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                          <Label htmlFor="post-type">Type</Label>
-                          <Select id="post-type" value={type} onChange={e => setType(e.target.value as PostType)}>
+                      <FormField id="post-type" label="Type">
+                          <Select value={type} onChange={e => setType(e.target.value as PostType)}>
                               {Object.values(PostType).map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
-                      </div>
+                      </FormField>
                       <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mb-1">
                               <Label htmlFor="post-category">Category</Label>
-                              <Button type="button" size="xs" variant="glass" onClick={handleSuggestCategories} isLoading={isSuggestingCategories}>
+                              <Button type="button" size="xs" variant="outline" onClick={handleSuggestCategories} isLoading={isSuggestingCategories}>
                                   AI Suggest
                               </Button>
                           </div>
@@ -367,36 +357,28 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                       <div>
                           {type === PostType.SERVICE ? (
                               <div className="grid grid-cols-2 gap-2">
-                                  <div className="flex flex-col">
-                                      <Label htmlFor="post-price">Price (Optional)</Label>
+                                  <FormField id="post-price" label="Price (Optional)" error={errors.price}>
                                       <Input 
-                                          id="post-price" 
                                           type="number" 
                                           value={price} 
                                           onChange={e => setPrice(e.target.value)} 
                                           placeholder="0.00" 
                                           min="0" 
-                                          step="0.01" 
-                                          className="mt-1 w-full" 
+                                          step="0.01"
                                       />
-                                  </div>
-                                  <div className="flex flex-col">
-                                      <Label htmlFor="price-unit">Unit</Label>
+                                  </FormField>
+                                  <FormField id="price-unit" label="Unit">
                                       <Select 
-                                          id="price-unit" 
                                           value={priceUnit} 
                                           onChange={(e) => setPriceUnit(e.target.value)} 
-                                          className="mt-1 w-full"
                                       >
                                           {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
                                       </Select>
-                                  </div>
+                                  </FormField>
                               </div>
                           ) : (
-                              <>
-                                  <Label htmlFor="post-price">Price</Label>
+                              <FormField id="post-price" label="Price" error={errors.price}>
                                   <Input 
-                                      id="post-price" 
                                       type="number" 
                                       value={price} 
                                       onChange={e => setPrice(e.target.value)} 
@@ -404,11 +386,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                       placeholder="0.00" 
                                       min="0" 
                                       step="0.01" 
-                                      className="mt-1" 
                                   />
-                              </>
+                              </FormField>
                           )}
-                          {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
                       </div>
                       {type !== PostType.SERVICE && (
                         <div>
@@ -422,9 +402,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                             </div>
                             {isOnSale && (
                                 <div className="mt-1 animate-fade-in-up">
-                                    <Label htmlFor="post-sale-price">Sale Price</Label>
-                                    <Input id="post-sale-price" type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} required placeholder="0.00" min="0" step="0.01" />
-                                    {errors.salePrice && <p className="mt-1 text-sm text-red-600">{errors.salePrice}</p>}
+                                     <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice}>
+                                        <Input type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} required placeholder="0.00" min="0" step="0.01" />
+                                    </FormField>
                                 </div>
                             )}
                         </div>
@@ -432,10 +412,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                   </div>
 
                   {type !== PostType.EVENT && (
-                      <div>
+                      <FormField id="post-location" label="Location" error={errors.location || locationInput.error}>
                           <LocationInput
-                              id="post-location"
-                              label="Location"
                               value={locationInput.location}
                               onValueChange={locationInput.setLocation}
                               onSuggestionSelect={locationInput.selectSuggestion}
@@ -443,54 +421,55 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                               onOpenMapPicker={() => setShowMapPicker(true)}
                               suggestions={locationInput.suggestions}
                               status={locationInput.status}
-                              error={locationInput.error}
-                              formError={errors.location}
                           />
-                      </div>
+                      </FormField>
                   )}
                   
                   {type === PostType.EVENT && (
                       <div className="p-4 bg-gray-50 border rounded-lg space-y-4 animate-fade-in-up">
                           <h3 className="font-semibold text-gray-800">Event Details</h3>
-                          <LocationInput
-                              id="event-location"
-                              label="Venue / Event Location"
-                              value={eventLocationInput.location}
-                              onValueChange={eventLocationInput.setLocation}
-                              onSuggestionSelect={eventLocationInput.selectSuggestion}
-                              onVerify={eventLocationInput.verify}
-                              onOpenMapPicker={() => setShowMapPicker(true)}
-                              suggestions={eventLocationInput.suggestions}
-                              status={eventLocationInput.status}
-                              error={eventLocationInput.error}
-                              formError={errors.eventLocation}
-                          />
+                          <FormField id="event-location" label="Venue / Event Location" error={errors.eventLocation || eventLocationInput.error}>
+                              <LocationInput
+                                  value={eventLocationInput.location}
+                                  onValueChange={eventLocationInput.setLocation}
+                                  onSuggestionSelect={eventLocationInput.selectSuggestion}
+                                  onVerify={eventLocationInput.verify}
+                                  onOpenMapPicker={() => setShowMapPicker(true)}
+                                  suggestions={eventLocationInput.suggestions}
+                                  status={eventLocationInput.status}
+                              />
+                          </FormField>
                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                               <div>
-                                  <Label htmlFor="event-start-date">Start Date & Time</Label>
-                                  <Input id="event-start-date" type="datetime-local" value={eventStartDate} onChange={e => setEventStartDate(e.target.value)} />
-                                  {errors.eventStartDate && <p className="mt-1 text-sm text-red-600">{errors.eventStartDate}</p>}
-                               </div>
-                               <div>
-                                  <Label htmlFor="event-end-date">End Date & Time (Optional)</Label>
-                                  <Input id="event-end-date" type="datetime-local" value={eventEndDate} onChange={e => setEventEndDate(e.target.value)} />
-                               </div>
+                               <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
+                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setEventStartDate(e.target.value)} />
+                               </FormField>
+                               <FormField id="event-end-date" label="End Date & Time (Optional)">
+                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setEventEndDate(e.target.value)} />
+                               </FormField>
                            </div>
                       </div>
                   )}
                   
                    <div>
-                      <div className="flex items-center gap-2">
-                          <Label htmlFor="post-tags">Tags</Label>
-                          <Button type="button" size="xs" variant="glass" onClick={handleSuggestTags} isLoading={isSuggestingTags}>
-                              AI Suggest
-                          </Button>
-                      </div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Label htmlFor="post-tags">Tags</Label>
+                            <Button type="button" size="xs" variant="outline" onClick={handleSuggestTags} isLoading={isSuggestingTags}>
+                                AI Suggest
+                            </Button>
+                        </div>
                       <div className="flex flex-wrap gap-2 p-2 mt-1 border rounded-md min-h-[40px] bg-gray-50">
                           {tags.map(tag => (
-                              <div key={tag} className="flex items-center gap-1 bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded-full">
+                              <div key={tag} className="flex items-center gap-1 bg-gray-100 text-gray-800 text-sm font-medium px-2 py-1 rounded-full border border-gray-200">
                                   <span>{tag}</span>
-                                  <button type="button" onClick={() => removeTag(tag)} className="text-red-600"><XMarkIcon className="w-4 h-4"/></button>
+                                  <Button 
+                                    type="button" 
+                                    onClick={() => removeTag(tag)} 
+                                    variant="ghost" 
+                                    size="icon-xs"
+                                    className="text-gray-500 hover:text-gray-700 rounded-full"
+                                  >
+                                    <XMarkIcon className="w-3 h-3"/>
+                                  </Button>
                               </div>
                           ))}
                       </div>
@@ -509,8 +488,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           </div>
                           {hasExpiry && (
                               <div className="mt-2 animate-fade-in-up">
-                                  <Input id="expiry-date" type="datetime-local" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
-                                  {errors.expiryDate && <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>}
+                                   <FormField id="expiry-date" label="" error={errors.expiryDate}>
+                                    <Input type="datetime-local" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
+                                  </FormField>
                               </div>
                           )}
                       </div>
@@ -520,11 +500,11 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
           )}
       </div>
       <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-          <div className="backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.08)] border-t border-black/5">
+          <div className="bg-white border-t border-gray-100">
               <div className="max-w-2xl mx-auto px-4 sm:px-6">
                   <div className="py-3 flex items-center gap-3">
-                      <Button variant="glass" onClick={onBack} className="mr-auto">Cancel</Button>
-                      <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="glass-red">
+                      <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
+                      <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
                           {isEditing ? 'Save Changes' : 'Publish'}
                       </Button>
                   </div>

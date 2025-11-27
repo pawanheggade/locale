@@ -25,7 +25,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, on
   
   const currentColors = {
       name: 'text-gray-800',
-      meta: 'text-gray-500'
+      meta: 'text-gray-600'
   };
 
   return (

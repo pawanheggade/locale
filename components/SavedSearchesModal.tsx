@@ -1,9 +1,11 @@
+
 import React, { useRef } from 'react';
 import { SavedSearch } from '../types';
 import ModalShell from './ModalShell';
 import { StarIcon, TrashIcon, BellIcon } from './Icons';
 import { Button } from './ui/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { EmptyState } from './EmptyState';
 
 interface SavedSearchesModalProps {
   savedSearches: SavedSearch[];
@@ -17,7 +19,7 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
   const { toggleSavedSearchAlert } = useAuth();
 
   const renderFooter = () => (
-    <Button onClick={onClose} variant="glass">
+    <Button onClick={onClose} variant="overlay-dark">
       Close
     </Button>
   );
@@ -33,25 +35,26 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
     >
       <div className="p-6">
         {savedSearches.length === 0 ? (
-          <div className="text-center py-12 flex flex-col items-center">
-            <StarIcon className="w-16 h-16 text-gray-300" />
-            <h3 className="mt-4 text-lg font-medium text-gray-800">No Saved Searches</h3>
-            <p className="mt-1 text-sm text-gray-500 max-w-xs">Save your filter combinations to quickly find what you're looking for later.</p>
-          </div>
+          <EmptyState
+            icon={<StarIcon />}
+            title="No Saved Searches"
+            description="Save your filter combinations to quickly find what you're looking for later."
+            className="py-8"
+          />
         ) : (
           <ul className="space-y-3">
             {savedSearches.map((search) => (
               <li key={search.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                     <span className="font-medium text-gray-800 truncate block">{search.name}</span>
-                    <div className="text-xs text-gray-500 mt-1 truncate">
+                    <div className="text-xs text-gray-600 mt-1 truncate">
                         {search.filters.searchQuery ? `Query: "${search.filters.searchQuery}"` : 'No query'}
                         {search.filters.filterCategory !== 'all' ? ` • ${search.filters.filterCategory}` : ''}
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
-                    variant={search.enableAlerts ? "glass-red" : "glass"}
+                    variant={search.enableAlerts ? "pill-red" : "ghost"}
                     size="icon-sm"
                     onClick={() => toggleSavedSearchAlert(search.id)}
                     className={search.enableAlerts ? "text-white" : "text-gray-400"}
@@ -62,17 +65,17 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
                   </Button>
                   <Button
                     onClick={() => onLoad(search.id)}
-                    variant="glass-red"
+                    variant="pill-red"
                     size="sm"
                     className="px-4"
                   >
                     Show
                   </Button>
                   <Button
-                    variant="glass"
+                    variant="ghost"
                     size="icon-sm"
                     onClick={() => onDelete(search.id)}
-                    className="text-gray-500"
+                    className="text-gray-600"
                     aria-label={`Delete saved search: ${search.name}`}
                   >
                     <TrashIcon className="w-5 h-5" />

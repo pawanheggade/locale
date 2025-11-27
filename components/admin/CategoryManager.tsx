@@ -40,11 +40,11 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ title, categor
                     className={cn(inputBaseStyles, "flex-grow")}
                     aria-label={`New ${title.toLowerCase()} category name`}
                 />
-                <Button onClick={handleAdd} variant="glass-red">Add</Button>
+                <Button onClick={handleAdd} variant="overlay-dark">Add</Button>
             </div>
             <ul className="space-y-2">
                 {categories.map((cat) => (
-                    <li key={cat} className="p-3 bg-white border rounded-md flex justify-between items-center shadow-sm">
+                    <li key={cat} className="p-3 bg-white border rounded-md flex justify-between items-center">
                         {editing?.oldName === cat ? (
                             <input 
                                 type="text" 
@@ -60,8 +60,8 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ title, categor
                             <span className="font-medium text-gray-900">{cat}</span>
                         )}
                         <div className="flex gap-2">
-                            <Button variant="glass" size="icon-sm" onClick={() => setEditing({ oldName: cat, newName: cat })} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
-                            <Button variant="glass" size="icon-sm" onClick={() => onDelete(cat)} className="text-red-600 hover:bg-red-50" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
+                            <Button variant="overlay-dark" size="icon-sm" onClick={() => setEditing({ oldName: cat, newName: cat })} className="text-gray-600" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                            <Button variant="overlay-red" size="icon-sm" onClick={() => onDelete(cat)} className="text-red-600" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
                         </div>
                     </li>
                 ))}

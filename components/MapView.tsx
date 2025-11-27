@@ -1,7 +1,6 @@
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { DisplayablePost, PostType, Subscription } from '../types';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatCompactCurrency } from '../utils/formatters';
 import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
 import { useMap } from '../hooks/useMap';
 import { Button } from './ui/Button';
@@ -42,15 +41,6 @@ const MapSkeleton: React.FC = () => {
     );
 };
 
-// Helper to create a compact price string for markers
-const compactPrice = (price: number | undefined | null): string => {
-    if (price === undefined || price === null) return 'Contact';
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(1)}L`;
-    if (price >= 1000) return `₹${(price / 1000).toFixed(1)}K`;
-    return `₹${price.toFixed(0)}`;
-};
-
 const createMarkerIcon = (post: DisplayablePost) => {
     const tier = post.author?.subscription?.tier || 'Personal';
     
@@ -79,7 +69,7 @@ const createMarkerIcon = (post: DisplayablePost) => {
         break;
     }
     
-    const priceText = compactPrice(post.price);
+    const priceText = formatCompactCurrency(post.price);
     const isServiceOrEvent = post.type === PostType.SERVICE || post.type === PostType.EVENT;
 
     // Products: Colored Header, White Body
@@ -91,7 +81,7 @@ const createMarkerIcon = (post: DisplayablePost) => {
     const iconHtml = `
       <div style="transform: translate(-50%, -100%); position: absolute; left: 0; top: 0; width: max-content;">
         <div class="custom-marker marker-pop-in-animation cursor-pointer group flex flex-col items-center">
-          <div class="marker-content bg-white rounded-lg shadow-lg text-center transform-gpu ring-1 ${ringColor} overflow-hidden w-[120px]">
+          <div class="marker-content bg-white rounded-lg text-center transform-gpu ring-1 ${ringColor} overflow-hidden w-[120px]">
             <div class="text-xs font-semibold px-1 py-1 whitespace-normal leading-tight ${headerClass}" title="${post.title}">
               ${post.title}
             </div>
@@ -102,7 +92,7 @@ const createMarkerIcon = (post: DisplayablePost) => {
           <div class="marker-arrow w-0 h-0
             border-l-[6px] border-l-transparent
             border-r-[6px] border-r-transparent
-            border-t-[6px] ${arrowClass} -mt-[1px] filter drop-shadow-sm">
+            border-t-[6px] ${arrowClass} -mt-[1px]">
           </div>
         </div>
       </div>
@@ -280,12 +270,12 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
               
               const popupContent = `
                 <div class="w-56 overflow-hidden">
-                  ${ hasImage ? `<img src="${post.media[0].url}" alt="" class="w-full h-24 object-cover bg-gray-200">` : `<div class="w-full h-24 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">No Image</div>` }
+                  ${ hasImage ? `<img src="${post.media[0].url}" alt="" class="w-full h-24 object-cover bg-gray-200">` : `<div class="w-full h-24 bg-gray-200 flex items-center justify-center text-gray-600 text-sm">No Image</div>` }
                   <div class="p-3">
                     <h3 class="font-bold text-base text-gray-800 truncate" title="${post.title}">${post.title}</h3>
                     <div class="flex justify-between items-center mt-2">
                         <p class="text-lg font-extrabold text-gray-900">${formatCurrency(post.price)}</p>
-                        <button class="view-details-btn text-center glass-button-pill-red text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">
+                        <button class="view-details-btn text-center button-pill-red text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">
                             Details
                         </button>
                     </div>
@@ -460,6 +450,8 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     return <MapSkeleton />;
   }
 
+  const whiteButtonClass = "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200";
+
   return (
     <div className="h-full w-full relative">
       <div ref={mapRef} className="h-full w-full" />
@@ -468,8 +460,8 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
             <Button
                 onClick={onFindNearby}
                 disabled={isFindingNearby}
-                variant="glass"
-                className="flex items-center justify-center gap-2"
+                variant="outline"
+                className={`flex items-center justify-center gap-2 ${whiteButtonClass}`}
                 aria-label="Find posts near a location"
                 title="Find Nearby"
             >
@@ -479,8 +471,9 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
             {userLocation && (
             <Button
                 onClick={handleRecenter}
-                variant="glass"
+                variant="outline"
                 size="icon"
+                className={whiteButtonClass}
                 aria-label="Center map on my location"
                 title="My Location"
             >
@@ -489,10 +482,10 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
             )}
         </div>
         <div className="flex flex-col gap-2">
-            <Button onClick={handleZoomIn} variant="glass" size="icon" aria-label="Zoom In" title="Zoom In">
+            <Button onClick={handleZoomIn} variant="outline" size="icon" className={whiteButtonClass} aria-label="Zoom In" title="Zoom In">
                 <PlusIcon className="w-5 h-5" />
             </Button>
-            <Button onClick={handleZoomOut} variant="glass" size="icon" aria-label="Zoom Out" title="Zoom Out">
+            <Button onClick={handleZoomOut} variant="outline" size="icon" className={whiteButtonClass} aria-label="Zoom Out" title="Zoom Out">
                 <MinusIcon className="w-5 h-5" />
             </Button>
         </div>

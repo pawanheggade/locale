@@ -21,7 +21,7 @@ export const OfflineIndicator: React.FC = () => {
   if (!isOffline) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white px-4 py-3 z-[5000] flex items-center justify-center gap-2 animate-slide-in-up shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white px-4 py-3 z-[5000] flex items-center justify-center gap-2 animate-slide-in-up">
       <CloudSlashIcon className="w-5 h-5 text-gray-400" />
       <span className="text-sm font-medium">You are offline. Some features may be unavailable.</span>
     </div>

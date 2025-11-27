@@ -5,6 +5,7 @@ import ModalShell from './ModalShell';
 import { PhoneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
 import { useUI } from '../contexts/UIContext';
 import { Avatar } from './Avatar';
+import { Button } from './ui/Button';
 
 interface ContactSellerModalProps {
   author: Account;
@@ -72,11 +73,11 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
         <div className="flex flex-col items-center text-center">
           <Avatar src={author.avatarUrl} alt={author.name} size="2xl" tier={author.subscription.tier} />
           <h3 className="mt-4 text-xl font-bold text-gray-800">{author.name}</h3>
-          <p className="text-sm text-gray-500">@{author.username}</p>
+          <p className="text-sm text-gray-600">@{author.username}</p>
           {post ? (
-            <p className="text-sm text-gray-500 mt-1">Store for "{post.title}"</p>
+            <p className="text-sm text-gray-600 mt-1">Store for "{post.title}"</p>
           ) : (
-            <p className="text-sm text-gray-500 mt-1">Seller on Locale</p>
+            <p className="text-sm text-gray-600 mt-1">Seller on Locale</p>
           )}
         </div>
         
@@ -85,36 +86,25 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
             {availableMethods.length > 0 ? 'Choose your preferred method to contact the store.' : 'This store has not provided any contact methods.'}
           </p>
           
-          {availableMethods.map(method => {
-              const commonClasses = "w-full flex items-center gap-4 p-3 sm:p-4 rounded-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 disabled:opacity-70 glass-button-pill";
-              const content = (
-                <>
-                  <method.Icon className="w-8 h-8 text-red-600 flex-shrink-0" />
-                  <p className="font-semibold text-gray-800">{method.label}</p>
-                </>
-              );
-
-              return (
-                <a
+          {availableMethods.map(method => (
+                <Button
+                  as="a"
                   key={method.key}
                   href={method.href}
-                  className={commonClasses}
                   target={method.key === 'message' ? '_blank' : undefined}
                   rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
                   onClick={() => {
                     addToast(method.toast, 'success');
-                    // close modal after a short delay to allow link to open
-                    setTimeout(() => {
-                        if (isMountedRef.current) {
-                            onClose();
-                        }
-                    }, 500);
+                    setTimeout(() => { if (isMountedRef.current) onClose(); }, 500);
                   }}
+                  variant="overlay-dark"
+                  className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left hover:bg-gray-50 rounded-lg"
+                  aria-label={method.label}
                 >
-                  {content}
-                </a>
-              );
-          })}
+                  <method.Icon className="w-8 h-8 text-red-600 flex-shrink-0" />
+                  <p className="font-semibold text-gray-800">{method.label}</p>
+                </Button>
+          ))}
         </div>
       </div>
     </ModalShell>

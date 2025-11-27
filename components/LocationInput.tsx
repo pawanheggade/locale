@@ -1,12 +1,14 @@
+
+
 import React, { useEffect, useRef } from 'react';
-import { SpinnerIcon, MapPinIcon, CheckIcon, AlertIcon, CrosshairsIcon } from './Icons';
+import { SpinnerIcon, MapPinIcon, CheckIcon, CrosshairsIcon } from './Icons';
 import { LocationStatus } from '../hooks/useLocationInput';
 import { useSuggestionKeyboardNav } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface LocationInputProps {
-    id: string;
-    label: string;
+    id?: string;
     value: string;
     onValueChange: (value: string) => void;
     onSuggestionSelect: (suggestion: string) => void;
@@ -17,13 +19,12 @@ interface LocationInputProps {
     required?: boolean;
     suggestions: string[];
     status: LocationStatus;
-    error?: string | null;
-    formError?: string;
+    className?: string; // To accept className from FormField
 }
 
 export const LocationInput: React.FC<LocationInputProps> = ({
-    id, label, value, onValueChange, onSuggestionSelect, onVerify, onOpenMapPicker, onUseMyLocation,
-    placeholder, required, suggestions, status, error, formError
+    id, value, onValueChange, onSuggestionSelect, onVerify, onOpenMapPicker, onUseMyLocation,
+    placeholder, required, suggestions, status, className
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -37,15 +38,10 @@ export const LocationInput: React.FC<LocationInputProps> = ({
         isDropdownOpen
     );
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                onVerify();
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [onVerify]);
+    useClickOutside(containerRef, () => {
+        // Verify logic when clicking outside
+        onVerify();
+    });
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         // Let nav hook handle its keys
@@ -59,13 +55,10 @@ export const LocationInput: React.FC<LocationInputProps> = ({
     };
 
     const isVerifying = status === 'verifying' || status === 'geolocating';
-    const hasError = !!formError || !!error;
-    const displayError = formError || error;
 
     return (
         <div ref={containerRef} className="relative w-full">
-            <label htmlFor={id} className="block text-sm font-medium text-gray-800">{label}</label>
-            <div className="relative mt-1 flex gap-2">
+            <div className="relative flex gap-2">
                 <div className="relative flex-grow">
                     <input
                         ref={inputRef}
@@ -76,7 +69,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         onKeyDown={handleKeyDown}
                         onBlur={onVerify}
                         placeholder={placeholder}
-                        className={`block w-full bg-white rounded-md border pr-10 text-gray-900 focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-colors duration-150 ${hasError ? 'border-red-500' : 'border-gray-300'}`}
+                        className={className} // className is now passed from FormField
                         autoComplete="off"
                         required={required}
                         role="combobox"
@@ -84,8 +77,6 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         aria-expanded={isDropdownOpen}
                         aria-controls={`${id}-suggestions-listbox`}
                         aria-activedescendant={activeIndex > -1 ? `${id}-suggestion-${activeIndex}` : undefined}
-                        aria-invalid={hasError}
-                        aria-describedby={hasError ? `${id}-location-error` : undefined}
                     />
                     {isVerifying && (
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -98,9 +89,9 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         type="button" 
                         onClick={onUseMyLocation} 
                         disabled={isVerifying}
-                        variant="glass"
+                        variant="ghost"
                         size="icon"
-                        className="flex-shrink-0 text-gray-600"
+                        className="flex-shrink-0 text-gray-600 border border-gray-200 hover:bg-gray-50"
                         aria-label="Use my current location" 
                         title="Use my current location"
                     >
@@ -110,9 +101,9 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                 <Button 
                     type="button" 
                     onClick={onOpenMapPicker} 
-                    variant="glass"
+                    variant="ghost"
                     size="icon"
-                    className="flex-shrink-0 text-gray-600"
+                    className="flex-shrink-0 text-gray-600 border border-gray-200 hover:bg-gray-50"
                     aria-label="Select location on maps" 
                     title="Select location on maps"
                 >
@@ -134,7 +125,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                                 aria-selected={index === activeIndex}
                                 onMouseOver={() => setActiveIndex(index)}
                                 onClick={() => onSuggestionSelect(suggestion)}
-                                className={`px-4 py-2 text-sm text-gray-700 cursor-pointer ${ index === activeIndex ? 'bg-red-500 text-white' : ''}`}
+                                className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${ index === activeIndex ? 'bg-red-500 text-white' : ''}`}
                             >
                                 {matchIndex > -1 ? (
                                     <>
@@ -149,18 +140,13 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                 </ul>
             )}
             
-            <div id={`${id}-location-error`} className="mt-1.5 min-h-[20px]">
-                {displayError ? (
-                    <div className="flex items-center gap-1.5 text-xs text-red-700 animate-fade-in-up">
-                        <AlertIcon className="w-4 h-4 text-red-600" />
-                        <span className="font-medium">{displayError}</span>
-                    </div>
-                ) : status === 'verified' ? (
+            <div className="mt-1.5 min-h-[20px]">
+                {status === 'verified' && (
                     <div className="flex items-center gap-1.5 text-xs text-green-700 animate-fade-in-up">
                         <CheckIcon className="w-4 h-4 text-green-600" />
                         <span className="font-medium">Location Verified</span>
                     </div>
-                ) : null}
+                )}
             </div>
         </div>
     );

@@ -137,7 +137,8 @@ self.addEventListener('notificationclick', (event) => {
       // If a window is already open, focus it.
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i];
-        if (client.url === '/' && 'focus' in client) {
+        // Check if client url matches origin to handle various routes or query params
+        if (client.url.startsWith(self.registration.scope) && 'focus' in client) {
           return client.focus();
         }
       }
@@ -148,3 +149,4 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+    

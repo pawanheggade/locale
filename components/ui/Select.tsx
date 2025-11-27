@@ -1,28 +1,50 @@
 import React from 'react';
-import { cn, inputBaseStyles } from '../../lib/utils';
-import { ChevronDownIcon } from '../Icons';
+import { cn } from '../../lib/utils';
+import { Dropdown, DropdownItem } from './Dropdown';
+
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+  variant?: 'default' | 'overlay';
+  size?: any; // To satisfy React.forwardRef, but we don't use it.
+}
 
 const Select = React.forwardRef<
-  HTMLSelectElement,
-  React.SelectHTMLAttributes<HTMLSelectElement>
->(({ className, children, ...props }, ref) => {
+  HTMLButtonElement, // Ref is now for the button inside Dropdown
+  SelectProps
+>(({ className, children, value, onChange, variant = 'default', ...props }, ref) => {
+  const items: DropdownItem[] = React.Children.map(children, child => {
+    if (React.isValidElement(child) && child.type === 'option') {
+      const option = child as React.ReactElement<React.OptionHTMLAttributes<HTMLOptionElement>>;
+      if(option.props.disabled) return null;
+      return {
+        value: String(option.props.value),
+        label: String(option.props.children),
+      };
+    }
+    return null;
+  }).filter((item): item is DropdownItem => item !== null);
+
+  const handleSelect = (selectedValue: string) => {
+    if (onChange) {
+      // Simulate a select change event for compatibility
+      // FIX: Cast to unknown first to satisfy TypeScript's strict type checking for simulated events.
+      // Also, removed spreading props as they are not part of a standard event target.
+      const event = {
+        target: { value: selectedValue },
+        currentTarget: { value: selectedValue },
+      } as unknown as React.ChangeEvent<HTMLSelectElement>;
+      onChange(event);
+    }
+  };
+
   return (
-    <div className="relative">
-      <select
-        className={cn(
-          'h-10 w-full appearance-none py-2 pl-3 pr-8',
-          inputBaseStyles,
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <ChevronDownIcon className="h-4 w-4" />
-      </div>
-    </div>
+    <Dropdown
+      ref={ref}
+      items={items}
+      selectedValue={String(value)}
+      onSelect={handleSelect}
+      variant={variant}
+      className={className}
+    />
   );
 });
 Select.displayName = 'Select';

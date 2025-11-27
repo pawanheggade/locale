@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { Subscription } from '../types';
 import { UserCircleIconSolid } from './Icons';
@@ -52,7 +51,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Avatar', size = 'md'
   if (!src || error) {
     return (
       <UserCircleIconSolid 
-        className={cn('text-gray-300 bg-gray-100 rounded-full', sizeClasses[size], ringClass, className)} 
+        className={cn('text-gray-400 bg-gray-100 rounded-full', sizeClasses[size], ringClass, className)} 
         title={alt}
         onClick={onClick}
       />

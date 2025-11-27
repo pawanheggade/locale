@@ -1,8 +1,7 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { HeartIcon, PencilIcon, SparklesIcon, ClockIcon, HashtagIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, WalletIcon, PinIcon } from './Icons';
-import { formatTimeRemaining, formatFullDate, renderWithMentions, formatFullDateTime, formatCurrency } from '../utils/formatters';
+import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
+import { formatTimeRemaining, formatFullDate, renderWithMentions, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, findSimilarPosts, isAccountEligibleToPin } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
@@ -15,12 +14,28 @@ import { usePostActions } from '../contexts/PostActionsContext';
 import { cn } from '../lib/utils';
 import { PostList } from './PostList';
 import { Button } from './ui/Button';
+import { LikeButton } from './LikeButton';
 
 interface PostDetailViewProps {
   post: DisplayablePost;
   onBack: () => void;
   currentAccount: Account | null;
 }
+
+// Helper component to reduce JSX repetition
+const InfoRow: React.FC<{ icon: React.ElementType; children: React.ReactNode; className?: string; onClick?: () => void }> = ({ icon: Icon, children, className, onClick }) => (
+    <div 
+        className={cn("flex items-center gap-2 text-sm", className)}
+        onClick={onClick}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+    >
+        <Icon className={cn("w-4 h-4 shrink-0", onClick ? "text-red-400 transition-colors" : "text-gray-400")} />
+        <span className={cn("truncate min-w-0", onClick ? "decoration-red-400 underline-offset-2" : "")}>
+            {children}
+        </span>
+    </div>
+);
 
 const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({ 
   post,
@@ -33,8 +48,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   const { posts } = usePosts();
   const { accountsById, likedPostIds, bag, priceAlerts, availabilityAlerts } = useAuth();
   const { archivedPosts } = usePosts();
-  const [isAnimatingLike, setIsAnimatingLike] = useState(false);
-  const [isAnimatingProfileLike, setIsAnimatingProfileLike] = useState(false);
 
   useEffect(() => {
     if (!post) return;
@@ -42,38 +55,19 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
     const previousTitle = document.title;
     document.title = `${post.title} | Locale`;
 
-    const setMeta = (name: string, content: string, attr: 'name' | 'property' = 'name') => {
-      let element = document.querySelector(`meta[${attr}="${name}"]`);
-      if (!element) {
-        element = document.createElement('meta');
-        element.setAttribute(attr, name);
+    // Simplified meta tag update logic
+    const updateMeta = (property: string, content: string) => {
+        let element = document.querySelector(`meta[property="${property}"]`) || document.createElement('meta');
+        element.setAttribute('property', property);
+        element.setAttribute('content', content);
         document.head.appendChild(element);
-      }
-      element.setAttribute('content', content);
     };
 
-    const shareUrl = `${window.location.origin}?post=${post.id}`;
     const description = post.description.length > 150 ? `${post.description.substring(0, 147)}...` : post.description;
-    const image = post.media.length > 0 && post.media[0].type === 'image' ? post.media[0].url : '';
-
-    setMeta('description', description);
+    updateMeta('og:title', post.title);
+    updateMeta('og:description', description);
     
-    // Open Graph
-    setMeta('og:title', post.title, 'property');
-    setMeta('og:description', description, 'property');
-    setMeta('og:url', shareUrl, 'property');
-    setMeta('og:type', post.type === 'PRODUCT' ? 'product' : 'article', 'property');
-    if (image) setMeta('og:image', image, 'property');
-
-    // Twitter
-    setMeta('twitter:card', image ? 'summary_large_image' : 'summary');
-    setMeta('twitter:title', post.title);
-    setMeta('twitter:description', description);
-    if (image) setMeta('twitter:image', image);
-
-    return () => {
-      document.title = previousTitle;
-    };
+    return () => { document.title = previousTitle; };
   }, [post]);
 
   const allPostsWithData = useMemo(() => {
@@ -85,7 +79,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
       return findSimilarPosts(post, allPostsWithData, 3);
   }, [post, allPostsWithData]);
   
-  const isLoadingRelated = false;
+  const isLoadingRelated = false; 
 
   const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
   const isAlertSet = useMemo(() => priceAlerts.some(alert => alert.postId === post.id), [priceAlerts, post.id]);
@@ -94,9 +88,8 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   if (!post) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl font-semibold text-gray-700">Post not found.</h2>
-        <p className="text-gray-500 mt-2">This post may have been removed.</p>
-        <button onClick={onBack} className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md">Go Back</button>
+        <h2 className="text-2xl font-semibold text-gray-600">Post not found.</h2>
+        <Button onClick={onBack} variant="overlay-red" className="mt-4">Go Back</Button>
       </div>
     );
   }
@@ -108,30 +101,18 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   const { isExpired } = getPostStatus(post.expiryDate);
   const isOwnPost = post.authorId === currentAccount?.id;
   const isEligibleToPin = isOwnPost && isAccountEligibleToPin(currentAccount);
-  
   const isPurchasable = post.type === PostType.PRODUCT || (post.type === PostType.SERVICE && post.price !== undefined && post.price > 0);
 
-  const handleLikeClick = () => {
-    const result = onToggleLikePost(post.id);
-    if (result && !result.wasLiked) {
-        setIsAnimatingLike(true);
-    }
-  };
-  
-  const handleProfileLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onToggleLikeAccount) {
-        if (!isAuthorLiked) {
-            setIsAnimatingProfileLike(true);
-        }
-        onToggleLikeAccount(post.authorId);
-    }
+  const handleMapClick = () => {
+      if (post.type === PostType.EVENT ? post.eventCoordinates : post.coordinates) {
+          onShowOnMap(post.id);
+      }
   };
   
   return (
     <div>
       <div className="animate-fade-in-up pb-28 p-4 sm:p-6 lg:p-8">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Media Section */}
             <div className="relative">
@@ -147,143 +128,125 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
             {/* Details Section */}
             <div className="flex flex-col">
               <div className="p-6 flex-grow">
-                <div className="flex justify-between items-center gap-4">
+                {/* Header Actions */}
+                <div className="flex justify-between items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-wrap">
                     <TypeBadge type={post.type} onClick={() => onFilterByType(post.type)} />
+                    <span className="text-gray-400 font-light text-sm">/</span>
                     <CategoryBadge category={post.category} onClick={() => onFilterByCategory(post.category)} />
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-4 flex-shrink-0">
                       {!isOwnPost && (
                           <Button 
                             onClick={() => onReportItem(post)} 
-                            variant="glass"
+                            variant="ghost" 
                             size="icon-sm"
-                            className="text-gray-700"
+                            className="text-gray-500"
                             aria-label="Report post"
+                            title="Report post"
                           >
-                              <FlagIcon className="w-5 h-5 text-gray-500"/>
+                              <FlagIcon className="w-5 h-5"/>
                           </Button>
                       )}
-                      <Button 
-                        onClick={() => onShare(post.id)} 
-                        variant="glass"
+                      <Button
+                        onClick={() => onShare(post.id)}
+                        variant="ghost"
                         size="icon-sm"
-                        className="text-gray-700"
+                        className="text-gray-500"
                         aria-label="Share post"
+                        title="Share post"
                       >
-                          <ShareIcon className="w-5 h-5 text-gray-500" />
+                          <ShareIcon className="w-5 h-5" />
                       </Button>
-                      {isOwnPost && (
-                          <PostActionsDropdown 
-                              post={post}
-                              isArchived={isArchived}
-                              currentAccount={currentAccount}
-                              variant="modal"
-                          />
-                      )}
+                      <PostActionsDropdown post={post} isArchived={isArchived} currentAccount={currentAccount} variant="modal" />
                   </div>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-4 leading-tight">{post.title}</h1>
+
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{post.title}</h1>
                 
                 {post.aiReasoning && (
-                    <div className="mt-4 p-3 bg-amber-50 rounded-lg">
-                        <p className="text-sm text-amber-900 flex items-start gap-2">
-                            <SparklesIcon className="w-5 h-5 text-amber-50 shrink-0 mt-0.5" />
-                            <span><span className="font-semibold">AI Insight:</span> {post.aiReasoning}</span>
-                        </p>
+                    <div className="mt-4 p-3 bg-amber-50 rounded-lg text-sm text-amber-900 flex items-start gap-2">
+                        <SparklesIcon className="w-5 h-5 text-amber-50 shrink-0 mt-0.5" />
+                        <span><span className="font-semibold">AI Insight:</span> {post.aiReasoning}</span>
                     </div>
                 )}
                 
-                <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} isExpired={isExpired} size="small" className="mt-4" />
+                <div className="flex items-center gap-3 mt-4">
+                    <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} isExpired={isExpired} size="small" />
+                    {!isOwnPost && isPurchasable && !isExpired && (
+                        <Button
+                            onClick={() => onSetPriceAlert(post.id)}
+                            variant="ghost"
+                            size="icon-sm"
+                            className={cn(isAlertSet ? "text-red-600" : "text-gray-500")}
+                            aria-label={isAlertSet ? "Manage price alert" : "Set price alert"}
+                            title={isAlertSet ? "Price alert set" : "Set price alert"}
+                        >
+                            <BellIcon className="w-5 h-5" isFilled={isAlertSet} />
+                        </Button>
+                    )}
+                </div>
 
-                <div className="mt-4 pt-4 border-t space-y-3 text-sm text-gray-600">
+                {/* Info Rows */}
+                <div className="mt-4 pt-4 border-t space-y-3">
                     {post.type === PostType.EVENT ? (
                         <>
                             {post.eventStartDate && (
-                                <div className="flex items-center gap-2">
-                                    <ClockIcon className="w-5 h-5 text-gray-400" />
-                                    <span>Starts: <span className="font-semibold text-gray-800">{formatFullDateTime(post.eventStartDate)}</span></span>
-                                </div>
+                                <InfoRow icon={ClockIcon} className="text-gray-600">
+                                    Starts: <span className="font-semibold text-gray-800">{formatFullDateTime(post.eventStartDate)}</span>
+                                </InfoRow>
                             )}
                              {post.eventEndDate && (
-                                <div className="flex items-center gap-2">
-                                    <ClockIcon className="w-5 h-5 text-gray-400" />
-                                    <span>Ends: <span className="font-semibold text-gray-800">{formatFullDateTime(post.eventEndDate)}</span></span>
-                                </div>
+                                <InfoRow icon={ClockIcon} className="text-gray-600">
+                                    Ends: <span className="font-semibold text-gray-800">{formatFullDateTime(post.eventEndDate)}</span>
+                                </InfoRow>
                             )}
                              {post.eventLocation && (
-                                <div 
-                                    className={cn("flex items-center gap-2 min-w-0", post.eventCoordinates ? "cursor-pointer hover:text-red-600 group transition-colors" : "")}
-                                    onClick={() => post.eventCoordinates && onShowOnMap(post.id)}
-                                    role={post.eventCoordinates ? "button" : undefined}
-                                    tabIndex={post.eventCoordinates ? 0 : undefined}
-                                    onKeyDown={(e) => {
-                                        if ((e.key === 'Enter' || e.key === ' ') && post.eventCoordinates) {
-                                            e.preventDefault();
-                                            onShowOnMap(post.id);
-                                        }
-                                    }}
-                                    title={post.eventCoordinates ? "View on Map" : undefined}
+                                <InfoRow 
+                                    icon={MapPinIcon} 
+                                    className={cn("group", post.eventCoordinates && "cursor-pointer")} 
+                                    onClick={post.eventCoordinates ? handleMapClick : undefined}
                                 >
-                                    <MapPinIcon className={cn("w-5 h-5 text-red-400 shrink-0", post.eventCoordinates ? "group-hover:text-red-600 transition-colors" : "text-red-400")} />
-                                    <span className={cn("truncate font-semibold text-red-400", post.eventCoordinates ? "group-hover:underline decoration-red-400 underline-offset-2 group-hover:text-red-600" : "")}>
-                                        {post.eventLocation}
-                                    </span>
-                                </div>
+                                    <span className={cn("font-semibold", post.eventCoordinates ? "text-red-400" : "text-gray-600")}>{post.eventLocation}</span>
+                                </InfoRow>
                             )}
                         </>
                     ) : (
-                        post.expiryDate && (
-                            <div className="flex items-center gap-2">
-                                <ClockIcon className={`w-5 h-5 ${isExpired ? 'text-red-500' : 'text-gray-400'}`} />
-                                <span className={`${isExpired ? 'text-red-600 font-semibold' : ''}`}>{formatTimeRemaining(post.expiryDate)}</span>
-                                <span>(Expires on {formatFullDate(post.expiryDate)})</span>
-                            </div>
-                        )
-                    )}
-
-                    {post.type !== PostType.EVENT && (
-                    <div 
-                        className={cn(
-                            "flex items-center gap-2 min-w-0 text-red-400", 
-                            post.coordinates ? "cursor-pointer hover:text-red-600 group transition-colors" : ""
-                        )}
-                        onClick={() => {
-                            if (post.coordinates) {
-                                onShowOnMap(post.id);
-                            }
-                        }}
-                        role={post.coordinates ? "button" : undefined}
-                        tabIndex={post.coordinates ? 0 : undefined}
-                        onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && post.coordinates) {
-                                e.preventDefault();
-                                onShowOnMap(post.id);
-                            }
-                        }}
-                        title={post.coordinates ? "View on Map" : undefined}
-                    >
-                      <MapPinIcon className={cn("w-5 h-5 text-red-400 shrink-0", post.coordinates ? "group-hover:text-red-600 transition-colors" : "text-red-400")} />
-                      <span className={cn("truncate", post.coordinates ? "group-hover:underline decoration-red-400 underline-offset-2" : "")}>{post.location}</span>
-                    </div>
+                        <>
+                            {post.expiryDate && (
+                                <InfoRow icon={ClockIcon} className={isExpired ? 'text-red-500' : 'text-gray-600'}>
+                                    <span className={isExpired ? 'font-semibold' : ''}>{formatTimeRemaining(post.expiryDate)}</span>
+                                    <span className="ml-1 text-gray-600">(Expires on {formatFullDate(post.expiryDate)})</span>
+                                </InfoRow>
+                            )}
+                            <InfoRow 
+                                icon={MapPinIcon} 
+                                className={cn("group", post.coordinates && "cursor-pointer")}
+                                onClick={post.coordinates ? handleMapClick : undefined}
+                            >
+                                <span className={cn(post.coordinates ? "text-red-400" : "text-gray-600")}>{post.location}</span>
+                            </InfoRow>
+                        </>
                     )}
                 </div>
                 
                 <div className="mt-6 prose prose-sm max-w-none">
-                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), onViewAccount)}</p>
+                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), onViewAccount, onFilterByTag)}</p>
                 </div>
                 
                 {post.tags.length > 0 && (
                   <div className="mt-6 pt-4 border-t">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <HashtagIcon className="w-5 h-5 text-gray-400" />
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                         {post.tags.map(tag => (
-                          <button key={tag} onClick={() => onFilterByTag(tag)} className="px-2.5 py-1 text-gray-700 rounded-full text-xs font-medium glass-button-pill">
-                            {tag}
-                          </button>
+                          <Button
+                            key={tag} 
+                            onClick={() => onFilterByTag(tag)} 
+                            variant="link"
+                            className="text-gray-600 !font-medium !p-0 !h-auto"
+                          >
+                            #{tag}
+                          </Button>
                         ))}
-                      </div>
                     </div>
                   </div>
                 )}
@@ -292,38 +255,36 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
           </div>
         </div>
         
-        {/* Author and Seller Info */}
+        {/* Author Info */}
         {post.author && (
-            <div className="mt-6 bg-white rounded-xl shadow-lg overflow-hidden p-6">
+            <div className="mt-6 bg-white rounded-xl overflow-hidden p-6">
                 <PostAuthorInfo author={post.author} post={post} onViewAccount={onViewAccount} size="medium" subscriptionBadgeIconOnly={true}>
                     {!isOwnPost && (
-                        <button 
-                            onClick={handleProfileLikeClick}
-                            onAnimationEnd={() => setIsAnimatingProfileLike(false)}
+                        <LikeButton
+                            isLiked={isAuthorLiked}
+                            onToggle={() => { if(onToggleLikeAccount) onToggleLikeAccount(post.authorId); }}
                             className={cn(
-                                'flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full transition-colors',
-                                isAuthorLiked ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100',
-                                isAnimatingProfileLike && 'animate-like-pop'
+                                'p-0',
+                                isAuthorLiked ? 'text-red-600' : 'text-gray-500'
                             )}
-                            aria-label={isAuthorLiked ? `Unlike ${post.author.name}'s profile` : `Like ${post.author.name}'s profile`}
-                            title={isAuthorLiked ? 'Unlike profile' : 'Like profile'}
-                        >
-                            <HeartIcon isFilled={isAuthorLiked} className="w-6 h-6" /> 
-                        </button>
+                            variant="overlay-dark"
+                            size="icon"
+                            iconClassName="w-6 h-6"
+                        />
                     )}
                 </PostAuthorInfo>
                 {post.author.subscription.tier !== 'Personal' && (
-                  <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-4 text-sm">
-                      {post.author.paymentMethods && post.author.paymentMethods.length > 0 && (
+                  <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      {post.author.paymentMethods?.length ? (
                           <div className="flex items-start gap-2 text-gray-600">
-                              <WalletIcon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                              <CashIcon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                               <div>
                                   <h4 className="font-semibold text-gray-800">Payment Methods</h4>
                                   <p>{post.author.paymentMethods.join(', ')}</p>
                               </div>
                           </div>
-                      )}
-                      {post.author.deliveryOptions && post.author.deliveryOptions.length > 0 && (
+                      ) : null}
+                      {post.author.deliveryOptions?.length ? (
                            <div className="flex items-start gap-2 text-gray-600">
                               <ShoppingBagIcon className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
                               <div>
@@ -331,7 +292,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                   <p>{post.author.deliveryOptions.join(', ')}</p>
                               </div>
                           </div>
-                      )}
+                      ) : null}
                   </div>
                 )}
             </div>
@@ -353,118 +314,77 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
 
       {/* Persistent Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-          <div className="backdrop-blur-lg shadow-[0_-8px_32px_rgba(0,0,0,0.1)] border-t border-black/5">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                  <div className="py-3">
-                      <div className="flex items-center gap-3">
-                          {isOwnPost ? (
-                              isArchived ? (
-                                  <div className="grid grid-cols-1 gap-3 w-full">
-                                      <Button
-                                        onClick={() => {
-                                          if (onUnarchive) {
-                                            onUnarchive(post.id);
-                                            onBack();
-                                          }
-                                        }}
-                                        variant="glass"
-                                        className="w-full gap-2 text-base font-semibold text-gray-800"
-                                      >
-                                          <ArrowUturnLeftIcon className="w-5 h-5"/>
-                                          <span>Unarchive</span>
-                                      </Button>
-                                  </div>
-                              ) : (
-                                  <div className={cn("grid w-full gap-3", isEligibleToPin ? 'grid-cols-3' : 'grid-cols-2')}>
-                                      <Button onClick={() => onEdit(post.id)} variant="glass" className="w-full gap-2 text-base font-semibold text-gray-800">
-                                          <PencilIcon className="w-5 h-5"/>
-                                          <span>Edit</span>
-                                      </Button>
-                                      {isEligibleToPin && (
-                                          <Button onClick={() => onTogglePinPost(post.id)} variant="glass-red-light" className="w-full gap-2 text-base font-semibold">
-                                              <PinIcon className="w-5 h-5" isFilled={post.isPinned} />
-                                              <span>{post.isPinned ? 'Unpin' : 'Pin'}</span>
-                                          </Button>
-                                      )}
-                                      <Button onClick={() => onArchive(post.id)} variant="glass-amber-light" className="w-full gap-2 text-base font-semibold">
-                                          <ArchiveBoxIcon className="w-5 h-5"/>
-                                          <span>Archive</span>
-                                      </Button>
-                                  </div>
-                              )
-                          ) : (
-                              <>
-                                  {isExpired && !isArchived ? (
-                                      <Button
-                                          onClick={() => onToggleAvailabilityAlert(post.id)}
-                                          variant={isAvailabilityAlertSet ? "glass-red-light" : "glass-red"}
-                                          className="flex-1 gap-2 text-base font-semibold"
-                                          aria-label={isAvailabilityAlertSet ? "Remove availability alert" : "Notify when available"}
-                                      >
-                                          <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
-                                          <span>{isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}</span>
-                                      </Button>
-                                  ) : isPurchasable ? (
-                                      <Button
-                                          onClick={isAddedToBag ? onViewBag : () => onAddToBag(post.id)}
-                                          variant={isAddedToBag ? "glass-red-light" : "glass-red"}
-                                          className="flex-1 gap-2 text-base font-semibold"
-                                      >
-                                          <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
-                                          <span>{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
-                                      </Button>
-                                  ) : post.type === PostType.SERVICE ? (
-                                      <Button onClick={() => onRequestService(post.authorId, post.id)} variant="glass-red" className="flex-1 gap-2 text-base font-semibold">
-                                          <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
-                                          <span>Request Service</span>
-                                      </Button>
-                                  ) : (
-                                      <Button onClick={() => onContactStore(post.authorId, post.id)} variant="glass-red" className="flex-1 gap-2 text-base font-semibold">
-                                          <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
-                                          <span>Contact Organizer</span>
-                                      </Button>
-                                  )}
-                                  <Button 
-                                      onClick={handleLikeClick} 
-                                      onAnimationEnd={() => setIsAnimatingLike(false)}
-                                      variant={likedPostIds.has(post.id) ? "glass-red-light" : "glass"}
-                                      size="icon-lg"
-                                      className={cn(
-                                          'flex-shrink-0 rounded-full transition-colors',
-                                          isAnimatingLike && 'animate-like-pop'
-                                      )}
-                                      aria-label={likedPostIds.has(post.id) ? 'Unlike post' : 'Like post'}
-                                      title={likedPostIds.has(post.id) ? 'Unlike post' : 'Like post'}
-                                  >
-                                      <HeartIcon isFilled={likedPostIds.has(post.id)} className="w-6 h-6"/>
+          <div className="bg-white border-t border-gray-100">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+                  <div className="flex flex-row items-center gap-3">
+                      {isOwnPost ? (
+                          <div className="flex flex-row gap-3 w-full">
+                              {isArchived ? (
+                                  <Button onClick={() => { if (onUnarchive) { onUnarchive(post.id); onBack(); }}} variant="overlay-dark" className="w-full gap-2 font-semibold text-gray-800">
+                                      <ArrowUturnLeftIcon className="w-5 h-5"/> Unarchive
                                   </Button>
-                                  {isPurchasable && !isExpired && (
-                                      <>
-                                          <Button
-                                              onClick={() => onSetPriceAlert(post.id)}
-                                              variant={isAlertSet ? "glass-red-light" : "glass"}
-                                              size="icon-lg"
-                                              className="flex-shrink-0 rounded-full transition-colors"
-                                              aria-label={isAlertSet ? 'Update price alert' : 'Set price alert'}
-                                              title={isAlertSet ? 'Update price alert' : 'Set price alert'}
-                                          >
-                                              <BellIcon isFilled={isAlertSet} className="w-6 h-6"/>
-                                          </Button>
-                                          <Button
+                              ) : (
+                                  <>
+                                    {isEligibleToPin && (
+                                        <Button onClick={() => onTogglePinPost(post.id)} variant="overlay-red" className="flex-1 gap-2 font-semibold">
+                                            <PinIcon className="w-5 h-5" isFilled={post.isPinned} /> {post.isPinned ? 'Unpin' : 'Pin'}
+                                        </Button>
+                                    )}
+                                    <Button onClick={() => onEdit(post.id)} variant="overlay-dark" className="flex-1 gap-2 font-semibold text-gray-800">
+                                        <PencilIcon className="w-5 h-5"/> Edit
+                                    </Button>
+                                    <Button onClick={() => onArchive(post.id)} variant="overlay-amber" className="flex-1 gap-2 font-semibold">
+                                        <ArchiveBoxIcon className="w-5 h-5"/> Archive
+                                    </Button>
+                                  </>
+                              )}
+                          </div>
+                      ) : (
+                          <>
+                              {isExpired && !isArchived ? (
+                                  <Button onClick={() => onToggleAvailabilityAlert(post.id)} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} className="flex-1 gap-2 font-semibold">
+                                      <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
+                                      <span>{isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}</span>
+                                  </Button>
+                              ) : (
+                                  <>
+                                      {isPurchasable && (
+                                          <Button 
                                               onClick={() => onContactStore(post.authorId, post.id)}
-                                              variant="glass"
-                                              size="icon-lg"
-                                              className="flex-shrink-0 rounded-full transition-colors text-gray-700"
-                                              aria-label="Contact seller"
-                                              title="Contact seller"
+                                              variant="overlay-dark"
+                                              size="icon"
+                                              className="text-gray-500 flex-shrink-0"
+                                              aria-label="Contact Seller"
+                                              title="Contact Seller"
                                           >
-                                              <ChatBubbleBottomCenterTextIcon className="w-6 h-6 text-red-600" />
+                                              <ChatBubbleBottomCenterTextIcon className="w-6 h-6"/> 
                                           </Button>
-                                      </>
-                                  )}
-                              </>
-                          )}
-                      </div>
+                                      )}
+                                      <Button 
+                                        onClick={() => {
+                                            if (isPurchasable) isAddedToBag ? onViewBag() : onAddToBag(post.id);
+                                            else if (post.type === PostType.SERVICE) onRequestService(post.authorId, post.id);
+                                            else onContactStore(post.authorId, post.id);
+                                        }}
+                                        variant={isAddedToBag ? "pill-lightred" : "pill-red"}
+                                        className="flex-1 gap-2 font-semibold"
+                                      >
+                                          {isPurchasable ? <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} /> : <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>}
+                                          <span>{isPurchasable ? (isAddedToBag ? 'Go to Bag' : 'Add to Bag') : (post.type === PostType.SERVICE ? 'Request Service' : 'Contact Organizer')}</span>
+                                      </Button>
+                                  </>
+                              )}
+                              
+                              <LikeButton 
+                                isLiked={likedPostIds.has(post.id)}
+                                onToggle={() => onToggleLikePost(post.id)}
+                                variant="overlay-dark"
+                                size="icon"
+                                className={likedPostIds.has(post.id) ? "text-red-600" : "text-gray-500"}
+                                iconClassName="w-6 h-6"
+                              />
+                          </>
+                      )}
                   </div>
               </div>
           </div>

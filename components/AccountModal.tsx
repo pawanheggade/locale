@@ -71,10 +71,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
 
     return (
       <>
-        <Button variant="glass" onClick={onClose} className="mr-auto">
+        <Button variant="overlay-dark" onClick={onClose} className="mr-auto">
           Cancel
         </Button>
-        <Button type="submit" form="account-form" isLoading={isSubmitting} className="w-36" variant="glass-red">
+        <Button type="submit" form="account-form" isLoading={isSubmitting} className="w-36" variant="pill-red">
           {submitText}
         </Button>
       </>

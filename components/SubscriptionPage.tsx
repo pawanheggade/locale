@@ -1,10 +1,9 @@
 
-
 import React from 'react';
 import { Account, Subscription, ModalState } from '../types';
 import { CheckIcon, CheckBadgeIcon, CheckBadgeIconSolid } from './Icons';
 import { formatDaysRemaining } from '../utils/formatters';
-import { Button } from './ui/Button';
+import { Button, ButtonProps } from './ui/Button';
 
 interface SubscriptionPageProps {
   currentAccount: Account;
@@ -114,6 +113,12 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
     }
   };
 
+  const planStyles: Record<string, { border: string; bg: string }> = {
+    red: { border: 'border-red-500', bg: 'bg-red-500' },
+    amber: { border: 'border-amber-500', bg: 'bg-amber-500' },
+    gray: { border: 'border-gray-500', bg: 'bg-gray-500' },
+  };
+
   return (
     <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Subscribe</h1>
@@ -130,9 +135,11 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
           const planIndex = plans.findIndex(p => p.tier === plan.tier);
           const currentIndex = plans.findIndex(p => p.tier === currentTier);
           const isUpgrade = currentIndex < planIndex;
+          const isDowngrade = currentIndex > planIndex;
           const isPro = plan.tier === 'Organisation';
           
           let buttonText: string;
+          let buttonVariant: ButtonProps['variant'] = 'outline';
 
           if (isCurrentPlan) {
               buttonText = isOnTrial ? 'On Trial' : 'Current Plan';
@@ -152,12 +159,26 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
               }
           }
 
+          if (!isCurrentPlan) {
+            if (isUpgrade) {
+              if (plan.tier === 'Verified') {
+                  buttonVariant = 'pill-red';
+              } else if (plan.tier === 'Business' || plan.tier === 'Organisation') {
+                  buttonVariant = 'pill-amber';
+              } else if (plan.tier === 'Basic') {
+                  buttonVariant = 'pill-dark';
+              }
+            } else if (isDowngrade) {
+              buttonVariant = 'destructive';
+            }
+          }
+
           return (
             <div
               key={plan.tier}
               className={`relative rounded-xl border-2 p-6 flex flex-col ${
                 isCurrentPlan 
-                    ? `border-red-500 bg-white shadow-lg` 
+                    ? `${planStyles[plan.color].border} bg-white shadow-lg` 
                     : isPro 
                         ? 'border-amber-300 bg-amber-50/50' 
                         : 'border-gray-200 bg-white'
@@ -165,7 +186,9 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
             >
               {isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-max">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-500 text-white">{isOnTrial ? 'On Trial' : 'Current Plan'}</span>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white ${planStyles[plan.color].bg}`}>
+                    {isOnTrial ? 'On Trial' : 'Current Plan'}
+                  </span>
                 </div>
               )}
               {isPro && !isCurrentPlan && (
@@ -184,18 +207,18 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
                 <div className="mt-4 flex flex-col items-center justify-start min-h-[100px]">
                   {plan.annualPrice ? (
                       <div className={`w-full rounded-lg p-2 text-center border-2 border-dashed ${isPro ? 'bg-amber-100 border-amber-300' : 'bg-gray-50 border-gray-200'}`}>
-                          <p className={`text-base font-bold ${isPro ? 'text-amber-900' : 'text-gray-700'}`}>{plan.annualPrice}</p>
-                          <span className={`text-[10px] font-bold uppercase tracking-wide ${isPro ? 'text-amber-800' : 'text-gray-500'}`}>
+                          <p className={`text-base font-bold ${isPro ? 'text-amber-900' : 'text-gray-600'}`}>{plan.annualPrice}</p>
+                          <span className={`text-[10px] font-bold uppercase tracking-wide ${isPro ? 'text-amber-800' : 'text-gray-600'}`}>
                               2 months free!
                           </span>
                       </div>
                   ) : (
                        <div className="w-full h-[56px]"></div>
                   )}
-                  <p className={`text-3xl font-extrabold mt-4 ${plan.price === '₹0' ? 'text-gray-500' : 'text-gray-900'}`}>{plan.price}</p>
+                  <p className={`text-3xl font-extrabold mt-4 ${plan.price === '₹0' ? 'text-gray-600' : 'text-gray-900'}`}>{plan.price}</p>
                 </div>
 
-                <p className="mt-3 text-sm text-gray-500 min-h-[40px]">{plan.description}</p>
+                <p className="mt-3 text-sm text-gray-600 min-h-[40px]">{plan.description}</p>
                 <ul className="mt-6 space-y-3">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
@@ -211,7 +234,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
                   disabled={isCurrentPlan}
                   size="lg"
                   className="w-full font-semibold px-4"
-                  variant={isCurrentPlan ? 'glass' : isPro ? 'glass-amber' : 'glass-red'}
+                  variant={buttonVariant}
                 >
                   {buttonText}
                 </Button>

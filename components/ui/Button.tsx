@@ -1,22 +1,26 @@
-
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { SpinnerIcon } from '../Icons';
 
 const buttonVariants = {
   variant: {
-    default: 'bg-red-600 text-white shadow-md shadow-red-500/20 hover:bg-red-700 active:bg-red-800',
+    default: 'bg-red-600 text-white active:bg-red-800',
     destructive: 'bg-red-100 text-red-700 border border-red-200',
-    outline: 'border border-gray-300 bg-white text-gray-700',
-    secondary: 'bg-gray-100 text-gray-700 border border-gray-200',
-    ghost: 'border border-transparent bg-transparent text-gray-700 hover:bg-gray-100',
-    link: 'text-red-600 underline-offset-4',
-    glass: 'glass-button-pill text-gray-700',
-    'glass-dark': 'glass-button-pill-dark text-white',
-    'glass-red': 'glass-button-pill-red',
-    'glass-amber': 'glass-button-pill-amber',
-    'glass-red-light': 'glass-button-pill-red-light',
-    'glass-amber-light': 'glass-button-pill-amber-light',
+    outline: 'border border-gray-300 bg-white text-gray-600',
+    secondary: 'bg-gray-100 text-gray-600 border border-gray-200',
+    ghost: 'border border-transparent bg-transparent text-gray-600',
+    link: 'text-red-600 underline-offset-4 hover:underline',
+    'pill-red': 'button-pill-red',
+    'circular-red': 'button-circular-red',
+    'pill-lightred': 'button-pill-lightred',
+    'circular-lightred': 'button-circular-lightred',
+    'pill-amber': 'button-pill-amber',
+    'pill-dark': 'button-pill-dark',
+    // New Overlay Variants
+    overlay: 'bg-transparent text-white border-none shadow-none active:scale-95',
+    'overlay-dark': 'bg-transparent text-gray-700 border-none shadow-none active:scale-95',
+    'overlay-red': 'bg-transparent text-red-600 border-none shadow-none active:scale-95',
+    'overlay-amber': 'bg-transparent text-amber-600 border-none shadow-none active:scale-95',
   },
   size: {
     default: 'h-10 px-4 py-2 text-sm',
@@ -25,6 +29,7 @@ const buttonVariants = {
     lg: 'h-11 px-8',
     icon: 'h-10 w-10',
     'icon-sm': 'h-9 w-9',
+    'icon-xs': 'h-6 w-6',
     'icon-lg': 'h-12 w-12',
   },
 };
@@ -71,17 +76,19 @@ interface TabButtonProps {
 }
 
 const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size = 'default', className }) => {
-  const paddingClass = size === 'sm' ? 'px-3 py-1 text-sm' : 'px-4 py-1.5 text-sm sm:text-base';
+  const textSize = size === 'sm' ? 'text-sm' : 'text-sm sm:text-base';
+  const padding = size === 'sm' ? 'py-2 px-1' : 'py-3 px-1';
   
   return (
     <button
       onClick={onClick}
       className={cn(
-        'flex-shrink-0 flex items-center gap-2 font-semibold rounded-full transition-all duration-200 border',
-        paddingClass,
+        'flex-shrink-0 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
+        textSize,
+        padding,
         isActive
-          ? 'glass-button-pill-red-light shadow-sm border-red-200'
-          : 'glass-button-pill text-gray-600 border-gray-200/50 hover:bg-white/60',
+          ? 'border-red-600 text-red-600'
+          : 'border-transparent text-gray-600',
         className
       )}
       role="tab"

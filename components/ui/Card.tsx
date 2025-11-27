@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { cn } from '../../lib/utils';
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('bg-white rounded-lg shadow-md overflow-hidden flex flex-col', className)}
+    className={cn('bg-white rounded-lg border border-gray-200/80 overflow-hidden flex flex-col', className)}
     {...props}
   />
 ));

@@ -59,7 +59,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[3000] bg-black/30 backdrop-blur-sm',
+        'fixed inset-0 z-[3000] bg-black/50', // Removed backdrop-blur-sm, increased opacity
         backdropAnimation
       )}
       onClick={handleClose}
@@ -102,7 +102,7 @@ const DialogContent = React.forwardRef<
     <div
       ref={dialogRef}
       className={cn(
-        'bg-white/70 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col m-0 overflow-hidden',
+        'bg-white border border-gray-200 flex flex-col m-0 overflow-hidden', // Replaced glass classes with solid bg
         panelPositionClasses[position],
         panelAnimation,
         className
@@ -118,11 +118,11 @@ const DialogContent = React.forwardRef<
 });
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("relative flex items-center justify-center p-4 border-b border-black/10 h-16", className)} {...props} />
+    <div ref={ref} className={cn("relative flex items-center justify-center p-4 border-b border-gray-200 h-16", className)} {...props} />
 ));
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-4 bg-transparent border-t border-black/10 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
+    <div ref={ref} className={cn("p-4 bg-transparent border-t border-gray-200 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
 ));
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
@@ -130,8 +130,8 @@ const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
 ));
 
 const DialogClose: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <Button onClick={onClick} variant="glass" size="icon-sm" className="absolute left-4 text-gray-800" aria-label="Back">
-        <ChevronLeftIcon className="w-5 h-5" />
+    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 text-gray-800" aria-label="Back">
+        <ChevronLeftIcon className="w-6 h-6" />
     </Button>
 );
 

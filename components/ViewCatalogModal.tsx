@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
@@ -57,7 +56,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
         <div className="flex justify-between w-full gap-2">
              <div className="flex gap-2">
                 <Button 
-                    variant="glass" 
+                    variant="overlay-dark" 
                     size="icon-sm" 
                     onClick={() => setSelectedIndex(prev => Math.max(0, prev - 1))}
                     disabled={selectedIndex === 0}
@@ -65,7 +64,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                     <ChevronLeftIcon className="w-5 h-5" />
                 </Button>
                 <Button 
-                    variant="glass" 
+                    variant="overlay-dark" 
                     size="icon-sm" 
                     onClick={() => setSelectedIndex(prev => Math.min(catalog.length - 1, prev + 1))}
                     disabled={selectedIndex === catalog.length - 1}
@@ -74,11 +73,11 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                 </Button>
              </div>
              <div className="flex gap-2">
-                 <Button variant="glass" onClick={handleDownload} title="Download file" disabled={!activeItem || isDownloading}>
+                 <Button variant="overlay-dark" onClick={handleDownload} title="Download file" disabled={!activeItem || isDownloading}>
                     {isDownloading ? <SpinnerIcon className="w-5 h-5" /> : <ArrowDownTrayIcon className="w-5 h-5" />}
                     <span className="hidden sm:inline ml-2">{isDownloading ? 'Downloading...' : 'Download'}</span>
                  </Button>
-                 <Button variant="glass" onClick={onClose}>Close</Button>
+                 <Button variant="overlay-dark" onClick={onClose}>Close</Button>
              </div>
         </div>
     );
@@ -98,12 +97,13 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                 {/* Sidebar List for Desktop / Top bar for Mobile */}
                 <div className="md:w-64 flex-shrink-0 bg-gray-50 border-r border-gray-200 md:overflow-y-auto flex md:flex-col overflow-x-auto p-2 gap-2">
                     {catalog.map((item, index) => (
-                        <button
+                        <Button
                             key={item.id}
                             onClick={() => setSelectedIndex(index)}
+                            variant="ghost"
                             className={cn(
-                                "flex items-center gap-2 p-2 rounded-md text-left transition-colors flex-shrink-0 md:w-full",
-                                selectedIndex === index ? "bg-white shadow-sm ring-1 ring-gray-200" : "hover:bg-gray-100"
+                                "justify-start h-auto p-2 rounded-md text-left w-full flex-shrink-0 gap-2",
+                                selectedIndex === index ? "bg-white ring-1 ring-gray-200" : "hover:bg-gray-100"
                             )}
                         >
                             {item.type === 'image' ? (
@@ -116,7 +116,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                             <span className={cn("text-sm truncate max-w-[120px]", selectedIndex === index ? "font-semibold text-gray-900" : "text-gray-600")}>
                                 {item.name}
                             </span>
-                        </button>
+                        </Button>
                     ))}
                 </div>
 
@@ -125,7 +125,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                     {isPdf ? (
                         <iframe src={activeItem.url} className="w-full h-full rounded-md border border-gray-200 bg-white" title={activeItem.name} />
                     ) : (
-                        <img src={activeItem.url} alt={activeItem.name} className="max-w-full max-h-full object-contain rounded-md shadow-sm" />
+                        <img src={activeItem.url} alt={activeItem.name} className="max-w-full max-h-full object-contain rounded-md" />
                     )}
                 </div>
             </div>

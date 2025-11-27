@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from '../Icons';
+import { Button } from '../ui/Button';
 
 export const SortableHeader: React.FC<{
   label: React.ReactNode;
@@ -21,17 +21,18 @@ export const SortableHeader: React.FC<{
   return (
     <th 
         scope="col" 
-        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}
+        className={`px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider ${className}`}
         aria-sort={ariaSort}
     >
-      <button 
-        onClick={() => requestSort(sortKey)} 
-        className="flex items-center gap-1 focus:outline-none focus:underline"
+      <Button
+        onClick={() => requestSort(sortKey)}
+        variant="ghost"
+        className="p-0 h-auto font-medium text-gray-600 hover:text-gray-900 gap-1 uppercase tracking-wider text-xs"
         aria-label={typeof label === 'string' ? `Sort by ${label}` : 'Sort column'}
       >
         {label}
         {directionIcon}
-      </button>
+      </Button>
     </th>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,9 +8,10 @@ import { timeSince, renderWithMentions } from '../utils/formatters';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
-import { FlagIcon } from './Icons';
+import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
 import { CommentForm } from './CommentForm';
 import { Avatar } from './Avatar';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 interface CommentProps {
   comment: DisplayableForumComment;
@@ -24,7 +24,8 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
   const { accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
-  const { onViewAccount, onReportItem } = usePostActions();
+  const showConfirmation = useConfirmationModal();
+  const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -46,14 +47,11 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
   };
 
   const handleDelete = () => {
-    openModal({
-      type: 'confirmation',
-      data: {
-        title: 'Delete Comment',
-        message: 'Are you sure you want to delete this comment? This will also remove all replies and cannot be undone.',
-        onConfirm: () => deleteComment(comment.id),
-        confirmText: 'Delete',
-      },
+    showConfirmation({
+      title: 'Delete Comment',
+      message: 'Are you sure you want to delete this comment? This will also remove all replies and cannot be undone.',
+      onConfirm: () => deleteComment(comment.id),
+      confirmText: 'Delete',
     });
   };
 
@@ -65,10 +63,10 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
       </div>
       <div className="flex-1">
         <div className="flex items-baseline gap-2 text-sm">
-          <button onClick={() => onViewAccount(comment.authorId)} className="font-semibold text-gray-800">{comment.author?.name || 'Unknown User'}</button>
+          <button onClick={() => onViewAccount(comment.authorId)} className="font-semibold text-gray-800 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{comment.author?.name || 'Unknown User'}</button>
           <span className="text-gray-500 text-xs">{timeSince(comment.timestamp)}</span>
         </div>
-        <div className="mt-1 prose prose-sm max-w-none text-gray-700">
+        <div className="mt-1 prose prose-sm max-w-none text-gray-600">
           {isEditing ? (
             <div className="space-y-2">
               <Textarea
@@ -78,26 +76,56 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
                 autoFocus
               />
               <div className="flex justify-end gap-2">
-                <Button variant="glass" size="sm" onClick={handleCancel}>Cancel</Button>
-                <Button variant="glass-red" size="sm" onClick={handleSave} disabled={!editedContent.trim()}>Save</Button>
+                <Button variant="overlay-dark" size="sm" onClick={handleCancel}>Cancel</Button>
+                <Button variant="pill-red" size="sm" onClick={handleSave} disabled={!editedContent.trim()}>Save</Button>
               </div>
             </div>
           ) : (
-            <p>{renderWithMentions(comment.content, allAccounts, onViewAccount)}</p>
+            <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, onFilterByTag)}</p>
           )}
         </div>
         <div className="mt-2 flex items-center gap-2">
           <VoteButtons score={comment.score} userVote={userVote} onVote={(vote) => toggleVote('comment', comment.id, vote)} orientation="horizontal" />
-          <Button variant="glass" size="xs" onClick={() => onSetReplyTarget(isReplying ? null : comment.id)}>Reply</Button>
+          <Button 
+            onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} 
+            variant="ghost"
+            size="icon-sm"
+            className={`h-8 w-8 ${isReplying ? "text-red-600" : "text-gray-500"}`}
+            title="Reply"
+          >
+            <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+          </Button>
           {canEditOrDelete && !isEditing && (
             <>
-              <Button variant="glass" size="xs" onClick={() => setIsEditing(true)}>Edit</Button>
-              <Button variant="glass-red-light" size="xs" className="text-red-600" onClick={handleDelete}>Delete</Button>
+              <Button 
+                onClick={() => setIsEditing(true)} 
+                variant="ghost"
+                size="icon-sm"
+                className="text-gray-500 h-8 w-8"
+                title="Edit"
+              >
+                <PencilIcon className="w-4 h-4" />
+              </Button>
+              <Button 
+                onClick={handleDelete} 
+                variant="ghost"
+                size="icon-sm"
+                className="text-red-600 h-8 w-8"
+                title="Delete"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </Button>
             </>
           )}
           {!canEditOrDelete && (
-            <Button variant="glass" size="xs" onClick={() => onReportItem(comment)} className="gap-1">
-                <FlagIcon className="w-3 h-3" /> Report
+            <Button 
+                onClick={() => onReportItem(comment)} 
+                variant="ghost"
+                size="icon-sm"
+                className="text-gray-400 h-8 w-8"
+                title="Report"
+            >
+                <FlagIcon className="w-4 h-4" />
             </Button>
           )}
         </div>

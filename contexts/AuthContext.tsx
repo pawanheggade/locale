@@ -1,16 +1,22 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert } from '../types';
+import { Account, Subscription, BagItem, PriceAlert, Notification, SavedList, CatalogItem, SavedSearch, Post, AvailabilityAlert, Report, Feedback, ForumPost, ForumComment } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
 import { mockAccounts } from '../data/accounts';
 import { fileToDataUrl } from '../utils/media';
 import { applyFiltersToPosts, getPostStatus } from '../utils/posts';
+import { initialTermsContent, initialPrivacyContent } from '../data/pageContent';
 
 const ACCOUNTS_KEY = 'localeAppAccounts';
 const CURRENT_ACCOUNT_ID_KEY = 'localeAppCurrentAccountId';
 const USER_DATA_KEY = 'localeAppAllUsersData';
+const REPORTS_KEY = 'localeAppReports';
+const FEEDBACK_KEY = 'localeAppFeedback';
+const TERMS_KEY = 'localeAppTermsContent';
+const PRIVACY_KEY = 'localeAppPrivacyContent';
 const APPROX_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface UserSpecificData {
@@ -46,11 +52,12 @@ interface AuthContextType {
   createAccount: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'likedAccountIds' | 'referralCode'>, isSeller: boolean, referralCode?: string) => Promise<Account>;
   updateAccount: (updatedAccount: Account) => Promise<void>;
   updateAccountDetails: (updatedAccount: Account) => void;
-  upgradeToSeller: (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => void;
+  // FIX: Make upgradeToSeller async to match similar functions and satisfy consumer props.
+  upgradeToSeller: (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => Promise<void>;
   toggleLikeAccount: (accountId: string) => void;
   toggleLikePost: (postId: string) => { wasLiked: boolean };
   updateSubscription: (accountId: string, tier: Subscription['tier']) => void;
-  toggleAccountStatus: (accountId: string) => void;
+  toggleAccountStatus: (accountId: string, byAdmin?: boolean) => void;
   deleteAccount: (accountId: string) => void;
   updateAccountRole: (accountId: string, role: 'account' | 'admin') => void;
   approveAccount: (accountId: string) => void;
@@ -85,12 +92,26 @@ interface AuthContextType {
   addCatalogItems: (files: File[]) => Promise<void>;
   removeCatalogItem: (itemId: string) => Promise<void>;
   
-  // Saved Search
   savedSearches: SavedSearch[];
   addSavedSearch: (search: SavedSearch) => void;
   deleteSavedSearch: (searchId: string) => void;
   toggleSavedSearchAlert: (searchId: string) => void;
   checkSavedSearchesMatches: (newPosts: Post[]) => void;
+
+  // Admin & Global Data
+  reports: Report[];
+  addReport: (postId: string, reason: string) => void;
+  addForumReport: (item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => void;
+  setReports: React.Dispatch<React.SetStateAction<Report[]>>; 
+  
+  feedbackList: Feedback[];
+  addFeedback: (content: string) => void;
+  setFeedbackList: React.Dispatch<React.SetStateAction<Feedback[]>>;
+
+  termsContent: string;
+  setTermsContent: React.Dispatch<React.SetStateAction<string>>;
+  privacyContent: string;
+  setPrivacyContent: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,15 +119,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { addToast } = useUI();
 
-    // Use LargePersistentState for accounts and user data as they can grow large (images, catalogs)
     const [accounts, setAccounts] = useLargePersistentState<Account[]>(ACCOUNTS_KEY, mockAccounts);
-    // Keep simple persistent state for small strings
     const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(CURRENT_ACCOUNT_ID_KEY, null);
-    
     const [savedSearches, setSavedSearches] = usePersistentState<SavedSearch[]>('localeAppSavedSearches', []);
-
     const [allUsersData, setAllUsersData] = useLargePersistentState<AllUsersData>(USER_DATA_KEY, {});
     
+    // Global/Admin Data
+    const [reports, setReports] = usePersistentState<Report[]>(REPORTS_KEY, []);
+    const [feedbackList, setFeedbackList] = usePersistentState<Feedback[]>(FEEDBACK_KEY, []);
+    const [termsContent, setTermsContent] = usePersistentState<string>(TERMS_KEY, initialTermsContent);
+    const [privacyContent, setPrivacyContent] = usePersistentState<string>(PRIVACY_KEY, initialPrivacyContent);
+
     const currentAccount = useMemo(() => {
         if (!currentAccountId) return null;
         const account = accounts.find(u => u.id === currentAccountId);
@@ -121,7 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [accounts, currentAccountId, setCurrentAccountId]);
     
     const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
-
     const likedPostIds = useMemo(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
     
     const currentUserData = useMemo(() => {
@@ -141,56 +163,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }));
     }, [currentAccountId, setAllUsersData]);
-    
-    const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => {
-        const { recipientId } = notificationData;
-        if (!recipientId) return;
 
-        const newNotification: Notification = { ...notificationData, id: `notif-${Date.now()}-${Math.random()}`, timestamp: Date.now(), isRead: false };
-        
+    const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => {
+        const newNotification: Notification = {
+            ...notificationData,
+            id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: Date.now(),
+            isRead: false,
+        };
+
         setAllUsersData(prev => {
-            const recipientData = prev[recipientId] || initialUserSpecificData;
+            const recipientId = notificationData.recipientId;
+            const userSpecificData = prev[recipientId] || initialUserSpecificData;
+            
             return {
                 ...prev,
                 [recipientId]: {
-                    ...recipientData,
-                    notifications: [newNotification, ...recipientData.notifications]
+                    ...userSpecificData,
+                    notifications: [newNotification, ...userSpecificData.notifications]
                 }
             };
         });
-
-        if (recipientId === currentAccountId && 'Notification' in window && Notification.permission === 'granted') {
-             new Notification('New Locale Notification', {
-                body: newNotification.message,
-            });
+        
+        // Browser notification for current user
+        if (notificationData.recipientId === currentAccountId && 'Notification' in window && Notification.permission === 'granted') {
+             new Notification('Locale', { body: notificationData.message });
         }
     }, [setAllUsersData, currentAccountId]);
+    
+    const addReport = useCallback((postId: string, reason: string) => {
+        if (!currentAccount) return;
+        const newReport: Report = { 
+            id: `report-${Date.now()}`, 
+            postId, 
+            reason, 
+            timestamp: Date.now(), 
+            reporterId: currentAccount.id 
+        };
+        setReports(prev => [newReport, ...prev]);
+        addToast('Report submitted.', 'success');
+    }, [currentAccount, setReports, addToast]);
 
-    const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
-      const loggedInAccount = accounts.find(a => a.id === currentAccountId);
-      if (!loggedInAccount) {
-        return { wasLiked: false };
-      }
-      const wasLiked = (loggedInAccount.likedPostIds || []).includes(postId);
-      setAccounts(prev => prev.map(acc => {
-          if (acc.id === loggedInAccount.id) {
-              const newLikes = wasLiked
-                  ? (acc.likedPostIds || []).filter(id => id !== postId)
-                  : [...(acc.likedPostIds || []), postId];
-              return { ...acc, likedPostIds: newLikes };
-          }
-          return acc;
-      }));
-      addToast(wasLiked ? 'Post unliked.' : 'Post liked!');
-      return { wasLiked };
-    }, [accounts, currentAccountId, setAccounts, addToast]);
+    const addForumReport = useCallback((item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => {
+        if (!currentAccount) return;
+        const newReport: Report = {
+          id: `report-${Date.now()}`,
+          reason,
+          timestamp: Date.now(),
+          reporterId: currentAccount.id,
+          forumPostId: type === 'post' ? item.id : ('postId' in item ? item.postId : undefined),
+          forumCommentId: type === 'comment' ? item.id : undefined,
+        };
+        setReports(prev => [newReport, ...prev]);
+        addToast('Report submitted.', 'success');
+    }, [currentAccount, setReports, addToast]);
+
+    const addFeedback = useCallback((content: string) => {
+        if (!currentAccount) return;
+        const newFeedback: Feedback = {
+            id: `feedback-${Date.now()}`,
+            userId: currentAccount.id,
+            content,
+            timestamp: Date.now(),
+            isRead: false,
+        };
+        setFeedbackList(prev => [newFeedback, ...prev]);
+        addToast('Feedback sent! Thank you.', 'success');
+    }, [currentAccount, setFeedbackList, addToast]);
 
     const login = useCallback((account: Account, rememberMe: boolean) => {
+        // Automatically reactivate user-archived accounts
+        if (account.status === 'archived' && !account.archivedByAdmin) {
+             setAccounts(prev => prev.map(a => a.id === account.id ? { ...a, status: 'active', archivedByAdmin: false } : a));
+             addToast('Welcome back! Your account has been reactivated.', 'success');
+        }
+
         setCurrentAccountId(account.id);
         if (!rememberMe) {
             localStorage.removeItem(CURRENT_ACCOUNT_ID_KEY);
         }
-    }, [setCurrentAccountId]);
+    }, [setCurrentAccountId, setAccounts, addToast]);
 
     const signOut = useCallback(() => {
         setCurrentAccountId(null);
@@ -290,7 +342,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
     }, [setAccounts]);
 
-    const upgradeToSeller = useCallback((accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => {
+    const upgradeToSeller = useCallback(async (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId) {
                 const updatedAccount = { ...acc, ...sellerData, status: 'pending' as const };
@@ -329,6 +381,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToast(wasLiked ? `Unliked profile: ${targetAccount.name}.` : `Liked profile: ${targetAccount.name}!`);
     }, [accounts, currentAccountId, addToast, setAccounts]);
 
+    const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
+        const loggedInAccount = accounts.find(a => a.id === currentAccountId);
+        if (!loggedInAccount) return { wasLiked: false };
+        const wasLiked = (loggedInAccount.likedPostIds || []).includes(postId);
+        setAccounts(prev => prev.map(acc => {
+            if (acc.id === loggedInAccount.id) {
+                const newLikes = wasLiked
+                    ? (acc.likedPostIds || []).filter(id => id !== postId)
+                    : [...(acc.likedPostIds || []), postId];
+                return { ...acc, likedPostIds: newLikes };
+            }
+            return acc;
+        }));
+        addToast(wasLiked ? 'Post unliked.' : 'Post liked!');
+        return { wasLiked: !wasLiked };
+    }, [accounts, currentAccountId, setAccounts, addToast]);
+
     const updateSubscription = useCallback((accountId: string, tier: Subscription['tier']) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId) {
@@ -345,12 +414,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToast('Subscription updated.', 'success');
     }, [setAccounts, addToast]);
 
-    const toggleAccountStatus = useCallback((accountId: string) => {
+    const toggleAccountStatus = useCallback((accountId: string, byAdmin: boolean = false) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId) {
                 const newStatus = acc.status === 'active' ? 'archived' : 'active';
                 addToast(`Account ${newStatus}.`, 'success');
-                return { ...acc, status: newStatus };
+                
+                const updates: Partial<Account> = { status: newStatus };
+                if (newStatus === 'archived') {
+                    updates.archivedByAdmin = byAdmin;
+                } else {
+                    updates.archivedByAdmin = false; 
+                }
+                return { ...acc, ...updates };
             }
             return acc;
         }));
@@ -393,27 +469,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const addToBag = useCallback((postId: string, quantity: number) => {
         if (!currentAccountId) return;
-        
-        // Look for an item specifically in the main bag (not saved in any list)
         const existingInBagItem = currentUserData.bag.find(item => item.postId === postId && item.savedListIds.length === 0);
-
         if (existingInBagItem) {
-            // Update quantity of existing main bag item
-            const newBag = currentUserData.bag.map(item => 
-                item.id === existingInBagItem.id 
-                    ? { ...item, quantity: item.quantity + quantity } 
-                    : item
-            );
+            const newBag = currentUserData.bag.map(item => item.id === existingInBagItem.id ? { ...item, quantity: item.quantity + quantity } : item);
             updateCurrentUserSpecificData({ bag: newBag });
         } else {
-            // Create a new item for the bag, independent of any saved instances
-            const newItem: BagItem = { 
-                id: `bag-${Date.now()}`, 
-                postId, 
-                quantity, 
-                isChecked: false, 
-                savedListIds: [] 
-            };
+            const newItem: BagItem = { id: `bag-${Date.now()}`, postId, quantity, isChecked: false, savedListIds: [] };
             updateCurrentUserSpecificData({ bag: [...currentUserData.bag, newItem] });
         }
         addToast('Item added to bag.', 'success');
@@ -428,7 +489,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!currentAccountId) return;
         const currentBag = currentUserData.bag;
         const itemToSave = currentBag.find(i => i.id === itemId);
-        
         if (!itemToSave) return;
         
         const otherItems = currentBag.filter(i => i.postId === itemToSave.postId && i.id !== itemId);
@@ -437,31 +497,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let itemToSaveNewLists = [...targetListIds];
 
         if (targetListIds.length === 0) {
-            // Moving to Main Bag
             const existingMainItem = otherItems.find(i => i.savedListIds.length === 0);
             if (existingMainItem) {
                 quantityUpdates.set(existingMainItem.id, existingMainItem.quantity + itemToSave.quantity);
                 itemToSaveShouldBeRemoved = true;
             } else {
-                // Just clear the lists, effectively moving to main bag
                 itemToSaveNewLists = [];
             }
         } else {
-            // Saving to specific lists
             const remainingTargetLists = new Set(targetListIds);
-            
             otherItems.forEach(otherItem => {
                 const intersection = otherItem.savedListIds.filter(id => remainingTargetLists.has(id));
                 if (intersection.length > 0) {
-                    // Merge quantity into existing item that shares list(s)
                     quantityUpdates.set(otherItem.id, otherItem.quantity + itemToSave.quantity);
-                    // Mark these lists as handled
                     intersection.forEach(id => remainingTargetLists.delete(id));
                 }
             });
-            
             if (remainingTargetLists.size === 0) {
-                // All targets covered by other items
                 itemToSaveShouldBeRemoved = true;
             } else {
                 itemToSaveNewLists = Array.from(remainingTargetLists);
@@ -478,14 +530,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (itemToSaveShouldBeRemoved) {
             newBag = newBag.filter(item => item.id !== itemId);
         } else {
-            newBag = newBag.map(item => 
-                item.id === itemId ? { ...item, savedListIds: itemToSaveNewLists, isChecked: false } : item
-            );
+            newBag = newBag.map(item => item.id === itemId ? { ...item, savedListIds: itemToSaveNewLists, isChecked: false } : item);
         }
         
          updateCurrentUserSpecificData({ bag: newBag });
          addToast(targetListIds.length > 0 ? 'Saved to list(s).' : 'Moved to bag.', 'success');
-
     }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData, addToast]);
 
     const removeBagItem = useCallback((itemId: string) => {
@@ -512,49 +561,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
 
     const deleteListAndMoveItems = useCallback((listId: string) => {
-        // First, remove the listId from all items
-        const itemsWithListRemoved = currentUserData.bag.map(item => ({
-            ...item,
-            savedListIds: item.savedListIds.filter(id => id !== listId)
-        }));
-
-        // Group items by postId to handle merging
+        const itemsWithListRemoved = currentUserData.bag.map(item => ({ ...item, savedListIds: item.savedListIds.filter(id => id !== listId) }));
         const itemsByPostId = new Map<string, BagItem[]>();
-        
         itemsWithListRemoved.forEach(item => {
             const existing = itemsByPostId.get(item.postId) || [];
             existing.push(item);
             itemsByPostId.set(item.postId, existing);
         });
-
         const finalBag: BagItem[] = [];
-
         itemsByPostId.forEach((items) => {
-            // Filter items that are now in the "main bag" (no saved lists)
             const mainBagCandidates = items.filter(i => i.savedListIds.length === 0);
-            // Items that are still in other lists
             const stillSavedItems = items.filter(i => i.savedListIds.length > 0);
-
-            // Add all still saved items to final bag (they stay separate as per current logic)
             stillSavedItems.forEach(item => finalBag.push(item));
-
             if (mainBagCandidates.length > 0) {
-                // Merge main bag candidates
                 const totalQuantity = mainBagCandidates.reduce((sum, i) => sum + i.quantity, 0);
-                // Preserve checked state if any were checked
                 const isAnyChecked = mainBagCandidates.some(i => i.isChecked);
-                
-                // Use the first candidate as base for ID/properties
                 const baseItem = mainBagCandidates[0];
-                
-                finalBag.push({
-                    ...baseItem,
-                    quantity: totalQuantity,
-                    isChecked: isAnyChecked
-                });
+                finalBag.push({ ...baseItem, quantity: totalQuantity, isChecked: isAnyChecked });
             }
         });
-
         const newLists = currentUserData.savedLists.filter(list => list.id !== listId);
         updateCurrentUserSpecificData({ bag: finalBag, savedLists: newLists });
         addToast('List deleted and its items moved to bag.', 'success');
@@ -564,44 +589,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!currentAccountId) return;
         const list = currentUserData.savedLists.find(l => l.id === listId);
         if (!list) return;
-
         const itemsFromList = currentUserData.bag.filter(item => item.savedListIds.includes(listId));
-
         if (itemsFromList.length === 0) {
             addToast(`List "${list.name}" is empty.`, 'error');
             return;
         }
-
         let bagUpdates = [...currentUserData.bag];
         let itemsAddedCount = 0;
-
         itemsFromList.forEach(itemFromList => {
             const existingInBagItem = bagUpdates.find(bagItem => bagItem.postId === itemFromList.postId && bagItem.savedListIds.length === 0);
-
             if (existingInBagItem) {
-                // Update quantity of existing item in the main bag
-                bagUpdates = bagUpdates.map(bagItem =>
-                    bagItem.id === existingInBagItem.id
-                        ? { ...bagItem, quantity: bagItem.quantity + itemFromList.quantity }
-                        : bagItem
-                );
+                bagUpdates = bagUpdates.map(bagItem => bagItem.id === existingInBagItem.id ? { ...bagItem, quantity: bagItem.quantity + itemFromList.quantity } : bagItem);
             } else {
-                // Create a new item specifically for the main bag
-                const newItemForBag: BagItem = {
-                    id: `bag-${Date.now()}-${itemFromList.postId}-${Math.random()}`,
-                    postId: itemFromList.postId,
-                    quantity: itemFromList.quantity,
-                    isChecked: false,
-                    savedListIds: [],
-                };
+                const newItemForBag: BagItem = { id: `bag-${Date.now()}-${itemFromList.postId}-${Math.random()}`, postId: itemFromList.postId, quantity: itemFromList.quantity, isChecked: false, savedListIds: [] };
                 bagUpdates.push(newItemForBag);
             }
             itemsAddedCount++;
         });
-
         updateCurrentUserSpecificData({ bag: bagUpdates });
         addToast(`${itemsAddedCount} item(s) from "${list.name}" added to bag.`, 'success');
-
     }, [currentAccountId, currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
 
     const setPriceAlert = useCallback((postId: string, targetPrice: number) => {
@@ -637,55 +643,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const checkAvailabilityAlerts = useCallback((post: Post) => {
         const { isExpired } = getPostStatus(post.expiryDate);
-        if (isExpired) return; // Still expired, no action needed
-
+        if (isExpired) return;
         setAllUsersData(prev => {
             const newData = { ...prev };
             let changed = false;
-            
             Object.keys(newData).forEach(userId => {
                 const userData = newData[userId];
                 if (!userData.availabilityAlerts) return;
-                
                 const alertIndex = userData.availabilityAlerts.findIndex(a => a.postId === post.id);
                 if (alertIndex > -1) {
-                    // Remove alert
                     const newAlerts = [...userData.availabilityAlerts];
                     newAlerts.splice(alertIndex, 1);
-                    
-                    // Add notification
-                    const newNotification: Notification = {
-                        id: `notif-avail-${Date.now()}-${userId}`,
-                        recipientId: userId,
-                        message: `Good news! "${post.title}" is now available.`,
-                        timestamp: Date.now(),
-                        isRead: false,
-                        type: 'search_alert', 
-                        postId: post.id
-                    };
-                    
-                    newData[userId] = {
-                        ...userData,
-                        availabilityAlerts: newAlerts,
-                        notifications: [newNotification, ...userData.notifications]
-                    };
+                    const newNotification: Notification = { id: `notif-avail-${Date.now()}-${userId}`, recipientId: userId, message: `Good news! "${post.title}" is now available.`, timestamp: Date.now(), isRead: false, type: 'search_alert', postId: post.id };
+                    newData[userId] = { ...userData, availabilityAlerts: newAlerts, notifications: [newNotification, ...userData.notifications] };
                     changed = true;
-                    
-                    // Trigger browser notification if it's the current user session (simplified simulation)
                     if (userId === currentAccountId && 'Notification' in window && Notification.permission === 'granted') {
                          new Notification('Item Available', { body: newNotification.message });
                     }
                 }
             });
-            
             return changed ? newData : prev;
         });
     }, [setAllUsersData, currentAccountId]);
 
     const setNotifications = useCallback((valueOrUpdater: React.SetStateAction<Notification[]>) => {
-        const newNotifications = typeof valueOrUpdater === 'function'
-            ? valueOrUpdater(currentUserData.notifications)
-            : valueOrUpdater;
+        const newNotifications = typeof valueOrUpdater === 'function' ? valueOrUpdater(currentUserData.notifications) : valueOrUpdater;
         updateCurrentUserSpecificData({ notifications: newNotifications });
     }, [currentUserData.notifications, updateCurrentUserSpecificData]);
 
@@ -702,29 +684,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const addCatalogItems = useCallback(async (files: File[]) => {
         if (!currentAccountId || !currentAccount) return;
-        
         const newItems: CatalogItem[] = [];
-        
         for (const file of files) {
             try {
                 const url = await fileToDataUrl(file);
                 const type = file.type === 'application/pdf' ? 'pdf' : 'image';
-                newItems.push({
-                    id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                    url,
-                    type,
-                    name: file.name
-                });
+                newItems.push({ id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, url, type, name: file.name });
             } catch (error) {
                 console.error(`Failed to process file ${file.name}`, error);
                 addToast(`Failed to process ${file.name}`, 'error');
             }
         }
-
         if (newItems.length > 0) {
             const updatedCatalog = [...(currentAccount.catalog || []), ...newItems];
             setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
-            addToast(`${newItems.length} item(s) added to catalogue.`, 'success');
+            addToast(`${newItems.length} item(s) added to catalogs.`, 'success');
         }
     }, [currentAccountId, currentAccount, setAccounts, addToast]);
 
@@ -732,61 +706,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
          if (!currentAccountId || !currentAccount) return;
          const updatedCatalog = (currentAccount.catalog || []).filter(item => item.id !== itemId);
          setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
-         addToast('Catalogue item removed.', 'success');
+         addToast('Catalog item removed.', 'success');
     }, [currentAccountId, currentAccount, setAccounts, addToast]);
     
     const toggleSavedSearchAlert = useCallback((searchId: string) => {
-        setSavedSearches(prev => prev.map(search => 
-            search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search
-        ));
-        // Feedback handled by UI component or we can add toast here
-        // addToast('Alert preferences updated', 'success'); 
+        setSavedSearches(prev => prev.map(search => search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search));
     }, [setSavedSearches]);
 
     const checkSavedSearchesMatches = useCallback((newPosts: Post[]) => {
         if (!currentAccountId || savedSearches.length === 0) return;
-        
         const alertsEnabledSearches = savedSearches.filter(s => s.enableAlerts);
         if (alertsEnabledSearches.length === 0) return;
         
-        // Map basic Posts to DisplayablePosts (minimal, as filters might need coords etc)
-        // Note: In a real app, we'd need full data. Here we rely on what's passed.
-        // We assume newPosts are DisplayablePosts or compatible enough for basic filters
-        
         alertsEnabledSearches.forEach(search => {
-            // Convert SavedSearchFilters to FiltersState compatible object for the utility function
-            const filterStateCompat: any = {
-                searchQuery: search.filters.searchQuery,
-                filterType: search.filters.filterType,
-                filterCategory: search.filters.filterCategory,
-                minPrice: search.filters.minPrice,
-                maxPrice: search.filters.maxPrice,
-                filterTags: search.filters.filterTags,
-                // Defaults for non-saved filters
-                filterExpiringSoon: false,
-                filterShowExpired: false,
-                filterLast7Days: false,
-                filterDistance: 0,
-                isAiSearchEnabled: false,
-                aiSmartFilterResults: null,
-            };
-            
-            // We don't have user location handy for background check unless we store it, passing null for now
-            const matches = applyFiltersToPosts(
-                newPosts as any[], 
-                newPosts as any[], 
-                filterStateCompat, 
-                search.filters.searchQuery, 
-                null, 
-                currentAccount
-            );
-            
+            const filterStateCompat: any = { searchQuery: search.filters.searchQuery, filterType: search.filters.filterType, filterCategory: search.filters.filterCategory, minPrice: search.filters.minPrice, maxPrice: search.filters.maxPrice, filterTags: search.filters.filterTags, filterExpiringSoon: false, filterShowExpired: false, filterLast7Days: false, filterDistance: 0, isAiSearchEnabled: false, aiSmartFilterResults: null };
+            const matches = applyFiltersToPosts(newPosts as any[], newPosts as any[], filterStateCompat, search.filters.searchQuery, null, currentAccount);
             if (matches.length > 0) {
-                addNotification({
-                    recipientId: currentAccountId,
-                    message: `${matches.length} new item(s) found for your search "${search.name}".`,
-                    type: 'search_alert',
-                });
+                addNotification({ recipientId: currentAccountId, message: `${matches.length} new item(s) found for your search "${search.name}".`, type: 'search_alert' });
             }
         });
     }, [currentAccountId, savedSearches, currentAccount, addNotification]);
@@ -800,67 +736,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setSavedSearches]);
 
     const value = useMemo(() => ({
-        accounts,
-        currentAccount,
-        accountsById,
-        likedPostIds,
-        login,
-        signOut,
-        socialLogin,
-        createAccount,
-        updateAccount,
-        updateAccountDetails,
-        upgradeToSeller,
-        toggleLikeAccount,
-        toggleLikePost,
-        updateSubscription,
-        toggleAccountStatus,
-        deleteAccount,
-        updateAccountRole,
-        approveAccount,
-        rejectAccount,
-        
-        bag: currentUserData.bag,
-        savedLists: currentUserData.savedLists,
-        priceAlerts: currentUserData.priceAlerts,
-        availabilityAlerts: currentUserData.availabilityAlerts,
-        notifications: currentUserData.notifications,
-        notifiedPostIds: currentUserData.notifiedPostIds,
-        viewedPostIds: currentUserData.viewedPostIds,
-        
-        addToBag,
-        updateBagItem,
-        saveItemToLists,
-        removeBagItem,
-        clearCheckedBagItems,
-        createSavedList,
-        renameSavedList,
-        deleteListAndMoveItems,
-        addListToBag,
-        setPriceAlert,
-        deletePriceAlert,
-        setAvailabilityAlert,
-        deleteAvailabilityAlert,
-        checkAvailabilityAlerts,
-        addNotification,
-        setNotifications,
-        setNotifiedPostIds,
-        addPostToViewHistory,
-        addCatalogItems,
-        removeCatalogItem,
-        
-        savedSearches,
-        addSavedSearch,
-        deleteSavedSearch,
-        toggleSavedSearchAlert,
-        checkSavedSearchesMatches
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        bag: currentUserData.bag, savedLists: currentUserData.savedLists, priceAlerts: currentUserData.priceAlerts, availabilityAlerts: currentUserData.availabilityAlerts, notifications: currentUserData.notifications, notifiedPostIds: currentUserData.notifiedPostIds, viewedPostIds: currentUserData.viewedPostIds,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert, checkAvailabilityAlerts, addNotification, setNotifications, setNotifiedPostIds, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert, checkSavedSearchesMatches,
+        // Admin/Global
+        reports, addReport, addForumReport, setReports,
+        feedbackList, addFeedback, setFeedbackList,
+        termsContent, setTermsContent,
+        privacyContent, setPrivacyContent
     }), [
-        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost,
-        updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert, checkAvailabilityAlerts, addNotification, setNotifications, setNotifiedPostIds, addPostToViewHistory,
-        addCatalogItems, removeCatalogItem,
-        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert, checkSavedSearchesMatches
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert, checkAvailabilityAlerts, addNotification, setNotifications, setNotifiedPostIds, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert, checkSavedSearchesMatches,
+        reports, addReport, addForumReport, setReports, feedbackList, addFeedback, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
     ]);
 
     return (

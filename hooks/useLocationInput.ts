@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { geocodeLocation, reverseGeocode, fetchLocationSuggestions } from '../utils/geocoding';
 import { useDebounce } from './useDebounce';
@@ -24,10 +25,17 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
             const fetch = async () => {
                 try {
                     const fetchedSuggestions = await fetchLocationSuggestions(debouncedLocation);
-                    if (isMountedRef.current) setSuggestions(fetchedSuggestions);
+                    if (isMountedRef.current) {
+                        setSuggestions(fetchedSuggestions);
+                        if (error) setError(null); // Clear previous error on success
+                    }
                 } catch (err) {
                     console.error('Failed to fetch location suggestions:', err);
-                    if (isMountedRef.current) setSuggestions([]);
+                    if (isMountedRef.current) {
+                        setSuggestions([]);
+                        // Set a non-blocking error message so user knows autocomplete is down
+                        setError("Location suggestions unavailable.");
+                    }
                 }
             };
             fetch();

@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, CheckBadgeIconSolid } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { Avatar } from './Avatar';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface AccountMenuProps {
     currentAccount: Account;
@@ -13,7 +13,8 @@ interface AccountMenuProps {
     onViewChange: (view: AppView) => void;
     currentView: AppView;
     handleAccountViewToggle: () => void;
-    onOpenNotificationsModal: () => void;
+    onEditProfile: () => void;
+    onOpenActivityPage: () => void;
     mainView: 'grid' | 'map';
     onMainViewChange: (view: 'grid' | 'map') => void;
     gridView: 'default' | 'compact';
@@ -23,6 +24,25 @@ interface AccountMenuProps {
     onOpenSubscriptionPage: () => void;
 }
 
+const MenuItem: React.FC<{
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  badgeCount?: number;
+  animateBadge?: boolean;
+}> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
+    <Button onClick={onClick} variant="ghost" className="w-full justify-start gap-3 p-3 h-auto rounded-lg" role="menuitem">
+        <div className="relative w-6 h-6 flex items-center justify-center">
+            {icon}
+            {badgeCount > 0 && (
+                <span className={`absolute -top-1 -right-1.5 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white ${animateBadge ? 'animate-badge-pop-in' : ''}`}>{badgeCount}</span>
+            )}
+        </div>
+        <span className="text-sm font-semibold text-gray-600">{label}</span>
+    </Button>
+);
+
+
 export const AccountMenu: React.FC<AccountMenuProps> = ({
     currentAccount,
     unreadNotificationsCount,
@@ -30,7 +50,8 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     onViewChange,
     currentView,
     handleAccountViewToggle,
-    onOpenNotificationsModal,
+    onEditProfile,
+    onOpenActivityPage,
     mainView,
     onMainViewChange,
     gridView,
@@ -70,17 +91,11 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
         }
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (isAccountMenuOpen && !isClosing && accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
-                closeMenu();
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside, true);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside, true);
-        };
-    }, [isAccountMenuOpen, isClosing, closeMenu]);
+    useClickOutside(accountMenuRef, () => {
+        if (isAccountMenuOpen && !isClosing) {
+            closeMenu();
+        }
+    }, isAccountMenuOpen);
 
     const handleMenuAction = (action: () => void) => {
         action();
@@ -96,13 +111,14 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     };
 
     const iconClass = "w-6 h-6";
+    const isPersonal = currentAccount.subscription.tier === 'Personal';
 
     return (
         <div ref={accountMenuRef}>
             <Button
                 id="account-menu-button"
                 onClick={toggleMenu}
-                variant="glass-red"
+                variant={isAccountMenuOpen ? "circular-lightred" : "circular-red"}
                 size="icon"
                 className="relative"
                 aria-label="Open account menu"
@@ -122,36 +138,59 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
 
             {isAccountMenuOpen && (
                 <div
-                  className={`absolute right-0 mt-2 w-72 origin-top-right bg-white rounded-lg shadow-2xl border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
+                  className={`absolute right-0 mt-2 w-72 origin-top-right bg-white rounded-lg border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
                   role="menu"
                   aria-orientation="vertical"
                   tabIndex={-1}
                   aria-labelledby="account-menu-button"
                 >
-                    <button 
-                        onClick={() => handleMenuAction(handleAccountViewToggle)} 
-                        className="w-full text-left p-4 border-b bg-gray-50 active:bg-gray-200 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 rounded-t-lg"
-                        role="menuitem"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Avatar 
-                                src={currentAccount.avatarUrl} 
-                                alt={currentAccount.name} 
-                                size="lg" 
-                                tier={currentAccount.subscription.tier} 
-                            />
-                            <div>
-                                <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
-                                <p className="text-sm text-gray-500">View Profile</p>
+                    {isPersonal ? (
+                        <Button
+                            onClick={() => handleMenuAction(onEditProfile)} 
+                            variant="ghost"
+                            className="w-full h-auto text-left p-4 border-b bg-gray-50 rounded-t-lg rounded-b-none"
+                            role="menuitem"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Avatar 
+                                    src={currentAccount.avatarUrl} 
+                                    alt={currentAccount.name} 
+                                    size="lg" 
+                                    tier={currentAccount.subscription.tier} 
+                                />
+                                <div>
+                                    <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
+                                    <p className="text-sm text-gray-600">Edit Profile</p>
+                                </div>
                             </div>
-                        </div>
-                    </button>
+                        </Button>
+                    ) : (
+                        <Button 
+                            onClick={() => handleMenuAction(handleAccountViewToggle)} 
+                            variant="ghost"
+                            className="w-full h-auto text-left p-4 border-b bg-gray-50 rounded-t-lg rounded-b-none"
+                            role="menuitem"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Avatar 
+                                    src={currentAccount.avatarUrl} 
+                                    alt={currentAccount.name} 
+                                    size="lg" 
+                                    tier={currentAccount.subscription.tier} 
+                                />
+                                <div>
+                                    <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
+                                    <p className="text-sm text-gray-600">View Profile</p>
+                                </div>
+                            </div>
+                        </Button>
+                    )}
                     <div className="py-1" role="none">
                         <div className="p-2" role="none">
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
                                 <Button 
                                     onClick={() => handleMenuAction(onOpenCreateModal)} 
-                                    variant="glass-red"
+                                    variant="pill-red"
                                     className="w-full justify-center gap-2 px-4 py-3 text-base font-semibold mb-2 h-auto" 
                                     role="menuitem"
                                 >
@@ -160,65 +199,29 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                                 </Button>
                             )}
                             <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => handleMenuAction(() => onViewChange('forum'))} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="w-6 h-6 flex items-center justify-center">
-                                        <UserIcon className="w-6 h-6 text-gray-600" />
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Forum</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(() => onViewChange('bag'))} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="relative w-6 h-6 flex items-center justify-center">
-                                        <ShoppingBagIcon className="w-6 h-6 text-gray-600" />
-                                        {bagCount > 0 && (
-                                            <span className={`absolute -top-1 -right-1.5 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white ${animateBadge ? 'animate-badge-pop-in' : ''}`}>{bagCount}</span>
-                                        )}
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Bag</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(() => onViewChange('likes'))} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="w-6 h-6 flex items-center justify-center">
-                                        <HeartIcon className="w-6 h-6 text-gray-600" />
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Likes</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(onOpenNotificationsModal)} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="relative w-6 h-6 flex items-center justify-center">
-                                        <BellIcon className="w-6 h-6 text-gray-600" />
-                                        {unreadNotificationsCount > 0 && (
-                                            <span className="absolute -top-1 -right-1.5 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white">{unreadNotificationsCount}</span>
-                                        )}
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Activity</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(onOpenSettingsModal)} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="w-6 h-6 flex items-center justify-center">
-                                        <Cog6ToothIcon className="w-6 h-6 text-gray-600" />
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Settings</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(onOpenSubscriptionPage)} className="flex items-center gap-3 p-3 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
-                                    <div className="w-6 h-6 flex items-center justify-center">
-                                        <CheckBadgeIconSolid className="w-6 h-6 text-amber-500" />
-                                    </div>
-                                    <span className="text-sm font-semibold text-gray-700">Subscribe</span>
-                                </button>
+                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('forum'))} icon={<UserIcon className="w-6 h-6 text-gray-600" />} label="Forum" />
+                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-6 h-6 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
+                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-6 h-6 text-gray-600" />} label="Likes" />
+                                <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-6 h-6 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />
+                                <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-6 h-6 text-gray-600" />} label="Settings" />
+                                <MenuItem onClick={() => handleMenuAction(onOpenSubscriptionPage)} icon={<CheckBadgeIconSolid className="w-6 h-6 text-amber-500" />} label="Subscribe" />
                             </div>
                         </div>
                         <div className="my-1 h-px bg-gray-100" role="separator" />
                         <div className="px-2" role="none">
                            <div className="grid grid-cols-2 gap-2">
-                               <button onClick={() => handleMenuAction(handleViewToggle)} className="flex flex-col items-center justify-center gap-2 p-2 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
+                               <Button onClick={() => handleMenuAction(handleViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-lg" role="menuitem">
                                     <div className="w-6 h-6 flex items-center justify-center text-gray-600">
                                        {mainView === 'grid' ? <MapPinIcon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
                                     </div>
-                                    <span className="text-xs font-semibold text-gray-700">{mainView === 'grid' ? 'Maps' : 'Grid'}</span>
-                                </button>
-                                <button onClick={() => handleMenuAction(handleGridViewToggle)} className="flex flex-col items-center justify-center gap-2 p-2 rounded-lg active:bg-gray-100 transition-colors" role="menuitem">
+                                    <span className="text-xs font-semibold text-gray-600">{mainView === 'grid' ? 'Maps' : 'Grid'}</span>
+                                </Button>
+                                <Button onClick={() => handleMenuAction(handleGridViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-lg" role="menuitem">
                                      <div className="w-6 h-6 flex items-center justify-center text-gray-600">
                                        {gridView === 'default' ? <Squares3X3Icon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
                                     </div>
-                                    <span className="text-xs font-semibold text-gray-700">{gridView === 'default' ? 'Compact' : 'Default'}</span>
-                                </button>
+                                    <span className="text-xs font-semibold text-gray-600">{gridView === 'default' ? 'Compact' : 'Default'}</span>
+                                </Button>
                            </div>
                         </div>
 
@@ -226,10 +229,10 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             <>
                                 <div className="my-1 h-px bg-gray-100" role="separator" />
                                 <div className="p-2" role="none">
-                                    <button onClick={() => handleMenuAction(() => onViewChange('admin'))} className="w-full flex items-center justify-center gap-4 px-4 py-2.5 text-base font-medium text-gray-700 active:bg-gray-100 transition-colors rounded-lg" role="menuitem">
+                                    <Button onClick={() => handleMenuAction(() => onViewChange('admin'))} variant="ghost" className="w-full justify-center gap-4 px-4 py-2.5 text-base h-auto font-medium text-gray-600 rounded-lg" role="menuitem">
                                         <UserIcon className="w-6 h-6 text-gray-600" />
                                         <span>Admin Panel</span>
-                                    </button>
+                                    </Button>
                                 </div>
                             </>
                         )}

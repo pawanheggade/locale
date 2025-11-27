@@ -51,8 +51,8 @@ const SaveToListModal: React.FC<SaveToListModalProps> = ({ bagItemId, onClose })
   
   const renderFooter = () => (
     <>
-      <Button variant="glass" onClick={onClose} className="mr-auto">Cancel</Button>
-      <Button onClick={handleDone} variant="glass-red">Done</Button>
+      <Button variant="overlay-dark" onClick={onClose} className="mr-auto">Cancel</Button>
+      <Button onClick={handleDone} variant="pill-red">Done</Button>
     </>
   );
 
@@ -70,7 +70,7 @@ const SaveToListModal: React.FC<SaveToListModalProps> = ({ bagItemId, onClose })
           <div className="space-y-2">
             <p className="text-sm text-gray-600">Select one or more lists to save this item to. Uncheck all to move it back to your bag.</p>
             {savedLists.map(list => (
-              <div key={list.id} className="flex items-center p-3 rounded-lg hover:bg-gray-100 cursor-pointer" onClick={() => handleToggleList(list.id)}>
+              <div key={list.id} className="flex items-center p-3 rounded-lg cursor-pointer" onClick={() => handleToggleList(list.id)}>
                 <input
                   type="checkbox"
                   id={`list-checkbox-${list.id}`}
@@ -95,15 +95,15 @@ const SaveToListModal: React.FC<SaveToListModalProps> = ({ bagItemId, onClose })
               autoFocus
             />
             <div className="flex justify-end gap-2">
-              <Button variant="glass" type="button" onClick={() => setShowNewListForm(false)}>Cancel</Button>
-              <Button type="submit" disabled={!newListName.trim()} variant="glass-red">Create</Button>
+              <Button variant="outline" type="button" onClick={() => setShowNewListForm(false)}>Cancel</Button>
+              <Button type="submit" disabled={!newListName.trim()} variant="pill-red">Create</Button>
             </div>
           </form>
         ) : (
           <Button
-            variant="glass"
+            variant="ghost"
             onClick={() => setShowNewListForm(true)}
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 text-gray-600"
           >
             <PlusIcon className="w-5 h-5" />
             Create list

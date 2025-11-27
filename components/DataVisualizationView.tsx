@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useMemo } from 'react';
 import { Account, DisplayablePost, PostCategory, PostType } from '../types';
 import { UserIcon, ArchiveBoxIcon, HeartIcon } from './Icons';
@@ -233,29 +232,29 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
     <div className="p-4 bg-gray-50 rounded-lg">
       {!account && accounts.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6 mb-6">
-            <StatCard title="Accounts" value={totals.totalAccounts} icon={<UserIcon className="w-6 h-6 text-red-600" />} />
-            <StatCard title="Posts" value={totals.totalPosts} icon={<ArchiveBoxIcon className="w-6 h-6 text-red-600" />} />
-            <StatCard title="Post Likes" value={totals.totalPostLikes} icon={<HeartIcon className="w-6 h-6 text-red-600" />} />
-            <StatCard title="Profile Likes" value={totals.totalLikes} icon={<HeartIcon className="w-6 h-6 text-red-600" />} />
-            <StatCard title="Profile Views" value={totals.totalProfileViews} icon={<UserIcon className="w-6 h-6 text-red-600" />} />
+            <StatCard title="Accounts" value={totals.totalAccounts} icon={<UserIcon className="w-10 h-10 text-red-600" />} />
+            <StatCard title="Posts" value={totals.totalPosts} icon={<ArchiveBoxIcon className="w-10 h-10 text-red-600" />} />
+            <StatCard title="Post Likes" value={totals.totalPostLikes} icon={<HeartIcon className="w-10 h-10 text-red-600" />} />
+            <StatCard title="Profile Likes" value={totals.totalLikes} icon={<HeartIcon className="w-10 h-10 text-red-600" />} />
+            <StatCard title="Profile Views" value={totals.totalProfileViews} icon={<UserIcon className="w-10 h-10 text-red-600" />} />
         </div>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {!account && (
           <>
-            <div className="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-2">
+            <div className="bg-white p-6 rounded-lg col-span-1 lg:col-span-2">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Activity</h2>
               <div className="relative h-80">
                 <canvas ref={activityChartRef}></canvas>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-lg">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Types</h2>
               <div className="relative h-80">
                 <canvas ref={typeChartRef}></canvas>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-lg">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Categories</h2>
               <div className="relative h-80">
                 <canvas ref={categoryChartRef}></canvas>
@@ -263,14 +262,14 @@ export const DataVisualizationView: React.FC<DataVisualizationViewProps> = ({ al
             </div>
           </>
         )}
-        <div className="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-2">
+        <div className="bg-white p-6 rounded-lg col-span-1 lg:col-span-2">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Performance</h2>
             {postLikesData.hasData ? (
                 <div className="relative h-96">
                     <canvas ref={postLikesChartRef}></canvas>
                 </div>
             ) : (
-                <div className="relative h-96 flex items-center justify-center text-gray-500">
+                <div className="relative h-96 flex items-center justify-center text-gray-600">
                     <p>No posts have received likes yet.</p>
                 </div>
             )}

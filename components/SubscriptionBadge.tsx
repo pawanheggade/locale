@@ -1,8 +1,9 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Subscription } from '../types';
 import { CheckBadgeIcon, CheckBadgeIconSolid } from './Icons';
 import { cn } from '../lib/utils';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface TierInfo {
     textColor: string;
@@ -43,17 +44,7 @@ export const SubscriptionBadge: React.FC<{ tier: Subscription['tier']; iconOnly?
     const [isOpen, setIsOpen] = useState(false);
     const badgeRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (badgeRef.current && !badgeRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen]);
+    useClickOutside(badgeRef, () => setIsOpen(false), isOpen);
 
     if (!info) {
         return null;

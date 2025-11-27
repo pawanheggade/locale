@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDebounce } from './useDebounce';
 import { generateSearchSuggestions } from '../utils/gemini';
+import { useClickOutside } from './useClickOutside';
 
 /**
  * Manages keyboard navigation (up, down, enter, escape) for a list of suggestions.
@@ -71,6 +73,7 @@ interface UseSearchSuggestionsProps {
   recentSearches: string[];
   isAiSearchEnabled: boolean;
   onSelectSuggestion: (suggestion: string) => void;
+  onError?: (error: Error) => void;
 }
 
 export const useSearchSuggestions = ({
@@ -79,6 +82,7 @@ export const useSearchSuggestions = ({
   recentSearches,
   isAiSearchEnabled,
   onSelectSuggestion,
+  onError,
 }: UseSearchSuggestionsProps) => {
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -105,15 +109,9 @@ export const useSearchSuggestions = ({
     isDropdownVisible
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsFocused(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  useClickOutside(wrapperRef, () => {
+      setIsFocused(false);
+  });
 
   useEffect(() => {
     if (searchQuery) {
@@ -152,18 +150,24 @@ export const useSearchSuggestions = ({
     if (isAiSearchEnabled && debouncedQuery.trim().length > 1) {
       const fetchAiSuggestions = async () => {
         setIsFetchingAiSuggestions(true);
-        const newSuggestions = await generateSearchSuggestions(debouncedQuery);
-        // Only update if the query hasn't changed, to prevent race conditions
-        if (debouncedQuery === searchQuery) {
-            setAiSuggestions(newSuggestions);
+        try {
+            const newSuggestions = await generateSearchSuggestions(debouncedQuery);
+            // Only update if the query hasn't changed, to prevent race conditions
+            if (debouncedQuery === searchQuery) {
+                setAiSuggestions(newSuggestions);
+            }
+        } catch (error) {
+            setAiSuggestions([]);
+            if (onError) onError(error as Error);
+        } finally {
+            setIsFetchingAiSuggestions(false);
         }
-        setIsFetchingAiSuggestions(false);
       };
       fetchAiSuggestions();
     } else {
       setAiSuggestions([]);
     }
-  }, [debouncedQuery, isAiSearchEnabled, searchQuery]);
+  }, [debouncedQuery, isAiSearchEnabled, searchQuery, onError]);
   
   const handleSuggestionClick = (suggestion: string) => {
     onSelectSuggestion(suggestion);

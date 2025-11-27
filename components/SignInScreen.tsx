@@ -1,10 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Account } from '../types';
-import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon } from './Icons';
+import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
 import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
+import { FormField } from './FormField';
 
 interface SignInScreenProps {
   accounts: Account[];
@@ -48,8 +49,13 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             onLogin(foundAccount, rememberMe);
             // Do not set isLoading to false here, as the component will unmount immediately.
         } else if (foundAccount.status === 'archived') {
-            setError('This account has been archived.');
-            setIsLoading(false);
+            if (foundAccount.archivedByAdmin) {
+                setError('This account has been archived by an administrator. Please contact support.');
+                setIsLoading(false);
+            } else {
+                // User archived it themselves. Proceed to login (which will reactivate it).
+                onLogin(foundAccount, rememberMe);
+            }
         } else {
              setError('This account is currently inactive.');
              setIsLoading(false);
@@ -77,7 +83,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         {/* Quick Login Section */}
         {activeAccounts.length > 0 && (
             <div className="text-center">
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Quick Sign in</h3>
+                <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Quick Sign in</h3>
                 <div className="mt-4 flex overflow-x-auto pb-4 gap-4 hide-scrollbar">
                     {activeAccounts.map(account => {
                         return (
@@ -89,7 +95,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                                     tier={account.subscription.tier}
                                     className="group-focus:ring-2 group-focus:ring-red-500 group-focus:ring-offset-2 transition-all"
                                 />
-                                <span className="text-xs font-medium text-gray-700 transition-colors w-16 truncate">{account.name.split(' ')[0]}</span>
+                                <span className="text-xs font-medium text-gray-600 transition-colors w-16 truncate">{account.name.split(' ')[0]}</span>
                             </button>
                         );
                     })}
@@ -101,32 +107,33 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         {activeAccounts.length > 0 && (
             <div className="relative">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
-                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-700">Or use another account</span></div>
+                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-600">Or use another account</span></div>
             </div>
         )}
 
         {/* Main Login Form */}
         <form onSubmit={handleLoginSubmit} className="space-y-4">
-            <InputWithIcon
-                id="identifier"
-                label="Username or Email"
-                type="text"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
-                required
-                autoFocus={activeAccounts.length === 0}
-            />
+            <FormField id="identifier" label="Username or Email">
+                <InputWithIcon
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
+                    required
+                    autoFocus={activeAccounts.length === 0}
+                />
+            </FormField>
             
-            <InputWithIcon
-                id="password"
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                icon={<LockClosedIcon className="h-5 w-5 text-gray-400" />}
-                required
-            />
+            <FormField id="password" label="Password" error={error}>
+                 <InputWithIcon
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    icon={<LockClosedIcon className="h-5 w-5 text-gray-400" />}
+                    required
+                />
+            </FormField>
+
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -134,7 +141,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                     <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">Remember me</label>
                 </div>
                 <div className="text-sm">
-                    <button type="button" onClick={onOpenPasswordAssistanceModal} className="font-medium text-red-600 focus:outline-none focus:underline">Forgot password?</button>
+                    <Button variant="link" size="sm" onClick={onOpenPasswordAssistanceModal} className="px-0 h-auto font-medium text-red-600">Forgot password?</Button>
                 </div>
             </div>
 
@@ -146,7 +153,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             )}
 
             <div>
-                <Button type="submit" disabled={isLoading || !!loadingProvider} className="w-full h-12 text-base" variant="glass-red">
+                <Button type="submit" disabled={isLoading || !!loadingProvider} className="w-full h-12 text-base" variant="pill-red">
                     {isLoading ? <SpinnerIcon className="w-5 h-5" /> : <span>Sign in</span>}
                 </Button>
             </div>
@@ -156,14 +163,14 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         <div className="space-y-3">
              <div className="relative">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
-                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-700">Or social sign in</span></div>
+                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-600">Or social sign in</span></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-                <Button type="button" onClick={() => handleSocialClick('google')} disabled={isLoading || !!loadingProvider} variant="glass" className="w-full">
-                    {loadingProvider === 'google' ? <SpinnerIcon className="w-5 h-5" /> : <span>Google</span>}
+                <Button type="button" onClick={() => handleSocialClick('google')} disabled={isLoading || !!loadingProvider} variant="outline" className="w-full gap-2">
+                    {loadingProvider === 'google' ? <SpinnerIcon className="w-5 h-5" /> : <><GoogleIcon className="w-5 h-5" /> <span>Google</span></>}
                 </Button>
-                <Button type="button" onClick={() => handleSocialClick('apple')} disabled={isLoading || !!loadingProvider} variant="glass-dark" className="w-full">
-                    {loadingProvider === 'apple' ? <SpinnerIcon className="w-5 h-5" /> : <span>Apple</span>}
+                <Button type="button" onClick={() => handleSocialClick('apple')} disabled={isLoading || !!loadingProvider} variant="pill-dark" className="w-full gap-2">
+                    {loadingProvider === 'apple' ? <SpinnerIcon className="w-5 h-5" /> : <><AppleIcon className="w-5 h-5" /> <span>Apple</span></>}
                 </Button>
             </div>
         </div>
@@ -172,15 +179,15 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         <div className="mt-6 pt-6 border-t border-gray-200 space-y-4">
             <div className="text-center text-base text-gray-800">
                 <span>Don't have an account? </span>
-                <button onClick={onOpenCreateAccountModal} className="font-medium text-red-600 focus:outline-none focus:underline">Sign up</button>
+                <Button variant="link" size="sm" onClick={onOpenCreateAccountModal} className="px-0 h-auto font-medium text-red-600 text-base">Sign up</Button>
             </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-2 text-center text-xs text-gray-700">
+        <div className="mt-2 text-center text-xs text-gray-600">
             By signing in, you agree to our{' '}
-            <button onClick={onOpenTermsModal} className="underline">Terms of Service</button> and{' '}
-            <button onClick={onOpenPrivacyModal} className="underline">Privacy Policy</button>.
+            <Button variant="link" size="sm" onClick={onOpenTermsModal} className="px-0 h-auto underline text-xs text-gray-600 hover:text-gray-900">Terms of Service</Button> and{' '}
+            <Button variant="link" size="sm" onClick={onOpenPrivacyModal} className="px-0 h-auto underline text-xs text-gray-600 hover:text-gray-900">Privacy Policy</Button>.
         </div>
     </div>
   );

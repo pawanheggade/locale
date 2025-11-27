@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
@@ -6,6 +5,7 @@ import { Button } from './ui/Button';
 import { TrashIcon, DocumentDuplicateIcon, PlusIcon } from './Icons';
 import { cn } from '../lib/utils';
 import { useUI } from '../contexts/UIContext';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 interface ManageCatalogModalProps {
     catalog: CatalogItem[];
@@ -18,7 +18,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    const { openModal } = useUI();
+    const showConfirmation = useConfirmationModal();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFiles = Array.from(e.target.files || []);
@@ -31,23 +31,20 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
         }
     };
 
-    const requestRemove = (id: string) => {
-        openModal({
-            type: 'confirmation',
-            data: {
-                title: 'Remove Item',
-                message: 'Are you sure you want to remove this item from your catalog?',
-                onConfirm: async () => {
-                    await onRemove(id);
-                    openModal({ type: 'manageCatalog' }); // Re-open
-                },
-                confirmText: 'Remove',
-            }
-        })
+    const requestRemove = (id: string, name: string) => {
+        showConfirmation({
+            title: 'Remove Item',
+            message: `Are you sure you want to remove "${name}" from your catalog?`,
+            onConfirm: async () => {
+                await onRemove(id);
+                // No need to re-open modal as context update will re-render if it's still open
+            },
+            confirmText: 'Remove',
+        });
     };
 
     const renderFooter = () => (
-        <Button variant="glass" onClick={onClose}>
+        <Button variant="overlay-dark" onClick={onClose}>
             Done
         </Button>
     );
@@ -65,7 +62,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
                 {/* Add New Files Section */}
                 <div 
                     className={cn(
-                        "border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors hover:bg-gray-50",
+                        "border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors",
                         isSubmitting && "opacity-50 pointer-events-none"
                     )}
                     onClick={() => !isSubmitting && fileInputRef.current?.click()}
@@ -86,7 +83,7 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
 
                 {/* Existing Files List */}
                 <div>
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Current Files ({catalog.length})</h3>
+                    <h3 className="text-sm font-semibold text-gray-600 mb-3">Current Files ({catalog.length})</h3>
                     {catalog.length === 0 ? (
                         <p className="text-sm text-gray-500 italic">No files in catalogs.</p>
                     ) : (
@@ -101,14 +98,14 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
                                                 <DocumentDuplicateIcon className="w-5 h-5" />
                                             </div>
                                         )}
-                                        <span className="text-sm font-medium text-gray-700 truncate max-w-[180px] sm:max-w-xs" title={item.name}>{item.name}</span>
+                                        <span className="text-sm font-medium text-gray-600 truncate max-w-[180px] sm:max-w-xs" title={item.name}>{item.name}</span>
                                     </div>
                                     <Button 
-                                        variant="glass" 
+                                        variant="ghost" 
                                         size="icon-sm" 
-                                        onClick={() => requestRemove(item.id)}
+                                        onClick={() => requestRemove(item.id, item.name)}
                                         disabled={isSubmitting}
-                                        className="text-red-600 hover:text-red-700"
+                                        className="text-red-600"
                                         aria-label="Remove file"
                                     >
                                         <TrashIcon className="w-4 h-4" />

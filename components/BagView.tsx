@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
-import { TrashIcon, ShoppingBagIcon, SpinnerIcon, PlusIcon, PencilIcon } from './Icons';
+import { TrashIcon, ShoppingBagIcon, SpinnerIcon, PlusIcon, PencilIcon, DocumentIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/Button';
@@ -10,6 +9,9 @@ import { useUI } from '../contexts/UIContext';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/Accordion';
 import { Input } from './ui/Input';
 import { QuantitySelector } from './QuantitySelector';
+import { EmptyState } from './EmptyState';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { cn } from '../lib/utils';
 
 interface BagViewProps {
   onViewDetails: (post: DisplayablePost) => void;
@@ -63,13 +65,18 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
         onClick={onViewDetails}
       />
       <div className="flex-1 min-w-0">
-        <h3
-          className={`font-semibold text-gray-800 cursor-pointer truncate ${isChecked ? 'line-through text-gray-500' : ''}`}
+        <Button
+          variant="ghost"
           onClick={onViewDetails}
           title={post.title}
+          className={cn(
+            '!p-0 !h-auto !justify-start !text-left !block !truncate font-semibold hover:!underline',
+            isChecked ? 'text-gray-500 line-through' : 'text-gray-800'
+          )}
         >
           {post.title}
-        </h3>
+        </Button>
+
         <p className={`text-sm text-gray-500 ${isChecked ? 'line-through' : ''}`}>
           {formatCurrency(post.salePrice ?? post.price)}
         </p>
@@ -107,6 +114,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
   } = useAuth();
   const { posts } = usePosts();
   const { openModal } = useUI();
+  const showConfirmation = useConfirmationModal();
   
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [editingList, setEditingList] = useState<{ id: string, name: string } | null>(null);
@@ -149,30 +157,24 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
   const hasCheckedItems = inBagItems.some(item => item.isChecked);
   
   const handleRemoveClick = (item: typeof itemsWithPostData[0]) => {
-    openModal({
-      type: 'confirmation',
-      data: {
-        title: 'Remove Item',
-        message: `Are you sure you want to remove "${item.post.title}" from your bag?`,
-        onConfirm: () => removeBagItem(item.id),
-        confirmText: 'Remove',
-      },
+    showConfirmation({
+      title: 'Remove Item',
+      message: `Are you sure you want to remove "${item.post.title}" from your bag?`,
+      onConfirm: () => removeBagItem(item.id),
+      confirmText: 'Remove',
     });
   };
   
   const handleClearChecked = () => {
-    openModal({
-      type: 'confirmation',
-      data: {
-        title: 'Clear Checked Items',
-        message: 'Are you sure you want to remove all checked items from your bag?',
-        onConfirm: () => {
-             setIsClearing(true);
-             clearCheckedBagItems();
-             setIsClearing(false);
-        },
-        confirmText: 'Clear Checked',
-      }
+    showConfirmation({
+      title: 'Clear Checked Items',
+      message: 'Are you sure you want to remove all checked items from your bag?',
+      onConfirm: () => {
+           setIsClearing(true);
+           clearCheckedBagItems();
+           setIsClearing(false);
+      },
+      confirmText: 'Clear Checked',
     });
   };
 
@@ -254,37 +256,32 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
   };
 
   const handleAddListToBag = (list: SavedList) => {
-    openModal({
-      type: 'confirmation',
-      data: {
-        title: `Add items from "${list.name}" to bag?`,
-        message: `This will copy all items from this list to your bag. The list will not be changed. Items already in your bag will have their quantity increased.`,
-        onConfirm: () => addListToBag(list.id),
-        confirmText: 'Add to Bag',
-        confirmClassName: 'glass-button-pill-red',
-      },
+    showConfirmation({
+      title: `Add items from "${list.name}" to bag?`,
+      message: `This will copy all items from this list to your bag. The list will not be changed. Items already in your bag will have their quantity increased.`,
+      onConfirm: () => addListToBag(list.id),
+      confirmText: 'Add to Bag',
+      confirmClassName: 'bg-red-600 text-white rounded-full hover:bg-red-700',
     });
   };
   
   const handleDeleteList = (list: SavedList) => {
-    openModal({
-      type: 'confirmation',
-      data: {
-        title: `Delete list "${list.name}"?`,
-        message: 'This will permanently delete the list. Any items that are only in this list will be moved to your main bag.',
-        onConfirm: () => deleteListAndMoveItems(list.id),
-        confirmText: 'Delete List',
-      },
+    showConfirmation({
+      title: `Delete list "${list.name}"?`,
+      message: 'This will permanently delete the list. Any items that are only in this list will be moved to your main bag.',
+      onConfirm: () => deleteListAndMoveItems(list.id),
+      confirmText: 'Delete List',
     });
   };
   
   if (itemsWithPostData.length === 0) {
     return (
-      <div className="text-center py-20 animate-fade-in-up p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-        <ShoppingBagIcon className="w-24 h-24 text-gray-300" />
-        <h2 className="text-2xl font-semibold text-gray-700 mt-4">Your Bag is Empty</h2>
-        <p className="text-gray-500 mt-2 max-w-md">Find something you love and add it to your bag to see it here.</p>
-      </div>
+      <EmptyState
+        icon={<ShoppingBagIcon className="[&>path]:stroke-[1]" />}
+        title="Your Bag is Empty"
+        description="Find something you love and add it to your bag to see it here."
+        className="py-20"
+      />
     );
   }
 
@@ -297,7 +294,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Items ({totalInBagQuantity})</h2>
           {hasCheckedItems && (
-            <Button onClick={handleClearChecked} disabled={isClearing} variant="glass" size="xs" className="gap-1 text-gray-600">
+            <Button onClick={handleClearChecked} disabled={isClearing} variant="overlay-dark" size="xs" className="gap-1 text-gray-600">
               {isClearing ? <SpinnerIcon className="w-4 h-4" /> : <TrashIcon className="w-4 h-4 text-red-500" />}
               {isClearing ? 'Clearing...' : 'Clear Checked Items'}
             </Button>
@@ -305,11 +302,14 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
         </div>
 
         {inBagItems.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-500">No items in your bag.</p>
-          </div>
+          <EmptyState
+            icon={<ShoppingBagIcon className="text-gray-300" />}
+            title=""
+            description="No items in your bag."
+            className="py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200"
+          />
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg overflow-hidden">
             <ul className="divide-y divide-gray-200">
               {inBagItems.map((item) => {
                 const { id, quantity } = item;
@@ -327,7 +327,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                     onViewDetails={() => handleViewDetails(item.post)}
                     onToggleCheck={(checked) => updateBagItem(id, { isChecked: checked })}
                     actionButton={
-                      <Button variant="glass" size="sm" onClick={() => openModal({ type: 'saveToList', data: { bagItemId: id } })}>
+                      <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'saveToList', data: { bagItemId: id } })}>
                         Save to list
                       </Button>
                     }
@@ -347,7 +347,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
       <div>
         <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-800">Lists</h2>
-            <Button variant="glass" size="sm" onClick={handleCreateListClick} className="gap-2">
+            <Button variant="overlay-dark" size="sm" onClick={handleCreateListClick} className="gap-2">
                 <PlusIcon className="w-4 h-4" />
                 Create list
             </Button>
@@ -362,15 +362,18 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                     autoFocus
                     className="flex-grow"
                 />
-                <Button type="submit" disabled={!newListName.trim()} variant="glass-red">Create</Button>
-                <Button variant="glass" type="button" onClick={() => setShowCreateListForm(false)}>Cancel</Button>
+                <Button type="submit" disabled={!newListName.trim()} variant="overlay-red">Create</Button>
+                <Button variant="overlay-dark" type="button" onClick={() => setShowCreateListForm(false)}>Cancel</Button>
             </form>
         )}
 
         {savedLists.length === 0 && !showCreateListForm ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">Create lists to organize items you want to save.</p>
-            </div>
+            <EmptyState
+                icon={<DocumentIcon className="w-12 h-12 text-gray-300" />}
+                title=""
+                description="Create lists to organize items you want to save."
+                className="py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200"
+            />
         ) : (
             <Accordion type="multiple" className="w-full space-y-2">
             {savedLists.map(list => {
@@ -379,7 +382,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                 const listTotalPrice = itemsInList.reduce((sum, item) => sum + (item.post.salePrice ?? item.post.price) * item.quantity, 0);
                 
                 return (
-                <AccordionItem key={list.id} value={list.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <AccordionItem key={list.id} value={list.id} className="bg-white rounded-lg overflow-hidden">
                     <AccordionTrigger className="px-4 py-3">
                         <div className="flex flex-1 items-center justify-between mr-2">
                           <div className="flex flex-col items-start min-w-0 text-left">
@@ -402,9 +405,9 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                             </span>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                            <Button variant="glass" size="icon-sm" onClick={(e) => { e.stopPropagation(); setEditingList({ id: list.id, name: list.name }); }} title="Rename list"><PencilIcon className="w-4 h-4" /></Button>
-                            <Button variant="glass" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleDeleteList(list); }} title="Delete list"><TrashIcon className="w-5 h-5 text-gray-500" /></Button>
-                            <Button variant="glass" size="sm" onClick={(e) => { e.stopPropagation(); handleAddListToBag(list); }}>Add to Bag</Button>
+                            <Button variant="overlay-dark" size="icon-sm" onClick={(e) => { e.stopPropagation(); setEditingList({ id: list.id, name: list.name }); }} title="Rename list"><PencilIcon className="w-4 h-4" /></Button>
+                            <Button variant="overlay-dark" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleDeleteList(list); }} title="Delete list"><TrashIcon className="w-5 h-5 text-gray-500" /></Button>
+                            <Button variant="overlay-dark" size="sm" onClick={(e) => { e.stopPropagation(); handleAddListToBag(list); }}>Add to Bag</Button>
                           </div>
                         </div>
                     </AccordionTrigger>
@@ -428,7 +431,7 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
                                   onRemove={() => handleRemoveClick(item)}
                                   onViewDetails={() => handleViewDetails(item.post)}
                                   actionButton={
-                                    <Button variant="glass" size="sm" onClick={() => addToBag(item.post.id, item.quantity)}>
+                                    <Button variant="overlay-dark" size="sm" onClick={() => addToBag(item.post.id, item.quantity)}>
                                       Add to Bag
                                     </Button>
                                   }

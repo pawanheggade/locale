@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useMemo, useCallback, useState } from 'react';
 import { ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
@@ -16,6 +16,8 @@ interface ForumContextType {
   posts: DisplayableForumPost[];
   comments: ForumComment[];
   categories: string[];
+  activeCategory: string;
+  setActiveCategory: (category: string) => void;
   getPostWithComments: (postId: string) => DisplayableForumPost | null;
   findForumPostById: (postId: string) => ForumPost | undefined;
   getPostComments: (postId: string) => DisplayableForumComment[];
@@ -40,6 +42,8 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [rawPosts, setRawPosts] = useLargePersistentState<ForumPost[]>(FORUM_POSTS_KEY, mockForumPosts);
     const [comments, setComments] = useLargePersistentState<ForumComment[]>(FORUM_COMMENTS_KEY, mockForumComments);
     const [categories, setCategories] = usePersistentState<string[]>(FORUM_CATEGORIES_KEY, mockForumCategories);
+    
+    const [activeCategory, setActiveCategory] = useState<string>('All');
 
     const { addCategory, updateCategory, deleteCategory } = useCategoryManager({
         items: rawPosts,
@@ -234,6 +238,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const value = useMemo(() => ({
         posts, comments, categories,
+        activeCategory, setActiveCategory,
         getPostWithComments,
         findForumPostById,
         getPostComments,
@@ -248,7 +253,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateCategory,
         deleteCategory,
     }), [
-        posts, comments, categories,
+        posts, comments, categories, activeCategory,
         getPostWithComments, findForumPostById, getPostComments, addPost, addComment,
         toggleVote, updatePost, updateComment, deletePost, deleteComment,
         addCategory, updateCategory, deleteCategory,

@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { useForum } from '../contexts/ForumContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useUI } from '../contexts/UIContext';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 
@@ -17,12 +19,19 @@ const COMMENT_MAX_LENGTH = 500;
 
 export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCommentAdded, placeholder = "Add a comment...", autoFocus = false, onCancel }) => {
     const { addComment } = useForum();
+    const { currentAccount } = useAuth();
+    const { openModal } = useUI();
     const [content, setContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!content.trim() || content.length > COMMENT_MAX_LENGTH) return;
+
+        if (!currentAccount) {
+            openModal({ type: 'login' });
+            return;
+        }
 
         setIsSubmitting(true);
         addComment({ postId, parentId, content: content.trim() });
@@ -53,11 +62,11 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCo
             </div>
             <div className="flex items-center gap-2">
                 {onCancel && (
-                    <Button variant="glass" onClick={onCancel} disabled={isSubmitting}>
+                    <Button variant="overlay-dark" onClick={onCancel} disabled={isSubmitting}>
                         Cancel
                     </Button>
                 )}
-                <Button type="submit" isLoading={isSubmitting} disabled={!content.trim() || isOverLimit} variant="glass-red">
+                <Button type="submit" isLoading={isSubmitting} disabled={!content.trim() || isOverLimit} variant="pill-red">
                     Post Comment
                 </Button>
             </div>

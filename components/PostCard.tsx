@@ -1,17 +1,17 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { HeartIcon, MapPinIcon, ClockIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, PencilIcon, PinIcon, BellIcon } from './Icons';
+import { MapPinIcon, ClockIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, PencilIcon, PinIcon, BellIcon } from './Icons';
 import { formatTimeRemaining } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { useAuth } from '../contexts/AuthContext';
-import { LocaleChoiceBadge } from './Badges';
+import { LocaleChoiceBadge, CategoryBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/Card';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { cn } from '../lib/utils';
+import { LikeButton } from './LikeButton';
 import { Button } from './ui/Button';
 
 interface PostCardProps {
@@ -27,7 +27,7 @@ interface PostCardProps {
 }
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
-  const { onToggleLikePost, onViewDetails, onAddToBag, onContactStore, onRequestService, onViewAccount, onShowOnMap, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = usePostActions();
+  const { onToggleLikePost, onViewDetails, onAddToBag, onContactStore, onRequestService, onViewAccount, onShowOnMap, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert, onFilterByCategory, onFilterByTag } = usePostActions();
   const { likedPostIds, bag, availabilityAlerts } = useAuth();
   
   const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
@@ -39,7 +39,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   
   const [isInView, setIsInView] = useState(!enableEntryAnimation);
   const [hasAnimated, setHasAnimated] = useState(!enableEntryAnimation);
-  const [isAnimatingLike, setIsAnimatingLike] = useState(false);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -69,30 +68,14 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     if (cardRef.current) observer.observe(cardRef.current);
     return () => { if (cardRef.current) observer.unobserve(cardRef.current); };
   }, [enableEntryAnimation, hasAnimated]);
-
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const result = onToggleLikePost(post.id);
-    
-    // Animate only on "liking", not "unliking".
-    if (result && !result.wasLiked) {
-      setIsAnimatingLike(true);
-    }
-  };
   
-  const actionIcon = useMemo(() => {
+  const ActionIcon = useMemo(() => {
     if (isPurchasable) {
-        return <ShoppingBagIcon className="w-5 h-5 text-red-600" isFilled={isAddedToBag} />;
+        return ShoppingBagIcon;
     }
-    switch (post.type) {
-      case PostType.SERVICE:
-        return <ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-red-600" />;
-      case PostType.EVENT:
-        return <ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-red-600" />;
-      default:
-        return <ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-red-600" />;
-    }
-  }, [post.type, isPurchasable, isAddedToBag]);
+    // For Service and Event, use ChatBubbleBottomCenterTextIcon
+    return ChatBubbleBottomCenterTextIcon;
+  }, [isPurchasable]);
   
   const handleActionClick = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -117,7 +100,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     <Card
       ref={cardRef}
       className={cn(
-        'group cursor-pointer shadow-lg shadow-gray-900/5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+        'group cursor-pointer transition-all duration-300',
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-up' : 'opacity-0 translate-y-4')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
@@ -139,26 +122,27 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             {isEligibleToPin ? (
                 <Button
                     onClick={(e) => { e.stopPropagation(); onTogglePinPost(post.id); }}
-                    variant="glass-dark"
+                    variant="overlay"
                     size="icon-sm"
-                    className={cn(post.isPinned ? 'text-red-500' : 'text-white')}
+                    className={cn(
+                        post.isPinned ? "text-red-600" : "text-white"
+                    )}
                     aria-label={post.isPinned ? 'Unpin post' : 'Pin post'}
                     title={post.isPinned ? 'Unpin post' : 'Pin post'}
                 >
                     <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
                 </Button>
             ) : !isOwnPost && (
-              <Button
-                onClick={handleLikeClick}
-                onAnimationEnd={() => setIsAnimatingLike(false)}
-                variant="glass-dark"
+              <LikeButton
+                isLiked={isLiked}
+                onToggle={() => onToggleLikePost(post.id)}
+                variant="overlay"
                 size="icon-sm"
-                className={cn(isLiked ? 'text-red-500' : 'text-white', isAnimatingLike && 'animate-like-pop')}
-                aria-label={isLiked ? 'Unlike post' : 'Like post'}
-                title={isLiked ? 'Unlike post' : 'Like post'}
-              >
-                  <HeartIcon isFilled={isLiked} className="w-5 h-5" />
-              </Button>
+                className={cn(
+                    isLiked ? "text-red-600" : "text-white"
+                )}
+                iconClassName="w-5 h-5"
+              />
             )}
         </div>
       </CardHeader>
@@ -177,7 +161,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 e.stopPropagation();
                 onViewDetails(post);
               }}
-              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 hover:text-red-600 transition-colors"
+              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 transition-colors"
             >
               {post.title}
             </button>
@@ -185,11 +169,28 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           
           <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} size={isCompact ? 'x-small' : 'small'} className="mt-2" isExpired={isExpired} showOriginalPriceOnSale={!isCompact} />
           
+          <div className="flex flex-wrap items-center gap-2 mt-3 mb-1">
+             <CategoryBadge 
+                category={post.category} 
+                onClick={(e) => { e.stopPropagation(); onFilterByCategory(post.category); }} 
+                className="text-[10px] h-auto min-h-0" 
+             />
+             {!isCompact && post.tags.slice(0, 2).map(tag => (
+                 <button 
+                    key={tag}
+                    onClick={(e) => { e.stopPropagation(); onFilterByTag(tag); }}
+                    className="text-[10px] text-gray-600 cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
+                 >
+                    #{tag}
+                 </button>
+             ))}
+          </div>
+
           <div className={cn("flex items-center gap-1.5 mt-2 min-w-0", isCompact ? 'text-xs' : 'text-sm')}>
              <div
                 className={cn(
-                    "flex items-center gap-1.5 min-w-0 text-red-400",
-                    coordsToUse ? "cursor-pointer hover:text-red-600 group transition-colors" : ""
+                    "flex items-center gap-1.5 min-w-0 text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+                    coordsToUse ? "cursor-pointer group transition-colors" : ""
                 )}
                 onClick={(e) => {
                     if (coordsToUse) {
@@ -208,15 +209,15 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 }}
                 title={coordsToUse ? "View on Map" : undefined}
              >
-                <MapPinIcon className={cn("w-4 h-4 shrink-0", coordsToUse ? "text-red-400 group-hover:text-red-600 transition-colors" : "text-red-400")} />
-                <span className={cn("truncate", coordsToUse ? "group-hover:underline decoration-red-400 underline-offset-2" : "")}>
+                <MapPinIcon className={cn("w-4 h-4 shrink-0", coordsToUse ? "text-red-400 transition-colors" : "text-red-400")} />
+                <span className={cn("truncate", coordsToUse ? "decoration-red-400 underline-offset-2" : "")}>
                     {locationToDisplay}
                 </span>
              </div>
           </div>
           
           {!hideExpiry && post.expiryDate && (
-            <div className={cn("flex items-center gap-2 mt-3", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-500')}>
+            <div className={cn("flex items-center gap-2 mt-3", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-600')}>
               <ClockIcon className="w-4 h-4" />
               <span aria-label={`Expires ${formatTimeRemaining(post.expiryDate)}`}>{formatTimeRemaining(post.expiryDate)}</span>
             </div>
@@ -236,9 +237,9 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 {isOwnPost ? (
                     <Button
                       onClick={(e) => { e.stopPropagation(); onEdit(post.id); }}
-                      variant="glass"
-                      size={isCompact ? 'icon-sm' : 'icon'}
-                      className="flex-shrink-0 text-gray-600"
+                      variant="overlay-dark"
+                      size="icon-sm"
+                      className="flex-shrink-0 text-gray-500 active:scale-95"
                       aria-label="Edit post"
                       title="Edit post"
                     >
@@ -247,9 +248,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 ) : isExpired ? (
                     <Button
                         onClick={(e) => { e.stopPropagation(); onToggleAvailabilityAlert(post.id); }}
-                        variant={isAvailabilityAlertSet ? "glass-red-light" : "glass"}
-                        size={isCompact ? 'icon-sm' : 'icon'}
-                        className="flex-shrink-0 text-red-600"
+                        variant="ghost"
+                        size="icon-sm"
+                        className={cn(
+                            "flex-shrink-0 active:scale-95",
+                            isAvailabilityAlertSet ? "text-red-600" : "text-gray-500"
+                        )}
                         aria-label={isAvailabilityAlertSet ? "Remove availability alert" : "Notify when available"}
                         title={isAvailabilityAlertSet ? "Alert Set" : "Notify when available"}
                     >
@@ -258,13 +262,16 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 ) : (
                     <Button
                       onClick={handleActionClick}
-                      variant="glass"
-                      size={isCompact ? 'icon-sm' : 'icon'}
-                      className="flex-shrink-0 text-red-600"
+                      variant="ghost"
+                      size="icon-sm"
+                      className={cn(
+                          "flex-shrink-0 active:scale-95",
+                          isPurchasable && isAddedToBag ? "text-red-600" : "text-gray-500"
+                      )}
                       aria-label={isPurchasable ? (isAddedToBag ? 'View in bag' : 'Add to bag') : (post.type === PostType.SERVICE ? 'Request service' : 'Contact organizer')}
                       title={isPurchasable ? (isAddedToBag ? 'View in bag' : 'Add to bag') : (post.type === PostType.SERVICE ? 'Request service' : 'Contact organizer')}
                     >
-                        {actionIcon}
+                        <ActionIcon className="w-5 h-5" isFilled={isPurchasable && isAddedToBag} />
                     </Button>
                 )}
             </PostAuthorInfo>

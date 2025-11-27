@@ -3,6 +3,7 @@ import { DisplayablePost, Account } from '../types';
 import { PostCard } from './PostCard';
 import { SpinnerIcon, ArchiveBoxIcon } from './Icons';
 import { cn } from '../lib/utils';
+import { EmptyState } from './EmptyState';
 
 interface PostListProps {
   posts: DisplayablePost[];
@@ -22,7 +23,7 @@ interface PostListProps {
 
 const PostCardSkeleton: React.FC<{ index: number }> = ({ index }) => (
     <div
-      className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col animate-pulse"
+      className="bg-white rounded-xl overflow-hidden flex flex-col animate-pulse"
       style={{ animationDelay: `${index * 75}ms`, animationDuration: '1.5s' }}
     >
       <div className="w-full bg-gray-300 aspect-[4/3]"></div>
@@ -81,18 +82,19 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
 
   if (posts.length === 0 && !isLoadingMore) {
     return (
-      <div className="text-center py-20 flex flex-col items-center">
-        <ArchiveBoxIcon className="w-16 h-16 text-gray-300" />
-        <h2 className="text-2xl font-semibold text-gray-700 mt-4">No Posts Yet</h2>
-        <p className="text-gray-500 mt-2 max-w-md">Looks a bit empty here. Try adjusting your filters or be the first to post!</p>
-      </div>
+      <EmptyState
+        icon={<ArchiveBoxIcon />}
+        title="No Posts Yet"
+        description="Looks a bit empty here. Try adjusting your filters or be the first to post!"
+        className="py-20"
+      />
     );
   }
 
   return (
     <div className="relative">
       {isFiltering && (
-          <div className="absolute inset-0 bg-gray-50/75 backdrop-blur-sm z-10 flex justify-center items-start pt-32 animate-fade-in pointer-events-none">
+          <div className="absolute inset-0 bg-white/80 z-10 flex justify-center items-start pt-32 animate-fade-in pointer-events-none">
               <SpinnerIcon className="w-10 h-10 text-red-500" />
           </div>
       )}

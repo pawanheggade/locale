@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { SearchIcon, XCircleIcon, SpinnerIcon, ClockIcon, XMarkIcon, FunnelIcon, SparklesIcon } from './Icons';
+import { SearchIcon, XCircleIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
+import { useUI } from '../contexts/UIContext';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -18,9 +18,6 @@ interface SearchBarProps {
   onToggleAiSearch?: () => void;
   onAiSearchSubmit: (query: string) => void;
   isAiSearching?: boolean;
-  onOpenFilterPanel?: () => void;
-  isFilterButtonDisabled?: boolean;
-  isAnyFilterActive?: boolean;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -37,10 +34,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onToggleAiSearch,
   onAiSearchSubmit,
   isAiSearching,
-  onOpenFilterPanel,
-  isFilterButtonDisabled,
-  isAnyFilterActive,
 }) => {
+  const { addToast } = useUI();
+
   const {
     isDropdownVisible,
     shouldShowRecent,
@@ -61,6 +57,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
     recentSearches,
     isAiSearchEnabled: !!isAiSearchEnabled,
     onSelectSuggestion: onSearchChange,
+    onError: (error) => {
+        // Debounce or check if toast already recently shown could be added here if needed
+        // For now, a simple error message
+        addToast(error.message || "Failed to generate AI suggestions", 'error');
+    }
   });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -120,9 +121,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => onSearchChange(e.target.value)}
         onFocus={inputProps.onFocus}
         onKeyDown={handleKeyDown} 
-        // Increased py-3 for taller field, placeholder-gray-600 for visibility
-        // Reduced sm:pr-36 to sm:pr-28 to allow more placeholder text visibility
-        className="block w-full bg-gray-100 border border-gray-200/80 rounded-full py-3 pl-11 pr-32 sm:pr-28 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 shadow-sm focus:shadow-md transition-all duration-200 truncate"
+        // Reduced right padding as filter button is removed
+        className="block w-full bg-gray-100 border border-gray-200/80 rounded-full py-3 pl-11 pr-20 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
@@ -136,9 +136,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         ) : searchQuery && (
           <Button
             onClick={() => onSearchChange('')}
-            variant="ghost"
+            variant="overlay-dark"
             size="icon-sm"
-            className="text-gray-400 hover:text-gray-600 rounded-full"
+            className="text-gray-400 rounded-full"
             aria-label="Clear search"
             title="Clear search"
           >
@@ -149,9 +149,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {onToggleAiSearch && (
             <Button
                 onClick={onToggleAiSearch}
-                variant={isAiSearchEnabled ? 'glass-red' : 'glass'}
+                variant={isAiSearchEnabled ? 'pill-red' : 'outline'}
                 size="icon-sm"
-                className={`text-xs font-bold uppercase tracking-wider ${!isAiSearchEnabled ? 'text-gray-600' : ''}`}
+                className="text-xs font-bold uppercase tracking-wider"
                 aria-label={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 title={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 aria-pressed={!!isAiSearchEnabled}
@@ -159,25 +159,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 ai
             </Button>
         )}
-        {onOpenFilterPanel && (
-            <Button
-              onClick={onOpenFilterPanel}
-              disabled={isFilterButtonDisabled}
-              variant={isAnyFilterActive ? 'glass-red' : 'glass'}
-              size="icon-sm"
-              className={isAnyFilterActive ? '' : 'text-gray-600'}
-              aria-label={isAnyFilterActive ? "Filters are active. Open filters." : "Open filters"}
-              title={isAnyFilterActive ? "Filters are active" : "Filters"}
-            >
-              <FunnelIcon className="w-5 h-5" />
-            </Button>
-        )}
       </div>
       {isDropdownVisible && (
-        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white/80 backdrop-blur-md border border-gray-200/80 rounded-lg shadow-2xl max-h-80 overflow-y-auto z-10 animate-fade-in-up">
+        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-up">
           {shouldShowRecent && (
             <>
-              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Recent Searches</li>
+              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent Searches</li>
               {recentSearches.map((search, index) => (
                 <li
                   id={`suggestion-${index}`}
@@ -188,7 +175,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       handleSuggestionClick(search);
                       onSearchSubmit(search);
                   }}
-                  className={`flex items-center justify-between text-sm text-gray-700 cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between text-sm text-gray-600 cursor-pointer transition-colors ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >
@@ -196,13 +183,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     <ClockIcon className={`w-4 h-4 ${index === activeIndex ? 'text-white' : 'text-gray-400'}`} />
                     <span>{search}</span>
                   </div>
-                  <button onClick={(e) => handleRemoveRecent(e, search)} className={`p-2 rounded-full transition-all active:scale-95 active:bg-gray-300`} aria-label={`Remove "${search}" from recent searches`} title="Remove">
+                  <Button variant="overlay-dark" size="icon-sm" onClick={(e) => handleRemoveRecent(e, search)} aria-label={`Remove "${search}" from recent searches`} title="Remove">
                       <XMarkIcon className="w-4 h-4"/>
-                  </button>
+                  </Button>
                 </li>
               ))}
               <li className="border-t border-gray-100 px-4 py-2 text-center">
-                <button onClick={handleClearAll} className="text-xs font-semibold text-red-600 active:text-red-900 transition-colors">Clear All Searches</button>
+                <Button variant="link" size="sm" onClick={handleClearAll} className="text-red-600 text-xs font-semibold">Clear All Searches</Button>
               </li>
             </>
           )}
@@ -222,7 +209,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     handleSuggestionClick(suggestion)
                     onSearchSubmit(suggestion);
                   }}
-                  className={`px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors ${
+                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer transition-colors ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >
@@ -237,18 +224,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
           {shouldShowAiSuggestions && (
             <>
-              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
                 <SparklesIcon className="w-4 h-4 text-red-500" />
                 AI Suggestions
               </li>
               {isFetchingAiSuggestions && (
-                <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500">
+                <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
                     <SpinnerIcon className="w-4 h-4" />
                     <span>Generating ideas...</span>
                 </li>
               )}
               {!isFetchingAiSuggestions && aiSuggestions.length === 0 && (
-                <li className="px-4 py-2 text-sm text-gray-500">No suggestions found. Keep typing...</li>
+                <li className="px-4 py-2 text-sm text-gray-600">No suggestions found. Keep typing...</li>
               )}
               {aiSuggestions.map((suggestion, index) => (
                 <li
@@ -260,7 +247,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     handleSuggestionClick(suggestion)
                     onSearchSubmit(suggestion);
                   }}
-                  className={`px-4 py-2 text-sm text-gray-700 cursor-pointer transition-colors ${
+                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer transition-colors ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >

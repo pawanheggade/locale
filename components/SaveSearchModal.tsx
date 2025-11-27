@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
+import { FormField } from './FormField';
+import { Input } from './ui/Input';
 
 interface SaveSearchModalProps {
   onSave: (name: string) => void;
@@ -31,7 +33,7 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
         type="button"
         onClick={onClose}
         disabled={isSubmitting}
-        variant="glass"
+        variant="overlay-dark"
         className="mr-auto"
       >
         Cancel
@@ -41,7 +43,7 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
         onClick={handleSave}
         isLoading={isSubmitting}
         className="w-32"
-        variant="glass-red"
+        variant="pill-red"
       >
         Save Search
       </Button>
@@ -59,27 +61,20 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
     >
       <div className="p-6">
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-1">
-          <div>
-            <label htmlFor="search-name" className="block text-sm font-medium text-gray-800">
-              Search Name
-            </label>
-            <input
-              type="text"
-              id="search-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (error) setError('');
-              }}
-              className={`mt-1 block w-full bg-gray-50 border-gray-200 rounded-md shadow-sm text-gray-900 hover:bg-gray-100 focus:bg-white focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-colors duration-150 ${error ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder="e.g., 'Vintage furniture in SF'"
-              required
-              autoFocus
-              aria-invalid={!!error}
-              aria-describedby="search-name-error"
-            />
-             {error && <p id="search-name-error" className="mt-1 text-sm text-red-600">{error}</p>}
-          </div>
+          <FormField id="search-name" label="Search Name" error={error}>
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (error) setError('');
+                }}
+                className="bg-gray-50 hover:bg-gray-100"
+                placeholder="e.g., 'Vintage furniture in SF'"
+                required
+                autoFocus
+              />
+          </FormField>
         </form>
       </div>
     </ModalShell>

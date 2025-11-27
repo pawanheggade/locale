@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const ActiveIndicator = () => (
@@ -15,7 +16,7 @@ export const FilterSection: React.FC<FilterSectionProps> = ({ title, isActive, c
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-600">
           {title}
         </label>
         {isActive && <ActiveIndicator />}

@@ -1,14 +1,12 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Account, Subscription } from '../../types';
 import { PencilIcon, CheckIcon, XMarkIcon, ArrowUturnLeftIcon, ArchiveBoxIcon } from '../Icons';
 import { formatFullDate } from '../../utils/formatters';
-import { SubscriptionBadge } from '../SubscriptionBadge';
 import { useSort } from '../../hooks/useSort';
 import { Button } from '../ui/Button';
 import { DataTable } from './DataTable';
 import { Avatar } from '../Avatar';
-import { Select } from '../ui/Select';
+import { Dropdown } from '../ui/Dropdown';
 
 interface AccountsViewProps {
     accounts: Account[];
@@ -24,13 +22,7 @@ interface AccountsViewProps {
 
 export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAccount, onUpdateAccountRole, onEditAccount, onToggleAccountStatus, onApproveAccount, onRejectAccount, onUpdateSubscription, currentAccount }) => {
     const { items: sortedAccounts, requestSort, sortConfig } = useSort(accounts, { key: 'joinDate', direction: 'desc' });
-    const [editingSubscription, setEditingSubscription] = useState<{ accountId: string; tier: Subscription['tier'] } | null>(null);
-
-    const handleSubscriptionChange = (accountId: string, newTier: Subscription['tier']) => {
-        onUpdateSubscription(accountId, newTier);
-        setEditingSubscription(null);
-    };
-
+    
     const columns = [
         { header: 'Name', sortKey: 'name' as keyof Account },
         { header: 'Status', sortKey: 'status' as keyof Account },
@@ -52,7 +44,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                         </div>
                         <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{account.name}</div>
-                            <div className="text-sm text-gray-500">@{account.username}</div>
+                            <div className="text-sm text-gray-600">@{account.username}</div>
                         </div>
                     </div>
                 </td>
@@ -65,53 +57,42 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                         {account.status}
                     </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {isCurrentUser ? account.role : (
-                        <div className="w-28">
-                            <Select 
-                                value={account.role} 
-                                onChange={(e) => onUpdateAccountRole(account.id, e.target.value as 'account' | 'admin')} 
-                                className="py-1 h-9 text-xs"
-                            >
-                                <option value="account">Account</option>
-                                <option value="admin">Admin</option>
-                            </Select>
-                        </div>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {isCurrentUser ? <span className="capitalize ml-2">{account.role}</span> : (
+                        <Dropdown
+                            items={[{value: 'account', label: 'Account'}, {value: 'admin', label: 'Admin'}]}
+                            selectedValue={account.role}
+                            onSelect={(newRole) => onUpdateAccountRole(account.id, newRole as 'account' | 'admin')}
+                            className="w-28"
+                        />
                     )}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {editingSubscription?.accountId === account.id ? (
-                        <div className="w-36">
-                             <Select 
-                                value={editingSubscription.tier} 
-                                onChange={(e) => handleSubscriptionChange(account.id, e.target.value as Subscription['tier'])} 
-                                onBlur={() => setEditingSubscription(null)} 
-                                autoFocus 
-                                className="py-1 h-9 text-xs"
-                            >
-                                <option value="Personal">Personal</option>
-                                <option value="Basic">Basic</option>
-                                <option value="Verified">Verified</option>
-                                <option value="Business">Business</option>
-                                <option value="Organisation">Organisation</option>
-                            </Select>
-                        </div>
-                    ) : (
-                        <button onClick={() => setEditingSubscription({ accountId: account.id, tier: account.subscription.tier })} className="p-1 rounded-full transition-colors hover:bg-gray-100"><SubscriptionBadge tier={account.subscription.tier} /></button>
-                    )}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <Dropdown
+                        items={[
+                            {value: 'Personal', label: 'Personal'},
+                            {value: 'Basic', label: 'Basic'},
+                            {value: 'Verified', label: 'Verified'},
+                            {value: 'Business', label: 'Business'},
+                            {value: 'Organisation', label: 'Organisation'},
+                        ]}
+                        selectedValue={account.subscription.tier}
+                        onSelect={(newTier) => onUpdateSubscription(account.id, newTier as Subscription['tier'])}
+                        className="w-36"
+                    />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatFullDate(account.joinDate)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{formatFullDate(account.joinDate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
                         {account.status === 'pending' && (
                             <>
-                                <Button variant="glass" size="icon-sm" onClick={() => onApproveAccount(account.id)} className="text-green-600 hover:bg-green-50" title="Approve"><CheckIcon className="w-4 h-4"/></Button>
-                                <Button variant="glass" size="icon-sm" onClick={() => onRejectAccount(account)} className="text-red-600 hover:bg-red-50" title="Reject"><XMarkIcon className="w-4 h-4"/></Button>
+                                <Button variant="overlay-dark" size="icon-sm" onClick={() => onApproveAccount(account.id)} className="text-green-600" title="Approve"><CheckIcon className="w-4 h-4"/></Button>
+                                <Button variant="overlay-red" size="icon-sm" onClick={() => onRejectAccount(account)} className="text-red-600" title="Reject"><XMarkIcon className="w-4 h-4"/></Button>
                             </>
                         )}
-                        <Button variant="glass" size="icon-sm" onClick={() => onEditAccount(account)} className="text-gray-600 hover:bg-gray-50" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                        <Button variant="overlay-dark" size="icon-sm" onClick={() => onEditAccount(account)} className="text-gray-600" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
                         {!isCurrentUser && (
-                            <Button variant="glass" size="icon-sm" onClick={() => onToggleAccountStatus(account)} className="text-gray-600 hover:bg-gray-50" title={account.status === 'active' ? 'Archive' : 'Reactivate'}>{account.status === 'active' ? <ArchiveBoxIcon className="w-4 h-4"/> : <ArrowUturnLeftIcon className="w-4 h-4"/>}</Button>
+                            <Button variant="overlay-dark" size="icon-sm" onClick={() => onToggleAccountStatus(account)} className="text-gray-600" title={account.status === 'active' ? 'Archive' : 'Reactivate'}>{account.status === 'active' ? <ArchiveBoxIcon className="w-4 h-4"/> : <ArrowUturnLeftIcon className="w-4 h-4"/>}</Button>
                         )}
                     </div>
                 </td>

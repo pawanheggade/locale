@@ -1,5 +1,6 @@
 
-import React, { useRef } from 'react';
+
+import React, { useRef, useState } from 'react';
 import { Button } from './ui/Button';
 import { ConfirmationModalData } from '../types';
 import { cn } from '../lib/utils';
@@ -7,7 +8,6 @@ import ModalShell from './ModalShell';
 
 interface ConfirmationModalProps extends ConfirmationModalData {
   onClose: () => void;
-  isConfirming: boolean;
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
@@ -17,19 +17,31 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm, 
   confirmText = 'Delete',
   confirmClassName,
-  isConfirming,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsConfirming(true);
+    try {
+        await onConfirm();
+    } catch (error) {
+        console.error("Confirmation action failed:", error);
+        // Optionally show a toast here if context was available
+    } finally {
+        onClose(); // Close the modal regardless of outcome
+    }
+  };
 
   const renderFooter = () => (
     <>
-      <Button variant="glass" onClick={onClose} disabled={isConfirming}>
+      <Button variant="overlay-dark" onClick={onClose} disabled={isConfirming}>
         Cancel
       </Button>
       <Button 
-        onClick={onConfirm} 
+        onClick={handleConfirm} 
         isLoading={isConfirming}
-        variant="glass-red"
+        variant="pill-red"
         className={confirmClassName}
       >
         {confirmText}

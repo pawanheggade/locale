@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { EditPageModal } from './EditPageModal';
 import { useUI } from '../contexts/UIContext';
 import { sanitizeHtml } from '../utils/security';
+import { Button } from './ui/Button';
 
 interface AdminPagesViewProps {
   termsContent: string;
@@ -23,15 +24,16 @@ const PageSection: React.FC<{
     const sanitizedContent = useMemo(() => sanitizeHtml(content), [content]);
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-                <button
+                <Button
                     onClick={onEdit}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-full shadow-sm hover:bg-red-700"
+                    variant="overlay-dark"
+                    className="font-semibold text-gray-700"
                 >
                     Edit Content
-                </button>
+                </Button>
             </div>
             <div
                 className="prose max-w-none p-4 border rounded-md h-64 overflow-y-auto bg-gray-50"

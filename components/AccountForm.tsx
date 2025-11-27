@@ -1,12 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
-import { AlertIcon, EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
+import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
 import { SellerOptionsForm } from './SellerOptionsForm';
-import { Label } from './ui/Label';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
@@ -15,6 +14,7 @@ import { Avatar } from './Avatar';
 import { useLocationInput } from '../hooks/useLocationInput';
 import LocationInput from './LocationInput';
 import LocationPickerMap from './LocationPickerMap';
+import { FormField } from './FormField';
 
 const DESCRIPTION_MAX_LENGTH = 150;
 
@@ -308,15 +308,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 
                 {/* Banner Upload */}
                 <div>
-                    <Label>Banner Image</Label>
+                    <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
                     <div 
-                        className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 overflow-hidden"
+                        className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
                         onClick={() => bannerInputRef.current?.click()}
                     >
                          {bannerUrl ? (
                             <img src={bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="flex flex-col items-center text-gray-500">
+                            <div className="flex flex-col items-center text-gray-600">
                                 <PhotoIcon className="w-8 h-8 mb-1" />
                                 <span className="text-xs">Click to upload banner</span>
                             </div>
@@ -350,7 +350,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         <Button 
                             type="button" 
                             onClick={() => fileInputRef.current?.click()}
-                            variant="glass"
+                            variant="outline"
                             size="sm"
                         >
                             Upload Avatar
@@ -360,220 +360,193 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             </div>
 
             <div className="pt-4 mt-4 border-t border-gray-200">
-                <Label htmlFor="account-name">Name</Label>
-                <Input type="text" id="account-name" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => validate('name')} className={`mt-1 ${errors.name ? 'border-red-500' : ''}`} aria-invalid={!!errors.name} aria-describedby="account-name-error" autoFocus />
-                {errors.name && <p id="account-name-error" className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                <FormField id="account-name" label="Name" error={errors.name}>
+                    <Input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={() => validate('name')} autoFocus />
+                </FormField>
             </div>
             <div>
-                <InputWithIcon
-                    id="account-username"
-                    label="Username"
-                    type="text"
-                    value={username}
-                    onChange={handleUsernameChange}
-                    onBlur={handleUsernameBlur}
-                    icon={<span className="text-gray-500 sm:text-sm">@</span>}
-                    error={errors.username}
-                />
+                <FormField id="account-username" label="Username" error={errors.username}>
+                    <InputWithIcon
+                        type="text"
+                        value={username}
+                        onChange={handleUsernameChange}
+                        onBlur={handleUsernameBlur}
+                        icon={<span className="text-gray-600 sm:text-sm">@</span>}
+                    />
+                </FormField>
                 {isUsernameAvailable && !errors.username && (
                     <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in">
                         <CheckIcon className="w-4 h-4" /> Username available
                     </p>
                 )}
             </div>
-            <InputWithIcon
-                id="account-email"
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => validate('email')}
-                icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
-                error={errors.email}
-            />
+            <FormField id="account-email" label="Email" error={errors.email}>
+                 <InputWithIcon
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => validate('email')}
+                    icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />}
+                />
+            </FormField>
 
             {!isEditing && (
                 <>
                     <div>
-                        <InputWithIcon
-                            id="account-password"
-                            label="Password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onBlur={() => validate('password')}
-                            icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
-                            error={errors.password}
-                            containerClassName="mb-0"
-                        />
+                        <FormField id="account-password" label="Password" error={errors.password}>
+                            <InputWithIcon
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                onBlur={() => validate('password')}
+                                icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
+                            />
+                        </FormField>
                         <PasswordStrengthMeter password={password} />
                     </div>
-                    <InputWithIcon
-                        id="account-confirm-password"
-                        label="Confirm Password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        onBlur={() => validate('confirmPassword')}
-                        icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
-                        error={errors.confirmPassword}
-                    />
+                    <FormField id="account-confirm-password" label="Confirm Password" error={errors.confirmPassword}>
+                        <InputWithIcon
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onBlur={() => validate('confirmPassword')}
+                            icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />}
+                        />
+                    </FormField>
                 </>
             )}
 
             {!isEditing && isSellerSignup && (
                 <div className="pt-4 border-t">
-                    <Label htmlFor="referral-code">Referral Code (Optional)</Label>
-                    <Input
-                        type="text"
-                        id="referral-code"
-                        value={referralCode}
-                        onChange={(e) => setReferralCode(e.target.value)}
-                        className="mt-1"
-                        placeholder="e.g. PRIYA7582"
-                    />
+                    <FormField id="referral-code" label="Referral Code (Optional)">
+                        <Input
+                            type="text"
+                            value={referralCode}
+                            onChange={(e) => setReferralCode(e.target.value)}
+                            placeholder="e.g. PRIYA7582"
+                        />
+                    </FormField>
                 </div>
             )}
             
             <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
                 <h3 className="text-base font-medium text-gray-800">Additional Info</h3>
-                <div>
-                    <div className="flex justify-between items-center">
-                        <Label htmlFor="account-description">Bio</Label>
-                        <span className={`text-xs ${description.length >= DESCRIPTION_MAX_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>{description.length} / {DESCRIPTION_MAX_LENGTH}</span>
-                    </div>
-                    <Textarea id="account-description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} className="mt-1" placeholder="Tell others a little about yourself or what you sell." />
-                </div>
-                <InputWithIcon
-                    id="account-mobile"
-                    label="Mobile Number"
-                    type="tel"
-                    value={mobile}
-                    onChange={(e) => handlePhoneChange(e, setMobile, 'mobile')}
-                    onBlur={() => validate('mobile')}
-                    icon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
-                    error={errors.mobile}
-                    placeholder="e.g. 9876543210"
-                    maxLength={10}
-                    inputMode="numeric"
-                />
-                <div>
+                <FormField
+                    id="account-description"
+                    label="Bio"
+                    description={`${description.length} / ${DESCRIPTION_MAX_LENGTH}`}
+                >
+                    <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
+                </FormField>
+                <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
                     <InputWithIcon
-                        id="account-message"
-                        label="Message Number"
                         type="tel"
-                        value={messageNumber}
-                        onChange={(e) => handlePhoneChange(e, setMessageNumber, 'messageNumber')}
-                        onBlur={() => validate('messageNumber')}
-                        icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />}
-                        error={errors.messageNumber}
+                        value={mobile}
+                        onChange={(e) => handlePhoneChange(e, setMobile, 'mobile')}
+                        onBlur={() => validate('mobile')}
+                        icon={<PhoneIcon className="w-5 h-5 text-gray-400" />}
                         placeholder="e.g. 9876543210"
                         maxLength={10}
                         inputMode="numeric"
                     />
-                    <p className="mt-1 text-xs text-gray-700">Number for messaging apps like WhatsApp.</p>
+                </FormField>
+                <div>
+                    <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
+                        <InputWithIcon
+                            type="tel"
+                            value={messageNumber}
+                            onChange={(e) => handlePhoneChange(e, setMessageNumber, 'messageNumber')}
+                            onBlur={() => validate('messageNumber')}
+                            icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />}
+                            placeholder="e.g. 9876543210"
+                            maxLength={10}
+                            inputMode="numeric"
+                        />
+                    </FormField>
+                    <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
                 </div>
 
                 <div>
-                    <LocationInput
-                        id="account-address"
-                        label="Location (Optional)"
-                        value={locationInput.location}
-                        onValueChange={locationInput.setLocation}
-                        onSuggestionSelect={locationInput.selectSuggestion}
-                        onVerify={locationInput.verify}
-                        onOpenMapPicker={() => handleMapToggle(true)}
-                        suggestions={locationInput.suggestions}
-                        status={locationInput.status}
-                        error={locationInput.error}
-                        formError={errors.address}
-                        placeholder="e.g., 123 Main St, Mumbai"
-                    />
-                    <p className="mt-1 text-xs text-gray-700">This location helps calculate distance for others. It may be displayed publicly.</p>
+                    <FormField id="account-address" label="Location (Optional)" error={errors.address || locationInput.error}>
+                         <LocationInput
+                            value={locationInput.location}
+                            onValueChange={locationInput.setLocation}
+                            onSuggestionSelect={locationInput.selectSuggestion}
+                            onVerify={locationInput.verify}
+                            onOpenMapPicker={() => handleMapToggle(true)}
+                            suggestions={locationInput.suggestions}
+                            status={locationInput.status}
+                            placeholder="e.g., 123 Main St, Mumbai"
+                        />
+                    </FormField>
+                    <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
                 </div>
 
                 {/* Social Profiles */}
                 <div className="pt-2">
-                    <Label>Social Profiles</Label>
-                    <div className="space-y-3 mt-2">
-                        <InputWithIcon
-                            id="social-website"
-                            label=""
-                            placeholder="Website URL"
-                            icon={<GlobeAltIcon className="w-5 h-5 text-gray-400"/>}
-                            value={socials.website}
-                            onChange={e => handleSocialChange('website', e.target.value)}
-                            error={errors['social-website']}
-                            containerClassName="mb-0"
-                        />
-                        <InputWithIcon
-                            id="social-youtube"
-                            label=""
-                            placeholder="YouTube URL"
-                            icon={<YouTubeIcon className="w-5 h-5 text-gray-400"/>}
-                            value={socials.youtube}
-                            onChange={e => handleSocialChange('youtube', e.target.value)}
-                            error={errors['social-youtube']}
-                            containerClassName="mb-0"
-                        />
-                        <InputWithIcon
-                            id="social-instagram"
-                            label=""
-                            placeholder="Instagram URL"
-                            icon={<InstagramIcon className="w-5 h-5 text-gray-400"/>}
-                            value={socials.instagram}
-                            onChange={e => handleSocialChange('instagram', e.target.value)}
-                            error={errors['social-instagram']}
-                            containerClassName="mb-0"
-                        />
-                        <InputWithIcon
-                            id="social-facebook"
-                            label=""
-                            placeholder="Facebook URL"
-                            icon={<FacebookIcon className="w-5 h-5 text-gray-400"/>}
-                            value={socials.facebook}
-                            onChange={e => handleSocialChange('facebook', e.target.value)}
-                            error={errors['social-facebook']}
-                            containerClassName="mb-0"
-                        />
-                        <InputWithIcon
-                            id="social-twitter"
-                            label=""
-                            placeholder="X URL"
-                            icon={<XIcon className="w-5 h-5 text-gray-400"/>}
-                            value={socials.twitter}
-                            onChange={e => handleSocialChange('twitter', e.target.value)}
-                            error={errors['social-twitter']}
-                            containerClassName="mb-0"
-                        />
+                    <span className="block text-sm font-medium text-gray-600 mb-2">Social Profiles</span>
+                    <div className="space-y-3">
+                        <FormField id="social-website" label="" error={errors['social-website']}>
+                             <InputWithIcon
+                                placeholder="Website URL"
+                                icon={<GlobeAltIcon className="w-5 h-5 text-gray-400"/>}
+                                value={socials.website}
+                                onChange={e => handleSocialChange('website', e.target.value)}
+                            />
+                        </FormField>
+                        <FormField id="social-youtube" label="" error={errors['social-youtube']}>
+                            <InputWithIcon
+                                placeholder="YouTube URL"
+                                icon={<YouTubeIcon className="w-5 h-5 text-gray-400"/>}
+                                value={socials.youtube}
+                                onChange={e => handleSocialChange('youtube', e.target.value)}
+                            />
+                        </FormField>
+                        <FormField id="social-instagram" label="" error={errors['social-instagram']}>
+                            <InputWithIcon
+                                placeholder="Instagram URL"
+                                icon={<InstagramIcon className="w-5 h-5 text-gray-400"/>}
+                                value={socials.instagram}
+                                onChange={e => handleSocialChange('instagram', e.target.value)}
+                            />
+                        </FormField>
+                        <FormField id="social-facebook" label="" error={errors['social-facebook']}>
+                            <InputWithIcon
+                                placeholder="Facebook URL"
+                                icon={<FacebookIcon className="w-5 h-5 text-gray-400"/>}
+                                value={socials.facebook}
+                                onChange={e => handleSocialChange('facebook', e.target.value)}
+                            />
+                        </FormField>
+                        <FormField id="social-twitter" label="" error={errors['social-twitter']}>
+                            <InputWithIcon
+                                placeholder="X URL"
+                                icon={<XIcon className="w-5 h-5 text-gray-400"/>}
+                                value={socials.twitter}
+                                onChange={e => handleSocialChange('twitter', e.target.value)}
+                            />
+                        </FormField>
                     </div>
                 </div>
 
                  {(isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal')) && (
                     <div className="animate-fade-in-up space-y-4 pt-4 mt-4 border-t">
                         <h3 className="text-base font-medium text-gray-800">Business Information</h3>
-                        <div>
-                            <Label htmlFor="account-tax-info">Tax Info (Optional)</Label>
+                         <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
                             <Input
                                 type="text"
-                                id="account-tax-info"
                                 value={taxInfo}
                                 onChange={(e) => setTaxInfo(e.target.value)}
-                                className="mt-1"
                                 placeholder="e.g., GSTIN"
                                 maxLength={15}
                             />
-                            <p className="mt-1 text-xs text-gray-700">Provide your 15-digit Goods and Services Tax Identification Number.</p>
-                        </div>
-                        <div>
-                            <Label htmlFor="account-business-name">Business Name (Optional)</Label>
+                         </FormField>
+                         <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name. Auto-fills from valid GSTIN.">
                             <div className="relative mt-1">
                                 <Input
                                     type="text"
-                                    id="account-business-name"
                                     value={businessName}
                                     onChange={(e) => setBusinessName(e.target.value)}
-                                    className="pr-10"
                                     placeholder="e.g., The Vintage Corner"
                                     disabled={isVerifyingGst}
                                 />
@@ -583,35 +556,27 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                     </div>
                                 )}
                             </div>
-                            <p className="mt-1 text-xs text-gray-700">If different from your personal name. Auto-fills from valid GSTIN.</p>
-                        </div>
+                         </FormField>
                         <div>
-                            <Label htmlFor="account-google-maps">Google Maps Location</Label>
+                             <FormField id="account-google-maps" label="Google Maps Location" error={errors.googleMapsUrl}>
+                                <Input
+                                    type="url"
+                                    value={googleMapsUrl}
+                                    onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                                    onBlur={() => validate('googleMapsUrl')}
+                                    placeholder="https://maps.app.goo.gl/..."
+                                />
+                            </FormField>
+                            <p className="mt-1 text-xs text-gray-600">Share a link to your business on Google Maps. This is required for sellers.</p>
+                        </div>
+                         <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
                             <Input
                                 type="url"
-                                id="account-google-maps"
-                                value={googleMapsUrl}
-                                onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                                onBlur={() => validate('googleMapsUrl')}
-                                className={`mt-1 ${errors.googleMapsUrl ? 'border-red-500' : ''}`}
-                                placeholder="https://maps.app.goo.gl/..."
-                                aria-invalid={!!errors.googleMapsUrl}
-                                aria-describedby="account-google-maps-error"
-                            />
-                            <p className="mt-1 text-xs text-gray-700">Share a link to your business on Google Maps. This is required for sellers.</p>
-                            {errors.googleMapsUrl && <p id="account-google-maps-error" className="mt-1 text-sm text-red-600">{errors.googleMapsUrl}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="account-apple-maps">Apple Maps Location (Optional)</Label>
-                            <Input
-                                type="url"
-                                id="account-apple-maps"
                                 value={appleMapsUrl}
                                 onChange={(e) => setAppleMapsUrl(e.target.value)}
-                                className="mt-1"
                                 placeholder="https://maps.apple.com/?q=..."
                             />
-                        </div>
+                         </FormField>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <SellerOptionsForm
                                 paymentMethods={paymentMethods}
@@ -627,12 +592,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     </div>
                 )}
             </div>
-            {errors.form && (
-                <div role="alert" className="mt-4 bg-red-50 border border-red-200 text-red-800 p-3 rounded-md flex items-center gap-2">
-                    <AlertIcon className="w-5 h-5 flex-shrink-0" />
-                    <p className="text-sm">{errors.form}</p>
-                </div>
-            )}
         </form>
     );
 };

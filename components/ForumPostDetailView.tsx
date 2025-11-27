@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,11 +6,13 @@ import { DisplayableForumComment } from '../types';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
-import { SpinnerIcon, ChatBubbleBottomCenterTextIcon, FlagIcon } from './Icons';
+import { SpinnerIcon, ChatBubbleBottomCenterTextIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { Comment as CommentComponent } from './Comment';
 import { CommentForm } from './CommentForm';
+import { CategoryBadge } from './Badges';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 interface ForumPostDetailViewProps {
   postId: string;
@@ -19,10 +20,11 @@ interface ForumPostDetailViewProps {
 }
 
 export const ForumPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
-    const { getPostWithComments, toggleVote, updatePost, deletePost } = useForum();
-    const { openModal } = useUI();
+    const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
+    const { addToast } = useUI();
+    const showConfirmation = useConfirmationModal();
     const { currentAccount, accounts: allAccounts } = useAuth();
-    const { onViewAccount, onReportItem } = usePostActions();
+    const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
@@ -57,29 +59,54 @@ export const ForumPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId
     };
 
     const handleDeletePost = () => {
-        openModal({
-            type: 'confirmation',
-            data: {
-                title: 'Delete Discussion',
-                message: 'Are you sure you want to delete this discussion? This will also remove all comments and cannot be undone.',
-                onConfirm: () => {
-                    deletePost(post.id);
-                    onBack();
-                },
-                confirmText: 'Delete',
-            }
+        showConfirmation({
+            title: 'Delete Discussion',
+            message: 'Are you sure you want to delete this discussion? This will also remove all comments and cannot be undone.',
+            onConfirm: () => {
+                deletePost(post.id);
+                onBack();
+            },
+            confirmText: 'Delete',
         });
     };
 
+    const handleShare = async () => {
+        const shareUrl = `${window.location.origin}?forumPost=${post.id}`;
+        const shareData = {
+            title: post.title,
+            text: `Check out this discussion on Locale: "${post.title}"`,
+            url: shareUrl,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                // ignore
+            }
+        } else {
+            navigator.clipboard.writeText(shareUrl);
+            addToast('Link copied to clipboard', 'success');
+        }
+    };
+
     return (
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+        <div className="bg-white rounded-lg border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-up">
             <div className="flex gap-4">
                 <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full font-medium">{post.category}</span>
+                        <CategoryBadge 
+                            category={post.category} 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveCategory(post.category);
+                                onBack();
+                            }}
+                            className="text-[10px] h-auto min-h-0"
+                        />
                         <span>&bull;</span>
-                        <span>Posted by <button onClick={() => onViewAccount(post.authorId)} className="font-semibold text-gray-700">{post.author?.name || 'Unknown'}</button></span>
+                        <span>Posted by <button onClick={() => onViewAccount(post.authorId)} className="font-semibold text-gray-600 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{post.author?.name || 'Unknown'}</button></span>
                         <span>{timeSince(post.timestamp)}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{post.title}</h1>
@@ -93,25 +120,56 @@ export const ForumPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId
                                 className="w-full"
                             />
                             <div className="flex justify-end gap-2 mt-2">
-                                <Button variant="glass" onClick={handlePostCancel}>Cancel</Button>
-                                <Button variant="glass-red" onClick={handlePostSave} disabled={!editedPostContent.trim()}>Save Changes</Button>
+                                <Button variant="overlay-dark" onClick={handlePostCancel}>Cancel</Button>
+                                <Button variant="pill-red" onClick={handlePostSave} disabled={!editedPostContent.trim()}>Save Changes</Button>
                             </div>
                         </div>
                     ) : (
                         <>
                             <div className="mt-4 prose max-w-none text-gray-800 break-words">
-                                <p>{renderWithMentions(post.content, allAccounts, onViewAccount)}</p>
+                                <p>{renderWithMentions(post.content, allAccounts, onViewAccount, onFilterByTag)}</p>
                             </div>
-                             <div className="mt-2 flex items-center gap-2">
+                             <div className="mt-3 flex items-center gap-2">
+                                <Button 
+                                    onClick={handleShare} 
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    className="text-gray-500"
+                                    title="Share"
+                                >
+                                    <ShareIcon className="w-5 h-5" />
+                                </Button>
                                 {canEditPost && (
                                     <>
-                                        <Button variant="glass" size="xs" onClick={() => setIsEditingPost(true)}>Edit</Button>
-                                        <Button variant="glass-red-light" size="xs" onClick={handleDeletePost}>Delete</Button>
+                                        <Button 
+                                            onClick={() => setIsEditingPost(true)} 
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="text-gray-500"
+                                            title="Edit"
+                                        >
+                                            <PencilIcon className="w-5 h-5" />
+                                        </Button>
+                                        <Button 
+                                            onClick={handleDeletePost} 
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="text-red-600"
+                                            title="Delete"
+                                        >
+                                            <TrashIcon className="w-5 h-5" />
+                                        </Button>
                                     </>
                                 )}
                                 {!canEditPost && (
-                                    <Button variant="glass" size="xs" onClick={() => onReportItem(post)} className="gap-1">
-                                        <FlagIcon className="w-3 h-3" /> Report
+                                    <Button 
+                                        onClick={() => onReportItem(post)} 
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="text-gray-400"
+                                        title="Report"
+                                    >
+                                        <FlagIcon className="w-5 h-5" />
                                     </Button>
                                 )}
                             </div>

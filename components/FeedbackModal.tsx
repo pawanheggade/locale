@@ -1,9 +1,8 @@
-
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
-import { Label } from './ui/Label';
+import { FormField } from './FormField';
 
 interface FeedbackModalProps {
   onClose: () => void;
@@ -25,8 +24,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
 
   const renderFooter = () => (
     <>
-      <Button variant="glass" onClick={onClose} className="mr-auto">Cancel</Button>
-      <Button type="submit" form="feedback-form" isLoading={isSubmitting} disabled={!content.trim()} variant="glass-red">Send Feedback</Button>
+      <Button variant="overlay-dark" onClick={onClose} className="mr-auto">Cancel</Button>
+      <Button type="submit" form="feedback-form" isLoading={isSubmitting} disabled={!content.trim()} variant="pill-red">Send Feedback</Button>
     </>
   );
 
@@ -37,19 +36,16 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
           We value your feedback! Let us know if you have any suggestions, found a bug, or just want to share your thoughts about Locale.
         </p>
         <form id="feedback-form" onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="feedback-content">Your Feedback</Label>
+          <FormField id="feedback-content" label="Your Feedback">
             <Textarea
-                id="feedback-content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={6}
                 placeholder="Type your message here..."
                 required
                 autoFocus
-                className="mt-1"
             />
-          </div>
+          </FormField>
         </form>
       </div>
     </ModalShell>

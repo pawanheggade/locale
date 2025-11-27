@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, DisplayablePost, PostType } from '../types';
+import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from './Icons';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;
@@ -20,13 +20,14 @@ const DropdownMenuItem: React.FC<{
   className?: string;
 }> = ({ onClick, icon, label, className = '' }) => (
   <li>
-    <button
+    <Button
       onClick={onClick}
-      className={`w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 ${className}`}
+      variant="ghost"
+      className={`w-full text-left justify-start font-normal h-auto flex items-center gap-3 px-4 py-2.5 rounded-none ${className}`}
     >
       {icon}
       {label}
-    </button>
+    </Button>
   </li>
 );
 
@@ -51,26 +52,12 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
     };
   }, []);
 
+  useClickOutside(menuRef, () => {
+      if (isMountedRef.current) setIsOpen(false);
+  }, isOpen);
+
   const { onDeletePermanently, onEdit } = postActions;
   const isOwnPost = post.authorId === currentAccount?.id;
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        if (isMountedRef.current) {
-          setIsOpen(false);
-        }
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
 
   const handleAction = (action: (id: string) => void) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -83,8 +70,10 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   // Admin/Owner items
   const adminItems: React.ReactNode[] = [];
   if (isOwnPost || currentAccount?.role === 'admin') {
-    // Show EDIT if NOT archived
-    if (!isArchived) {
+    // Show EDIT if NOT archived. 
+    // Hide for Owner as they have an Edit button in the main footer.
+    // Admins still need it here as they don't see the footer Edit button.
+    if (!isArchived && !isOwnPost) {
       adminItems.push(
         <DropdownMenuItem
           key="edit"
@@ -127,13 +116,13 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
       <Button
         ref={buttonRef}
         onClick={(e) => { e.stopPropagation(); setIsOpen(prev => !prev); }}
-        variant={variant === 'modal' ? 'glass' : 'glass-dark'}
+        variant={variant === 'modal' ? 'ghost' : 'overlay-dark'}
         size="icon-sm"
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-label="More options"
         title="More options"
-        className={variant === 'modal' ? 'text-gray-700' : 'text-white'}
+        className={variant === 'modal' ? 'text-gray-500' : 'text-white'}
       >
         <EllipsisVerticalIcon className="w-5 h-5" aria-hidden="true" />
       </Button>
@@ -143,7 +132,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
           onClick={e => e.stopPropagation()}
           role="menu"
         >
-          <ul className="py-1 text-sm text-gray-700">
+          <ul className="py-1 text-sm text-gray-600">
             {menuItems}
           </ul>
         </div>

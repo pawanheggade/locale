@@ -38,10 +38,10 @@ export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ acco
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <StatCard title="Profile Views" value={account.profileViews || 0} icon={<UserIcon className="w-6 h-6 text-red-600" />} />
-          <StatCard title="Profile Likes" value={account.likeCount || 0} icon={<HeartIcon className="w-6 h-6 text-red-600" />} />
-          <StatCard title="Post Likes" value={totalPostLikes} icon={<HeartIcon className="w-6 h-6 text-red-600" />} />
-          <StatCard title="Posts" value={accountPosts.length} icon={<ArchiveBoxIcon className="w-6 h-6 text-red-600" />} />
+          <StatCard title="Profile Views" value={account.profileViews || 0} icon={<UserIcon className="w-10 h-10 text-red-600" />} />
+          <StatCard title="Profile Likes" value={account.likeCount || 0} icon={<HeartIcon className="w-10 h-10 text-red-600" />} />
+          <StatCard title="Post Likes" value={totalPostLikes} icon={<HeartIcon className="w-10 h-10 text-red-600" />} />
+          <StatCard title="Posts" value={accountPosts.length} icon={<ArchiveBoxIcon className="w-10 h-10 text-red-600" />} />
       </div>
 
       <DataVisualizationView allPosts={accountPosts} categories={allCategories} accounts={allAccounts} account={account} />

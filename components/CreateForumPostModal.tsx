@@ -4,9 +4,9 @@ import { useForum } from '../contexts/ForumContext';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
-import { Label } from './ui/Label';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
+import { FormField } from './FormField';
 
 interface CreateForumPostModalProps {
     onClose: () => void;
@@ -43,8 +43,8 @@ export const CreateForumPostModal: React.FC<CreateForumPostModalProps> = ({ onCl
 
     const renderFooter = () => (
         <>
-            <Button variant="glass" onClick={onClose}>Cancel</Button>
-            <Button type="submit" form="create-forum-post-form" isLoading={isSubmitting} variant="glass-red">Publish</Button>
+            <Button variant="overlay-dark" onClick={onClose}>Cancel</Button>
+            <Button type="submit" form="create-forum-post-form" isLoading={isSubmitting} variant="pill-red">Publish</Button>
         </>
     );
 
@@ -58,21 +58,17 @@ export const CreateForumPostModal: React.FC<CreateForumPostModalProps> = ({ onCl
             titleId="create-forum-post-title"
         >
             <form id="create-forum-post-form" onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                    <Label htmlFor="post-title">Title</Label>
-                    <Input id="post-title" value={title} onChange={e => setTitle(e.target.value)} required autoFocus />
-                </div>
-                 <div>
-                    <Label htmlFor="post-category">Category</Label>
-                    <Select id="post-category" value={category} onChange={e => setCategory(e.target.value)} required>
+                <FormField id="post-title" label="Title" error={error && !title.trim() ? 'Title is required' : undefined}>
+                    <Input value={title} onChange={e => setTitle(e.target.value)} required autoFocus />
+                </FormField>
+                 <FormField id="post-category" label="Category">
+                    <Select value={category} onChange={e => setCategory(e.target.value)} required>
                         {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </Select>
-                 </div>
-                <div>
-                    <Label htmlFor="post-content">Content</Label>
-                    <Textarea id="post-content" value={content} onChange={e => setContent(e.target.value)} required rows={6} />
-                </div>
-                {error && <p className="text-sm text-red-600">{error}</p>}
+                 </FormField>
+                <FormField id="post-content" label="Content" error={error && !content.trim() ? 'Content is required' : undefined}>
+                    <Textarea value={content} onChange={e => setContent(e.target.value)} required rows={6} />
+                </FormField>
             </form>
         </ModalShell>
     );

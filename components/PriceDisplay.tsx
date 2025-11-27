@@ -42,13 +42,13 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price, salePrice, pr
     };
     const currentSize = sizeClasses[size];
     
-    const currentColors = { sale: 'text-amber-600', original: 'text-gray-500', normal: 'text-gray-800', expired: 'text-gray-400' };
+    const currentColors = { sale: 'text-amber-600', original: 'text-gray-600', normal: 'text-gray-800', expired: 'text-gray-400' };
     
-    const unitText = priceUnit && priceUnit !== 'Fixed' ? <span className="text-sm font-normal text-gray-500 ml-1">/{priceUnit.toLowerCase()}</span> : null;
+    const unitText = priceUnit && priceUnit !== 'Fixed' ? <span className="text-sm font-normal text-gray-600 ml-1">/{priceUnit.toLowerCase()}</span> : null;
 
     return (
         <div className={`flex items-baseline flex-nowrap gap-2 ${className}`}>
-            <div className="flex flex-row items-baseline gap-2 drop-shadow-md min-w-0">
+            <div className="flex flex-row items-baseline gap-2 min-w-0">
                 {onSale ? (
                     <>
                         <span className="sr-only">Sale Price:</span>

@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
+import { Button } from './ui/Button';
 
 // A simple fallback component with a reset button
 const ErrorFallback = ({ onReset }: { onReset: () => void }) => (
@@ -16,13 +17,13 @@ const ErrorFallback = ({ onReset }: { onReset: () => void }) => (
                     An unexpected error occurred. Please try again.
                 </p>
                 <div className="mt-4">
-                    <button
-                        type="button"
+                    <Button
                         onClick={onReset}
-                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700"
+                        variant="pill-red"
+                        className="rounded-md"
                     >
                         Try again
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

@@ -14,7 +14,7 @@ export const StaticContentModal: React.FC<StaticContentModalProps> = ({ onClose,
   const modalRef = useRef<HTMLDivElement>(null);
 
   const renderFooter = () => (
-    <Button onClick={onClose} variant="glass">
+    <Button onClick={onClose} variant="overlay-dark">
       Close
     </Button>
   );

@@ -31,7 +31,7 @@ const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
       }}
     >
       <div
-        className="flex items-center justify-center bg-white rounded-full shadow-lg transition-transform duration-200"
+        className="flex items-center justify-center bg-white rounded-full transition-transform duration-200"
         style={{
           width: `${PULL_ICON_SIZE}px`,
           height: `${PULL_ICON_SIZE}px`,

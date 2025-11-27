@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ContactOption } from '../types';
 
@@ -47,7 +48,7 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
         <>
             {paymentMethods && onPaymentMethodsChange && (
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Payment Methods Accepted</label>
+                    <label className="block text-sm font-medium text-gray-600">Payment Methods Accepted</label>
                     <div className="mt-2 space-y-2">
                         {PAYMENT_OPTIONS.map(option => (
                             <div key={option} className="flex items-center">
@@ -65,7 +66,7 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                 </div>
             )}
             <div>
-                <label className="block text-sm font-medium text-gray-700">Delivery Options</label>
+                <label className="block text-sm font-medium text-gray-600">Delivery Options</label>
                 <div className="mt-2 space-y-2">
                     {DELIVERY_OPTIONS.map(option => (
                         <div key={option} className="flex items-center">
@@ -83,8 +84,8 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
             </div>
              {isSeller && showContactOptions && (
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Contact Methods</label>
-                    <p className="text-xs text-gray-500">Select how customers can contact you (at least one is required).</p>
+                    <label className="block text-sm font-medium text-gray-600">Contact Methods</label>
+                    <p className="text-xs text-gray-600">Select how customers can contact you (at least one is required).</p>
                     <div className="mt-2 space-y-2">
                         {CONTACT_OPTIONS.map(option => (
                             <div key={option.id} className="flex items-center">

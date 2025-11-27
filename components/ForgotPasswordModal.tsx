@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ModalShell from './ModalShell';
 import { EnvelopeIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
 import { useUI } from '../contexts/UIContext';
 import { Button } from './ui/Button';
+import { FormField } from './FormField';
 
 interface ForgotPasswordModalProps {
   onClose: () => void;
@@ -45,7 +45,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
 
     const renderFooter = () => (
         <>
-            <Button variant="glass" onClick={onClose} disabled={isSubmitting} className="mr-auto">
+            <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">
                 Cancel
             </Button>
             <Button
@@ -54,7 +54,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
                 isLoading={isSubmitting}
                 disabled={!email.trim()}
                 className="w-40"
-                variant="glass-red"
+                variant="pill-red"
             >
                 Send Reset Link
             </Button>
@@ -73,18 +73,17 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
             <div className="p-6">
                 <p className="text-sm text-gray-800 mb-4">Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
                 <form id="forgot-password-form" onSubmit={handleSubmit} className="space-y-2">
-                    <InputWithIcon
-                      id="reset-email"
-                      label="Email Address"
-                      type="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                      icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
-                      error={error}
-                      placeholder="you@example.com"
-                      required
-                      autoFocus
-                    />
+                    <FormField id="reset-email" label="Email Address" error={error}>
+                        <InputWithIcon
+                            type="email"
+                            value={email}
+                            onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                            icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
+                            placeholder="you@example.com"
+                            required
+                            autoFocus
+                        />
+                    </FormField>
                 </form>
             </div>
         </ModalShell>

@@ -34,7 +34,7 @@ const AddToBagModal: React.FC<AddToBagModalProps> = ({ post, onClose, onSave, on
 
   const renderFooter = () => (
     <>
-      <Button variant="glass" onClick={onClose} disabled={isSubmitting} className="mr-auto">
+      <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">
         Cancel
       </Button>
       <Button
@@ -42,7 +42,7 @@ const AddToBagModal: React.FC<AddToBagModalProps> = ({ post, onClose, onSave, on
         onClick={handleSave}
         isLoading={isSubmitting}
         className="w-32"
-        variant="glass-red"
+        variant="pill-red"
         disabled={parseInt(quantity, 10) <= 0 || isNaN(parseInt(quantity, 10))}
       >
         {existingItem ? 'Update Bag' : 'Add to Bag'}
@@ -73,7 +73,7 @@ const AddToBagModal: React.FC<AddToBagModalProps> = ({ post, onClose, onSave, on
           </div>
         </div>
         <div className="mt-6">
-          <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 text-center mb-2">
+          <label htmlFor="quantity" className="block text-sm font-medium text-gray-600 text-center mb-2">
             Quantity
           </label>
           <div className="flex items-center justify-center gap-3">

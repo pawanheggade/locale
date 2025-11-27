@@ -40,9 +40,9 @@ const MediaPreview: React.FC<{ upload: MediaUpload; onRemove: () => void; }> = (
             <Button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                variant="glass-dark"
+                variant="overlay"
                 size="xs"
-                className="absolute top-1 right-1 w-6 h-6 p-0 flex items-center justify-center rounded-full transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-105 z-10"
+                className="absolute top-1 right-1 w-6 h-6 p-0 flex items-center justify-center rounded-full transition-all z-10 text-white drop-shadow-md"
                 aria-label="Remove media"
             >
                 <XMarkIcon className="w-4 h-4" />
@@ -164,7 +164,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ mediaUploads, hand
                 aria-label="Upload media. Click or drag and drop files here."
                 className={cn(
                     'flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2',
-                    isDraggingOver ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white hover:bg-gray-50'
+                    isDraggingOver ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
                 )}
             >
                 <input ref={fileInputRef} type="file" multiple onChange={onFileSelect} className="hidden" accept="image/*,video/*" tabIndex={-1} />
@@ -185,7 +185,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({ mediaUploads, hand
                             className={cn(
                                 'cursor-grab active:cursor-grabbing transition-all duration-200 transform relative rounded-lg',
                                 draggedIndex === index ? 'opacity-50' : 'opacity-100',
-                                dragOverIndex === index && draggedIndex !== index ? 'scale-105 ring-2 ring-red-500 ring-offset-2 z-10 shadow-lg' : 'hover:scale-[1.02]'
+                                dragOverIndex === index && draggedIndex !== index ? 'scale-105 ring-2 ring-red-500 ring-offset-2 z-10 shadow-lg' : ''
                             )}
                             title="Drag to reorder"
                         >

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { XMarkIcon } from './Icons';
 import { Button } from './ui/Button';
@@ -59,21 +58,21 @@ export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAcco
             aria-labelledby="guest-prompt-title"
             aria-describedby="guest-prompt-description"
         >
-            <div className={`relative w-full max-w-lg backdrop-blur-md rounded-xl shadow-2xl p-4 flex items-center gap-4 pointer-events-auto ${isClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}>
+            <div className={`relative w-full max-w-lg bg-white rounded-xl p-4 flex items-center gap-4 pointer-events-auto border border-gray-200 ${isClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}>
                 <div className="flex-1">
                     <h2 id="guest-prompt-title" className="font-bold text-gray-800">Join the community!</h2>
                     <p id="guest-prompt-description" className="text-sm text-gray-800 mt-1">Sign up to save items, create posts, and connect with locale sellers.</p>
                 </div>
                 <div className="flex flex-col gap-2 items-stretch flex-shrink-0">
-                    <Button onClick={onSignIn} variant="glass-red" size="sm">
+                    <Button onClick={onSignIn} variant="pill-red" size="sm">
                         Sign In
                     </Button>
-                    <Button onClick={onCreateAccount} variant="glass" size="sm">
+                    <Button onClick={onCreateAccount} variant="pill-dark" size="sm">
                         Create Account
                     </Button>
                 </div>
                  <Button 
-                    variant="glass"
+                    variant="overlay-dark"
                     size="icon-sm"
                     onClick={handleDismiss} 
                     className="absolute top-3 right-3 text-gray-500"

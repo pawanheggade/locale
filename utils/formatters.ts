@@ -36,6 +36,14 @@ export const formatCurrency = (price: number | undefined | null): string => {
   return price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
 };
 
+export const formatCompactCurrency = (price: number | undefined | null): string => {
+    if (price === undefined || price === null) return 'Contact';
+    if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
+    if (price >= 100000) return `₹${(price / 100000).toFixed(1)}L`;
+    if (price >= 1000) return `₹${(price / 1000).toFixed(1)}K`;
+    return `₹${price.toFixed(0)}`;
+};
+
 export const formatFullDate = (timestamp: number): string => {
   return new Date(timestamp).toLocaleDateString(undefined, {
     year: 'numeric',
@@ -90,33 +98,48 @@ export const formatMonthYear = (timestamp: number): string => {
 export const renderWithMentions = (
   text: string,
   allAccounts: Account[],
-  onViewAccount: (accountId: string) => void
+  onViewAccount: (accountId: string) => void,
+  onFilterByTag?: (tag: string) => void
 ): React.ReactNode => {
   if (!text) return text;
   
-  const mentionRegex = /@([a-zA-Z0-9_.]+)/g;
+  // Match @username or #tag
+  const regex = /(@[a-zA-Z0-9_.]+|#[a-zA-Z0-9_]+)/g;
   const accountsByUsername = new Map(allAccounts.map(acc => [acc.username.toLowerCase(), acc]));
   
-  const parts = text.split(mentionRegex);
+  const parts = text.split(regex);
 
   return parts.map((part, index) => {
-    // Every odd-indexed part is a username match
-    if (index % 2 === 1) {
-      const username = part.toLowerCase();
+    // Username mention
+    if (part.startsWith('@')) {
+      const username = part.substring(1).toLowerCase();
       const account = accountsByUsername.get(username);
       if (account) {
         return React.createElement(
           'button',
           {
-            key: `${account.id}-${index}`,
+            key: `${index}`,
             onClick: (e: React.MouseEvent) => { e.stopPropagation(); onViewAccount(account.id); },
-            className: "font-semibold text-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-sm"
+            className: "font-semibold text-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-sm hover:underline"
           },
-          `@${part}`
+          part
         );
       }
+    } 
+    // Hashtag
+    else if (part.startsWith('#') && onFilterByTag) {
+        const tag = part.substring(1);
+        return React.createElement(
+            'button',
+            {
+                key: `${index}`,
+                onClick: (e: React.MouseEvent) => { e.stopPropagation(); onFilterByTag(tag); },
+                className: "font-medium text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 rounded-sm hover:underline hover:text-gray-900"
+            },
+            part
+        );
     }
-    // Return the original text part (even-indexed parts) or non-matching @-strings
+    // Regular text
     return part;
   });
 };
