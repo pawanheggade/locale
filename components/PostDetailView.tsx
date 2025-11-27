@@ -238,14 +238,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                   <div className="mt-6 pt-4 border-t">
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                         {post.tags.map(tag => (
-                          <Button
+                          <button
                             key={tag} 
                             onClick={() => onFilterByTag(tag)} 
-                            variant="link"
-                            className="text-gray-600 !font-medium !p-0 !h-auto"
+                            className="text-sm text-gray-600 font-medium hover:text-gray-900 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                           >
                             #{tag}
-                          </Button>
+                          </button>
                         ))}
                     </div>
                   </div>
