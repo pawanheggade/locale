@@ -40,7 +40,7 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
             viewBox="0 0 12 12" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            className={cn("absolute top-[75%]", isLarge ? "w-[25px] h-[25px]" : "w-[18px] h-[18px]")}
+            className={cn("absolute", isLarge ? "top-[80%] w-[25px] h-[25px]" : "top-[75%] w-[18px] h-[18px]")}
         >
           <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
