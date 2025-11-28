@@ -56,7 +56,7 @@ export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAcco
             aria-labelledby="guest-prompt-title"
             aria-describedby="guest-prompt-description"
         >
-            <div className={`relative w-full max-w-lg bg-white rounded-xl p-4 flex items-center gap-4 pointer-events-auto border border-gray-200 ${isClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}>
+            <div className={`relative w-full max-w-lg bg-white rounded-xl p-4 flex items-center gap-4 pointer-events-auto border border-gray-200 shadow-lg ${isClosing ? 'animate-slide-out-down' : 'animate-slide-in-up'}`}>
                 <div className="flex-1">
                     <h2 id="guest-prompt-title" className="font-bold text-gray-800">Join the community!</h2>
                     <p id="guest-prompt-description" className="text-sm text-gray-800 mt-1">Sign up to save items, create posts, and connect with locale sellers.</p>
@@ -70,13 +70,13 @@ export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAcco
                     </Button>
                 </div>
                  <Button 
-                    variant="overlay-dark"
+                    variant="ghost"
                     size="icon-sm"
                     onClick={handleDismiss} 
-                    className="absolute top-3 right-3 text-gray-500"
+                    className="absolute -top-3 -right-3 bg-white rounded-full shadow-md border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 z-10"
                     aria-label="Dismiss"
                 >
-                    <XMarkIcon className="w-5 h-5" />
+                    <XMarkIcon className="w-4 h-4" />
                 </Button>
             </div>
         </div>
