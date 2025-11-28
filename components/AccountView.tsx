@@ -5,7 +5,7 @@ import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, Ca
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
-import { TabButton } from './ui/Button';
+import { Button, TabButton } from './ui/Button';
 import { Avatar } from './Avatar';
 import { PostList } from './PostList';
 import { ReferralCard } from './ReferralCard';
@@ -26,6 +26,7 @@ interface AccountViewProps {
   onShowOnMap: (account: Account) => void;
   isGeocoding: boolean;
   onOpenAnalytics: () => void;
+  onOpenSubscriptionPage: () => void;
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -51,7 +52,7 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics }) => {
+export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics, onOpenSubscriptionPage }) => {
   const { addToast, openModal } = useUI();
   const { posts: allForumPosts } = useForum();
   const { onViewForumPost } = usePostActions();
@@ -258,7 +259,17 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   <div className="mb-1">
                       <div className="flex items-center gap-2 flex-wrap">
                           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                          <SubscriptionBadge tier={account.subscription.tier} className="mt-1" />
+                          <SubscriptionBadge tier={account.subscription.tier} />
+                          {isOwnAccount && (
+                              <Button
+                                  onClick={onOpenSubscriptionPage}
+                                  variant="ghost"
+                                  size="xs"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full h-5 px-2"
+                              >
+                                  Subscription
+                              </Button>
+                          )}
                       </div>
                       <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
@@ -339,7 +350,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               />
           </div>
           
-          {isOwnAccount && account.subscription.tier === 'Personal' && (
+          {isOwnAccount && account.subscription.tier !== 'Personal' && (
               <div className="mt-6 border-t border-gray-100 pt-6">
                   <ReferralCard account={account} />
               </div>
@@ -351,7 +362,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
               {availableTabs.map(tab => (
-                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id' ? false : activeTab === tab.id}>
                       {tab.label}
                   </TabButton>
               ))}

@@ -1,9 +1,6 @@
-
-
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, CheckBadgeIconSolid, ChatBubbleEllipsisIcon } from './Icons';
+import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { Avatar } from './Avatar';
@@ -175,12 +172,10 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                                 </Button>
                             )}
                             <div className="grid grid-cols-2 gap-2">
-                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('forums'))} icon={<ChatBubbleEllipsisIcon className="w-6 h-6 text-gray-600" />} label="Forums" />
                                 <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-6 h-6 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                                 <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-6 h-6 text-gray-600" />} label="Likes" />
                                 <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-6 h-6 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />
                                 <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-6 h-6 text-gray-600" />} label="Settings" />
-                                <MenuItem onClick={() => handleMenuAction(onOpenSubscriptionPage)} icon={<CheckBadgeIconSolid className="w-6 h-6 text-amber-500" />} label="Subscribe" />
                             </div>
                         </div>
                         <div className="my-1 h-px bg-gray-100" role="separator" />

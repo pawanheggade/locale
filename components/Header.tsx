@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import SearchBar from './SearchBar';
 import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -142,7 +140,11 @@ const HeaderComponent: React.FC<HeaderProps> = ({
       'bg-white border-b border-gray-200', // Replaced glass effect with solid white
       !isVisible && '-translate-y-full' // Hide via transform
     )}>
-      <div className={`px-4 sm:px-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-1 sm:gap-x-1 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      <div className={cn(
+        "grid grid-cols-[auto_1fr_auto] items-center transition-all duration-300",
+        isScrolled ? "h-14" : "h-16",
+        "px-4 sm:px-6 gap-3 sm:gap-6 md:gap-8" // Optimized spacing
+      )}>
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
@@ -173,7 +175,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </h1>
         </div>
         
-        <div className="flex justify-center px-2 min-w-0">
+        <div className="flex justify-center min-w-0">
             {/* Increased max-width constraints to allow search bar to grow larger */}
             <div className="w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center gap-2">
                 <SearchBar 
@@ -209,7 +211,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
         </div>
 
 
-        <div className="flex items-center gap-2 sm:gap-2 shrink-0 justify-self-end">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 justify-self-end">
             <Button 
                 onClick={() => onViewChange('forums')}
                 variant="overlay-dark"
