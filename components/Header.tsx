@@ -124,19 +124,8 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     }
   }, [windowWidth, isAiSearchEnabled]);
 
-  const handleBagClick = () => {
-    if (currentAccount) {
-        if (currentView !== 'bag') {
-            onViewChange('bag');
-        }
-    } else {
-        onOpenLoginModal();
-    }
-  };
-
-  // Helper to render filter button to avoid duplication
-  const FilterButton = ({ className }: { className?: string }) => (
-      <Button 
+  const renderFilterButton = (className?: string) => (
+    <Button 
         onClick={onOpenFilterPanel}
         disabled={isViewToggleDisabled}
         variant="overlay-dark"
@@ -159,7 +148,15 @@ const HeaderComponent: React.FC<HeaderProps> = ({
       'bg-white border-b border-gray-200',
       !isVisible && '-translate-y-full'
     )}>
-      <div className={`px-2 sm:px-6 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      {/* 
+        Layout:
+        - Mobile: Flexbox row. Logo (fixed) | Search (flex-1) | Filter (fixed) | RightButtons (fixed).
+          This ensures uniform spacing (gap-2) between all elements on mobile.
+        - Desktop (sm+): Grid. Logo (auto) | Search+Filter (1fr) | RightButtons (auto).
+      */}
+      <div className={`px-2 sm:px-6 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center gap-2 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+        
+        {/* Left Section */}
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
@@ -190,8 +187,8 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </h1>
         </div>
         
-        <div className="flex-1 min-w-0 flex justify-center">
-            {/* Removed max-width constraints to allow search bar to grow larger */}
+        {/* Center Section: Search & Desktop Filter */}
+        <div className="flex-1 flex justify-center min-w-0 sm:col-start-2">
             <div className="w-full flex items-center gap-2">
                 <SearchBar 
                     searchQuery={searchQuery}
@@ -208,29 +205,26 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                     onAiSearchSubmit={onAiSearchSubmit}
                     isAiSearching={isAiSearching}
                 />
-                {/* Desktop Filter Button (grouped with search) */}
-                <div className="hidden sm:inline-flex">
-                    <FilterButton />
-                </div>
+                {/* Desktop Filter Button (Hidden on mobile) */}
+                {renderFilterButton("hidden sm:inline-flex")}
             </div>
         </div>
 
-        {/* Mobile Filter Button (between search and right actions) */}
-        <div className="sm:hidden shrink-0 flex items-center">
-            <FilterButton />
-        </div>
+        {/* Mobile Filter Button (Direct child of flex container for uniform spacing) */}
+        {renderFilterButton("sm:hidden")}
 
-        <div className="flex items-center gap-1 shrink-0 justify-self-end">
+        {/* Right Section: Forum & Account */}
+        <div className="flex items-center gap-2 sm:gap-2 shrink-0 sm:justify-self-end">
             <Button 
-                onClick={() => currentView === 'forums' ? onViewChange('all') : onViewChange('forums')}
+                onClick={() => onViewChange('forums')}
                 variant="overlay-dark"
                 size="icon"
                 className={cn(
                     "shrink-0 transition-colors",
                     currentView === 'forums' && "text-red-600"
                 )}
-                aria-label={currentView === 'forums' ? "Back to feed" : "Community Forums"}
-                title={currentView === 'forums' ? "Back to feed" : "Community Forums"}
+                aria-label="Forums"
+                title="Community Forums"
             >
                 <ChatBubbleEllipsisIcon className="w-6 h-6" />
             </Button>

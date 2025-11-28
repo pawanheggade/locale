@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SearchIcon, XCircleIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
@@ -121,8 +122,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => onSearchChange(e.target.value)}
         onFocus={inputProps.onFocus}
         onKeyDown={handleKeyDown} 
-        // Reduced right padding as filter button is removed
-        className="block w-full bg-gray-100 border border-gray-200/80 rounded-full py-3 pl-11 pr-20 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate"
+        // Reduced right padding as filter button is removed. Changed py-3 to h-10 for consistent 40px height with buttons.
+        className="block w-full h-10 bg-gray-100 border border-gray-200/80 rounded-full pl-11 pr-20 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
