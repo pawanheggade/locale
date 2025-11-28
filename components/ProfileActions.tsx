@@ -108,7 +108,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                         {!isMobile && <span className="md:hidden">Catalog</span>}
                     </Button>
                 )}
-                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
+                <Button variant="pill-red" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
                     <ChartBarIcon className="w-4 h-4" />
                     Analytics
                 </Button>

@@ -37,7 +37,7 @@ const getBadgeSvg = (tier: string) => {
     }
     
     // Outline style for others
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
 };
 
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
@@ -47,147 +47,144 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
   const profileUrl = `${window.location.origin}/?account=${account.id}`;
   const encodedUrl = encodeURIComponent(profileUrl);
-  const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodedUrl}&ecc=H&margin=10&color=000000&bgcolor=FFFFFF`;
+  // Using QuickChart as it handles CORS headers better for canvas drawing than other public APIs
+  const qrCodeApiUrl = `https://quickchart.io/qr?text=${encodedUrl}&size=400&margin=2&ecLevel=H&format=png`;
 
   // Determine border color class for the UI (not canvas)
   const styles = TIER_STYLES[account.subscription.tier] || TIER_STYLES.Personal;
   const borderColorClass = styles.borderColor;
 
+  const generateQrCardBlob = async (): Promise<Blob> => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas context failed');
+
+    // Configuration
+    const scale = 3; // High resolution factor
+    const cardWidth = 320;
+    const padding = 24;
+    const contentHeight = 480; 
+    
+    const width = cardWidth * scale;
+    const height = contentHeight * scale;
+    
+    canvas.width = width;
+    canvas.height = height;
+    ctx.scale(scale, scale);
+
+    // 1. White Background & Shape
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, cardWidth, contentHeight); 
+    
+    // 2. Colored Border using centralized Hex
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = styles.hex;
+    
+    roundRect(ctx, 2.5, 2.5, cardWidth - 5, contentHeight - 5, 24); 
+    ctx.stroke();
+
+    // 3. Load & Draw QR Code
+    const qrImg = new Image();
+    qrImg.crossOrigin = 'anonymous';
+    qrImg.src = qrCodeApiUrl;
+    await new Promise((resolve, reject) => {
+        qrImg.onload = resolve;
+        qrImg.onerror = reject;
+    });
+    
+    const qrSize = cardWidth - (padding * 2);
+    ctx.drawImage(qrImg, padding, padding, qrSize, qrSize);
+
+    // 4. Text (Name & Username)
+    const textY = padding + qrSize + 16;
+    ctx.textAlign = 'center';
+    
+    // Name
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillStyle = '#111827'; // gray-900
+    ctx.fillText(account.name, cardWidth / 2, textY + 16);
+    
+    // Draw Badge on Canvas if applicable
+    if (account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') {
+        const nameWidth = ctx.measureText(account.name).width;
+        const badgeSvg = getBadgeSvg(account.subscription.tier);
+        const badgeImg = new Image();
+        badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
+        
+        await new Promise((resolve) => {
+            badgeImg.onload = resolve;
+            badgeImg.onerror = resolve; 
+        });
+
+        const badgeSize = 24;
+        const badgeX = (cardWidth / 2) + (nameWidth / 2) + 6;
+        const badgeY = (textY + 16) - (badgeSize / 2) - 7; 
+        
+        ctx.drawImage(badgeImg, badgeX, badgeY, badgeSize, badgeSize);
+    }
+    
+    // Username
+    ctx.font = '500 14px sans-serif';
+    ctx.fillStyle = '#6b7280'; // gray-500
+    ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
+
+    // 5. Locale Logo
+    const logoY = textY + 94; 
+    ctx.font = '500 20px sans-serif';
+    ctx.fillStyle = '#000000'; // Black text
+    
+    const text = "locale";
+    const textMeasure = ctx.measureText(text);
+    const textX = (cardWidth - textMeasure.width) / 2;
+    
+    ctx.textAlign = 'left';
+    ctx.fillText(text, textX, logoY);
+    
+    const lWidth = ctx.measureText('l').width;
+    const oWidth = ctx.measureText('o').width;
+    
+    const triangleCenterX = textX + lWidth + (oWidth / 2) + 1; 
+    const triangleTopY = logoY + 6; 
+
+    ctx.save();
+    ctx.translate(triangleCenterX - 6, triangleTopY);
+    
+    ctx.beginPath();
+    ctx.moveTo(2, 2);
+    ctx.lineTo(6, 10);
+    ctx.lineTo(10, 2);
+    ctx.lineTo(2, 2);
+    ctx.moveTo(1, 7);
+    ctx.lineTo(11, 7);
+    
+    ctx.strokeStyle = '#DC2626'; 
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    ctx.restore();
+
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Blob creation failed'));
+        }, 'image/png');
+    });
+  };
+
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Canvas context failed');
-
-        // Configuration
-        const scale = 3; // High resolution factor
-        const cardWidth = 320;
-        const padding = 24;
-        const contentHeight = 480; 
-        
-        const width = cardWidth * scale;
-        const height = contentHeight * scale;
-        
-        canvas.width = width;
-        canvas.height = height;
-        ctx.scale(scale, scale);
-
-        // 1. White Background & Shape
-        ctx.fillStyle = '#FFFFFF';
-        // Fill entire canvas white first
-        ctx.fillRect(0, 0, cardWidth, contentHeight); 
-        
-        // 2. Colored Border using centralized Hex
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = styles.hex;
-        
-        // Inset border by half linewidth so it doesn't clip
-        roundRect(ctx, 2.5, 2.5, cardWidth - 5, contentHeight - 5, 24); 
-        ctx.stroke();
-
-        // 3. Load & Draw QR Code
-        const qrImg = new Image();
-        qrImg.crossOrigin = 'anonymous';
-        qrImg.src = qrCodeApiUrl;
-        await new Promise((resolve, reject) => {
-            qrImg.onload = resolve;
-            qrImg.onerror = reject;
-        });
-        
-        const qrSize = cardWidth - (padding * 2);
-        ctx.drawImage(qrImg, padding, padding, qrSize, qrSize);
-
-        // 4. Text (Name & Username)
-        const textY = padding + qrSize + 16;
-        ctx.textAlign = 'center';
-        
-        // Name
-        ctx.font = 'bold 22px sans-serif';
-        ctx.fillStyle = '#111827'; // gray-900
-        ctx.fillText(account.name, cardWidth / 2, textY + 16);
-        
-        // Draw Badge on Canvas if applicable
-        if (account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') {
-            const nameWidth = ctx.measureText(account.name).width;
-            const badgeSvg = getBadgeSvg(account.subscription.tier);
-            const badgeImg = new Image();
-            badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
-            
-            await new Promise((resolve) => {
-                badgeImg.onload = resolve;
-                badgeImg.onerror = resolve; // continue even if badge fails
-            });
-
-            const badgeSize = 24;
-            const badgeX = (cardWidth / 2) + (nameWidth / 2) + 6;
-            const badgeY = (textY + 16) - (badgeSize / 2) - 7; // Adjust vertical centering visually
-            
-            ctx.drawImage(badgeImg, badgeX, badgeY, badgeSize, badgeSize);
-        }
-        
-        // Username
-        ctx.font = '500 14px sans-serif';
-        ctx.fillStyle = '#6b7280'; // gray-500
-        ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
-
-        // 5. Locale Logo
-        const logoY = textY + 94; 
-        ctx.font = '500 20px sans-serif';
-        ctx.fillStyle = '#000000'; // Black text
-        
-        const text = "locale";
-        const textMeasure = ctx.measureText(text);
-        const textX = (cardWidth - textMeasure.width) / 2;
-        
-        // Draw "locale"
-        ctx.textAlign = 'left';
-        ctx.fillText(text, textX, logoY);
-        
-        // Draw Triangle Icon under 'o'
-        const lWidth = ctx.measureText('l').width;
-        const oWidth = ctx.measureText('o').width;
-        
-        const triangleCenterX = textX + lWidth + (oWidth / 2) + 1; // Approx center of 'o'
-        const triangleTopY = logoY + 6; 
-
-        ctx.save();
-        ctx.translate(triangleCenterX - 6, triangleTopY); // Center the 12px wide SVG
-        
-        ctx.beginPath();
-        // Triangle Path: M2 2L6 10L10 2H2Z combined with M1 7H11
-        ctx.moveTo(2, 2);
-        ctx.lineTo(6, 10);
-        ctx.lineTo(10, 2);
-        ctx.lineTo(2, 2);
-        
-        ctx.moveTo(1, 7);
-        ctx.lineTo(11, 7);
-        
-        ctx.strokeStyle = '#DC2626'; // red-600
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-        ctx.restore();
-
-        // 6. Convert & Download
-        canvas.toBlob((blob) => {
-            if (blob) {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${account.username}-qr-card.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-                addToast('QR Card downloaded!', 'success');
-            } else {
-                throw new Error('Blob creation failed');
-            }
-        }, 'image/png');
-
+        const blob = await generateQrCardBlob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${account.username}-qr-card.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        addToast('QR Card downloaded!', 'success');
     } catch (error) {
       console.error('Download failed', error);
       addToast('Failed to generate QR card.', 'error');
@@ -197,27 +194,55 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
+    setIsGenerating(true);
+    try {
+      // Generate the image
+      const blob = await generateQrCardBlob();
+      const file = new File([blob], `${account.username}-qr-card.png`, { type: 'image/png' });
+      
+      const shareData: ShareData = {
           title: `Check out ${account.name} on Locale`,
           text: `Scan this QR code to visit ${account.name}'s profile on Locale.`,
           url: profileUrl,
-        });
-      } catch (error: any) {
+      };
+
+      // Try sharing with file if supported
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ ...shareData, files: [file] });
+      } else if (navigator.share) {
+          // Fallback to text/url share if file sharing not supported
+          await navigator.share(shareData);
+      } else {
+          // Fallback to clipboard copy
+          navigator.clipboard.writeText(profileUrl);
+          addToast('Profile link copied to clipboard', 'success');
+      }
+    } catch (error: any) {
+        // Robust check for user cancellation
         const isAbort = error.name === 'AbortError' || 
+                        error.name === 'NotAllowedError' ||
                         (typeof error.message === 'string' && (
                             error.message.toLowerCase().includes('abort') || 
-                            error.message.toLowerCase().includes('cancel')
+                            error.message.toLowerCase().includes('cancel') ||
+                            error.message.toLowerCase().includes('cancelled')
                         ));
-        if (!isAbort) {
-            console.error('Error sharing:', error);
-            addToast('Could not open share menu', 'error');
+        
+        if (isAbort) {
+            return; // Silently exit on user cancellation
         }
-      }
-    } else {
-      navigator.clipboard.writeText(profileUrl);
-      addToast('Profile link copied to clipboard', 'success');
+
+        console.error('Share failed', error);
+        
+        // If file generation failed but user still wants to share, fallback to link copy
+        if (error.message === 'Blob creation failed' || error.message === 'Canvas context failed') {
+             navigator.clipboard.writeText(profileUrl);
+             addToast('Image share failed. Link copied instead.', 'success');
+             return;
+        }
+
+        addToast('Could not open share menu', 'error');
+    } finally {
+        setIsGenerating(false);
     }
   };
 
@@ -272,9 +297,9 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                 {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ArrowDownTrayIcon className="w-5 h-5 mr-2" />}
                 {isGenerating ? 'Saving...' : 'Download'}
             </Button>
-            <Button onClick={handleShare} variant="outline" className="flex-1 justify-center">
-                <ShareIcon className="w-5 h-5 mr-2" />
-                Share Profile
+            <Button onClick={handleShare} variant="outline" className="flex-1 justify-center" disabled={isGenerating}>
+                {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ShareIcon className="w-5 h-5 mr-2" />}
+                Share Card
             </Button>
         </div>
       </div>

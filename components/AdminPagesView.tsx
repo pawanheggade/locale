@@ -4,6 +4,7 @@ import { EditPageModal } from './EditPageModal';
 import { useUI } from '../contexts/UIContext';
 import { sanitizeHtml } from '../utils/security';
 import { Button } from './ui/Button';
+import { PencilIcon } from './Icons';
 
 interface AdminPagesViewProps {
   termsContent: string;
@@ -30,9 +31,10 @@ const PageSection: React.FC<{
                 <Button
                     onClick={onEdit}
                     variant="overlay-dark"
-                    className="font-semibold text-gray-700"
+                    className="font-semibold text-gray-700 gap-2"
                 >
-                    Edit Content
+                    <PencilIcon className="w-4 h-4" />
+                    Edit
                 </Button>
             </div>
             <div

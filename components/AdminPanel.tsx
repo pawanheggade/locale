@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
-import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
+import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
 import { DataVisualizationView } from './DataVisualizationView';
 import { AdminPagesView } from './AdminPagesView';
 import { AccountsView } from './admin/AccountsView';
@@ -75,7 +75,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
     { id: 'accounts', label: 'Accounts', icon: <UserIcon className="w-5 h-5" /> },
     { id: 'posts', label: 'Posts', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
     { id: 'categories', label: 'Categories', icon: <HashtagIcon className="w-5 h-5" /> },
-    { id: 'pages', label: 'Pages', icon: <PencilIcon className="w-5 h-5" /> },
+    { id: 'pages', label: 'Pages', icon: <DocumentIcon className="w-5 h-5" /> },
     { id: 'reports', label: 'Reports', icon: <FlagIcon className="w-5 h-5" />, badge: props.reports.length },
     { id: 'feedback', label: 'Feedback', icon: <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />, badge: props.feedbackList.filter(f => !f.isRead).length },
     { id: 'analytics', label: 'Analytics', icon: <ChartBarIcon className="w-5 h-5" /> },

@@ -73,7 +73,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         <DropdownMenuItem
           key="edit"
           onClick={handleAction(onEdit)}
-          icon={<PencilIcon className="w-5 h-5 text-amber-500" />}
+          icon={<PencilIcon className="w-5 h-5 text-gray-500" />}
           label="Edit"
         />
       );

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
@@ -52,6 +51,7 @@ const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, curren
               <PostList
                 posts={likedPosts}
                 currentAccount={currentAccount}
+                variant="compact"
               />
             )}
           </div>
@@ -67,7 +67,7 @@ const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, curren
                 className="py-20"
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                 {likedAccounts.map((account) => {
                   return (
                     <div
@@ -82,12 +82,13 @@ const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, curren
                       role="button"
                       tabIndex={0}
                       aria-label={`View profile of ${account.name}`}
-                      className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
+                      className="bg-white rounded-xl border border-gray-200/80 p-4 flex flex-col items-center gap-3 cursor-pointer hover:border-red-200 transition-all active:scale-95"
                     >
-                      <Avatar src={account.avatarUrl} alt={account.name} size="2xl" tier={account.subscription.tier} className="ring-offset-2 ring-offset-white" />
-                      <h2 className="mt-4 text-xl font-bold text-gray-800">{account.name}</h2>
-                      <p className="text-md text-gray-500">@{account.username}</p>
-                      <p className="mt-2 text-sm text-gray-600 flex-grow min-h-[40px] line-clamp-2">{account.description}</p>
+                      <Avatar src={account.avatarUrl} alt={account.name} size="xl" tier={account.subscription.tier} />
+                      <div className="text-center w-full">
+                        <h3 className="font-bold text-gray-900 text-sm truncate">{account.name}</h3>
+                        <p className="text-xs text-gray-500 truncate">@{account.username}</p>
+                      </div>
                     </div>
                   );
                 })}
