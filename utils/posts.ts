@@ -1,5 +1,5 @@
 
-import { Post, DisplayablePost, Account, FiltersState, Subscription } from '../types';
+import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
 const TIER_RANK: Record<Subscription['tier'], number> = { 'Organisation': 4, 'Business': 3, 'Verified': 2, 'Basic': 1, 'Personal': 0 };
@@ -26,6 +26,10 @@ export const wasPostEdited = (post: { id: string; lastUpdated: number }): boolea
     // A post is considered edited if lastUpdated is significantly later than its creation ID timestamp
     // Using 60 seconds buffer to account for immediate creation glitches
     return post.lastUpdated > parseInt(post.id, 10) + 60000;
+};
+
+export const isPostPurchasable = (post: { type: PostType; price?: number }): boolean => {
+    return post.type === PostType.PRODUCT || (post.type === PostType.SERVICE && post.price !== undefined && post.price > 0);
 };
 
 // Extracts keywords from text, filtering out common stop words.

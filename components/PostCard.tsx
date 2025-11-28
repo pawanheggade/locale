@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, PencilIcon, PinIcon, BellIcon } from './Icons';
 import { formatTimeRemaining } from '../utils/formatters';
-import { getPostStatus, isAccountEligibleToPin } from '../utils/posts';
+import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { useAuth } from '../contexts/AuthContext';
@@ -50,7 +50,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const isOwnPost = post.authorId === currentAccount?.id;
   const isEligibleToPin = isOwnPost && isAccountEligibleToPin(currentAccount);
 
-  const isPurchasable = post.type === PostType.PRODUCT || (post.type === PostType.SERVICE && post.price !== undefined && post.price > 0);
+  const isPurchasable = isPostPurchasable(post);
 
   useEffect(() => {
     if (!enableEntryAnimation) {

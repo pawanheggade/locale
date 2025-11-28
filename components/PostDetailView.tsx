@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, renderWithMentions, formatFullDateTime } from '../utils/formatters';
-import { getPostStatus, findSimilarPosts, isAccountEligibleToPin } from '../utils/posts';
+import { getPostStatus, findSimilarPosts, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { PostActionsDropdown } from './PostActionsDropdown';
@@ -104,7 +104,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   const { isExpired } = getPostStatus(post.expiryDate);
   const isOwnPost = post.authorId === currentAccount?.id;
   const isEligibleToPin = isOwnPost && isAccountEligibleToPin(currentAccount);
-  const isPurchasable = post.type === PostType.PRODUCT || (post.type === PostType.SERVICE && post.price !== undefined && post.price > 0);
+  const isPurchasable = isPostPurchasable(post);
 
   const handleMapClick = () => {
       if (post.type === PostType.EVENT ? post.eventCoordinates : post.coordinates) {

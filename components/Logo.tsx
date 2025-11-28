@@ -1,0 +1,57 @@
+
+import React from 'react';
+import { cn } from '../lib/utils';
+
+interface LogoProps {
+  className?: string;
+  variant?: 'default' | 'large';
+  onClick?: () => void;
+}
+
+export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onClick }) => {
+  const isLarge = variant === 'large';
+  
+  return (
+    <div 
+        className={cn(
+            "flex items-baseline select-none relative",
+            isLarge 
+                ? "font-normal text-[40px] text-gray-900" 
+                : "font-normal text-2xl sm:text-3xl text-gray-900 cursor-pointer active:scale-95 transition-transform",
+            className
+        )}
+        onClick={onClick}
+        onKeyDown={(e) => {
+            if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                onClick();
+            }
+        }}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label="Locale Home"
+    >
+      <span>l</span>
+      <span className="relative inline-flex flex-col items-center">
+        <span>o</span>
+        <svg 
+            width={isLarge ? "20" : "12"} 
+            height={isLarge ? "20" : "12"} 
+            viewBox="0 0 12 12" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg" 
+            className={cn("absolute", isLarge ? "top-[85%] w-[20px] h-[20px]" : "top-[80%] w-[12px] h-[12px]")}
+        >
+          <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {isLarge && (
+            <div className="absolute left-1/2 top-[85%] ml-3 text-[9px] uppercase tracking-widest flex flex-col items-start leading-tight text-gray-500 font-normal whitespace-nowrap">
+                <span>hyperlocal</span>
+                <span>community</span>
+            </div>
+        )}
+      </span>
+      <span>cale</span>
+    </div>
+  );
+};

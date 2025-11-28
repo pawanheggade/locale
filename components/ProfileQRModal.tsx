@@ -130,8 +130,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
     // 5. Locale Logo
     const logoY = textY + 94; 
-    ctx.font = '500 20px sans-serif';
-    ctx.fillStyle = '#000000'; // Black text
+    ctx.font = 'normal 20px sans-serif';
+    ctx.fillStyle = '#111827'; // gray-900
     
     const text = "locale";
     const textMeasure = ctx.measureText(text);
@@ -278,7 +278,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                 </div>
 
                 {/* Locale Logo */}
-                <div className="flex items-baseline text-black font-medium text-xl select-none pointer-events-none">
+                <div className="flex items-baseline text-gray-900 font-normal text-xl select-none pointer-events-none">
                     <span>l</span>
                     <span className="relative inline-flex flex-col items-center">
                         <span>o</span>

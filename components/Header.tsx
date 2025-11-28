@@ -7,6 +7,7 @@ import { AccountMenu } from './AccountMenu';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { Logo } from './Logo';
 
 interface HeaderProps {
   searchQuery: string;
@@ -130,13 +131,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     }
 
     // Standard Search Logic
-    if (windowWidth < 640) {
-        // Mobile: Minimal (Note: Main search bar is hidden on mobile, this is a fallback)
-        return 'Search';
-    } else {
-        // Desktop/Tablet: Full text
-        return 'Search products, services, events...';
-    }
+    return 'Search products, services, events...';
   }, [windowWidth, isAiSearchEnabled]);
 
   const renderFilterButton = (className?: string) => (
@@ -178,28 +173,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                 <ChevronLeftIcon className="w-6 h-6" />
               </Button>
             )}
-            <h1
-              onClick={handleLogoClick}
-              onKeyDown={(e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleLogoClick();
-                  }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label="Go to all posts and clear filters"
-              className="text-2xl sm:text-3xl font-bold text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline select-none"
-            >
-              <span>l</span>
-              <span className="relative inline-flex flex-col items-center">
-                <span>o</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
-                  <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-              <span>cale</span>
-            </h1>
+            <Logo onClick={handleLogoClick} />
         </div>
         
         {/* Center Section: Search & Desktop Filter (Hidden on Mobile) */}
