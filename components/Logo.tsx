@@ -35,12 +35,15 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
       <span className="relative inline-flex flex-col items-center">
         <span>o</span>
         <svg 
-            width={isLarge ? "25" : "18"} 
-            height={isLarge ? "25" : "18"} 
+            width={isLarge ? "25" : "15"} 
+            height={isLarge ? "25" : "15"} 
             viewBox="0 0 12 12" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            className={cn("absolute", isLarge ? "top-[80%] w-[25px] h-[25px]" : "top-[75%] w-[18px] h-[18px]")}
+            className={cn(
+                "absolute", 
+                isLarge ? "top-[80%] w-[25px] h-[25px]" : "top-[80%] w-[15px] h-[15px]"
+            )}
         >
           <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -48,9 +51,9 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
       <span>cale</span>
       
       {isLarge && (
-        <div className="absolute right-0 top-[90%] text-[9px] uppercase tracking-widest flex flex-col items-end leading-tight text-gray-500 font-normal whitespace-nowrap font-['Comfortaa']">
-            <span>hyperlocal</span>
-            <span>community</span>
+        <div className="absolute right-0 top-[90%] flex flex-col items-end leading-tight text-gray-500 font-normal whitespace-nowrap font-['Comfortaa']">
+            <span className="text-[9px] uppercase tracking-widest">hyperlocal</span>
+            <span className="text-[9px] uppercase tracking-widest">community</span>
         </div>
       )}
     </div>
