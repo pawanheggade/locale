@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import SearchBar from './SearchBar';
 import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -136,13 +134,32 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     }
   };
 
+  // Helper to render filter button to avoid duplication
+  const FilterButton = ({ className }: { className?: string }) => (
+      <Button 
+        onClick={onOpenFilterPanel}
+        disabled={isViewToggleDisabled}
+        variant="overlay-dark"
+        size="icon"
+        className={cn(
+            "shrink-0 transition-colors",
+            isAnyFilterActive && "text-red-600",
+            className
+        )}
+        aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
+        title={isAnyFilterActive ? "Filters active" : "Filters"}
+    >
+        <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
+    </Button>
+  );
+
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
-      'bg-white border-b border-gray-200', // Replaced glass effect with solid white
-      !isVisible && '-translate-y-full' // Hide via transform
+      'bg-white border-b border-gray-200',
+      !isVisible && '-translate-y-full'
     )}>
-      <div className={`px-4 sm:px-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-1 sm:gap-x-1 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      <div className={`px-2 sm:px-6 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2" aria-label="Go back">
@@ -173,9 +190,9 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </h1>
         </div>
         
-        <div className="flex justify-center px-2 min-w-0">
-            {/* Increased max-width constraints to allow search bar to grow larger */}
-            <div className="w-full max-w-2xl lg:max-w-4xl mx-auto flex items-center gap-2">
+        <div className="flex-1 min-w-0 flex justify-center">
+            {/* Removed max-width constraints to allow search bar to grow larger */}
+            <div className="w-full flex items-center gap-2">
                 <SearchBar 
                     searchQuery={searchQuery}
                     onSearchChange={onSearchChange}
@@ -191,25 +208,19 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                     onAiSearchSubmit={onAiSearchSubmit}
                     isAiSearching={isAiSearching}
                 />
-                <Button 
-                    onClick={onOpenFilterPanel}
-                    disabled={isViewToggleDisabled}
-                    variant="overlay-dark"
-                    size="icon"
-                    className={cn(
-                        "shrink-0 transition-colors",
-                        isAnyFilterActive && "text-red-600"
-                    )}
-                    aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
-                    title={isAnyFilterActive ? "Filters active" : "Filters"}
-                >
-                    <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
-                </Button>
+                {/* Desktop Filter Button (grouped with search) */}
+                <div className="hidden sm:inline-flex">
+                    <FilterButton />
+                </div>
             </div>
         </div>
 
+        {/* Mobile Filter Button (between search and right actions) */}
+        <div className="sm:hidden shrink-0 flex items-center">
+            <FilterButton />
+        </div>
 
-        <div className="flex items-center gap-2 sm:gap-2 shrink-0 justify-self-end">
+        <div className="flex items-center gap-1 shrink-0 justify-self-end">
             <Button 
                 onClick={() => onViewChange('forums')}
                 variant="overlay-dark"
