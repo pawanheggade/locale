@@ -1,20 +1,5 @@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const CACHE_NAME = 'locale-app-v61';
+const CACHE_NAME = 'locale-app-v62';
 const MAP_CACHE_NAME = 'locale-map-tiles-v5';
 
 // Files to cache immediately

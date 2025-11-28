@@ -107,28 +107,15 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     accountArchivedPosts.length,
   ]);
 
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    const isPersonal = account.subscription.tier === 'Personal';
-    // Prioritize 'forums' for personal accounts if they have posts
-    if (isPersonal && userForumPosts.length > 0) {
-        return 'forums';
-    }
-    return 'all';
-  });
+  const [activeTab, setActiveTab] = useState<string>('all');
   
   // Effect to select a default tab or reset if the current one disappears
   useEffect(() => {
     const isCurrentTabVisible = availableTabs.some(t => t.id === activeTab);
     if (!isCurrentTabVisible && availableTabs.length > 0) {
-        const isPersonal = account.subscription.tier === 'Personal';
-        // Same priority logic as initialization for resetting the tab
-        if (isPersonal && userForumPosts.length > 0 && availableTabs.some(t => t.id === 'forums')) {
-            setActiveTab('forums');
-        } else {
-            setActiveTab(availableTabs[0].id);
-        }
+        setActiveTab(availableTabs[0].id);
     }
-  }, [availableTabs, activeTab, account.subscription.tier, userForumPosts]);
+  }, [availableTabs, activeTab]);
 
   const contactMethods = useMemo(() => {
     const subject = encodeURIComponent(`Inquiry from Locale`);
