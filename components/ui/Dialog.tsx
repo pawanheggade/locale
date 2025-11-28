@@ -114,7 +114,7 @@ const DialogContent = React.forwardRef<
 });
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("relative flex items-center justify-center p-4 border-b border-gray-200 h-16", className)} {...props} />
+    <div ref={ref} className={cn("relative flex items-center justify-center p-4 py-4 border-b border-gray-200 min-h-16 h-auto", className)} {...props} />
 ));
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
@@ -126,7 +126,7 @@ const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
 ));
 
 const DialogClose: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 text-gray-800" aria-label="Back">
+    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 top-4 text-gray-800" aria-label="Back">
         <ChevronLeftIcon className="w-6 h-6" />
     </Button>
 );

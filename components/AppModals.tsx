@@ -93,7 +93,29 @@ export const AppModals: React.FC<AppModalsProps> = ({
     switch (activeModal.type) {
       case 'login':
         return (
-            <ModalShell panelRef={modalRef} onClose={closeModal} title="Sign in to Locale" panelClassName="w-full max-w-md" titleId="login-modal-title">
+            <ModalShell 
+                panelRef={modalRef} 
+                onClose={closeModal} 
+                title={
+                    <div className="flex flex-col items-center pb-2">
+                        <div className="flex items-baseline font-bold text-4xl text-gray-900 select-none relative">
+                            <span>l</span>
+                            <span className="relative inline-flex flex-col items-center">
+                                <span>o</span>
+                                <svg width="18" height="18" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[85%]">
+                                    <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                <span className="absolute left-1/2 top-[85%] ml-3 text-xs font-normal text-gray-500 whitespace-nowrap flex items-center h-[18px]">
+                                    hyperlocal community
+                                </span>
+                            </span>
+                            <span>cale</span>
+                        </div>
+                    </div>
+                }
+                panelClassName="w-full max-w-md" 
+                titleId="login-modal-title"
+            >
                 <div className="p-6">
                     <SignInScreen
                         accounts={accounts}

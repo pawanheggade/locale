@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from './ui/Dialog';
 
 interface ModalShellProps {
   panelRef: React.RefObject<HTMLDivElement>;
   onClose: () => void;
-  title: string;
+  title: React.ReactNode;
   titleId: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
