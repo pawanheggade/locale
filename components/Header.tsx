@@ -1,7 +1,9 @@
 
+
+
 import React, { useState, useEffect, useMemo } from 'react';
 import SearchBar from './SearchBar';
-import { ChevronLeftIcon, FunnelIcon } from './Icons';
+import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon } from './Icons';
 import { Account, AppView } from '../types';
 import { AccountMenu } from './AccountMenu';
 import { Button } from './ui/Button';
@@ -158,7 +160,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
               role="button"
               tabIndex={0}
               aria-label="Go to all posts and clear filters"
-              className="text-2xl sm:text-3xl font-medium text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline select-none"
+              className="text-2xl sm:text-3xl font-bold text-black cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 transition-[transform,opacity] active:scale-95 flex items-baseline select-none"
             >
               <span>l</span>
               <span className="relative inline-flex flex-col items-center">
@@ -208,6 +210,19 @@ const HeaderComponent: React.FC<HeaderProps> = ({
 
 
         <div className="flex items-center gap-2 sm:gap-2 shrink-0 justify-self-end">
+            <Button 
+                onClick={() => onViewChange('forums')}
+                variant="overlay-dark"
+                size="icon"
+                className={cn(
+                    "shrink-0 transition-colors",
+                    currentView === 'forums' && "text-red-600"
+                )}
+                aria-label="Forums"
+                title="Community Forums"
+            >
+                <ChatBubbleEllipsisIcon className="w-6 h-6" />
+            </Button>
             <div className="relative">
                  {currentAccount ? (
                     <AccountMenu
