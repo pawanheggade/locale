@@ -62,7 +62,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   // --- DATA PREPARATION ---
   const accountPosts = useMemo(() => posts.filter(post => post.authorId === account.id), [posts, account.id]);
   const userForumPosts = useMemo(() => allForumPosts.filter(post => post.authorId === account.id).sort((a, b) => b.timestamp - a.timestamp), [allForumPosts, account.id]);
-  const pinnedPosts = useMemo(() => accountPosts.filter(p => p.isPinned), [accountPosts]);
   const accountArchivedPosts = useMemo(() => isOwnAccount ? archivedPosts.filter(post => post.authorId === account.id) : [], [archivedPosts, account.id, isOwnAccount]);
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
   const salePosts = useMemo(() => isBusinessAccount ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isBusinessAccount, accountPosts]);
@@ -76,10 +75,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     
     // The main posts tab is always an option, though might be empty.
     tabs.push({ id: 'all', label: 'Posts' });
-
-    if (pinnedPosts.length > 0) {
-        tabs.unshift({ id: 'pins', label: 'Pins' }); // Add to the front
-    }
     
     if (userForumPosts.length > 0) {
         tabs.push({ id: 'forums', label: 'Forums' });
@@ -103,7 +98,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
     return tabs;
   }, [
-    pinnedPosts.length,
     userForumPosts.length,
     salePosts.length,
     hasCatalogContent,
@@ -119,9 +113,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     if (isPersonal && userForumPosts.length > 0) {
         return 'forums';
     }
-    // Then prioritize 'pins' for anyone
-    const defaultTab = availableTabs.find(t => t.id === 'pins') || availableTabs[0];
-    return defaultTab?.id || 'all';
+    return 'all';
   });
   
   // Effect to select a default tab or reset if the current one disappears
@@ -133,8 +125,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         if (isPersonal && userForumPosts.length > 0 && availableTabs.some(t => t.id === 'forums')) {
             setActiveTab('forums');
         } else {
-            const defaultTab = availableTabs.find(t => t.id === 'pins') || availableTabs[0];
-            setActiveTab(defaultTab.id);
+            setActiveTab(availableTabs[0].id);
         }
     }
   }, [availableTabs, activeTab, account.subscription.tier, userForumPosts]);
@@ -186,12 +177,18 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const displayedPosts = useMemo(() => {
     if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
-    if (activeTab === 'pins') return pinnedPosts;
     if (activeTab === 'archives') return accountArchivedPosts;
-    if (activeTab === 'all') return accountPosts;
+    if (activeTab === 'all') {
+        // Sort pinned posts to the top
+        return [...accountPosts].sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return 0; // Maintain original sort (usually date) for same pin status
+        });
+    }
     // Category filter
     return accountPosts.filter(p => p.category === activeTab);
-  }, [activeTab, salePosts, pinnedPosts, accountArchivedPosts, accountPosts]);
+  }, [activeTab, salePosts, accountArchivedPosts, accountPosts]);
 
   const handleContactAction = (e: React.MouseEvent, method: { toast: string }) => {
       if (!currentAccount) {
@@ -362,7 +359,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
               {availableTabs.map(tab => (
-                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id' ? false : activeTab === tab.id}>
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
                       {tab.label}
                   </TabButton>
               ))}
