@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
-import { validateAccountData, AccountValidationData } from '../utils/validation';
+import { validateAccountData, AccountValidationData, URL_REGEX } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
 import { SellerOptionsForm } from './SellerOptionsForm';
@@ -171,10 +171,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 validationErrors.contactOptions = 'As a seller, you must select at least one contact method.';
             }
 
-            const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
             (Object.keys(state.socials) as SocialPlatform[]).forEach(platform => {
                 const url = state.socials[platform].trim();
-                if (url && !urlRegex.test(url)) {
+                if (url && !URL_REGEX.test(url)) {
                     validationErrors[`social-${platform}`] = 'Please enter a valid URL.';
                 }
             });

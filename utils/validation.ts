@@ -1,6 +1,9 @@
 
-
 import { Account, Post } from '../types';
+
+// Validates 10 digits, starting with 6, 7, 8, or 9 (Standard Mobile Format)
+export const PHONE_REGEX = /^[6-9]\d{9}$/;
+export const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
 
 // A subset of Account fields relevant for validation
 export interface AccountValidationData {
@@ -35,9 +38,6 @@ export const validateAccountData = (
     fieldToValidate?: FieldToValidate,
     isSeller: boolean = false
 ): Record<string, string | undefined> => {
-    // Validates 10 digits, starting with 6, 7, 8, or 9 (Standard Mobile Format)
-    const phoneRegex = /^[6-9]\d{9}$/;
-    const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
     const errors: Record<string, string | undefined> = {};
     const { name, username, email, password, confirmPassword, mobile, messageNumber, googleMapsUrl, address } = formData;
 
@@ -75,17 +75,17 @@ export const validateAccountData = (
             return undefined;
         },
         mobile: () => {
-            if (mobile !== undefined && mobile.trim() && !phoneRegex.test(mobile.trim())) return 'Please enter a valid 10-digit mobile number (starts with 6-9).';
+            if (mobile !== undefined && mobile.trim() && !PHONE_REGEX.test(mobile.trim())) return 'Please enter a valid 10-digit mobile number (starts with 6-9).';
             return undefined;
         },
         messageNumber: () => {
-            if (messageNumber !== undefined && messageNumber.trim() && !phoneRegex.test(messageNumber.trim())) return 'Please enter a valid 10-digit message number (starts with 6-9).';
+            if (messageNumber !== undefined && messageNumber.trim() && !PHONE_REGEX.test(messageNumber.trim())) return 'Please enter a valid 10-digit message number (starts with 6-9).';
             return undefined;
         },
         googleMapsUrl: () => {
             if (isSeller) {
                 if (googleMapsUrl === undefined || !googleMapsUrl.trim()) return 'Google Maps location is required for sellers.';
-                if (!urlRegex.test(googleMapsUrl.trim())) return 'Please enter a valid URL.';
+                if (!URL_REGEX.test(googleMapsUrl.trim())) return 'Please enter a valid URL.';
             }
             return undefined;
         },

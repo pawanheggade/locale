@@ -1,5 +1,5 @@
 
-import { handleApiError, withRetry } from './gemini';
+import { handleApiError, withRetry } from './api';
 import { STORAGE_KEYS } from '../lib/constants';
 
 interface Coordinates {
