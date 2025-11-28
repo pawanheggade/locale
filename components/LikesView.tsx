@@ -16,7 +16,7 @@ interface LikesViewProps {
 
 type LikedTab = 'posts' | 'profiles';
 
-const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, currentAccount, allAccounts }) => {
+export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, currentAccount, allAccounts }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
 
   const likedAccounts = useMemo(() => {
@@ -100,5 +100,3 @@ const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, curren
     </div>
   );
 };
-
-export default LikesView;

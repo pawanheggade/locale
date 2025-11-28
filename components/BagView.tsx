@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -99,7 +100,7 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
 };
 
 
-const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
+export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
   const { 
     bag, 
     savedLists,
@@ -451,5 +452,3 @@ const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
     </div>
   );
 };
-
-export default BagView;

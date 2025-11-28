@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SearchIcon, XCircleIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
+import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
 import { useUI } from '../contexts/UIContext';
@@ -19,6 +19,7 @@ interface SearchBarProps {
   onToggleAiSearch?: () => void;
   onAiSearchSubmit: (query: string) => void;
   isAiSearching?: boolean;
+  autoFocus?: boolean;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -35,6 +36,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onToggleAiSearch,
   onAiSearchSubmit,
   isAiSearching,
+  autoFocus = false,
 }) => {
   const { addToast } = useUI();
 
@@ -121,7 +123,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
         onFocus={inputProps.onFocus}
-        onKeyDown={handleKeyDown} 
+        onKeyDown={handleKeyDown}
+        autoFocus={autoFocus} 
         // Reduced right padding as filter button is removed. Changed py-3 to h-10 for consistent 40px height with buttons.
         className="block w-full h-10 bg-gray-100 border border-gray-200/80 rounded-full pl-11 pr-20 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate"
         autoComplete="off"
@@ -132,19 +135,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         aria-activedescendant={activeIndex > -1 ? `suggestion-${activeIndex}` : undefined}
       />
       <div className="absolute inset-y-0 right-0 pr-2 sm:pr-2.5 flex items-center space-x-1 sm:space-x-1.5">
-        {isAiSearching ? (
+        {isAiSearching && (
             <SpinnerIcon className="h-5 w-5 text-gray-400" />
-        ) : searchQuery && (
-          <Button
-            onClick={() => onSearchChange('')}
-            variant="overlay-dark"
-            size="icon-sm"
-            className="text-gray-400 rounded-full"
-            aria-label="Clear search"
-            title="Clear search"
-          >
-            <XCircleIcon className="h-5 w-5" aria-hidden="true" />
-          </Button>
         )}
         
         {onToggleAiSearch && (
