@@ -130,7 +130,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
     // 5. Locale Logo
     const logoY = textY + 94; 
-    ctx.font = 'normal 20px sans-serif';
+    ctx.font = '600 20px Comfortaa, sans-serif'; // Updated to 600/Semibold for canvas
     ctx.fillStyle = '#111827'; // gray-900
     
     const text = "locale";
@@ -140,6 +140,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     ctx.textAlign = 'left';
     ctx.fillText(text, textX, logoY);
     
+    // Manually approximate the position for the triangle since measureText for individual letters is tricky with variable width fonts
+    // Comfortaa is wider, so we adjust slightly.
     const lWidth = ctx.measureText('l').width;
     const oWidth = ctx.measureText('o').width;
     
@@ -278,7 +280,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                 </div>
 
                 {/* Locale Logo */}
-                <div className="flex items-baseline text-gray-900 font-normal text-xl select-none pointer-events-none">
+                <div className="flex items-baseline text-gray-900 font-semibold text-xl select-none pointer-events-none font-['Comfortaa']">
                     <span>l</span>
                     <span className="relative inline-flex flex-col items-center">
                         <span>o</span>

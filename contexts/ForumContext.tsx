@@ -7,6 +7,7 @@ import { useAuth } from './AuthContext';
 import { mockForumPosts, mockForumComments, mockForumCategories } from '../data/forum';
 import { useUI } from './UIContext';
 import { useCategoryManager } from '../hooks/useCategoryManager';
+import { useActivity } from './ActivityContext';
 import { STORAGE_KEYS } from '../lib/constants';
 
 interface ForumContextType {
@@ -33,7 +34,8 @@ interface ForumContextType {
 const ForumContext = createContext<ForumContextType | undefined>(undefined);
 
 export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { currentAccount, accountsById, addNotification } = useAuth();
+    const { currentAccount, accountsById } = useAuth();
+    const { addNotification } = useActivity();
     const { addToast, openModal } = useUI();
 
     const [rawPosts, setRawPosts] = useLargePersistentState<ForumPost[]>(STORAGE_KEYS.FORUM_POSTS, mockForumPosts);

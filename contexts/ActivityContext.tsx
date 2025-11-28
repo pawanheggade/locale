@@ -3,7 +3,6 @@ import React, { createContext, useContext, useMemo, useCallback, useEffect, useR
 import { Notification, PriceAlert, AvailabilityAlert, Post } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';
-import { usePosts } from './PostsContext';
 import { useUI } from './UIContext';
 import { STORAGE_KEYS } from '../lib/constants';
 
@@ -29,8 +28,7 @@ interface ActivityContextType {
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentAccount, accounts } = useAuth();
-  const { posts, refreshPosts } = usePosts();
+  const { currentAccount } = useAuth();
   const { addToast } = useUI();
 
   // We store all activity data in one object keyed by userId to persist across logins

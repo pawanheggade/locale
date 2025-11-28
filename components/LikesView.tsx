@@ -9,7 +9,7 @@ import { EmptyState } from './EmptyState';
 
 interface LikesViewProps {
   likedPosts: DisplayablePost[];
-  onViewAccount: (accountId: string) => void;
+  onViewAccount: (account: Account) => void;
   currentAccount: Account;
   allAccounts: Account[];
 }
@@ -72,11 +72,11 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount,
                   return (
                     <div
                       key={account.id}
-                      onClick={() => onViewAccount(account.id)}
+                      onClick={() => onViewAccount(account)}
                       onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              onViewAccount(account.id);
+                              onViewAccount(account);
                           }
                       }}
                       role="button"

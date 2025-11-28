@@ -11,15 +11,15 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <UIProvider>
       <AuthProvider>
-        <PostsProvider>
-          <ActivityProvider>
+        <ActivityProvider>
+          <PostsProvider>
             <ForumProvider>
               <FiltersProvider>
                 {children}
               </FiltersProvider>
             </ForumProvider>
-          </ActivityProvider>
-        </PostsProvider>
+          </PostsProvider>
+        </ActivityProvider>
       </AuthProvider>
     </UIProvider>
   );

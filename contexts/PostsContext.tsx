@@ -7,6 +7,7 @@ import { useUI } from './UIContext';
 import { initialPosts } from '../data/posts';
 import { useCategoryManager } from '../hooks/useCategoryManager';
 import { useAuth } from './AuthContext';
+import { useActivity } from './ActivityContext';
 import { STORAGE_KEYS } from '../lib/constants';
 
 const initialCategoriesData: PostCategory[] = ['Groceries', 'Furniture', 'Lighting', 'Decor', 'Textiles', 'Artwork', 'Design Services'].sort((a, b) => a.localeCompare(b));
@@ -42,7 +43,8 @@ const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { addToast } = useUI();
-    const { accountsById, checkAvailabilityAlerts } = useAuth();
+    const { accountsById } = useAuth();
+    const { checkAvailabilityAlerts } = useActivity();
     
     // Use LargePersistentState for posts (images/content)
     const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(STORAGE_KEYS.POSTS, initialPosts);

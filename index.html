@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Locale - Share & Discover</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
@@ -60,7 +63,7 @@
         outline-offset: 2px;
     }
 
-    .button-pill-lightred:focus-visible, .button-circular-lightred:focus-visible {
+    .button-pill-lightred, .button-circular-lightred:focus-visible {
         outline: 2px solid #f87171; /* red-400 */
         outline-offset: 2px;
     }
@@ -404,6 +407,20 @@
     .hide-scrollbar {
       -ms-overflow-style: none;  /* IE and Edge */
       scrollbar-width: none;  /* Firefox */
+    }
+    
+    /* --- Custom Button Hover States --- */
+    .button-pill-red:hover, .button-circular-red:hover {
+        background-color: #b91c1c !important; /* red-700 - slightly darker than red-600 */
+    }
+    .button-pill-lightred:hover, .button-circular-lightred:hover {
+        background-color: #f87171 !important; /* red-400 - keeping consistent */
+    }
+    .button-pill-amber:hover {
+        background-color: #d97706 !important; /* amber-600 */
+    }
+    .button-pill-dark:hover {
+        background-color: #1f2937 !important; /* gray-800 */
     }
   </style>
 </head>
