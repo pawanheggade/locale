@@ -222,15 +222,15 @@ const HeaderComponent: React.FC<HeaderProps> = ({
 
         <div className="flex items-center gap-1 shrink-0 justify-self-end">
             <Button 
-                onClick={() => onViewChange('forums')}
+                onClick={() => currentView === 'forums' ? onViewChange('all') : onViewChange('forums')}
                 variant="overlay-dark"
                 size="icon"
                 className={cn(
                     "shrink-0 transition-colors",
                     currentView === 'forums' && "text-red-600"
                 )}
-                aria-label="Forums"
-                title="Community Forums"
+                aria-label={currentView === 'forums' ? "Back to feed" : "Community Forums"}
+                title={currentView === 'forums' ? "Back to feed" : "Community Forums"}
             >
                 <ChatBubbleEllipsisIcon className="w-6 h-6" />
             </Button>

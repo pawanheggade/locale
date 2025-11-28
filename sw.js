@@ -3,7 +3,8 @@
 
 
 
-const CACHE_NAME = 'locale-app-v46';
+
+const CACHE_NAME = 'locale-app-v47';
 const MAP_CACHE_NAME = 'locale-map-tiles-v5';
 
 // Files to cache immediately
