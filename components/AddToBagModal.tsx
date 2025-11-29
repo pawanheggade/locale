@@ -3,8 +3,8 @@ import React, { useState, useRef } from 'react';
 import { Post, BagItem } from '../types';
 import ModalShell from './ModalShell';
 import { formatCurrency } from '../utils/formatters';
-import { Button } from './ui/Button';
 import { QuantitySelector } from './QuantitySelector';
+import { ModalFooter } from './ModalFooter';
 
 interface AddToBagModalProps {
   post: Post;
@@ -33,21 +33,13 @@ const AddToBagModal: React.FC<AddToBagModalProps> = ({ post, onClose, onSave, on
   };
 
   const renderFooter = () => (
-    <>
-      <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">
-        Cancel
-      </Button>
-      <Button
-        type="button"
-        onClick={handleSave}
-        isLoading={isSubmitting}
-        className="w-32"
-        variant="pill-red"
-        disabled={parseInt(quantity, 10) <= 0 || isNaN(parseInt(quantity, 10))}
-      >
-        {existingItem ? 'Update Bag' : 'Add to Bag'}
-      </Button>
-    </>
+    <ModalFooter
+        onCancel={onClose}
+        onSubmit={handleSave}
+        submitText={existingItem ? 'Update Bag' : 'Add to Bag'}
+        isSubmitting={isSubmitting}
+        isSubmitDisabled={parseInt(quantity, 10) <= 0 || isNaN(parseInt(quantity, 10))}
+    />
   );
 
   const priceUnitText = post.priceUnit && post.priceUnit !== 'Fixed' ? ` / ${post.priceUnit.toLowerCase()}` : '';

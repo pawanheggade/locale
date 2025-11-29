@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
+import { ModalFooter } from './ModalFooter';
 
 interface EditPageModalProps {
   title: string;
@@ -20,20 +20,13 @@ export const EditPageModal: React.FC<EditPageModalProps> = ({ title, content, on
   };
 
   const renderFooter = () => (
-    <>
-      <Button variant="overlay-dark" onClick={onClose} disabled={isSaving} className="mr-auto">
-        Cancel
-      </Button>
-      <Button
-        type="button"
-        onClick={handleSave}
-        isLoading={isSaving}
-        className="w-32"
-        variant="pill-red"
-      >
-        Save Changes
-      </Button>
-    </>
+    <ModalFooter
+        onCancel={onClose}
+        onSubmit={handleSave}
+        submitText="Save Changes"
+        isSubmitting={isSaving}
+        submitClassName="w-32"
+    />
   );
 
   return (

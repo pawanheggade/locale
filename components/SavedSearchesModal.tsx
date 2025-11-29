@@ -6,6 +6,7 @@ import { StarIcon, TrashIcon, BellIcon } from './Icons';
 import { Button } from './ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { EmptyState } from './EmptyState';
+import { ModalFooter } from './ModalFooter';
 
 interface SavedSearchesModalProps {
   savedSearches: SavedSearch[];
@@ -19,9 +20,7 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
   const { toggleSavedSearchAlert } = useAuth();
 
   const renderFooter = () => (
-    <Button onClick={onClose} variant="overlay-dark">
-      Close
-    </Button>
+    <ModalFooter onCancel={onClose} cancelText="Close" />
   );
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,7 +7,7 @@ import { DisplayableForumComment } from '../types';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
-import { SpinnerIcon, ChatBubbleBottomCenterTextIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
+import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { Comment as CommentComponent } from './Comment';
@@ -180,7 +181,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
 
             <div className="mt-8 pt-6 border-t">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <ChatBubbleBottomCenterTextIcon className="w-6 h-6" />
+                    <ChatBubbleEllipsisIcon className="w-6 h-6" />
                     {post.commentCount} Comments
                 </h2>
 

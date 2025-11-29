@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Notification, PriceAlert, Post, AvailabilityAlert } from '../types';
 import { timeSince, formatCurrency } from '../utils/formatters';
@@ -5,15 +6,15 @@ import { BellIcon, XMarkIcon, CheckIcon, TrashIcon, ClockIcon } from './Icons';
 import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 
-interface PriceAlertListItemProps {
-  alert: PriceAlert & { post: Post };
+// --- Reusable Alert List Item Component ---
+interface AlertListItemProps {
+  post: Post;
   onDelete: (postId: string) => void;
   onViewPost: (postId: string) => void;
+  children: React.ReactNode;
 }
 
-const PriceAlertListItem: React.FC<PriceAlertListItemProps> = ({ alert, onDelete, onViewPost }) => {
-  const { post, targetPrice } = alert;
-
+const AlertListItem: React.FC<AlertListItemProps> = ({ post, onDelete, onViewPost, children }) => {
   return (
     <li className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-4">
       <button onClick={() => onViewPost(post.id)} className="flex items-center gap-3 flex-1 min-w-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md -m-1 p-1">
@@ -26,12 +27,7 @@ const PriceAlertListItem: React.FC<PriceAlertListItemProps> = ({ alert, onDelete
         )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-gray-800 truncate">{post.title}</p>
-          <p className="text-sm text-gray-600">
-            Current: <span className="font-medium text-gray-600">{formatCurrency(post.price)}</span>
-          </p>
-          <p className="text-sm text-red-600">
-            Alert if ≤ <span className="font-bold">{formatCurrency(targetPrice)}</span>
-          </p>
+          {children}
         </div>
       </button>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -48,48 +44,6 @@ const PriceAlertListItem: React.FC<PriceAlertListItemProps> = ({ alert, onDelete
     </li>
   );
 };
-
-interface AvailabilityAlertListItemProps {
-    alert: AvailabilityAlert & { post: Post };
-    onDelete: (postId: string) => void;
-    onViewPost: (postId: string) => void;
-}
-
-const AvailabilityAlertListItem: React.FC<AvailabilityAlertListItemProps> = ({ alert, onDelete, onViewPost }) => {
-    const { post } = alert;
-  
-    return (
-      <li className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-4">
-        <button onClick={() => onViewPost(post.id)} className="flex items-center gap-3 flex-1 min-w-0 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md -m-1 p-1">
-          {post.media && post.media.length > 0 && (
-            <img
-              src={post.media[0].url}
-              alt={post.title}
-              className="w-16 h-16 object-cover rounded-md flex-shrink-0"
-            />
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-800 truncate">{post.title}</p>
-            <div className="flex items-center gap-1.5 mt-1">
-                <ClockIcon className="w-4 h-4 text-amber-600" />
-                <p className="text-sm text-amber-700 font-medium">Waiting for availability</p>
-            </div>
-          </div>
-        </button>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button
-            onClick={(e) => { e.stopPropagation(); onDelete(post.id); }}
-            variant="ghost"
-            size="icon-sm"
-            className="text-gray-600"
-            aria-label={`Delete availability alert for ${post.title}`}
-          >
-            <TrashIcon className="w-5 h-5" />
-          </Button>
-        </div>
-      </li>
-    );
-  };
 
 
 interface ActivityPageProps {
@@ -245,21 +199,33 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                             <div>
                                 {hasAlertHistory && <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3 mt-2">Active Monitors</h4>}
                                 <ul className="space-y-3">
-                                    {availabilityAlertsWithPostData.map((alert) => (
-                                        <AvailabilityAlertListItem
-                                            key={alert.id}
-                                            alert={alert}
+                                    {availabilityAlertsWithPostData.map(({post}) => (
+                                        <AlertListItem
+                                            key={`avail-${post.id}`}
+                                            post={post}
                                             onDelete={onDeleteAvailabilityAlert}
                                             onViewPost={onViewPost}
-                                        />
+                                        >
+                                            <div className="flex items-center gap-1.5 mt-1">
+                                                <ClockIcon className="w-4 h-4 text-amber-600" />
+                                                <p className="text-sm text-amber-700 font-medium">Waiting for availability</p>
+                                            </div>
+                                        </AlertListItem>
                                     ))}
-                                    {alertsWithPostData.map((alert) => (
-                                        <PriceAlertListItem
-                                            key={alert.id}
-                                            alert={alert}
+                                    {alertsWithPostData.map(({post, targetPrice}) => (
+                                        <AlertListItem
+                                            key={`price-${post.id}`}
+                                            post={post}
                                             onDelete={onDeleteAlert}
                                             onViewPost={onViewPost}
-                                        />
+                                        >
+                                          <p className="text-sm text-gray-600">
+                                            Current: <span className="font-medium text-gray-600">{formatCurrency(post.price)}</span>
+                                          </p>
+                                          <p className="text-sm text-red-600">
+                                            Alert if ≤ <span className="font-bold">{formatCurrency(targetPrice)}</span>
+                                          </p>
+                                        </AlertListItem>
                                     ))}
                                 </ul>
                             </div>

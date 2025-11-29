@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
+import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, ChatBubbleEllipsisIcon, CheckBadgeIconSolid } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { Avatar } from './Avatar';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { cn } from '../lib/utils';
 
 interface AccountMenuProps {
     currentAccount: Account;
@@ -113,9 +114,12 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
             <Button
                 id="account-menu-button"
                 onClick={toggleMenu}
-                variant={isAccountMenuOpen ? "circular-lightred" : "circular-red"}
+                variant="overlay-dark"
                 size="icon"
-                className="relative"
+                className={cn(
+                    "relative !rounded-xl",
+                    isAccountMenuOpen && "text-red-600"
+                )}
                 aria-label="Open account menu"
                 aria-haspopup="true"
                 aria-expanded={isAccountMenuOpen}

@@ -16,8 +16,8 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
         className={cn(
             "flex items-baseline select-none relative font-['Comfortaa']",
             isLarge 
-                ? "font-semibold text-[36px] text-gray-900" 
-                : "font-semibold text-2xl sm:text-3xl text-gray-900 cursor-pointer active:scale-95 transition-transform",
+                ? "font-bold text-[36px] text-gray-900" 
+                : "font-bold text-2xl sm:text-3xl text-gray-900 cursor-pointer active:scale-95 transition-transform",
             className
         )}
         onClick={onClick}
@@ -51,7 +51,7 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
       <span>cale</span>
       
       {isLarge && (
-        <div className="absolute right-0 top-[90%] flex flex-col items-end leading-tight text-gray-500 font-normal whitespace-nowrap font-['Comfortaa']">
+        <div className="absolute right-0 top-[90%] flex flex-col items-end leading-tight text-gray-900 font-normal whitespace-nowrap font-['Comfortaa']">
             <span className="text-[9px] uppercase tracking-widest">hyperlocal</span>
             <span className="text-[9px] uppercase tracking-widest">community</span>
         </div>

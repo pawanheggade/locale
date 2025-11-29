@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +7,7 @@ import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { Button, TabButton } from './ui/Button';
-import { ChatBubbleBottomCenterTextIcon, PencilIcon } from './Icons';
+import { ChatBubbleEllipsisIcon, PencilIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { CategoryBadge } from './Badges';
 import { EmptyState } from './EmptyState';
@@ -35,7 +34,7 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 mt-1 break-words">{post.title}</h3>
                 <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-4 h-4" /> {post.commentCount} Comments</span>
+                    <span className="flex items-center gap-1.5"><ChatBubbleEllipsisIcon className="w-4 h-4" /> {post.commentCount} Comments</span>
                     <CategoryBadge 
                         category={post.category} 
                         onClick={(e) => { e.stopPropagation(); onCategoryClick(post.category); }}
@@ -71,7 +70,7 @@ export const ForumsView: React.FC = () => {
     return (
         <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-up">
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Community Forums</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={onCreateForumPost} size="sm" variant="pill-red" className="shrink-0">
                     <PencilIcon className="w-4 h-4 mr-2" />
                     Discuss
@@ -112,7 +111,7 @@ export const ForumsView: React.FC = () => {
                     displayPosts.map(post => <ForumPostCard key={post.id} post={post} onCategoryClick={setActiveCategory} />)
                 ) : (
                     <EmptyState
-                        icon={<ChatBubbleBottomCenterTextIcon />}
+                        icon={<ChatBubbleEllipsisIcon />}
                         title="No Discussions Yet"
                         description={activeCategory === 'All'
                             ? "Be the first to start a conversation!"

@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Account, Subscription, ModalState } from '../types';
-import { CheckIcon, CheckBadgeIcon, CheckBadgeIconSolid } from './Icons';
+import { CheckIcon } from './Icons';
 import { formatDaysRemaining } from '../utils/formatters';
 import { Button, ButtonProps } from './ui/Button';
+import { TIER_STYLES } from '../lib/utils';
 
 interface SubscriptionPageProps {
   currentAccount: Account;
@@ -23,8 +24,6 @@ const plans = [
       'Contact sellers directly',
       'Cannot create posts',
     ],
-    icon: null,
-    color: 'gray'
   },
   {
     tier: 'Basic',
@@ -37,8 +36,6 @@ const plans = [
       'Standard post visibility',
       'Standard support',
     ],
-    icon: null,
-    color: 'gray'
   },
   {
     tier: 'Verified',
@@ -55,8 +52,6 @@ const plans = [
       'Access to profile analytics',
       'Priority support',
     ],
-    icon: CheckBadgeIcon,
-    color: 'red'
   },
   {
     tier: 'Business',
@@ -74,8 +69,6 @@ const plans = [
       'Category tabs on profile page',
       '24/7 dedicated support',
     ],
-    icon: CheckBadgeIcon,
-    color: 'amber'
   },
   {
     tier: 'Organisation',
@@ -91,8 +84,6 @@ const plans = [
       '0% Transaction Fees',
       'Featured on Homepage',
     ],
-    icon: CheckBadgeIconSolid,
-    color: 'amber'
   },
 ];
 
@@ -113,12 +104,6 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
     }
   };
 
-  const planStyles: Record<string, { border: string; bg: string }> = {
-    red: { border: 'border-red-500', bg: 'bg-red-500' },
-    amber: { border: 'border-amber-500', bg: 'bg-amber-500' },
-    gray: { border: 'border-gray-500', bg: 'bg-gray-500' },
-  };
-
   return (
     <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Subscribe</h1>
@@ -130,6 +115,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {plans.map((plan) => {
+          const tierStyles = TIER_STYLES[plan.tier as Subscription['tier']];
           const currentTier = currentAccount.subscription.tier;
           const isCurrentPlan = currentTier === plan.tier;
           const planIndex = plans.findIndex(p => p.tier === plan.tier);
@@ -178,7 +164,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
               key={plan.tier}
               className={`relative rounded-xl border-2 p-6 flex flex-col ${
                 isCurrentPlan 
-                    ? `${planStyles[plan.color].border} bg-white shadow-lg` 
+                    ? `${tierStyles.borderColor} bg-white shadow-lg` 
                     : isPro 
                         ? 'border-amber-300 bg-amber-50/50' 
                         : 'border-gray-200 bg-white'
@@ -186,7 +172,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
             >
               {isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-max">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white ${planStyles[plan.color].bg}`}>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-white ${tierStyles.bgColor}`}>
                     {isOnTrial ? 'On Trial' : 'Current Plan'}
                   </span>
                 </div>
@@ -198,7 +184,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
               )}
               <div className="flex-grow">
                 <div className="flex items-center gap-3">
-                  {plan.icon && <plan.icon className={`w-7 h-7 ${plan.color === 'amber' ? 'text-amber-500' : plan.color === 'red' ? 'text-red-500' : 'text-gray-500'}`} />}
+                  {tierStyles.icon && <tierStyles.icon className={`w-7 h-7 ${tierStyles.iconColor}`} />}
                   <h3 className={`text-xl font-bold ${isPro ? 'text-amber-900' : 'text-gray-800'}`}>
                     {plan.tier}{plan.tier !== 'Personal' ? ' Seller' : ''}
                   </h3>

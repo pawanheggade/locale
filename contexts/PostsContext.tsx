@@ -9,6 +9,7 @@ import { useCategoryManager } from '../hooks/useCategoryManager';
 import { useAuth } from './AuthContext';
 import { useActivity } from './ActivityContext';
 import { STORAGE_KEYS } from '../lib/constants';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 const initialCategoriesData: PostCategory[] = ['Groceries', 'Furniture', 'Lighting', 'Decor', 'Textiles', 'Artwork', 'Design Services'].sort((a, b) => a.localeCompare(b));
 const initialPriceUnits = ['Fixed', 'Hour', 'Day', 'Week', 'Month', 'Session', 'Visit', 'Project', 'Room', 'Sq. Ft.', 'Sq. M.', 'Cu. Ft.', 'Cu. M.', 'Meter', 'Ft.', 'Yard', 'Inch', 'Cm.', 'Kg', 'Gm', 'Lb', 'Oz'];
@@ -43,6 +44,7 @@ const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { addToast } = useUI();
+    const showConfirmation = useConfirmationModal();
     const { accountsById } = useAuth();
     const { checkAvailabilityAlerts } = useActivity();
     
@@ -152,13 +154,21 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
     
     const archivePost = useCallback((postId: string) => {
-        const postToArchive = rawPosts.find(p => p.id === postId);
-        if (postToArchive) {
-            setRawPosts(prev => prev.filter(p => p.id !== postId));
-            setRawArchivedPosts(prev => [{...postToArchive, isPinned: false}, ...prev]); // Unpin when archiving
-            addToast('Post archived.', 'success');
-        }
-    }, [rawPosts, setRawPosts, setRawArchivedPosts, addToast]);
+        showConfirmation({
+            title: 'Archive Post',
+            message: 'Are you sure?',
+            onConfirm: () => {
+                const postToArchive = rawPosts.find(p => p.id === postId);
+                if (postToArchive) {
+                    setRawPosts(prev => prev.filter(p => p.id !== postId));
+                    setRawArchivedPosts(prev => [{...postToArchive, isPinned: false}, ...prev]); // Unpin when archiving
+                    addToast('Post archived.', 'success');
+                }
+            },
+            confirmText: 'Archive',
+            confirmClassName: 'bg-amber-600 text-white',
+        });
+    }, [rawPosts, setRawPosts, setRawArchivedPosts, addToast, showConfirmation]);
       
     const unarchivePost = useCallback((postId: string) => {
         const postToUnarchive = rawArchivedPosts.find(p => p.id === postId);
@@ -171,10 +181,17 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
     
     const deletePostPermanently = useCallback((postId: string) => {
-        setRawPosts(prev => prev.filter(p => p.id !== postId));
-        setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
-        addToast('Post permanently deleted.', 'success');
-    }, [setRawPosts, setRawArchivedPosts, addToast]);
+        showConfirmation({
+            title: 'Delete Post Permanently',
+            message: 'This action cannot be undone.',
+            onConfirm: () => {
+                setRawPosts(prev => prev.filter(p => p.id !== postId));
+                setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
+                addToast('Post permanently deleted.', 'success');
+            },
+            confirmText: 'Delete Permanently',
+        });
+    }, [setRawPosts, setRawArchivedPosts, addToast, showConfirmation]);
 
     const togglePinPost = useCallback((postId: string) => {
         const post = findPostById(postId);

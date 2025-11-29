@@ -1,12 +1,13 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ForumPost } from '../types';
 import { useForum } from '../contexts/ForumContext';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
 import { FormField } from './FormField';
+import { ModalFooter } from './ModalFooter';
 
 interface CreateForumPostModalProps {
     onClose: () => void;
@@ -42,10 +43,12 @@ export const CreateForumPostModal: React.FC<CreateForumPostModalProps> = ({ onCl
     };
 
     const renderFooter = () => (
-        <>
-            <Button variant="overlay-dark" onClick={onClose}>Cancel</Button>
-            <Button type="submit" form="create-forum-post-form" isLoading={isSubmitting} variant="pill-red">Publish</Button>
-        </>
+        <ModalFooter
+            onCancel={onClose}
+            submitText="Publish"
+            isSubmitting={isSubmitting}
+            submitFormId="create-forum-post-form"
+        />
     );
 
     return (

@@ -1,12 +1,12 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
 import { EnvelopeIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
 import { useUI } from '../contexts/UIContext';
-import { Button } from './ui/Button';
 import { FormField } from './FormField';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { ModalFooter } from './ModalFooter';
 
 interface ForgotPasswordModalProps {
   onClose: () => void;
@@ -39,21 +39,14 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
     };
 
     const renderFooter = () => (
-        <>
-            <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">
-                Cancel
-            </Button>
-            <Button
-                type="submit"
-                form="forgot-password-form"
-                isLoading={isSubmitting}
-                disabled={!email.trim()}
-                className="w-40"
-                variant="pill-red"
-            >
-                Send Reset Link
-            </Button>
-        </>
+        <ModalFooter
+            onCancel={onClose}
+            submitText="Send Reset Link"
+            isSubmitting={isSubmitting}
+            isSubmitDisabled={!email.trim()}
+            submitFormId="forgot-password-form"
+            submitClassName="w-40"
+        />
     );
 
     return (

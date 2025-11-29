@@ -1,8 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
 import { FormField } from './FormField';
 import { Input } from './ui/Input';
+import { ModalFooter } from './ModalFooter';
 
 interface SaveSearchModalProps {
   onSave: (name: string) => void;
@@ -28,26 +29,12 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
   };
 
   const renderFooter = () => (
-    <>
-      <Button
-        type="button"
-        onClick={onClose}
-        disabled={isSubmitting}
-        variant="overlay-dark"
-        className="mr-auto"
-      >
-        Cancel
-      </Button>
-      <Button
-        type="button"
-        onClick={handleSave}
-        isLoading={isSubmitting}
-        className="w-32"
-        variant="pill-red"
-      >
-        Save Search
-      </Button>
-    </>
+    <ModalFooter
+        onCancel={onClose}
+        onSubmit={handleSave}
+        submitText="Save Search"
+        isSubmitting={isSubmitting}
+    />
   );
 
   return (

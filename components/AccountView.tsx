@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -45,7 +45,7 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
             <h4 className="font-semibold text-gray-800 truncate">{post.title}</h4>
             <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
                 <span>{timeSince(post.timestamp)}</span>
-                <span className="flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-3 h-3" /> {post.commentCount}</span>
+                <span className="flex items-center gap-1.5"><ChatBubbleEllipsisIcon className="w-3 h-3" /> {post.commentCount}</span>
                 <span className="font-medium px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{post.category}</span>
             </div>
         </div>
@@ -346,7 +346,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
               {availableTabs.map(tab => (
-                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id' || activeTab === tab.id}>
                       {tab.label}
                   </TabButton>
               ))}

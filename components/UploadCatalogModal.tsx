@@ -1,9 +1,8 @@
 
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
-import { SpinnerIcon } from './Icons';
 import { cn } from '../lib/utils';
+import { ModalFooter } from './ModalFooter';
 
 interface UploadCatalogModalProps {
     onClose: () => void;
@@ -55,14 +54,13 @@ export const UploadCatalogModal: React.FC<UploadCatalogModalProps> = ({ onClose,
     };
 
     const renderFooter = () => (
-        <>
-            <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">
-                Cancel
-            </Button>
-            <Button type="button" onClick={handleSubmit} disabled={!file || isSubmitting} variant="pill-red">
-                {isSubmitting ? <SpinnerIcon className="w-5 h-5" /> : 'Upload'}
-            </Button>
-        </>
+        <ModalFooter
+            onCancel={onClose}
+            onSubmit={handleSubmit}
+            submitText={isSubmitting ? 'Uploading...' : 'Upload'}
+            isSubmitting={isSubmitting}
+            isSubmitDisabled={!file}
+        />
     );
 
     return (
@@ -81,7 +79,7 @@ export const UploadCatalogModal: React.FC<UploadCatalogModalProps> = ({ onClose,
                         error ? "border-red-300 bg-red-50" : "border-gray-300",
                         isSubmitting && "opacity-50 pointer-events-none"
                     )}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => !isSubmitting && fileInputRef.current?.click()}
                 >
                     <input 
                         ref={fileInputRef} 

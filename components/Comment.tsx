@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +9,7 @@ import { timeSince, renderWithMentions } from '../utils/formatters';
 import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
-import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
+import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleEllipsisIcon } from './Icons';
 import { CommentForm } from './CommentForm';
 import { Avatar } from './Avatar';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
@@ -93,7 +94,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
             className={`h-8 w-8 ${isReplying ? "text-red-600" : "text-gray-500"}`}
             title="Reply"
           >
-            <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+            <ChatBubbleEllipsisIcon className="w-4 h-4" />
           </Button>
           {canEditOrDelete && !isEditing && (
             <>

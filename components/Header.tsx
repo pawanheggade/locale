@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import SearchBar from './SearchBar';
 import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon, SearchIcon } from './Icons';
@@ -237,7 +236,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                 aria-label={currentView === 'forums' ? "Back to feed" : "Community Forums"}
                 title={currentView === 'forums' ? "Back to feed" : "Community Forums"}
             >
-                <ChatBubbleEllipsisIcon className="w-6 h-6" />
+                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={currentView === 'forums'} />
             </Button>
 
             {/* Account Menu / Sign In */}

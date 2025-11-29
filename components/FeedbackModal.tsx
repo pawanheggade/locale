@@ -1,8 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { FormField } from './FormField';
+import { ModalFooter } from './ModalFooter';
 
 interface FeedbackModalProps {
   onClose: () => void;
@@ -23,10 +24,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
   };
 
   const renderFooter = () => (
-    <>
-      <Button variant="overlay-dark" onClick={onClose} className="mr-auto">Cancel</Button>
-      <Button type="submit" form="feedback-form" isLoading={isSubmitting} disabled={!content.trim()} variant="pill-red">Send Feedback</Button>
-    </>
+    <ModalFooter
+        onCancel={onClose}
+        onSubmit={() => { /* Handled by form */ }}
+        submitText="Send Feedback"
+        isSubmitting={isSubmitting}
+        isSubmitDisabled={!content.trim()}
+        submitFormId="feedback-form"
+    />
   );
 
   return (

@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { Post, ForumPost, ForumComment } from '../types';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { FormField } from './FormField';
+import { ModalFooter } from './ModalFooter';
 
 interface ReportItemModalProps {
   item: Post | ForumPost | ForumComment;
@@ -37,10 +38,13 @@ const ReportItemModal: React.FC<ReportItemModalProps> = ({ item, onClose, onSubm
   }, [item]);
 
   const renderFooter = () => (
-    <>
-      <Button variant="overlay-dark" onClick={onClose} disabled={isSubmitting} className="mr-auto">Cancel</Button>
-      <Button type="submit" form="report-item-form" isLoading={isSubmitting} disabled={!reason.trim()} variant="pill-red">Submit Report</Button>
-    </>
+    <ModalFooter
+        onCancel={onClose}
+        submitText="Submit Report"
+        isSubmitting={isSubmitting}
+        isSubmitDisabled={!reason.trim()}
+        submitFormId="report-item-form"
+    />
   );
 
   return (

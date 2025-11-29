@@ -1,11 +1,12 @@
+
 import React, { useState, useRef } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { TrashIcon, DocumentIcon, PlusIcon } from './Icons';
 import { cn } from '../lib/utils';
-import { useUI } from '../contexts/UIContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { ModalFooter } from './ModalFooter';
 
 interface ManageCatalogModalProps {
     catalog: CatalogItem[];
@@ -37,16 +38,13 @@ export const ManageCatalogModal: React.FC<ManageCatalogModalProps> = ({ catalog,
             message: `Are you sure you want to remove "${name}" from your catalog?`,
             onConfirm: async () => {
                 await onRemove(id);
-                // No need to re-open modal as context update will re-render if it's still open
             },
             confirmText: 'Remove',
         });
     };
 
     const renderFooter = () => (
-        <Button variant="overlay-dark" onClick={onClose}>
-            Done
-        </Button>
+        <ModalFooter onCancel={onClose} cancelText="Done" />
     );
 
     return (

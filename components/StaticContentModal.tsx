@@ -1,8 +1,8 @@
 
 import React, { useRef, useMemo } from 'react';
 import ModalShell from './ModalShell';
-import { Button } from './ui/Button';
 import { sanitizeHtml } from '../utils/security';
+import { ModalFooter } from './ModalFooter';
 
 interface StaticContentModalProps {
   onClose: () => void;
@@ -14,9 +14,7 @@ export const StaticContentModal: React.FC<StaticContentModalProps> = ({ onClose,
   const modalRef = useRef<HTMLDivElement>(null);
 
   const renderFooter = () => (
-    <Button onClick={onClose} variant="overlay-dark">
-      Close
-    </Button>
+    <ModalFooter onCancel={onClose} cancelText="Close" />
   );
 
   const sanitizedContent = useMemo(() => sanitizeHtml(content), [content]);

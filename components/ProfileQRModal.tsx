@@ -130,7 +130,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
     // 5. Locale Logo
     const logoY = textY + 94; 
-    ctx.font = '600 20px Comfortaa, sans-serif'; // Updated to 600/Semibold for canvas
+    ctx.font = 'bold 20px Comfortaa, sans-serif'; // Bold for canvas
     ctx.fillStyle = '#111827'; // gray-900
     
     const text = "locale";
@@ -280,11 +280,11 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                 </div>
 
                 {/* Locale Logo */}
-                <div className="flex items-baseline text-gray-900 font-semibold text-xl select-none pointer-events-none font-['Comfortaa']">
+                <div className="flex items-baseline text-gray-900 font-bold text-xl select-none pointer-events-none font-['Comfortaa']">
                     <span>l</span>
                     <span className="relative inline-flex flex-col items-center">
                         <span>o</span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[80%]">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[75%]">
                             <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </span>
