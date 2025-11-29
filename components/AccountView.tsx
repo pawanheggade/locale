@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -11,22 +10,17 @@ import { PostList } from './PostList';
 import { ReferralCard } from './ReferralCard';
 import { EmptyState } from './EmptyState';
 import { useForum } from '../contexts/ForumContext';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { ProfileActions } from './ProfileActions';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface AccountViewProps {
   account: Account;
   currentAccount: Account | null;
   posts: DisplayablePost[];
-  onEditAccount: (account: Account) => void;
   archivedPosts: DisplayablePost[];
   allAccounts: Account[];
   isLiked: boolean;
-  onToggleLike: (account: Account) => void;
-  onShowOnMap: (account: Account) => void;
-  isGeocoding: boolean;
-  onOpenAnalytics: () => void;
-  onOpenSubscriptionPage: () => void;
+  onToggleLike?: (account: Account) => void;
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -52,10 +46,10 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics, onOpenSubscriptionPage }) => {
+export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts, isLiked, onToggleLike }) => {
   const { addToast, openModal } = useUI();
   const { posts: allForumPosts } = useForum();
-  const { onViewForumPost } = usePostActions();
+  const { navigateTo } = useNavigation();
   
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
 
@@ -73,7 +67,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const availableTabs = useMemo(() => {
     const tabs = [];
     
-    // The main posts tab is always an option, though might be empty.
     tabs.push({ id: 'all', label: 'Posts' });
     
     if (userForumPosts.length > 0) {
@@ -109,7 +102,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
   const [activeTab, setActiveTab] = useState<string>('all');
   
-  // Effect to select a default tab or reset if the current one disappears
   useEffect(() => {
     const isCurrentTabVisible = availableTabs.some(t => t.id === activeTab);
     if (!isCurrentTabVisible && availableTabs.length > 0) {
@@ -122,30 +114,9 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     const body = encodeURIComponent(`Hi ${account.name},\n\nI'm interested in your profile on Locale.\n\nThanks,\n${currentAccount?.name || ''}`);
 
     return [
-        {
-            key: 'message',
-            icon: ChatBubbleBottomCenterTextIcon,
-            href: `https://wa.me/${account.messageNumber?.replace(/\D/g, '')}`,
-            isVisible: account.contactOptions?.includes('message') && !!account.messageNumber,
-            label: 'Message',
-            toast: 'Opening messaging app...'
-        },
-        {
-            key: 'mobile',
-            icon: PhoneIcon,
-            href: `tel:${account.mobile}`,
-            isVisible: account.contactOptions?.includes('mobile') && !!account.mobile,
-            label: 'Call',
-            toast: 'Opening phone app...'
-        },
-        {
-            key: 'email',
-            icon: EnvelopeIcon,
-            href: `mailto:${account.email}?subject=${subject}&body=${body}`,
-            isVisible: account.contactOptions?.includes('email') && !!account.email,
-            label: 'Email',
-            toast: 'Opening email client...'
-        }
+        { key: 'message' as const, icon: ChatBubbleBottomCenterTextIcon, href: `https://wa.me/${account.messageNumber?.replace(/\D/g, '')}`, isVisible: account.contactOptions?.includes('message') && !!account.messageNumber, label: 'Message', toast: 'Opening messaging app...' },
+        { key: 'mobile' as const, icon: PhoneIcon, href: `tel:${account.mobile}`, isVisible: account.contactOptions?.includes('mobile') && !!account.mobile, label: 'Call', toast: 'Opening phone app...' },
+        { key: 'email' as const, icon: EnvelopeIcon, href: `mailto:${account.email}?subject=${subject}&body=${body}`, isVisible: account.contactOptions?.includes('email') && !!account.email, label: 'Email', toast: 'Opening email client...' }
     ].filter(m => m.isVisible);
   }, [account, currentAccount]);
 
@@ -155,9 +126,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
       return [...account.socialLinks].sort((a, b) => {
           const indexA = order.indexOf(a.platform);
           const indexB = order.indexOf(b.platform);
-          const safeIndexA = indexA === -1 ? 999 : indexA;
-          const safeIndexB = indexB === -1 ? 999 : indexB;
-          return safeIndexA - safeIndexB;
+          return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
       });
   }, [account.socialLinks]);
 
@@ -166,14 +135,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'archives') return accountArchivedPosts;
     if (activeTab === 'all') {
-        // Sort pinned posts to the top
-        return [...accountPosts].sort((a, b) => {
-            if (a.isPinned && !b.isPinned) return -1;
-            if (!a.isPinned && b.isPinned) return 1;
-            return 0; // Maintain original sort (usually date) for same pin status
-        });
+        return [...accountPosts].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
     }
-    // Category filter
     return accountPosts.filter(p => p.category === activeTab);
   }, [activeTab, salePosts, accountArchivedPosts, accountPosts]);
 
@@ -190,24 +153,10 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
       const profileUrl = `${window.location.origin}/?account=${account.id}`;
       if (navigator.share) {
           try {
-              await navigator.share({
-                  title: `Check out ${account.name} on Locale`,
-                  url: profileUrl,
-              });
+              await navigator.share({ title: `Check out ${account.name} on Locale`, url: profileUrl });
           } catch (err: any) {
-              const isAbort = 
-                  err.name === 'AbortError' || 
-                  err.code === 20 ||
-                  (typeof err.message === 'string' && (
-                      err.message.toLowerCase().includes('abort') || 
-                      err.message.toLowerCase().includes('cancel') ||
-                      err.message.toLowerCase().includes('canceled')
-                  ));
-              
-              if (!isAbort) {
-                  console.error('Error sharing:', err);
-                  addToast('Unable to open share menu.', 'error');
-              }
+              const isAbort = err.name === 'AbortError' || err.code === 20;
+              if (!isAbort) addToast('Unable to open share menu.', 'error');
           }
       } else {
           openModal({ type: 'profileQR', data: account });
@@ -216,18 +165,12 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
   return (
     <div className="pb-20 bg-gray-50 min-h-screen animate-fade-in">
-      {/* Banner Section */}
       <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
-        {account.bannerUrl ? (
-          <img src={account.bannerUrl} alt="Cover" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
-        )}
+        {account.bannerUrl ? <img src={account.bannerUrl} alt="Cover" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>}
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Profile Header Card */}
         <div className="relative bg-white rounded-xl p-4 sm:p-6 mt-6 border border-gray-200/80">
           
           <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
@@ -246,7 +189,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                           <SubscriptionBadge tier={account.subscription.tier} />
                           {isOwnAccount && (
                               <Button
-                                  onClick={onOpenSubscriptionPage}
+                                  onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
                                   className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full h-5 px-2"
@@ -267,48 +210,32 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   <ProfileActions 
                       isOwnAccount={isOwnAccount}
                       canHaveCatalog={canHaveCatalog}
-                      onEditAccount={() => onEditAccount(account)}
+                      onEditAccount={() => openModal({ type: 'editAccount', data: account })}
                       onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
-                      onOpenAnalytics={onOpenAnalytics}
+                      onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
                       socialLinks={sortedSocialLinks}
                       onShare={handleShareProfile}
                       contactMethods={contactMethods}
                       onContactAction={handleContactAction}
                       isLiked={isLiked}
-                      onToggleLike={() => onToggleLike(account)}
+                      onToggleLike={() => onToggleLike && onToggleLike(account)}
                       isMobile={false}
                   />
               </div>
           </div>
           
           <div className="mt-4">
-              {account.description && (
-                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">{account.description}</p>
-              )}
+              {account.description && <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">{account.description}</p>}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
                   {account.address && (
                       <div className="flex items-center gap-3 min-w-0">
                            {(account.googleMapsUrl || account.appleMapsUrl) && (
                               <div className="flex items-center gap-1.5 shrink-0">
-                                  {account.googleMapsUrl && (
-                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Google Maps">
-                                          <GoogleIcon className="w-4 h-4" />
-                                      </a>
-                                  )}
-                                  {account.appleMapsUrl && (
-                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Apple Maps">
-                                          <AppleIcon className="w-4 h-4" />
-                                      </a>
-                                  )}
+                                  {account.googleMapsUrl && <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Google Maps"><GoogleIcon className="w-4 h-4" /></a>}
+                                  {account.appleMapsUrl && <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Apple Maps"><AppleIcon className="w-4 h-4" /></a>}
                               </div>
                           )}
-                          <div
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
-                              onClick={() => onShowOnMap(account)}
-                              className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
-                          >
+                          <div role="button" tabIndex={0} className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0">
                               <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
                               <span className="group-hover:underline">{account.address}</span>
                           </div>
@@ -321,15 +248,15 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
              <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
-                  onEditAccount={() => onEditAccount(account)}
+                  onEditAccount={() => openModal({ type: 'editAccount', data: account })}
                   onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
-                  onOpenAnalytics={onOpenAnalytics}
+                  onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
                   socialLinks={sortedSocialLinks}
                   onShare={handleShareProfile}
                   contactMethods={contactMethods}
                   onContactAction={handleContactAction}
                   isLiked={isLiked}
-                  onToggleLike={() => onToggleLike(account)}
+                  onToggleLike={() => onToggleLike && onToggleLike(account)}
                   isMobile={true}
               />
           </div>
@@ -341,12 +268,11 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           )}
         </div>
 
-        {/* Content Section */}
         <div className="bg-white rounded-xl border border-gray-200/80 mt-6 overflow-hidden">
           <div className="border-b border-gray-200">
             <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
               {availableTabs.map(tab => (
-                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id' || activeTab === tab.id}>
+                  <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
                       {tab.label}
                   </TabButton>
               ))}
@@ -359,62 +285,24 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                     {hasCatalogContent ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {account.catalog!.map((item) => (
-                                <div 
-                                    key={item.id} 
-                                    onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
-                                    className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
-                                >
+                                <div key={item.id} onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })} className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col">
                                     <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
-                                        {item.type === 'image' ? (
-                                            <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
-                                        )}
+                                        {item.type === 'image' ? <img src={item.url} alt={item.name} className="w-full h-full object-cover" /> : <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />}
                                     </div>
-                                    <div className="p-3 border-t border-gray-100 bg-white relative z-10">
-                                        <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                                    </div>
+                                    <div className="p-3 border-t border-gray-100 bg-white relative z-10"><p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p></div>
                                 </div>
                             ))}
                         </div>
-                    ) : (
-                        <EmptyState
-                            icon={<DocumentIcon />}
-                            title="No Catalog Items"
-                            description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
-                            className="bg-gray-50 rounded-xl"
-                        />
-                    )}
+                    ) : ( <EmptyState icon={<DocumentIcon />} title="No Catalog Items" description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."} className="bg-gray-50 rounded-xl" /> )}
                 </div>
             ) : activeTab === 'forums' ? (
-                <div className="animate-fade-in">
-                    <div className="space-y-4">
-                        {userForumPosts.map(post => (
-                            <ForumPostRow key={post.id} post={post} onClick={() => onViewForumPost(post.id)} />
-                        ))}
-                    </div>
-                </div>
+                <div className="animate-fade-in"><div className="space-y-4">{userForumPosts.map(post => (<ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />))}</div></div>
             ) : (
                 <div className="animate-fade-in">
                     {displayedPosts.length > 0 ? (
-                        <PostList 
-                            posts={displayedPosts} 
-                            currentAccount={currentAccount}
-                            isArchived={activeTab === 'archives'}
-                            variant="compact"
-                        />
+                        <PostList posts={displayedPosts} currentAccount={currentAccount} isArchived={activeTab === 'archives'} variant="compact" />
                     ) : (
-                       (activeTab === 'all' || activeTab === 'archives') && (
-                           <EmptyState
-                                icon={<ArchiveBoxIcon />}
-                                title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"}
-                                description={isOwnAccount 
-                                    ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.")
-                                    : "This seller hasn't created any posts yet."
-                                }
-                                className="py-20"
-                            />
-                       )
+                       (activeTab === 'all' || activeTab === 'archives') && (<EmptyState icon={<ArchiveBoxIcon />} title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"} description={isOwnAccount ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.") : "This seller hasn't created any posts yet."} className="py-20" />)
                     )}
                 </div>
             )}

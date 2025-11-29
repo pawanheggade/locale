@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
@@ -17,10 +16,11 @@ import { cn } from '../lib/utils';
 import { PostList } from './PostList';
 import { Button } from './ui/Button';
 import { LikeButton } from './LikeButton';
+import { useNavigation } from '../contexts/NavigationContext';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface PostDetailViewProps {
   post: DisplayablePost;
-  onBack: () => void;
   currentAccount: Account | null;
 }
 
@@ -41,11 +41,12 @@ const InfoRow: React.FC<{ icon: React.ElementType; children: React.ReactNode; cl
 
 const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({ 
   post,
-  onBack, 
   currentAccount,
 }) => {
   const postActions = usePostActions();
-  const { onToggleLikePost, onArchive, onEdit, onViewMedia, onSetPriceAlert, onAddToBag, onContactStore, onRequestService, onViewAccount, onFilterByTag, onShowOnMap, onUnarchive, onToggleLikeAccount, onFilterByCategory, onReportItem, onShare, onFilterByType, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = postActions;
+  const { onToggleLikePost, onArchive, onEdit, onViewMedia, onSetPriceAlert, onAddToBag, onContactStore, onRequestService, onUnarchive, onToggleLikeAccount, onReportItem, onShare, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = postActions;
+  const { navigateTo } = useNavigation();
+  const { dispatchFilterAction } = useFilters();
   
   const { posts } = usePosts();
   const { accountsById, likedPostIds, bag } = useAuth();
@@ -58,7 +59,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
     const previousTitle = document.title;
     document.title = `${post.title} | Locale`;
 
-    // Simplified meta tag update logic
     const updateMeta = (property: string, content: string) => {
         let element = document.querySelector(`meta[property="${property}"]`) || document.createElement('meta');
         element.setAttribute('property', property);
@@ -92,7 +92,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
     return (
       <div className="text-center py-20">
         <h2 className="text-2xl font-semibold text-gray-600">Post not found.</h2>
-        <Button onClick={onBack} variant="overlay-red" className="mt-4">Go Back</Button>
       </div>
     );
   }
@@ -106,10 +105,11 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   const isEligibleToPin = isOwnPost && isAccountEligibleToPin(currentAccount);
   const isPurchasable = isPostPurchasable(post);
 
-  const handleMapClick = () => {
-      if (post.type === PostType.EVENT ? post.eventCoordinates : post.coordinates) {
-          onShowOnMap(post.id);
-      }
+  const handleFilter = (type: 'category' | 'type' | 'tag', value: string) => {
+    navigateTo('all');
+    if (type === 'category') dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: value });
+    if (type === 'type') dispatchFilterAction({ type: 'SET_FILTER_TYPE', payload: value as PostType });
+    if (type === 'tag') dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [value] });
   };
   
   return (
@@ -134,9 +134,9 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                 {/* Header Actions */}
                 <div className="flex justify-between items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <TypeBadge type={post.type} onClick={() => onFilterByType(post.type)} />
+                    <TypeBadge type={post.type} onClick={() => handleFilter('type', post.type)} />
                     <span className="text-gray-400 font-light text-sm">/</span>
-                    <CategoryBadge category={post.category} onClick={() => onFilterByCategory(post.category)} />
+                    <CategoryBadge category={post.category} onClick={() => handleFilter('category', post.category)} />
                   </div>
                   <div className="flex items-center gap-4 flex-shrink-0">
                       {!isOwnPost && (
@@ -208,7 +208,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                 <InfoRow 
                                     icon={MapPinIcon} 
                                     className={cn("group", post.eventCoordinates && "cursor-pointer")} 
-                                    onClick={post.eventCoordinates ? handleMapClick : undefined}
                                 >
                                     <span className={cn("font-semibold", post.eventCoordinates ? "text-red-400" : "text-gray-600")}>{post.eventLocation}</span>
                                 </InfoRow>
@@ -225,7 +224,6 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                             <InfoRow 
                                 icon={MapPinIcon} 
                                 className={cn("group", post.coordinates && "cursor-pointer")}
-                                onClick={post.coordinates ? handleMapClick : undefined}
                             >
                                 <span className={cn(post.coordinates ? "text-red-400" : "text-gray-600")}>{post.location}</span>
                             </InfoRow>
@@ -234,7 +232,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                 </div>
                 
                 <div className="mt-6 prose prose-sm max-w-none">
-                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), onViewAccount, onFilterByTag)}</p>
+                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), (id) => navigateTo('account', { account: accountsById.get(id) }), (tag) => handleFilter('tag', tag))}</p>
                 </div>
                 
                 {post.tags.length > 0 && (
@@ -243,7 +241,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                         {post.tags.map(tag => (
                           <button
                             key={tag} 
-                            onClick={() => onFilterByTag(tag)} 
+                            onClick={() => handleFilter('tag', tag)} 
                             className="text-sm text-gray-600 font-medium hover:text-gray-900 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                           >
                             #{tag}
@@ -260,7 +258,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
         {/* Author Info */}
         {post.author && (
             <div className="mt-6 bg-white rounded-xl overflow-hidden p-6">
-                <PostAuthorInfo author={post.author} post={post} onViewAccount={onViewAccount} size="medium" subscriptionBadgeIconOnly={true}>
+                <PostAuthorInfo author={post.author} post={post} onViewAccount={(id) => navigateTo('account', { account: accountsById.get(id) })} size="medium" subscriptionBadgeIconOnly={true}>
                     {!isOwnPost && (
                         <LikeButton
                             isLiked={isAuthorLiked}
@@ -322,7 +320,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                       {isOwnPost ? (
                           <div className="flex flex-row gap-3 w-full">
                               {isArchived ? (
-                                  <Button onClick={() => { if (onUnarchive) { onUnarchive(post.id); onBack(); }}} variant="overlay-dark" className="w-full gap-2 font-semibold text-gray-800">
+                                  <Button onClick={() => { if (onUnarchive) onUnarchive(post.id); }} variant="overlay-dark" className="w-full gap-2 font-semibold text-gray-800">
                                       <ArrowUturnLeftIcon className="w-5 h-5"/> Unarchive
                                   </Button>
                               ) : (

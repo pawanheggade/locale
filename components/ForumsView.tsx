@@ -1,9 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { DisplayableForumPost } from '../types';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { Button, TabButton } from './ui/Button';
@@ -11,17 +9,19 @@ import { ChatBubbleEllipsisIcon, PencilIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { CategoryBadge } from './Badges';
 import { EmptyState } from './EmptyState';
+import { useNavigation } from '../contexts/NavigationContext';
+import { useUI } from '../contexts/UIContext';
 
 const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (cat: string) => void }> = ({ post, onCategoryClick }) => {
     const { currentAccount } = useAuth();
     const { toggleVote } = useForum();
-    const { onViewForumPost } = usePostActions();
+    const { navigateTo } = useNavigation();
     
     const userVote = currentAccount ? (post.upvotes.includes(currentAccount.id) ? 'up' : post.downvotes.includes(currentAccount.id) ? 'down' : null) : null;
     
     return (
         <div 
-            onClick={() => onViewForumPost(post.id)} 
+            onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} 
             className="bg-white rounded-xl border border-gray-200/80 p-4 flex gap-4 cursor-pointer transition-shadow"
         >
             <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
@@ -50,7 +50,7 @@ type SortOption = 'latest' | 'top';
 
 export const ForumsView: React.FC = () => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
-    const { onCreateForumPost } = usePostActions();
+    const { openModal } = useUI();
     const [sortOption, setSortOption] = useState<SortOption>('latest');
 
     const displayPosts = useMemo(() => {
@@ -58,7 +58,6 @@ export const ForumsView: React.FC = () => {
             ? posts
             : posts.filter(p => p.category === activeCategory);
         
-        // Return a new sorted array to avoid mutating the context state
         return [...filtered].sort((a, b) => {
             if (sortOption === 'top') {
                 return b.score - a.score;
@@ -71,7 +70,7 @@ export const ForumsView: React.FC = () => {
         <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-up">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
-                <Button onClick={onCreateForumPost} size="sm" variant="pill-red" className="shrink-0">
+                <Button onClick={() => openModal({ type: 'createForumPost' })} size="sm" variant="pill-red" className="shrink-0">
                     <PencilIcon className="w-4 h-4 mr-2" />
                     Discuss
                 </Button>
