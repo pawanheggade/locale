@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useReducer } from 'react';
 import { Post, PriceAlert } from '../types';
 import ModalShell from './ModalShell';
 import { AlertIcon, TrashIcon } from './Icons';
@@ -15,40 +15,70 @@ interface SetPriceAlertModalProps {
   onDeleteAlert: () => void;
 }
 
+const initialState = {
+    targetPrice: '',
+    alertOnAnyDrop: false,
+    error: '',
+};
+
+type State = typeof initialState;
+
+type Action =
+    | { type: 'SET_FIELD'; field: 'targetPrice' | 'error'; payload: string }
+    | { type: 'SET_ALERT_ON_ANY_DROP'; payload: { checked: boolean; postPrice?: number } }
+    | { type: 'RESET'; payload: Partial<State> };
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case 'SET_FIELD':
+            if (action.field === 'targetPrice') {
+                return { ...state, targetPrice: action.payload, alertOnAnyDrop: false, error: '' };
+            }
+            return { ...state, [action.field]: action.payload };
+        case 'SET_ALERT_ON_ANY_DROP':
+            return {
+                ...state,
+                alertOnAnyDrop: action.payload.checked,
+                targetPrice: action.payload.checked ? String(action.payload.postPrice ?? '0') : state.targetPrice,
+                error: '',
+            };
+        case 'RESET':
+            return { ...initialState, ...action.payload };
+        default:
+            return state;
+    }
+}
+
 const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, onSetAlert, existingAlert, onDeleteAlert }) => {
-  const [targetPrice, setTargetPrice] = useState('');
-  const [alertOnAnyDrop, setAlertOnAnyDrop] = useState(false);
-  const [error, setError] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { targetPrice, alertOnAnyDrop, error } = state;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (existingAlert) {
-      setTargetPrice(existingAlert.targetPrice.toString());
-      if (existingAlert.targetPrice >= (post.price ?? 0)) {
-          setAlertOnAnyDrop(true);
-      }
+      const isAnyDrop = existingAlert.targetPrice >= (post.price ?? 0);
+      dispatch({
+        type: 'RESET',
+        payload: {
+          targetPrice: existingAlert.targetPrice.toString(),
+          alertOnAnyDrop: isAnyDrop,
+        },
+      });
     }
   }, [existingAlert, post.price]);
 
-  useEffect(() => {
-      if (alertOnAnyDrop) {
-          setTargetPrice(post.price?.toString() ?? '0');
-          if (error) setError('');
-      }
-  }, [alertOnAnyDrop, post.price, error]);
-
   const handleSetAlert = () => {
     const priceValue = parseFloat(targetPrice);
-    setError('');
+    dispatch({ type: 'SET_FIELD', field: 'error', payload: '' });
 
     if (isNaN(priceValue) || priceValue <= 0) {
-      setError('Please enter a valid, positive price.');
+      dispatch({ type: 'SET_FIELD', field: 'error', payload: 'Please enter a valid, positive price.' });
       return;
     }
     
     if (!alertOnAnyDrop && post.price && priceValue >= post.price) {
-      setError(`Your alert price must be less than the current price of ${formatCurrency(post.price)}.`);
+      dispatch({ type: 'SET_FIELD', field: 'error', payload: `Your alert price must be less than the current price of ${formatCurrency(post.price)}.` });
       return;
     }
     
@@ -58,7 +88,6 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
   };
   
   const handleDelete = () => {
-    // Just trigger the delete action. The parent will handle confirmation (and swapping modals).
     onDeleteAlert();
   };
 
@@ -117,11 +146,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
            >
               <CurrencyInput
                 value={targetPrice}
-                onChange={(e) => {
-                  setTargetPrice(e.target.value);
-                  if (alertOnAnyDrop) setAlertOnAnyDrop(false);
-                  if (error) setError('');
-                }}
+                onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'targetPrice', payload: e.target.value })}
                 className="bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-500"
                 autoFocus
                 disabled={alertOnAnyDrop}
@@ -133,7 +158,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
               id="any-drop"
               type="checkbox"
               checked={alertOnAnyDrop}
-              onChange={(e) => setAlertOnAnyDrop(e.target.checked)}
+              onChange={(e) => dispatch({ type: 'SET_ALERT_ON_ANY_DROP', payload: { checked: e.target.checked, postPrice: post.price } })}
               className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded cursor-pointer"
             />
             <label htmlFor="any-drop" className="ml-2 block text-sm text-gray-900 cursor-pointer">

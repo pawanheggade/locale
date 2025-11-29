@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useReducer } from 'react';
 import ModalShell from './ModalShell';
 import { Textarea } from './ui/Textarea';
 import { FormField } from './FormField';
@@ -10,26 +9,38 @@ interface FeedbackModalProps {
   onSubmit: (content: string) => void;
 }
 
+const initialState = { content: '' };
+type Action = { type: 'SET_CONTENT'; payload: string };
+
+function reducer(state: typeof initialState, action: Action) {
+    switch (action.type) {
+        case 'SET_CONTENT':
+            return { content: action.payload };
+        default:
+            return state;
+    }
+}
+
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit }) => {
-  const [content, setContent] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!state.content.trim()) return;
     
     setIsSubmitting(true);
-    onSubmit(content.trim());
+    onSubmit(state.content.trim());
   };
 
   const renderFooter = () => (
     <ModalFooter
         onCancel={onClose}
-        onSubmit={() => { /* Handled by form */ }}
+        onSubmit={handleSubmit}
         submitText="Send Feedback"
         isSubmitting={isSubmitting}
-        isSubmitDisabled={!content.trim()}
+        isSubmitDisabled={!state.content.trim()}
         submitFormId="feedback-form"
     />
   );
@@ -43,8 +54,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
         <form id="feedback-form" onSubmit={handleSubmit} className="space-y-4">
           <FormField id="feedback-content" label="Your Feedback">
             <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                value={state.content}
+                onChange={(e) => dispatch({ type: 'SET_CONTENT', payload: e.target.value })}
                 rows={6}
                 placeholder="Type your message here..."
                 required

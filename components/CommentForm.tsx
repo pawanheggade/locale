@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -17,11 +16,24 @@ interface CommentFormProps {
 
 const COMMENT_MAX_LENGTH = 500;
 
+const initialState = { content: '' };
+type Action = { type: 'SET_CONTENT'; payload: string };
+
+function reducer(state: typeof initialState, action: Action) {
+    switch (action.type) {
+        case 'SET_CONTENT':
+            return { content: action.payload };
+        default:
+            return state;
+    }
+}
+
 export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCommentAdded, placeholder = "Add a comment...", autoFocus = false, onCancel }) => {
     const { addComment } = useForum();
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
-    const [content, setContent] = useState('');
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const { content } = state;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -35,7 +47,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCo
 
         setIsSubmitting(true);
         addComment({ postId, parentId, content: content.trim() });
-        setContent('');
+        dispatch({ type: 'SET_CONTENT', payload: '' });
         onCommentAdded();
         setIsSubmitting(false);
     };
@@ -47,7 +59,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCo
             <div className="w-full">
                 <Textarea
                     value={content}
-                    onChange={e => setContent(e.target.value)}
+                    onChange={e => dispatch({ type: 'SET_CONTENT', payload: e.target.value })}
                     placeholder={placeholder}
                     rows={3}
                     required

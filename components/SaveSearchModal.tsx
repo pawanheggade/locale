@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useReducer } from 'react';
 import ModalShell from './ModalShell';
 import { FormField } from './FormField';
 import { Input } from './ui/Input';
@@ -10,16 +9,32 @@ interface SaveSearchModalProps {
   onClose: () => void;
 }
 
+const initialState = { name: '', error: '' };
+type State = typeof initialState;
+type Action =
+  | { type: 'SET_NAME'; payload: string }
+  | { type: 'SET_ERROR'; payload: string };
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case 'SET_NAME':
+            return { ...state, name: action.payload, error: '' };
+        case 'SET_ERROR':
+            return { ...state, error: action.payload };
+        default:
+            return state;
+    }
+}
+
 const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) => {
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleSave = () => {
-    const trimmedName = name.trim();
+    const trimmedName = state.name.trim();
     if (!trimmedName) {
-      setError('Please enter a name for your search.');
+      dispatch({ type: 'SET_ERROR', payload: 'Please enter a name for your search.' });
       return;
     }
     
@@ -48,14 +63,11 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
     >
       <div className="p-6">
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-1">
-          <FormField id="search-name" label="Search Name" error={error}>
+          <FormField id="search-name" label="Search Name" error={state.error}>
               <Input
                 type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (error) setError('');
-                }}
+                value={state.name}
+                onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
                 className="bg-gray-50 hover:bg-gray-100"
                 placeholder="e.g., 'Vintage furniture in SF'"
                 required

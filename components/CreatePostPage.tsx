@@ -1,18 +1,17 @@
-
-import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent } from 'react';
-import { Post, PostType, Media, PostCategory, Account, ContactOption } from '../types';
+import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
+import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
 import LocationInput from './LocationInput';
-import { SpinnerIcon, XMarkIcon, ChevronLeftIcon } from './Icons';
+import { SpinnerIcon, XMarkIcon } from './Icons';
 import { suggestTagsForPost, suggestCategoriesForPost } from '../utils/gemini';
 import { formatCurrency, toDateTimeLocal, fromDateTimeLocal } from '../utils/formatters';
-import { SellerOptionsForm } from './SellerOptionsForm';
+import { SellerOptionsForm, SellerOptionsState } from './SellerOptionsForm';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
-import { useMediaUploader, MediaUpload } from '../hooks/useMediaUploader';
+import { useMediaUploader } from '../hooks/useMediaUploader';
 import { useUI } from '../contexts/UIContext';
 import { useLocationInput } from '../hooks/useLocationInput';
 import { validatePostData } from '../utils/validation';
@@ -37,29 +36,67 @@ const DESCRIPTION_MAX_LENGTH = 500;
 const MAX_PRICE = 10000000; // 1 Crore
 const maxFileSizeMB = 10;
 
+const initialState = {
+    title: '',
+    description: '',
+    price: '',
+    priceUnit: 'Fixed',
+    isOnSale: false,
+    salePrice: '',
+    type: PostType.PRODUCT,
+    category: '',
+    tags: [] as string[],
+    tagInput: '',
+    hasExpiry: false,
+    expiryDate: '',
+    eventStartDate: '',
+    eventEndDate: '',
+    errors: {} as Record<string, string>,
+};
+
+type FormState = typeof initialState;
+
+type Action =
+    | { type: 'SET_FIELD'; field: keyof Omit<FormState, 'tags'>; payload: any }
+    | { type: 'ADD_TAG' }
+    | { type: 'REMOVE_TAG'; payload: string }
+    | { type: 'SET_TAGS'; payload: string[] }
+    | { type: 'SET_ERRORS'; payload: Record<string, string> }
+    | { type: 'RESET_FORM'; payload: Partial<FormState> };
+
+function formReducer(state: FormState, action: Action): FormState {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.payload, errors: { ...state.errors, [action.field]: undefined } };
+        case 'ADD_TAG': {
+            const newTag = state.tagInput.trim();
+            if (newTag && !state.tags.includes(newTag)) {
+                return { ...state, tags: [...state.tags, newTag], tagInput: '' };
+            }
+            return { ...state, tagInput: '' };
+        }
+        case 'REMOVE_TAG':
+            return { ...state, tags: state.tags.filter(tag => tag !== action.payload) };
+        case 'SET_TAGS':
+            return { ...state, tags: action.payload };
+        case 'SET_ERRORS':
+            return { ...state, errors: action.payload };
+        case 'RESET_FORM':
+            return { ...initialState, ...action.payload };
+        default:
+            return state;
+    }
+}
+
+
 export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmitPost, onUpdatePost, onNavigateToPost, editingPost, currentAccount, categories, onUpdateCurrentAccountDetails }) => {
   const isEditing = !!editingPost;
   const { addToast } = useUI();
   const { priceUnits } = usePosts();
   
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [priceUnit, setPriceUnit] = useState('Fixed');
-  const [isOnSale, setIsOnSale] = useState(false);
-  const [salePrice, setSalePrice] = useState('');
-  const [type, setType] = useState<PostType>(PostType.PRODUCT);
-  const [category, setCategory] = useState<PostCategory>(categories[0] || '');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
-  const [hasExpiry, setHasExpiry] = useState(false);
-  const [expiryDate, setExpiryDate] = useState('');
-
-  // Event specific fields
-  const [eventStartDate, setEventStartDate] = useState('');
-  const [eventEndDate, setEventEndDate] = useState('');
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [state, dispatch] = useReducer(formReducer, initialState);
+  const { title, description, price, priceUnit, isOnSale, salePrice, type, category, tags, tagInput, hasExpiry, expiryDate, eventStartDate, eventEndDate, errors } = state;
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuggestingTags, setIsSuggestingTags] = useState(false);
   const [isSuggestingCategories, setIsSuggestingCategories] = useState(false);
@@ -72,8 +109,11 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   const eventLocationInput = useLocationInput();
 
   const needsSellerDetails = currentAccount.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
-  const [deliveryOptions, setDeliveryOptions] = useState<string[]>(currentAccount.deliveryOptions || []);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(currentAccount.paymentMethods || []);
+  const [sellerOptions, setSellerOptions] = useState<SellerOptionsState>({
+    deliveryOptions: currentAccount.deliveryOptions || [],
+    paymentMethods: currentAccount.paymentMethods || [],
+    contactOptions: currentAccount.contactOptions || [],
+  });
 
   const maxFiles = useMemo(() => {
     switch (currentAccount.subscription.tier) {
@@ -91,13 +131,15 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
               const savedDraft = localStorage.getItem(STORAGE_KEYS.POST_DRAFT);
               if (savedDraft) {
                   const draft = JSON.parse(savedDraft);
-                  setTitle(draft.title || '');
-                  setDescription(draft.description || '');
-                  setType(draft.type || PostType.PRODUCT);
-                  setCategory(draft.category || categories[0] || '');
-                  setTags(draft.tags || []);
-                  setPrice(draft.price || '');
-                  setPriceUnit(draft.priceUnit || 'Fixed');
+                  dispatch({ type: 'RESET_FORM', payload: {
+                      title: draft.title || '',
+                      description: draft.description || '',
+                      type: draft.type || PostType.PRODUCT,
+                      category: draft.category || categories[0] || '',
+                      tags: draft.tags || [],
+                      price: draft.price || '',
+                      priceUnit: draft.priceUnit || 'Fixed',
+                  }});
                   if(draft.media) setMediaUploads(draft.media.map((m: Media, i: number) => ({ id: `loaded-${i}`, previewUrl: m.url, finalUrl: m.url, progress: 100, status: 'complete', type: m.type })));
               }
           } catch (e) { console.error("Failed to load draft", e); }
@@ -113,19 +155,21 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
 
   useEffect(() => {
       if (editingPost) {
-          setTitle(editingPost.title);
-          setDescription(editingPost.description);
-          setPrice(editingPost.price?.toString() || '');
-          setPriceUnit(editingPost.priceUnit || 'Fixed');
-          setIsOnSale(!!editingPost.salePrice);
-          setSalePrice(editingPost.salePrice?.toString() || '');
-          setType(editingPost.type);
-          setCategory(editingPost.category);
-          setTags(editingPost.tags);
-          setHasExpiry(!!editingPost.expiryDate);
-          setExpiryDate(toDateTimeLocal(editingPost.expiryDate));
-          setEventStartDate(toDateTimeLocal(editingPost.eventStartDate));
-          setEventEndDate(toDateTimeLocal(editingPost.eventEndDate));
+          dispatch({ type: 'RESET_FORM', payload: {
+              title: editingPost.title,
+              description: editingPost.description,
+              price: editingPost.price?.toString() || '',
+              priceUnit: editingPost.priceUnit || 'Fixed',
+              isOnSale: !!editingPost.salePrice,
+              salePrice: editingPost.salePrice?.toString() || '',
+              type: editingPost.type,
+              category: editingPost.category,
+              tags: editingPost.tags,
+              hasExpiry: !!editingPost.expiryDate,
+              expiryDate: toDateTimeLocal(editingPost.expiryDate),
+              eventStartDate: toDateTimeLocal(editingPost.eventStartDate),
+              eventEndDate: toDateTimeLocal(editingPost.eventEndDate),
+          }});
           
           if (editingPost.coordinates) {
               locationInput.selectFromMap({ ...editingPost.coordinates, name: editingPost.location });
@@ -150,16 +194,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   const handleTagInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      const newTag = tagInput.trim();
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-      }
-      setTagInput('');
+      dispatch({ type: 'ADD_TAG' });
     }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
   };
   
   const handleSuggestTags = async () => {
@@ -170,7 +206,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     setIsSuggestingTags(true);
     try {
         const suggested = await suggestTagsForPost(title, description);
-        setTags(prev => [...new Set([...prev, ...suggested])].slice(0, 10));
+        dispatch({ type: 'SET_TAGS', payload: [...new Set([...tags, ...suggested])].slice(0, 10) });
     } catch (e) {
         addToast(e instanceof Error ? e.message : 'Could not suggest tags.', 'error');
     } finally {
@@ -186,7 +222,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     setIsSuggestingCategories(true);
     try {
         const suggested = await suggestCategoriesForPost(title, description, categories);
-        if(suggested.length > 0) setCategory(suggested[0]);
+        if(suggested.length > 0) dispatch({ type: 'SET_FIELD', field: 'category', payload: suggested[0] });
     } catch (e) {
         addToast(e instanceof Error ? e.message : 'Could not suggest a category.', 'error');
     } finally {
@@ -215,11 +251,11 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         eventStartDate, hasExpiry, expiryDate,
     }, { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE });
     
-    if (needsSellerDetails && onUpdateCurrentAccountDetails && (deliveryOptions.length === 0 || paymentMethods.length === 0)) {
+    if (needsSellerDetails && onUpdateCurrentAccountDetails && (sellerOptions.deliveryOptions.length === 0 || sellerOptions.paymentMethods.length === 0)) {
         validationErrors.sellerOptions = "Please select at least one delivery and one payment option to continue.";
     }
 
-    setErrors(validationErrors);
+    dispatch({ type: 'SET_ERRORS', payload: validationErrors });
 
     if (Object.keys(validationErrors).length > 0) {
         setIsSubmitting(false);
@@ -238,7 +274,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     }
 
     if (needsSellerDetails && onUpdateCurrentAccountDetails) {
-        onUpdateCurrentAccountDetails({ deliveryOptions, paymentMethods });
+        onUpdateCurrentAccountDetails({ deliveryOptions: sellerOptions.deliveryOptions, paymentMethods: sellerOptions.paymentMethods });
     }
     
     const postData: Omit<Post, 'id' | 'isLiked' | 'authorId'> = {
@@ -271,6 +307,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     }
   };
 
+  const setField = useCallback((field: keyof Omit<FormState, 'tags'>, payload: any) => {
+      dispatch({ type: 'SET_FIELD', field, payload });
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto animate-fade-in-up pb-28 p-4 sm:p-6 lg:p-8">
@@ -297,23 +337,20 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           <p className="text-sm text-amber-800 mb-4">Before you can post, please set your payment and delivery options. This helps buyers know how they can purchase from you.</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <SellerOptionsForm
+                                  initialState={sellerOptions}
+                                  onChange={setSellerOptions}
                                   isSeller={true}
-                                  paymentMethods={paymentMethods}
-                                  onPaymentMethodsChange={setPaymentMethods}
-                                  deliveryOptions={deliveryOptions}
-                                  onDeliveryOptionsChange={setDeliveryOptions}
-                                  showContactOptions={false}
+                                  error={errors.sellerOptions}
                               />
                           </div>
-                          {errors.sellerOptions && <p className="mt-2 text-sm text-red-600">{errors.sellerOptions}</p>}
                       </div>
                   )}
                   <FormField id="post-title" label="Title" error={errors.title} description={`${title.length} / ${TITLE_MAX_LENGTH}`}>
-                      <Input value={title} onChange={e => setTitle(e.target.value)} required maxLength={TITLE_MAX_LENGTH} />
+                      <Input value={title} onChange={e => setField('title', e.target.value)} required maxLength={TITLE_MAX_LENGTH} />
                   </FormField>
 
                   <FormField id="post-description" label="Description" error={errors.description} description={`${description.length} / ${DESCRIPTION_MAX_LENGTH}`}>
-                      <Textarea value={description} onChange={e => setDescription(e.target.value)} required maxLength={DESCRIPTION_MAX_LENGTH} rows={5} />
+                      <Textarea value={description} onChange={e => setField('description', e.target.value)} required maxLength={DESCRIPTION_MAX_LENGTH} rows={5} />
                   </FormField>
                   
                   <div>
@@ -331,7 +368,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField id="post-type" label="Type">
-                          <Select value={type} onChange={e => setType(e.target.value as PostType)}>
+                          <Select value={type} onChange={e => setField('type', e.target.value as PostType)}>
                               {Object.values(PostType).map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
                       </FormField>
@@ -342,7 +379,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   AI Suggest
                               </Button>
                           </div>
-                          <Select id="post-category" value={category} onChange={e => setCategory(e.target.value)}>
+                          <Select id="post-category" value={category} onChange={e => setField('category', e.target.value)}>
                               {categories.map(c => <option key={c} value={c}>{c}</option>)}
                           </Select>
                       </div>
@@ -356,7 +393,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                       <Input 
                                           type="number" 
                                           value={price} 
-                                          onChange={e => setPrice(e.target.value)} 
+                                          onChange={e => setField('price', e.target.value)} 
                                           placeholder="0.00" 
                                           min="0" 
                                           step="0.01"
@@ -365,7 +402,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   <FormField id="price-unit" label="Unit">
                                       <Select 
                                           value={priceUnit} 
-                                          onChange={(e) => setPriceUnit(e.target.value)} 
+                                          onChange={(e) => setField('priceUnit', e.target.value)} 
                                       >
                                           {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
                                       </Select>
@@ -376,7 +413,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   <Input 
                                       type="number" 
                                       value={price} 
-                                      onChange={e => setPrice(e.target.value)} 
+                                      onChange={e => setField('price', e.target.value)} 
                                       required 
                                       placeholder="0.00" 
                                       min="0" 
@@ -389,7 +426,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                         <div>
                             <div className="relative flex items-start pt-2">
                                 <div className="flex h-6 items-center">
-                                <input id="on-sale" type="checkbox" checked={isOnSale} onChange={(e) => setIsOnSale(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
+                                <input id="on-sale" type="checkbox" checked={isOnSale} onChange={(e) => setField('isOnSale', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
                                 </div>
                                 <div className="ml-3 text-sm leading-6">
                                 <Label htmlFor="on-sale">Put this item on sale</Label>
@@ -398,7 +435,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                             {isOnSale && (
                                 <div className="mt-1 animate-fade-in-up">
                                      <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice}>
-                                        <Input type="number" value={salePrice} onChange={e => setSalePrice(e.target.value)} required placeholder="0.00" min="0" step="0.01" />
+                                        <Input type="number" value={salePrice} onChange={e => setField('salePrice', e.target.value)} required placeholder="0.00" min="0" step="0.01" />
                                     </FormField>
                                 </div>
                             )}
@@ -436,10 +473,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           </FormField>
                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
-                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setEventStartDate(e.target.value)} />
+                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setField('eventStartDate', e.target.value)} />
                                </FormField>
                                <FormField id="event-end-date" label="End Date & Time (Optional)">
-                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setEventEndDate(e.target.value)} />
+                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setField('eventEndDate', e.target.value)} />
                                </FormField>
                            </div>
                       </div>
@@ -458,7 +495,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   <span>{tag}</span>
                                   <Button 
                                     type="button" 
-                                    onClick={() => removeTag(tag)} 
+                                    onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} 
                                     variant="ghost" 
                                     size="icon-xs"
                                     className="text-gray-500 hover:text-gray-700 rounded-full"
@@ -468,14 +505,14 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                               </div>
                           ))}
                       </div>
-                      <Input id="post-tags" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={handleTagInputKeyDown} placeholder="Type a tag and press Enter..." className="mt-2" />
+                      <Input id="post-tags" value={tagInput} onChange={e => setField('tagInput', e.target.value)} onKeyDown={handleTagInputKeyDown} placeholder="Type a tag and press Enter..." className="mt-2" />
                   </div>
                   
                    {type !== PostType.EVENT && (
                       <div className="pt-4 border-t">
                           <div className="relative flex items-start">
                             <div className="flex h-6 items-center">
-                              <input id="has-expiry" type="checkbox" checked={hasExpiry} onChange={(e) => setHasExpiry(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
+                              <input id="has-expiry" type="checkbox" checked={hasExpiry} onChange={(e) => setField('hasExpiry', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
                             </div>
                             <div className="ml-3 text-sm leading-6">
                               <Label htmlFor="has-expiry">Set an expiry date for this listing</Label>
@@ -484,7 +521,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           {hasExpiry && (
                               <div className="mt-2 animate-fade-in-up">
                                    <FormField id="expiry-date" label="" error={errors.expiryDate}>
-                                    <Input type="datetime-local" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
+                                    <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} />
                                   </FormField>
                               </div>
                           )}

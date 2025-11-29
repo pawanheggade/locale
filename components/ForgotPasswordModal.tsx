@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useReducer } from 'react';
 import ModalShell from './ModalShell';
 import { EnvelopeIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
@@ -12,9 +11,25 @@ interface ForgotPasswordModalProps {
   onClose: () => void;
 }
 
+const initialState = { email: '', error: '' };
+type State = typeof initialState;
+type Action =
+    | { type: 'SET_EMAIL'; payload: string }
+    | { type: 'SET_ERROR'; payload: string };
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case 'SET_EMAIL':
+            return { ...state, email: action.payload, error: '' };
+        case 'SET_ERROR':
+            return { ...state, error: action.payload };
+        default:
+            return state;
+    }
+}
+
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) => {
-    const [email, setEmail] = useState('');
-    const [error, setError] = useState('');
+    const [state, dispatch] = useReducer(reducer, initialState);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const isMounted = useIsMounted();
@@ -22,10 +37,10 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
+        dispatch({ type: 'SET_ERROR', payload: '' });
 
-        if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
-            setError('Please enter a valid email address.');
+        if (!state.email.trim() || !/\S+@\S+\.\S+/.test(state.email)) {
+            dispatch({ type: 'SET_ERROR', payload: 'Please enter a valid email address.' });
             return;
         }
 
@@ -33,7 +48,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
         // In a real app, this would be an API call.
         if (isMounted()) {
             setIsSubmitting(false);
-            addToast(`If an account exists for ${email}, a password reset link has been sent.`, 'success');
+            addToast(`If an account exists for ${state.email}, a password reset link has been sent.`, 'success');
             onClose();
         }
     };
@@ -43,7 +58,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
             onCancel={onClose}
             submitText="Send Reset Link"
             isSubmitting={isSubmitting}
-            isSubmitDisabled={!email.trim()}
+            isSubmitDisabled={!state.email.trim()}
             submitFormId="forgot-password-form"
             submitClassName="w-40"
         />
@@ -61,11 +76,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
             <div className="p-6">
                 <p className="text-sm text-gray-800 mb-4">Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
                 <form id="forgot-password-form" onSubmit={handleSubmit} className="space-y-2">
-                    <FormField id="reset-email" label="Email Address" error={error}>
+                    <FormField id="reset-email" label="Email Address" error={state.error}>
                         <InputWithIcon
                             type="email"
-                            value={email}
-                            onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                            value={state.email}
+                            onChange={(e) => dispatch({ type: 'SET_EMAIL', payload: e.target.value })}
                             icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
                             placeholder="you@example.com"
                             required

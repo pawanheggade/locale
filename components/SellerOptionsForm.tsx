@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { ContactOption } from '../types';
 import { CheckboxGroup } from './ui/CheckboxGroup';
 
@@ -10,53 +10,81 @@ const CONTACT_OPTIONS: { id: ContactOption, label: string }[] = [
     { id: 'message', label: 'Message (e.g. WhatsApp)' }
 ];
 
-interface SellerOptionsFormProps {
-    paymentMethods?: string[];
-    onPaymentMethodsChange?: (methods: string[]) => void;
+// Reducer logic
+export interface SellerOptionsState {
+    paymentMethods: string[];
     deliveryOptions: string[];
-    onDeliveryOptionsChange: (options: string[]) => void;
-    contactOptions?: ContactOption[];
-    onContactOptionsChange?: (options: ContactOption[]) => void;
+    contactOptions: ContactOption[];
+}
+
+type Action =
+    | { type: 'SET_PAYMENT_METHODS'; payload: string[] }
+    | { type: 'SET_DELIVERY_OPTIONS'; payload: string[] }
+    | { type: 'SET_CONTACT_OPTIONS'; payload: ContactOption[] }
+    | { type: 'RESET'; payload: SellerOptionsState };
+
+const reducer = (state: SellerOptionsState, action: Action): SellerOptionsState => {
+    switch (action.type) {
+        case 'SET_PAYMENT_METHODS':
+            return { ...state, paymentMethods: action.payload };
+        case 'SET_DELIVERY_OPTIONS':
+            return { ...state, deliveryOptions: action.payload };
+        case 'SET_CONTACT_OPTIONS':
+            return { ...state, contactOptions: action.payload };
+        case 'RESET':
+            return action.payload;
+        default:
+            return state;
+    }
+};
+
+interface SellerOptionsFormProps {
+    initialState: SellerOptionsState;
+    onChange: (newState: SellerOptionsState) => void;
     isSeller: boolean;
     error?: string;
-    showContactOptions?: boolean;
 }
 
 export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
-    paymentMethods,
-    onPaymentMethodsChange,
-    deliveryOptions,
-    onDeliveryOptionsChange,
-    contactOptions,
-    onContactOptionsChange,
+    initialState,
+    onChange,
     isSeller,
     error,
-    showContactOptions = true,
 }) => {
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    // Effect to inform parent component of changes
+    useEffect(() => {
+        onChange(state);
+    }, [state, onChange]);
+
+    // Effect to reset internal state if the initial state from parent changes
+    useEffect(() => {
+        dispatch({ type: 'RESET', payload: initialState });
+    }, [initialState]);
+
     return (
         <>
-            {paymentMethods && onPaymentMethodsChange && (
-                <CheckboxGroup
-                    title="Payment Methods Accepted"
-                    options={PAYMENT_OPTIONS}
-                    selectedOptions={paymentMethods}
-                    onChange={onPaymentMethodsChange}
-                />
-            )}
+            <CheckboxGroup
+                title="Payment Methods Accepted"
+                options={PAYMENT_OPTIONS}
+                selectedOptions={state.paymentMethods}
+                onChange={(payload) => dispatch({ type: 'SET_PAYMENT_METHODS', payload })}
+            />
             <CheckboxGroup
                 title="Delivery Options"
                 options={DELIVERY_OPTIONS}
-                selectedOptions={deliveryOptions}
-                onChange={onDeliveryOptionsChange}
+                selectedOptions={state.deliveryOptions}
+                onChange={(payload) => dispatch({ type: 'SET_DELIVERY_OPTIONS', payload })}
             />
-             {isSeller && showContactOptions && contactOptions && onContactOptionsChange && (
+             {isSeller && (
                 <div className="md:col-span-2">
                     <CheckboxGroup
                         title="Contact Methods"
                         description="Select how customers can contact you (at least one is required)."
                         options={CONTACT_OPTIONS}
-                        selectedOptions={contactOptions}
-                        onChange={onContactOptionsChange}
+                        selectedOptions={state.contactOptions}
+                        onChange={(payload) => dispatch({ type: 'SET_CONTACT_OPTIONS', payload: payload as ContactOption[] })}
                         error={error}
                     />
                 </div>

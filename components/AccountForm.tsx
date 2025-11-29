@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData, AccountValidationData, URL_REGEX } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
-import { SellerOptionsForm } from './SellerOptionsForm';
+import { SellerOptionsForm, SellerOptionsState } from './SellerOptionsForm';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
@@ -47,9 +46,11 @@ const initialState = {
     googleMapsUrl: '',
     appleMapsUrl: '',
     businessName: '',
-    paymentMethods: [] as string[],
-    deliveryOptions: [] as string[],
-    contactOptions: [] as ContactOption[],
+    sellerOptions: {
+        paymentMethods: [] as string[],
+        deliveryOptions: [] as string[],
+        contactOptions: [] as ContactOption[],
+    },
     referralCode: '',
     socials: {
         website: '',
@@ -62,7 +63,8 @@ const initialState = {
 
 type FormState = typeof initialState;
 type Action = 
-    | { type: 'SET_FIELD'; field: keyof FormState; value: any }
+    | { type: 'SET_FIELD'; field: keyof Omit<FormState, 'sellerOptions' | 'socials'>; value: any }
+    | { type: 'SET_SELLER_OPTIONS'; payload: SellerOptionsState }
     | { type: 'SET_SOCIAL'; platform: SocialPlatform; value: string }
     | { type: 'RESET'; payload: Partial<FormState> };
 
@@ -70,6 +72,8 @@ const formReducer = (state: FormState, action: Action): FormState => {
     switch (action.type) {
         case 'SET_FIELD':
             return { ...state, [action.field]: action.value };
+        case 'SET_SELLER_OPTIONS':
+            return { ...state, sellerOptions: action.payload };
         case 'SET_SOCIAL':
             return { ...state, socials: { ...state.socials, [action.platform]: action.value } };
         case 'RESET':
@@ -103,6 +107,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 if (link.platform in socials) socials[link.platform] = link.url;
             });
 
+            const initialSellerOptions: SellerOptionsState = {
+                paymentMethods: account.paymentMethods || [],
+                deliveryOptions: account.deliveryOptions || [],
+                contactOptions: (isEditing && isSellerSignup) ? ['email'] : (account.contactOptions || ['email']),
+            };
+
             dispatch({
                 type: 'RESET',
                 payload: {
@@ -118,18 +128,16 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     googleMapsUrl: account.googleMapsUrl || '',
                     appleMapsUrl: account.appleMapsUrl || '',
                     businessName: account.businessName || '',
-                    paymentMethods: account.paymentMethods || [],
-                    deliveryOptions: account.deliveryOptions || [],
-                    contactOptions: (isEditing && isSellerSignup) ? ['email'] : (account.contactOptions || ['email']),
+                    sellerOptions: initialSellerOptions,
                     socials,
                 }
             });
         }
     }, [account, isEditing, isSellerSignup]);
 
-    const handleFieldChange = (field: keyof FormState, value: any) => {
+    const handleFieldChange = (field: keyof Omit<FormState, 'sellerOptions' | 'socials'>, value: any) => {
         dispatch({ type: 'SET_FIELD', field, value });
-        if (errors[field]) {
+        if (errors[field as string]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[field as string];
@@ -167,7 +175,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         );
         
         if (!forStep1) {
-            if (isSeller && state.contactOptions.length === 0) {
+            if (isSeller && state.sellerOptions.contactOptions.length === 0) {
                 validationErrors.contactOptions = 'As a seller, you must select at least one contact method.';
             }
 
@@ -242,8 +250,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             .filter(platform => state.socials[platform] && state.socials[platform].trim() !== '')
             .map(platform => ({ platform, url: state.socials[platform].trim() }));
 
+        const { sellerOptions, socials, password, confirmPassword, referralCode, ...restOfState } = state;
+
         const submissionData: Partial<Account> = {
-            ...state,
+            ...restOfState,
+            ...sellerOptions,
             name: state.name.trim(),
             username: state.username.trim(),
             email: state.email.trim(),
@@ -435,12 +446,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 </FormField>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <SellerOptionsForm
-                                        paymentMethods={state.paymentMethods}
-                                        onPaymentMethodsChange={(val) => handleFieldChange('paymentMethods', val)}
-                                        deliveryOptions={state.deliveryOptions}
-                                        onDeliveryOptionsChange={(val) => handleFieldChange('deliveryOptions', val)}
-                                        contactOptions={state.contactOptions}
-                                        onContactOptionsChange={(val) => handleFieldChange('contactOptions', val)}
+                                        initialState={state.sellerOptions}
+                                        onChange={(payload) => dispatch({ type: 'SET_SELLER_OPTIONS', payload })}
                                         isSeller={isSeller}
                                         error={errors.contactOptions}
                                     />

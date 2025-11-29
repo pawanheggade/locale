@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import { Account } from '../types';
 import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
@@ -19,18 +18,42 @@ interface SignInScreenProps {
   onOpenPrivacyModal: () => void;
 }
 
+const initialState = {
+    identifier: '',
+    password: '',
+    rememberMe: true,
+    error: '',
+};
+
+type State = typeof initialState;
+type Action =
+    | { type: 'SET_FIELD'; field: 'identifier' | 'password'; payload: string }
+    | { type: 'SET_REMEMBER_ME'; payload: boolean }
+    | { type: 'SET_ERROR'; payload: string };
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.payload, error: '' };
+        case 'SET_REMEMBER_ME':
+            return { ...state, rememberMe: action.payload };
+        case 'SET_ERROR':
+            return { ...state, error: action.payload };
+        default:
+            return state;
+    }
+}
+
 export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, onOpenCreateAccountModal, onOpenPasswordAssistanceModal, onSocialLogin, onOpenSellerAccountModal, onOpenTermsModal, onOpenPrivacyModal }) => {
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
-  const [error, setError] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { identifier, password, rememberMe, error } = state;
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
   const isMounted = useIsMounted();
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    dispatch({ type: 'SET_ERROR', payload: '' });
     setIsLoading(true);
 
     const trimmedIdentifier = identifier.trim().toLowerCase();
@@ -43,19 +66,19 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
             onLogin(foundAccount, rememberMe);
         } else if (foundAccount.status === 'archived') {
             if (foundAccount.archivedByAdmin) {
-                setError('This account has been archived by an administrator. Please contact support.');
+                dispatch({ type: 'SET_ERROR', payload: 'This account has been archived by an administrator. Please contact support.' });
                 setIsLoading(false);
             } else {
                 onLogin(foundAccount, rememberMe);
             }
         } else {
-             setError('This account is currently inactive.');
+             dispatch({ type: 'SET_ERROR', payload: 'This account is currently inactive.' });
              setIsLoading(false);
         }
     } else {
         setTimeout(() => {
             if (isMounted()) {
-                setError('Invalid username/email or password.');
+                dispatch({ type: 'SET_ERROR', payload: 'Invalid username/email or password.' });
                 setIsLoading(false);
             }
         }, 500);
@@ -106,7 +129,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                 <InputWithIcon
                     type="text"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'identifier', payload: e.target.value })}
                     icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
                     required
                     autoFocus={activeAccounts.length === 0}
@@ -117,7 +140,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                  <InputWithIcon
                     type="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'password', payload: e.target.value })}
                     icon={<LockClosedIcon className="h-5 w-5 text-gray-400" />}
                     required
                 />
@@ -125,7 +148,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+                    <input id="remember-me" name="remember-me" type="checkbox" checked={rememberMe} onChange={(e) => dispatch({ type: 'SET_REMEMBER_ME', payload: e.target.checked })} className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
                     <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">Remember me</label>
                 </div>
                 <div className="text-sm">
