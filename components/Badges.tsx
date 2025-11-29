@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PostType } from '../types';
 import { cn } from '../lib/utils';
@@ -11,8 +10,8 @@ export const LocaleChoiceBadge: React.FC<{ className?: string }> = ({ className 
 
 export const SaleBadge: React.FC<{ percentage: number; size?: 'small' | 'medium'; className?: string }> = ({ percentage, size = 'small', className = '' }) => {
   const sizeClasses = size === 'small'
-    ? 'text-xs px-2.5 py-1'
-    : 'text-sm px-3 py-1';
+    ? 'text-base px-2.5 py-1'
+    : 'text-lg px-3 py-1';
   
   return (
     <div className={`bg-amber-100 text-amber-800 font-bold rounded-md ${sizeClasses} ${className}`}>
