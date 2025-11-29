@@ -1,3 +1,6 @@
+
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -111,6 +114,7 @@ export interface PostActions {
   onDeletePermanently?: (postId: string) => void;
   onEdit: (postId: string) => void;
   onViewMedia: (media: Media[], startIndex: number) => void;
+  onViewDetails: (post: DisplayablePost) => void;
   onShare: (postId: string) => void;
   onReportItem: (item: Post | ForumPost | ForumComment) => void;
   /** Opens the modal to set a price drop alert for a product. */
@@ -120,8 +124,16 @@ export interface PostActions {
   onViewBag: () => void;
   onContactStore: (authorId: string, postId: string) => void;
   onRequestService: (authorId: string, postId: string) => void;
+  onViewAccount: (accountId: string) => void;
+  onFilterByCategory: (category: PostCategory) => void;
+  onFilterByType: (type: PostType) => void;
+  onFilterByTag: (tag: string) => void;
+  onShowOnMap: (target: string | Account) => void;
   onToggleLikeAccount?: (account: Account) => void;
   onTogglePinPost: (postId: string) => void;
+  // Forum Actions
+  onViewForumPost: (postId: string) => void;
+  onCreateForumPost: () => void;
 }
 
 export interface SavedSearchFilters {

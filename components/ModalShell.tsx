@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogBack, DialogClose } from './ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from './ui/Dialog';
 
 interface ModalShellProps {
   panelRef: React.RefObject<HTMLDivElement>;
@@ -32,9 +33,8 @@ const ModalShell: React.FC<ModalShellProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange} position={position}>
-      <DialogContent ref={panelRef} className={panelClassName} trapFocus={trapFocus} position={position} handleClose={onClose}> 
+      <DialogContent ref={panelRef} className={panelClassName} trapFocus={trapFocus} position={position}> 
         <DialogHeader>
-          <DialogBack onClick={onClose} />
           <DialogTitle id={titleId}>{title}</DialogTitle>
           <DialogClose onClick={onClose} />
         </DialogHeader>

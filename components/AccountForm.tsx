@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
@@ -61,7 +62,7 @@ const initialState = {
 
 type FormState = typeof initialState;
 type Action = 
-    | { type: 'SET_FIELD'; field: keyof FormState | 'paymentMethods' | 'deliveryOptions' | 'contactOptions'; value: any }
+    | { type: 'SET_FIELD'; field: keyof FormState; value: any }
     | { type: 'SET_SOCIAL'; platform: SocialPlatform; value: string }
     | { type: 'RESET'; payload: Partial<FormState> };
 
@@ -72,8 +73,7 @@ const formReducer = (state: FormState, action: Action): FormState => {
         case 'SET_SOCIAL':
             return { ...state, socials: { ...state.socials, [action.platform]: action.value } };
         case 'RESET':
-            // Reset to a clean slate then apply the payload
-            return { ...initialState, ...action.payload };
+            return { ...state, ...action.payload };
         default:
             return state;
     }
@@ -88,8 +88,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     const [showMapPicker, setShowMapPicker] = useState(false);
     
     const locationInput = useLocationInput(
-        account?.address || (!isEditing && currentAccount?.address) || '',
-        account?.coordinates || (!isEditing && currentAccount?.coordinates) || null
+        !isEditing && currentAccount?.address ? currentAccount.address : '',
+        !isEditing && currentAccount?.coordinates ? currentAccount.coordinates : null
     );
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -102,7 +102,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             account.socialLinks?.forEach(link => {
                 if (link.platform in socials) socials[link.platform] = link.url;
             });
-            
+
             dispatch({
                 type: 'RESET',
                 payload: {
@@ -120,7 +120,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     businessName: account.businessName || '',
                     paymentMethods: account.paymentMethods || [],
                     deliveryOptions: account.deliveryOptions || [],
-                    // On first load for seller upgrade, default to email
                     contactOptions: (isEditing && isSellerSignup) ? ['email'] : (account.contactOptions || ['email']),
                     socials,
                 }
@@ -130,7 +129,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const handleFieldChange = (field: keyof FormState, value: any) => {
         dispatch({ type: 'SET_FIELD', field, value });
-        if (errors[field as string]) {
+        if (errors[field]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[field as string];

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AuthProvider } from './AuthContext';
 import { PostsProvider } from './PostsContext';
@@ -5,7 +6,6 @@ import { FiltersProvider } from './FiltersContext';
 import { UIProvider } from './UIContext';
 import { ForumProvider } from './ForumContext';
 import { ActivityProvider } from './ActivityContext';
-import { NavigationProvider } from './NavigationContext';
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -15,9 +15,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           <PostsProvider>
             <ForumProvider>
               <FiltersProvider>
-                <NavigationProvider>
-                  {children}
-                </NavigationProvider>
+                {children}
               </FiltersProvider>
             </ForumProvider>
           </PostsProvider>

@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useForum } from '../contexts/ForumContext';
 import { useUI } from '../contexts/UIContext';
-import { useNavigation } from '../contexts/NavigationContext';
 import { VoteButtons } from './VoteButtons';
 import { timeSince, renderWithMentions } from '../utils/formatters';
+import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -20,11 +21,12 @@ interface CommentProps {
 }
 
 export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
-  const { currentAccount, accounts: allAccounts, accountsById } = useAuth();
+  const { currentAccount } = useAuth();
+  const { accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
-  const { navigateTo } = useNavigation();
+  const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -33,11 +35,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
   const canEditOrDelete = currentAccount && (currentAccount.id === comment.authorId || currentAccount.role === 'admin');
   const isReplying = replyingToId === comment.id;
 
-  const onViewAccount = (accountId: string) => {
-    const account = accountsById.get(accountId);
-    if (account) navigateTo('account', { account });
-  };
-  
   const handleSave = () => {
       if (editedContent.trim()) {
           updateComment(comment.id, editedContent.trim());
@@ -85,7 +82,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
               </div>
             </div>
           ) : (
-            <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, () => {})}</p>
+            <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, onFilterByTag)}</p>
           )}
         </div>
         <div className="mt-2 flex items-center gap-2">
@@ -120,6 +117,17 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
                 <TrashIcon className="w-4 h-4" />
               </Button>
             </>
+          )}
+          {!canEditOrDelete && (
+            <Button 
+                onClick={() => onReportItem(comment)} 
+                variant="ghost"
+                size="icon-sm"
+                className="text-gray-400 h-8 w-8"
+                title="Report"
+            >
+                <FlagIcon className="w-4 h-4" />
+            </Button>
           )}
         </div>
 

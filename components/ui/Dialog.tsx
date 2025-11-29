@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -63,7 +64,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
       <div className={cn('fixed inset-0 flex z-[3010]', positionContainerClasses[position])}>
         {React.Children.map(children, (child) => {
           if (React.isValidElement(child)) {
-            return React.cloneElement(child, { isClosing, position, handleClose } as any);
+            return React.cloneElement(child, { isClosing, position } as any);
           }
           return child;
         })}
@@ -74,8 +75,8 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
 
 const DialogContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { isClosing?: boolean, position?: 'center' | 'right', className?: string, trapFocus?: boolean, handleClose?: () => void }
->(({ className, children, isClosing, position = 'center', trapFocus = true, handleClose, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { isClosing?: boolean, position?: 'center' | 'right', className?: string, trapFocus?: boolean }
+>(({ className, children, isClosing, position = 'center', trapFocus = true, ...props }, ref) => {
   const internalRef = useRef<HTMLDivElement>(null);
   const dialogRef = (ref || internalRef) as React.RefObject<HTMLDivElement>;
 
@@ -90,7 +91,8 @@ const DialogContent = React.forwardRef<
 
   const panelAnimation = isClosing ? panelPositionAnims[position].close : panelPositionAnims[position].open;
 
-  useFocusTrap(dialogRef, () => handleClose ? handleClose() : {}, trapFocus && !isClosing);
+  // We pass onClose as a no-op because the parent Dialog handles it.
+  useFocusTrap(dialogRef, () => {}, trapFocus && !isClosing);
 
   return (
     <div
@@ -123,16 +125,11 @@ const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
     <h2 ref={ref} className={cn("text-lg font-bold text-gray-800 leading-none tracking-tight", className)} {...props} />
 ));
 
-const DialogBack: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-800" aria-label="Back">
+const DialogClose: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
+    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 top-4 text-gray-800" aria-label="Back">
         <ChevronLeftIcon className="w-6 h-6" />
     </Button>
 );
 
-const DialogClose: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800" aria-label="Close">
-        <XMarkIcon className="w-6 h-6" />
-    </Button>
-);
 
-export { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogBack, DialogClose };
+export { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogClose };

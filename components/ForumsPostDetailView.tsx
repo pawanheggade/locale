@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
-import { useNavigation } from '../contexts/NavigationContext';
+import { DisplayableForumComment } from '../types';
+import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
@@ -15,14 +17,15 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 interface ForumPostDetailViewProps {
   postId: string;
+  onBack: () => void;
 }
 
-export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId }) => {
+export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
-    const { currentAccount, accounts: allAccounts, accountsById } = useAuth();
-    const { navigateTo, handleBack } = useNavigation();
+    const { currentAccount, accounts: allAccounts } = useAuth();
+    const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
@@ -62,7 +65,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             message: 'Are you sure you want to delete this discussion? This will also remove all comments and cannot be undone.',
             onConfirm: () => {
                 deletePost(post.id);
-                handleBack();
+                onBack();
             },
             confirmText: 'Delete',
         });
@@ -87,11 +90,6 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             addToast('Link copied to clipboard', 'success');
         }
     };
-    
-    const onViewAccount = (accountId: string) => {
-        const account = accountsById.get(accountId);
-        if (account) navigateTo('account', { account });
-    };
 
     return (
         <div className="bg-white rounded-xl border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-up">
@@ -104,7 +102,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveCategory(post.category);
-                                handleBack();
+                                onBack();
                             }}
                             className="text-[10px] h-auto min-h-0"
                         />
@@ -130,7 +128,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                     ) : (
                         <>
                             <div className="mt-4 prose max-w-none text-gray-800 break-words">
-                                <p>{renderWithMentions(post.content, allAccounts, onViewAccount, () => {})}</p>
+                                <p>{renderWithMentions(post.content, allAccounts, onViewAccount, onFilterByTag)}</p>
                             </div>
                              <div className="mt-3 flex items-center gap-2">
                                 <Button 
@@ -163,6 +161,17 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                                             <TrashIcon className="w-5 h-5" />
                                         </Button>
                                     </>
+                                )}
+                                {!canEditPost && (
+                                    <Button 
+                                        onClick={() => onReportItem(post)} 
+                                        variant="ghost"
+                                        size="icon-sm"
+                                        className="text-gray-400"
+                                        title="Report"
+                                    >
+                                        <FlagIcon className="w-5 h-5" />
+                                    </Button>
                                 )}
                             </div>
                         </>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, PencilIcon, PinIcon, BellIcon } from './Icons';
@@ -14,8 +15,6 @@ import { usePostActions } from '../contexts/PostActionsContext';
 import { cn } from '../lib/utils';
 import { LikeButton } from './LikeButton';
 import { Button } from './ui/Button';
-import { useNavigation } from '../contexts/NavigationContext';
-import { useFilters } from '../contexts/FiltersContext';
 
 interface PostCardProps {
   post: DisplayablePost;
@@ -30,9 +29,7 @@ interface PostCardProps {
 }
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
-  const { onToggleLikePost, onAddToBag, onContactStore, onRequestService, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = usePostActions();
-  const { navigateTo } = useNavigation();
-  const { dispatchFilterAction } = useFilters();
+  const { onToggleLikePost, onViewDetails, onAddToBag, onContactStore, onRequestService, onViewAccount, onShowOnMap, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert, onFilterByCategory, onFilterByTag } = usePostActions();
   const { likedPostIds, bag } = useAuth();
   const { availabilityAlerts } = useActivity();
   
@@ -79,6 +76,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     if (isPurchasable) {
         return ShoppingBagIcon;
     }
+    // For Service and Event, use ChatBubbleBottomCenterTextIcon
     return ChatBubbleBottomCenterTextIcon;
   }, [isPurchasable]);
   
@@ -101,18 +99,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const locationToDisplay = (post.type === PostType.EVENT && post.eventLocation) ? post.eventLocation : post.location;
   const coordsToUse = (post.type === PostType.EVENT && post.eventCoordinates) ? post.eventCoordinates : post.coordinates;
 
-  const handleFilterByCategory = (e: React.MouseEvent, category: string) => {
-    e.stopPropagation();
-    navigateTo('all');
-    dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: category });
-  };
-  
-  const handleFilterByTag = (e: React.MouseEvent, tag: string) => {
-    e.stopPropagation();
-    navigateTo('all');
-    dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
-  };
-
   return (
     <Card
       ref={cardRef}
@@ -121,7 +107,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-up' : 'opacity-0 translate-y-4')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
-      onClick={() => navigateTo('postDetail', { postId: post.id })}
+      onClick={() => onViewDetails(post)}
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
@@ -176,7 +162,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigateTo('postDetail', { postId: post.id });
+                onViewDetails(post);
               }}
               className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 transition-colors"
             >
@@ -189,13 +175,13 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           <div className="flex flex-wrap items-center gap-2 mt-3 mb-1">
              <CategoryBadge 
                 category={post.category} 
-                onClick={(e) => handleFilterByCategory(e, post.category)} 
+                onClick={(e) => { e.stopPropagation(); onFilterByCategory(post.category); }} 
                 className="text-[10px] h-auto min-h-0" 
              />
              {!isCompact && post.tags.slice(0, 2).map(tag => (
                  <button 
                     key={tag}
-                    onClick={(e) => handleFilterByTag(e, tag)}
+                    onClick={(e) => { e.stopPropagation(); onFilterByTag(tag); }}
                     className="text-[10px] text-gray-600 hover:text-gray-900 hover:underline cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                  >
                     #{tag}
@@ -209,12 +195,19 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     "flex items-center gap-1.5 min-w-0 text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
                     coordsToUse ? "cursor-pointer group transition-colors" : ""
                 )}
+                onClick={(e) => {
+                    if (coordsToUse) {
+                        e.stopPropagation();
+                        onShowOnMap(post.id);
+                    }
+                }}
                 role={coordsToUse ? "button" : undefined}
                 tabIndex={coordsToUse ? 0 : undefined}
                 onKeyDown={(e) => {
                     if ((e.key === 'Enter' || e.key === ' ') && coordsToUse) {
                         e.preventDefault();
                         e.stopPropagation();
+                        onShowOnMap(post.id);
                     }
                 }}
                 title={coordsToUse ? "View on Map" : undefined}
@@ -240,7 +233,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             <PostAuthorInfo 
                 author={post.author} 
                 post={post} 
-                onViewAccount={(id) => navigateTo('account', { account: post.author })}
+                onViewAccount={onViewAccount}
                 showAvatar={!isCompact}
                 subscriptionBadgeIconOnly={true}
             >
