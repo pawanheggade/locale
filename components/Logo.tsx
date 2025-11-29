@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '../lib/utils';
 
@@ -52,8 +51,8 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
       
       {isLarge && (
         <div className="absolute right-0 top-[90%] flex flex-col items-end leading-tight text-gray-900 font-normal whitespace-nowrap font-['Comfortaa']">
-            <span className="text-[9px] uppercase tracking-widest">hyperlocal</span>
-            <span className="text-[9px] uppercase tracking-widest">community</span>
+            <span className="text-[11px] lowercase tracking-widest">hyperlocal</span>
+            <span className="text-[11px] lowercase tracking-widest">community</span>
         </div>
       )}
     </div>
