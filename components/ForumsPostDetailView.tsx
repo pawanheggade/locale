@@ -1,10 +1,10 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { DisplayableForumComment } from '../types';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
@@ -14,6 +14,8 @@ import { Comment as CommentComponent } from './Comment';
 import { CommentForm } from './CommentForm';
 import { CategoryBadge } from './Badges';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { useNavigation } from '../App';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface ForumPostDetailViewProps {
   postId: string;
@@ -22,10 +24,11 @@ interface ForumPostDetailViewProps {
 
 export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
-    const { addToast } = useUI();
+    const { addToast, openModal } = useUI();
     const showConfirmation = useConfirmationModal();
     const { currentAccount, accounts: allAccounts } = useAuth();
-    const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
+    const { navigateTo } = useNavigation();
+    const { dispatchFilterAction } = useFilters();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
@@ -39,6 +42,22 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             setIsEditingPost(false);
         }
     }, [postId, post]);
+
+// @FIX: Replace usePostActions with direct implementations.
+    const onViewAccount = (accountId: string) => {
+        const account = allAccounts.find(a => a.id === accountId);
+        if (account) navigateTo('account', { account });
+    };
+
+    const onReportItem = (item: any) => {
+        if (!currentAccount) { openModal({ type: 'login' }); return; }
+        openModal({ type: 'reportItem', data: { item } });
+    };
+    
+    const onFilterByTag = (tag: string) => {
+        dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
+    };
+
 
     if (!post) {
         return <div className="text-center py-20"><SpinnerIcon className="w-8 h-8 mx-auto" /></div>;

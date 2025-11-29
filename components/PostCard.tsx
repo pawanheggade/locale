@@ -11,10 +11,13 @@ import { useActivity } from '../contexts/ActivityContext';
 import { LocaleChoiceBadge, CategoryBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/Card';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { cn } from '../lib/utils';
 import { LikeButton } from './LikeButton';
 import { Button } from './ui/Button';
+import { useNavigation } from '../App';
+import { usePosts } from '../contexts/PostsContext';
+import { useUI } from '../contexts/UIContext';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface PostCardProps {
   post: DisplayablePost;
@@ -29,12 +32,16 @@ interface PostCardProps {
 }
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
-  const { onToggleLikePost, onViewDetails, onAddToBag, onContactStore, onRequestService, onViewAccount, onShowOnMap, onEdit, onTogglePinPost, onViewBag, onToggleAvailabilityAlert, onFilterByCategory, onFilterByTag } = usePostActions();
-  const { likedPostIds, bag } = useAuth();
-  const { availabilityAlerts } = useActivity();
+  const { navigateTo, showOnMap } = useNavigation();
+  const { toggleLikePost } = useAuth();
+  const { togglePinPost } = usePosts();
+  const { toggleAvailabilityAlert, availabilityAlerts } = useActivity();
+  const { bag } = useAuth();
+  const { openModal } = useUI();
+  const { dispatchFilterAction } = useFilters();
   
   const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
-  const isLiked = likedPostIds.has(post.id);
+  const isLiked = currentAccount?.likedPostIds?.includes(post.id) ?? false;
   const isAvailabilityAlertSet = useMemo(() => availabilityAlerts.some(alert => alert.postId === post.id), [availabilityAlerts, post.id]);
 
   const hasMedia = post.media && post.media.length > 0;
@@ -82,17 +89,18 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   
   const handleActionClick = (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (!currentAccount) { openModal({ type: 'login' }); return; }
       if (isPurchasable) {
         if (isAddedToBag) {
-          onViewBag();
+          navigateTo('bag');
         } else {
-          onAddToBag(post.id);
+          openModal({ type: 'addToBag', data: post });
         }
         return;
       }
-      switch (post.type) {
-          case PostType.SERVICE: onRequestService(post.authorId, post.id); break;
-          case PostType.EVENT: onContactStore(post.authorId, post.id); break;
+      if (post.author) {
+          const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined;
+          openModal({ type: 'contactStore', data: { author: post.author, post, prefilledMessage } });
       }
   };
 
@@ -107,7 +115,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-up' : 'opacity-0 translate-y-4')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
-      onClick={() => onViewDetails(post)}
+      onClick={() => navigateTo('postDetail', { postId: post.id })}
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
@@ -124,7 +132,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         <div className="absolute top-3 right-3 flex items-center gap-2">
             {isEligibleToPin ? (
                 <Button
-                    onClick={(e) => { e.stopPropagation(); onTogglePinPost(post.id); }}
+                    onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }}
                     variant="overlay"
                     size="icon-sm"
                     className={cn(
@@ -138,7 +146,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             ) : !isOwnPost && (
               <LikeButton
                 isLiked={isLiked}
-                onToggle={() => onToggleLikePost(post.id)}
+                onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
                 variant="overlay"
                 size="icon-sm"
                 className={cn(
@@ -162,7 +170,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onViewDetails(post);
+                navigateTo('postDetail', { postId: post.id });
               }}
               className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 transition-colors"
             >
@@ -175,13 +183,13 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           <div className="flex flex-wrap items-center gap-2 mt-3 mb-1">
              <CategoryBadge 
                 category={post.category} 
-                onClick={(e) => { e.stopPropagation(); onFilterByCategory(post.category); }} 
+                onClick={(e) => { e.stopPropagation(); dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: post.category }); }} 
                 className="text-[10px] h-auto min-h-0" 
              />
              {!isCompact && post.tags.slice(0, 2).map(tag => (
                  <button 
                     key={tag}
-                    onClick={(e) => { e.stopPropagation(); onFilterByTag(tag); }}
+                    onClick={(e) => { e.stopPropagation(); dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] }); }}
                     className="text-[10px] text-gray-600 hover:text-gray-900 hover:underline cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                  >
                     #{tag}
@@ -198,7 +206,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 onClick={(e) => {
                     if (coordsToUse) {
                         e.stopPropagation();
-                        onShowOnMap(post.id);
+                        showOnMap(post.id);
                     }
                 }}
                 role={coordsToUse ? "button" : undefined}
@@ -207,7 +215,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     if ((e.key === 'Enter' || e.key === ' ') && coordsToUse) {
                         e.preventDefault();
                         e.stopPropagation();
-                        onShowOnMap(post.id);
+                        showOnMap(post.id);
                     }
                 }}
                 title={coordsToUse ? "View on Map" : undefined}
@@ -233,13 +241,11 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             <PostAuthorInfo 
                 author={post.author} 
                 post={post} 
-                onViewAccount={onViewAccount}
-                showAvatar={!isCompact}
                 subscriptionBadgeIconOnly={true}
             >
                 {isOwnPost ? (
                     <Button
-                      onClick={(e) => { e.stopPropagation(); onEdit(post.id); }}
+                      onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }}
                       variant="overlay-dark"
                       size="icon-sm"
                       className="flex-shrink-0 text-gray-500 active:scale-95"
@@ -250,7 +256,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     </Button>
                 ) : isExpired ? (
                     <Button
-                        onClick={(e) => { e.stopPropagation(); onToggleAvailabilityAlert(post.id); }}
+                        onClick={(e) => { e.stopPropagation(); if (currentAccount) toggleAvailabilityAlert(post.id); else openModal({ type: 'login' }); }}
                         variant="ghost"
                         size="icon-sm"
                         className={cn(

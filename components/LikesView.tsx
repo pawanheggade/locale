@@ -6,23 +6,28 @@ import { TabButton } from './ui/Button';
 import { HeartIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { EmptyState } from './EmptyState';
+import { useNavigation } from '../App';
 
 interface LikesViewProps {
   likedPosts: DisplayablePost[];
-  onViewAccount: (account: Account) => void;
   currentAccount: Account;
   allAccounts: Account[];
 }
 
 type LikedTab = 'posts' | 'profiles';
 
-export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, onViewAccount, currentAccount, allAccounts }) => {
+export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount, allAccounts }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
+  const { navigateTo } = useNavigation();
 
   const likedAccounts = useMemo(() => {
       const likedIds = new Set(currentAccount?.likedAccountIds || []);
       return allAccounts.filter(acc => likedIds.has(acc.id));
   }, [currentAccount, allAccounts]);
+
+  const onViewAccount = (account: Account) => {
+      navigateTo('account', { account });
+  };
 
   return (
     <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">

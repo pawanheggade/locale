@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,13 +7,14 @@ import { useForum } from '../contexts/ForumContext';
 import { useUI } from '../contexts/UIContext';
 import { VoteButtons } from './VoteButtons';
 import { timeSince, renderWithMentions } from '../utils/formatters';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleEllipsisIcon } from './Icons';
 import { CommentForm } from './CommentForm';
 import { Avatar } from './Avatar';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { useNavigation } from '../App';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface CommentProps {
   comment: DisplayableForumComment;
@@ -21,12 +23,13 @@ interface CommentProps {
 }
 
 export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
-  const { currentAccount } = useAuth();
+  const { currentAccount, addForumReport } = useAuth();
   const { accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
-  const { onViewAccount, onReportItem, onFilterByTag } = usePostActions();
+  const { navigateTo } = useNavigation();
+  const { dispatchFilterAction } = useFilters();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -56,6 +59,20 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
     });
   };
 
+  const onViewAccount = (accountId: string) => {
+    const account = allAccounts.find(a => a.id === accountId);
+    if(account) navigateTo('account', { account });
+  };
+
+  const onFilterByTag = (tag: string) => {
+    dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
+  };
+  
+  const onReportItem = (item: any) => {
+      if (!currentAccount) { openModal({ type: 'login' }); return; }
+      openModal({ type: 'reportItem', data: { item } });
+  }
+
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center mt-1">
@@ -82,73 +99,44 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
               </div>
             </div>
           ) : (
-            <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, onFilterByTag)}</p>
-          )}
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <VoteButtons score={comment.score} userVote={userVote} onVote={(vote) => toggleVote('comment', comment.id, vote)} orientation="horizontal" />
-          <Button 
-            onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} 
-            variant="ghost"
-            size="icon-sm"
-            className={`h-8 w-8 ${isReplying ? "text-red-600" : "text-gray-500"}`}
-            title="Reply"
-          >
-            <ChatBubbleEllipsisIcon className="w-4 h-4" />
-          </Button>
-          {canEditOrDelete && !isEditing && (
             <>
-              <Button 
-                onClick={() => setIsEditing(true)} 
-                variant="ghost"
-                size="icon-sm"
-                className="text-gray-500 h-8 w-8"
-                title="Edit"
-              >
-                <PencilIcon className="w-4 h-4" />
-              </Button>
-              <Button 
-                onClick={handleDelete} 
-                variant="ghost"
-                size="icon-sm"
-                className="text-red-600 h-8 w-8"
-                title="Delete"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </Button>
+                <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, onFilterByTag)}</p>
+                <div className="not-prose flex items-center gap-2 mt-2">
+                    <VoteButtons score={comment.score} userVote={userVote} onVote={(vote) => toggleVote('comment', comment.id, vote)} orientation="horizontal" />
+                    <Button variant="ghost" size="sm" onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} className="gap-1 text-gray-500">
+                        <ChatBubbleEllipsisIcon className="w-4 h-4" /> Reply
+                    </Button>
+                    {canEditOrDelete && (
+                         <>
+                            <Button variant="ghost" size="icon-sm" onClick={() => setIsEditing(true)} className="text-gray-400" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                            <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-gray-400" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
+                         </>
+                    )}
+                    {!canEditOrDelete && (
+                        <Button variant="ghost" size="icon-sm" onClick={() => onReportItem(comment)} className="text-gray-400" title="Report"><FlagIcon className="w-4 h-4"/></Button>
+                    )}
+                </div>
             </>
           )}
-          {!canEditOrDelete && (
-            <Button 
-                onClick={() => onReportItem(comment)} 
-                variant="ghost"
-                size="icon-sm"
-                className="text-gray-400 h-8 w-8"
-                title="Report"
-            >
-                <FlagIcon className="w-4 h-4" />
-            </Button>
-          )}
         </div>
-
         {isReplying && (
-            <div className="mt-4">
-                <CommentForm
-                    postId={comment.postId}
-                    parentId={comment.id}
-                    onCommentAdded={() => onSetReplyTarget(null)}
-                    onCancel={() => onSetReplyTarget(null)}
-                    placeholder={`Replying to ${comment.author?.name}...`}
-                    autoFocus
-                />
-            </div>
-        )}
-
-        {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-4 space-y-4">
-            {comment.replies.map(reply => <Comment key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />)}
+          <div className="mt-4 animate-fade-in-up">
+            <CommentForm
+              postId={comment.postId}
+              parentId={comment.id}
+              onCommentAdded={() => onSetReplyTarget(null)}
+              placeholder={`Replying to ${comment.author?.name || 'user'}...`}
+              autoFocus={true}
+              onCancel={() => onSetReplyTarget(null)}
+            />
           </div>
         )}
+        <div className="mt-6 space-y-6">
+{/* @FIX: Correct recursive component call from CommentComponent to Comment. */}
+          {comment.replies.map(reply => (
+            <Comment key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
+          ))}
+        </div>
       </div>
     </div>
   );

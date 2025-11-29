@@ -5,18 +5,19 @@ import { timeSince } from '../utils/formatters';
 import { wasPostEdited } from '../utils/posts';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
+import { useNavigation } from '../App';
 
 interface PostAuthorInfoProps {
   author: Account;
   post: DisplayablePost;
-  onViewAccount: (accountId: string) => void;
   size?: 'small' | 'medium';
   showAvatar?: boolean;
   children?: React.ReactNode;
   subscriptionBadgeIconOnly?: boolean;
 }
 
-export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, onViewAccount, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false }) => {
+export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false }) => {
+  const { navigateTo } = useNavigation();
   const nameClasses = size === 'small' ? 'text-sm' : 'text-base';
   const metaClasses = size === 'small' ? 'text-xs' : 'text-sm';
   const wrapperPadding = size === 'small' ? 'p-1 -ml-1' : 'p-2 -ml-2';
@@ -32,7 +33,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, on
   return (
     <div className="flex items-center justify-between gap-3">
         <button
-          onClick={(e) => { e.stopPropagation(); onViewAccount(author.id); }}
+          onClick={(e) => { e.stopPropagation(); navigateTo('account', { account: author }); }}
           className={`flex items-center gap-3 min-w-0 text-left rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 flex-1 ${wrapperPadding}`}
           aria-label={`View profile of ${displayName}`}
         >

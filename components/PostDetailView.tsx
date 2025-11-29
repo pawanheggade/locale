@@ -12,11 +12,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { LocaleChoiceBadge, CategoryBadge, TypeBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
-import { usePostActions } from '../contexts/PostActionsContext';
 import { cn } from '../lib/utils';
 import { PostList } from './PostList';
 import { Button } from './ui/Button';
 import { LikeButton } from './LikeButton';
+import { useNavigation } from '../App';
+import { useUI } from '../contexts/UIContext';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface PostDetailViewProps {
   post: DisplayablePost;
@@ -44,14 +46,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   onBack, 
   currentAccount,
 }) => {
-  const postActions = usePostActions();
-  const { onToggleLikePost, onArchive, onEdit, onViewMedia, onSetPriceAlert, onAddToBag, onContactStore, onRequestService, onViewAccount, onFilterByTag, onShowOnMap, onUnarchive, onToggleLikeAccount, onFilterByCategory, onReportItem, onShare, onFilterByType, onTogglePinPost, onViewBag, onToggleAvailabilityAlert } = postActions;
+  const { navigateTo, showOnMap } = useNavigation();
+  const { openModal } = useUI();
+  const { dispatchFilterAction } = useFilters();
+  const { posts, archivedPosts, archivePost, unarchivePost, togglePinPost } = usePosts();
+  const { accountsById, likedPostIds, bag, toggleLikePost, toggleLikeAccount } = useAuth();
+  const { priceAlerts, availabilityAlerts, toggleAvailabilityAlert } = useActivity();
   
-  const { posts } = usePosts();
-  const { accountsById, likedPostIds, bag } = useAuth();
-  const { priceAlerts, availabilityAlerts } = useActivity();
-  const { archivedPosts } = usePosts();
-
   useEffect(() => {
     if (!post) return;
 
@@ -108,7 +109,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
 
   const handleMapClick = () => {
       if (post.type === PostType.EVENT ? post.eventCoordinates : post.coordinates) {
-          onShowOnMap(post.id);
+          showOnMap(post.id);
       }
   };
   
@@ -123,7 +124,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
               <MediaCarousel
                 id={`postdetail-${post.id}`}
                 media={post.media}
-                onMediaClick={(idx) => onViewMedia(post.media, idx)}
+                onMediaClick={(idx) => openModal({ type: 'viewMedia', data: { media: post.media, startIndex: idx } })}
                 maxHeight="max-h-[70vh]"
               />
             </div>
@@ -134,14 +135,14 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                 {/* Header Actions */}
                 <div className="flex justify-between items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <TypeBadge type={post.type} onClick={() => onFilterByType(post.type)} />
+                    <TypeBadge type={post.type} onClick={() => dispatchFilterAction({ type: 'SET_FILTER_TYPE', payload: post.type })} />
                     <span className="text-gray-400 font-light text-sm">/</span>
-                    <CategoryBadge category={post.category} onClick={() => onFilterByCategory(post.category)} />
+                    <CategoryBadge category={post.category} onClick={() => dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: post.category })} />
                   </div>
                   <div className="flex items-center gap-4 flex-shrink-0">
                       {!isOwnPost && (
                           <Button 
-                            onClick={() => onReportItem(post)} 
+                            onClick={() => openModal({ type: 'reportItem', data: { item: post } })} 
                             variant="ghost" 
                             size="icon-sm"
                             className="text-gray-500"
@@ -152,7 +153,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                           </Button>
                       )}
                       <Button
-                        onClick={() => onShare(post.id)}
+                        onClick={() => openModal({ type: 'sharePost', data: post })}
                         variant="ghost"
                         size="icon-sm"
                         className="text-gray-500"
@@ -178,7 +179,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                     <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} isExpired={isExpired} size="small" />
                     {!isOwnPost && isPurchasable && !isExpired && (
                         <Button
-                            onClick={() => onSetPriceAlert(post.id)}
+                            onClick={() => openModal({ type: 'setPriceAlert', data: post })}
                             variant="ghost"
                             size="icon-sm"
                             className={cn(isAlertSet ? "text-red-600" : "text-gray-500")}
@@ -234,7 +235,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                 </div>
                 
                 <div className="mt-6 prose prose-sm max-w-none">
-                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), onViewAccount, onFilterByTag)}</p>
+                  <p>{renderWithMentions(post.description, Array.from(accountsById.values()), (id) => navigateTo('account', { account: accountsById.get(id) }), (tag) => dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] }))}</p>
                 </div>
                 
                 {post.tags.length > 0 && (
@@ -243,7 +244,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                         {post.tags.map(tag => (
                           <button
                             key={tag} 
-                            onClick={() => onFilterByTag(tag)} 
+                            onClick={() => dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] })} 
                             className="text-sm text-gray-600 font-medium hover:text-gray-900 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
                           >
                             #{tag}
@@ -260,11 +261,11 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
         {/* Author Info */}
         {post.author && (
             <div className="mt-6 bg-white rounded-xl overflow-hidden p-6">
-                <PostAuthorInfo author={post.author} post={post} onViewAccount={onViewAccount} size="medium" subscriptionBadgeIconOnly={true}>
+                <PostAuthorInfo author={post.author} post={post} size="medium" subscriptionBadgeIconOnly={true}>
                     {!isOwnPost && (
                         <LikeButton
                             isLiked={isAuthorLiked}
-                            onToggle={() => { if (onToggleLikeAccount && post.author) onToggleLikeAccount(post.author); }}
+                            onToggle={() => { if (post.author) toggleLikeAccount(post.author.id); }}
                             className={cn(
                                 'p-0',
                                 isAuthorLiked ? 'text-red-600' : 'text-gray-500'
@@ -322,20 +323,20 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                       {isOwnPost ? (
                           <div className="flex flex-row gap-3 w-full">
                               {isArchived ? (
-                                  <Button onClick={() => { if (onUnarchive) { onUnarchive(post.id); onBack(); }}} variant="overlay-dark" className="w-full gap-2 font-semibold text-gray-800">
+                                  <Button onClick={() => { unarchivePost(post.id); onBack(); }} variant="overlay-dark" className="w-full gap-2 font-semibold text-gray-800">
                                       <ArrowUturnLeftIcon className="w-5 h-5"/> Unarchive
                                   </Button>
                               ) : (
                                   <>
                                     {isEligibleToPin && (
-                                        <Button onClick={() => onTogglePinPost(post.id)} variant="overlay-red" className="flex-1 gap-2 font-semibold">
+                                        <Button onClick={() => togglePinPost(post.id)} variant="overlay-red" className="flex-1 gap-2 font-semibold">
                                             <PinIcon className="w-5 h-5" isFilled={post.isPinned} /> {post.isPinned ? 'Unpin' : 'Pin'}
                                         </Button>
                                     )}
-                                    <Button onClick={() => onEdit(post.id)} variant="overlay-dark" className="flex-1 gap-2 font-semibold text-gray-800">
+                                    <Button onClick={() => navigateTo('editPost', { postId: post.id })} variant="overlay-dark" className="flex-1 gap-2 font-semibold text-gray-800">
                                         <PencilIcon className="w-5 h-5"/> Edit
                                     </Button>
-                                    <Button onClick={() => onArchive(post.id)} variant="overlay-amber" className="flex-1 gap-2 font-semibold">
+                                    <Button onClick={() => archivePost(post.id)} variant="overlay-amber" className="flex-1 gap-2 font-semibold">
                                         <ArchiveBoxIcon className="w-5 h-5"/> Archive
                                     </Button>
                                   </>
@@ -344,7 +345,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                       ) : (
                           <>
                               {isExpired && !isArchived ? (
-                                  <Button onClick={() => onToggleAvailabilityAlert(post.id)} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} className="flex-1 gap-2 font-semibold">
+                                  <Button onClick={() => toggleAvailabilityAlert(post.id)} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} className="flex-1 gap-2 font-semibold">
                                       <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
                                       <span>{isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}</span>
                                   </Button>
@@ -352,7 +353,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                   <>
                                       {isPurchasable && (
                                           <Button 
-                                              onClick={() => onContactStore(post.authorId, post.id)}
+                                              onClick={() => post.author && openModal({ type: 'contactStore', data: { author: post.author, post } })}
                                               variant="overlay-dark"
                                               size="icon"
                                               className="text-gray-500 flex-shrink-0"
@@ -364,9 +365,9 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                       )}
                                       <Button 
                                         onClick={() => {
-                                            if (isPurchasable) isAddedToBag ? onViewBag() : onAddToBag(post.id);
-                                            else if (post.type === PostType.SERVICE) onRequestService(post.authorId, post.id);
-                                            else onContactStore(post.authorId, post.id);
+                                            if (isPurchasable) isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post });
+                                            else if (post.type === PostType.SERVICE) openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
+                                            else openModal({ type: 'contactStore', data: { author: post.author!, post } });
                                         }}
                                         variant={isAddedToBag ? "pill-lightred" : "pill-red"}
                                         className="flex-1 gap-2 font-semibold"
@@ -379,7 +380,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                               
                               <LikeButton 
                                 isLiked={likedPostIds.has(post.id)}
-                                onToggle={() => onToggleLikePost(post.id)}
+                                onToggle={() => toggleLikePost(post.id)}
                                 variant="overlay-dark"
                                 size="icon"
                                 className={likedPostIds.has(post.id) ? "text-red-600" : "text-gray-500"}

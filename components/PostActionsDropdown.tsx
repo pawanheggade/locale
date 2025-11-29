@@ -1,11 +1,13 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from './Icons';
-import { usePostActions } from '../contexts/PostActionsContext';
+import { usePosts } from '../contexts/PostsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { useNavigation } from '../App';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;
@@ -45,13 +47,15 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isMounted = useIsMounted();
-  const postActions = usePostActions();
+// @FIX: Replace deprecated usePostActions with direct context hooks.
+  const { deletePostPermanently } = usePosts();
+  const { navigateTo } = useNavigation();
 
   useClickOutside(menuRef, () => {
       if (isMounted()) setIsOpen(false);
   }, isOpen);
 
-  const { onDeletePermanently, onEdit } = postActions;
+  const onEdit = (postId: string) => navigateTo('editPost', { postId });
   const isOwnPost = post.authorId === currentAccount?.id;
 
   const handleAction = (action: (id: string) => void) => (e: React.MouseEvent) => {
@@ -81,17 +85,15 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
 
     // Show DELETE if IS archived
     if (isArchived) {
-      if (onDeletePermanently) {
-        adminItems.push(
-          <DropdownMenuItem
-            key="delete"
-            onClick={handleAction(onDeletePermanently)}
-            icon={<TrashIcon className="w-5 h-5" />}
-            label="Delete"
-            className="text-red-700"
-          />
-        );
-      }
+      adminItems.push(
+        <DropdownMenuItem
+          key="delete"
+          onClick={handleAction(deletePostPermanently)}
+          icon={<TrashIcon className="w-5 h-5" />}
+          label="Delete"
+          className="text-red-700"
+        />
+      );
     }
   }
 

@@ -11,22 +11,17 @@ import { PostList } from './PostList';
 import { ReferralCard } from './ReferralCard';
 import { EmptyState } from './EmptyState';
 import { useForum } from '../contexts/ForumContext';
-import { usePostActions } from '../contexts/PostActionsContext';
+import { useNavigation } from '../App';
+import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 
 interface AccountViewProps {
   account: Account;
   currentAccount: Account | null;
   posts: DisplayablePost[];
-  onEditAccount: (account: Account) => void;
   archivedPosts: DisplayablePost[];
   allAccounts: Account[];
-  isLiked: boolean;
-  onToggleLike: (account: Account) => void;
-  onShowOnMap: (account: Account) => void;
   isGeocoding: boolean;
-  onOpenAnalytics: () => void;
-  onOpenSubscriptionPage: () => void;
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -52,12 +47,14 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, onEditAccount, archivedPosts, allAccounts, isLiked, onToggleLike, onShowOnMap, isGeocoding, onOpenAnalytics, onOpenSubscriptionPage }) => {
+export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts, isGeocoding }) => {
   const { addToast, openModal } = useUI();
   const { posts: allForumPosts } = useForum();
-  const { onViewForumPost } = usePostActions();
+  const { navigateTo, showOnMap } = useNavigation();
+  const { toggleLikeAccount } = useAuth();
   
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
+  const isLiked = currentAccount?.likedAccountIds?.includes(account.id) ?? false;
 
   // --- DATA PREPARATION ---
   const accountPosts = useMemo(() => posts.filter(post => post.authorId === account.id), [posts, account.id]);
@@ -246,7 +243,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                           <SubscriptionBadge tier={account.subscription.tier} />
                           {isOwnAccount && (
                               <Button
-                                  onClick={onOpenSubscriptionPage}
+                                  onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
                                   className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full h-5 px-2"
@@ -267,15 +264,15 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   <ProfileActions 
                       isOwnAccount={isOwnAccount}
                       canHaveCatalog={canHaveCatalog}
-                      onEditAccount={() => onEditAccount(account)}
+                      onEditAccount={() => openModal({ type: 'editAccount', data: account })}
                       onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
-                      onOpenAnalytics={onOpenAnalytics}
+                      onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
                       socialLinks={sortedSocialLinks}
                       onShare={handleShareProfile}
                       contactMethods={contactMethods}
                       onContactAction={handleContactAction}
                       isLiked={isLiked}
-                      onToggleLike={() => onToggleLike(account)}
+                      onToggleLike={() => toggleLikeAccount(account.id)}
                       isMobile={false}
                   />
               </div>
@@ -305,8 +302,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                           <div
                               role="button"
                               tabIndex={0}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onShowOnMap(account); } }}
-                              onClick={() => onShowOnMap(account)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                              onClick={() => showOnMap(account)}
                               className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
                           >
                               <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
@@ -321,15 +318,15 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
              <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
-                  onEditAccount={() => onEditAccount(account)}
+                  onEditAccount={() => openModal({ type: 'editAccount', data: account })}
                   onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
-                  onOpenAnalytics={onOpenAnalytics}
+                  onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
                   socialLinks={sortedSocialLinks}
                   onShare={handleShareProfile}
                   contactMethods={contactMethods}
                   onContactAction={handleContactAction}
                   isLiked={isLiked}
-                  onToggleLike={() => onToggleLike(account)}
+                  onToggleLike={() => toggleLikeAccount(account.id)}
                   isMobile={true}
               />
           </div>
@@ -390,7 +387,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                 <div className="animate-fade-in">
                     <div className="space-y-4">
                         {userForumPosts.map(post => (
-                            <ForumPostRow key={post.id} post={post} onClick={() => onViewForumPost(post.id)} />
+                            <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
                         ))}
                     </div>
                 </div>

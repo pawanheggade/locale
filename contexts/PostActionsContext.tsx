@@ -1,13 +1,2 @@
-
-import React, { createContext, useContext } from 'react';
-import { PostActions } from '../types';
-
-export const PostActionsContext = createContext<PostActions | undefined>(undefined);
-
-export const usePostActions = (): PostActions => {
-    const context = useContext(PostActionsContext);
-    if (context === undefined) {
-        throw new Error('usePostActions must be used within a PostActionsProvider');
-    }
-    return context;
-};
+// This context is deprecated. Actions should be consumed from their respective hooks (usePosts, useAuth, etc.)
+// and navigation should be handled via the NavigationContext in App.tsx.

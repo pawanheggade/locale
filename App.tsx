@@ -1,7 +1,7 @@
 
 
-import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { DisplayablePost, PostActions, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
+import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
+import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
 import { PostList } from './components/PostList';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -19,7 +19,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AppModals } from './components/AppModals';
 import { PostDetailView } from './components/PostDetailView';
 import { ForumsPostDetailView } from './components/ForumsPostDetailView';
-import { PostActionsContext } from './contexts/PostActionsContext';
 import { GuestPrompt } from './components/GuestPrompt';
 import { CreatePostPage } from './components/CreatePostPage';
 import { useDebounce } from './hooks/useDebounce';
@@ -54,6 +53,21 @@ interface HistoryItem {
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
 
+// --- Navigation Context ---
+interface NavigationContextType {
+  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string }) => void;
+  handleBack: () => void;
+  showOnMap: (target: string | Account) => void;
+}
+
+const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
+export const useNavigation = () => {
+    const context = useContext(NavigationContext);
+    if (!context) throw new Error('useNavigation must be used within a NavigationProvider');
+    return context;
+};
+
+
 export const App: React.FC = () => {
   const { 
     currentAccount, accounts, accountsById, signOut: authSignOut, 
@@ -61,17 +75,16 @@ export const App: React.FC = () => {
     bag, 
     addPostToViewHistory, viewedPostIds, savedSearches,
     reports, setReports, feedbackList, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent,
-    addReport, addForumReport, addFeedback, toggleLikePost, toggleLikeAccount, incrementProfileViews
+    addReport, addForumReport, addFeedback, incrementProfileViews
   } = useAuth();
   
   const { 
-    notifications, markAsRead, priceAlerts, setPriceAlert, deletePriceAlert, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
-    addNotification
+    notifications, markAsRead
   } = useActivity();
 
   const { 
-    posts: allDisplayablePosts, archivedPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, archivePost, unarchivePost, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
-    togglePinPost, priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
+    posts: allDisplayablePosts, archivedPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
+    priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
@@ -80,8 +93,7 @@ export const App: React.FC = () => {
   const isMounted = useIsMounted();
 
   const { filterState, dispatchFilterAction, handleAiSearchSubmit, handleToggleAiSearch, onClearFilters, isAnyFilterActive } = useFilters();
-  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
-
+  
   const [view, setView] = useState<AppView>('all');
   const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
   const [gridView, setGridView] = usePersistentState<'default' | 'compact'>('localeAppGridView', 'default');
@@ -189,17 +201,7 @@ export const App: React.FC = () => {
   }, [isRefreshing, refreshPosts, addToast, isMounted]);
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
-
-  const withAuthCheck = useCallback((action: (...args: any[]) => any) => {
-    return (...args: any[]) => {
-        if (!currentAccount) {
-            openModal({ type: 'login' });
-            return;
-        }
-        return action(...args);
-    };
-  }, [currentAccount, openModal]);
-
+  
   const handleSearchSubmit = useCallback((query: string) => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
@@ -343,86 +345,23 @@ export const App: React.FC = () => {
       setMainView(newMainView);
   }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId]);
 
-  const postActions: PostActions = useMemo(() => ({
-    onToggleLikePost: (postId) => {
-        if (!currentAccount) { openModal({ type: 'login' }); return; }
-        return toggleLikePost(postId); 
-    },
-    onArchive: archivePost,
-    onUnarchive: unarchivePost,
-    onDeletePermanently: deletePostPermanently,
-    onEdit: (postId) => navigateTo('editPost', { postId }),
-    onViewMedia: (media, startIndex) => openModal({ type: 'viewMedia', data: { media, startIndex } }),
-    onViewDetails: (post) => navigateTo('postDetail', { postId: post.id }),
-    onShare: (postId) => { const post = findPostById(postId); if (post) openModal({ type: 'sharePost', data: post }); },
-    onReportItem: withAuthCheck((item) => openModal({ type: 'reportItem', data: { item } })),
-    onSetPriceAlert: withAuthCheck((postId) => { const post = findPostById(postId); if (post) openModal({ type: 'setPriceAlert', data: post }); }),
-    onToggleAvailabilityAlert: withAuthCheck((postId) => {
-       const existing = availabilityAlerts.find(a => a.postId === postId);
-       existing ? deleteAvailabilityAlert(postId) : setAvailabilityAlert(postId);
-    }),
-    onAddToBag: withAuthCheck((postId) => { const post = findPostById(postId); if (post) openModal({ type: 'addToBag', data: post }); }),
-    onViewBag: () => navigateTo('bag'),
-    onContactStore: withAuthCheck((authorId, postId) => {
-      const author = accountsById.get(authorId);
-      const post = findPostById(postId);
-      if (author && post) openModal({ type: 'contactStore', data: { author, post } });
-    }),
-    onRequestService: withAuthCheck((authorId, postId) => {
-      const author = accountsById.get(authorId);
-      const post = findPostById(postId);
-      if (author && post) openModal({ type: 'contactStore', data: { author, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
-    }),
-    onViewAccount: (accountId) => { 
-        const account = accountsById.get(accountId); 
-        if (account) {
-            incrementProfileViews(accountId);
-            navigateTo('account', { account }); 
-        }
-    },
-    onFilterByCategory: (category) => {
-      if (mainView !== 'grid' || view !== 'all') { setMainView('grid'); setView('all'); }
-      dispatchFilterAction({ type: 'SET_FILTER_CATEGORY', payload: category });
-      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-    },
-    onFilterByType: (type) => {
-      if (mainView !== 'grid' || view !== 'all') { setMainView('grid'); setView('all'); }
-      dispatchFilterAction({ type: 'SET_FILTER_TYPE', payload: type });
-      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-    },
-    onFilterByTag: (tag) => {
-      if (mainView !== 'grid' || view !== 'all') { setMainView('grid'); setView('all'); }
-      dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
-      if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-    },
-    onShowOnMap: async (target) => {
-      setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
-      if (typeof target === 'string') {
-        setView('all'); setMainView('map'); setPostToFocusOnMap(target);
-      } else {
-        const account = target as Account;
-        let coords = account.coordinates;
-        if (!coords && account.address) {
-          setIsGeocoding(true);
-          try { coords = await geocodeLocation(account.address); } 
-          catch (e) { addToast('Failed to find location', 'error'); } 
-          finally { if (isMounted()) setIsGeocoding(false); }
-        }
-        if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
-        else { addToast(`Could not find location for ${account.name}.`, 'error'); }
+  const showOnMap = useCallback(async (target: string | Account) => {
+    setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
+    if (typeof target === 'string') {
+      setView('all'); setMainView('map'); setPostToFocusOnMap(target);
+    } else {
+      const account = target as Account;
+      let coords = account.coordinates;
+      if (!coords && account.address) {
+        setIsGeocoding(true);
+        try { coords = await geocodeLocation(account.address); } 
+        catch (e) { addToast('Failed to find location', 'error'); } 
+        finally { if (isMounted()) setIsGeocoding(false); }
       }
-    },
-    onToggleLikeAccount: (account: Account) => { if(!currentAccount) openModal({type:'login'}); else toggleLikeAccount(account.id); },
-    onTogglePinPost: togglePinPost,
-    onViewForumPost: (postId) => navigateTo('forumPostDetail', { forumPostId: postId }),
-    onCreateForumPost: withAuthCheck(() => openModal({ type: 'createForumPost' })),
-  }), [
-    currentAccount, openModal, archivePost, unarchivePost, deletePostPermanently, navigateTo, findPostById,
-    withAuthCheck, accountsById, dispatchFilterAction, setPostToFocusOnMap,
-    setLocationToFocus, togglePinPost, addToast, setIsGeocoding, availabilityAlerts, setAvailabilityAlert, deleteAvailabilityAlert,
-    view, mainView, viewingPostId, viewingAccount, viewingForumPostId, priceAlerts, toggleLikePost, toggleLikeAccount, showConfirmation,
-    deletePriceAlert, setPriceAlert, incrementProfileViews, isMounted
-  ]);
+      if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
+      else { addToast(`Could not find location for ${account.name}.`, 'error'); }
+    }
+  }, [addToast, isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
       if (isFindingNearby) return;
@@ -479,80 +418,14 @@ export const App: React.FC = () => {
     });
   }, []);
 
-  const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
-
-  useEffect(() => {
-      if (isInitialLoading || isRefreshing) return;
-      if (!currentAccount) { setRecommendedPostIds([]); return; }
-      const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
-      const viewedPosts = viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p);
-      const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
-      setRecommendedPostIds(newRecs.map(p => p.id));
-  }, [currentAccount?.id, isRefreshing, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPostIds]);
-
-  const recommendations = useMemo(() => {
-      if (recommendedPostIds.length === 0) return [];
-      const postMap = new Map(allDisplayablePosts.map(p => [p.id, p]));
-      return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
-  }, [recommendedPostIds, allDisplayablePosts]);
-
-  const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount);
-  const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
-  const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
-  const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);
-  const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(postsForMainList, isInitialLoading);
-  const displayPosts = filterState.searchQuery ? postsForMainList : paginatedPosts;
-  const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
-  const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
-
-  const renderCurrentView = () => {
-    switch (view) {
-        case 'all':
-            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-up"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
-            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={(post) => navigateTo('postDetail', { postId: post.id })} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
-            return null;
-        case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} onViewAccount={(account) => postActions.onViewAccount(account.id)} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
-        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} allAccounts={accounts} /></Suspense> : null;
-        case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
-        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} onEditAccount={() => openModal({ type: 'editAccount', data: viewingAccount })} archivedPosts={archivedPosts} allAccounts={accounts} isLiked={currentAccount?.likedAccountIds?.includes(viewingAccount.id) ?? false} onToggleLike={(account: Account) => postActions.onToggleLikeAccount!(account)} onShowOnMap={postActions.onShowOnMap} isGeocoding={isGeocoding} onOpenAnalytics={() => navigateTo('accountAnalytics', { account: viewingAccount })} onOpenSubscriptionPage={() => navigateTo('subscription')} /></Suspense> : null;
-        case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
-        case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
-        case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
-        case 'createPost':
-            if (currentAccount?.subscription.tier === 'Personal') { setView('subscription'); addToast('You need a seller account.', 'error'); return null; }
-            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
-        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
-        case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
-        case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
-        case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
-        case 'settings':
-            return currentAccount ? <SettingsPage
-                settings={notificationSettings}
-                onSettingsChange={handleUpdateNotificationSettings}
-                currentAccount={currentAccount}
-                onArchiveAccount={requestArchiveAccount}
-                onSignOut={requestSignOut}
-            /> : null;
-        case 'activity':
-            return currentAccount ? <ActivityPage
-                notifications={notifications}
-                alerts={priceAlerts}
-                availabilityAlerts={availabilityAlerts}
-                posts={allDisplayablePosts as Post[]}
-                onDismiss={(id) => markAsRead(id)}
-                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
-                onNotificationClick={handleNotificationClick}
-                onDeleteAlert={deletePriceAlert}
-                onDeleteAvailabilityAlert={deleteAvailabilityAlert}
-                onViewPost={(postId) => navigateTo('postDetail', { postId })}
-            /> : null;
-        default: return null;
-    }
-  };
+  const navigationContextValue = useMemo(() => ({
+      navigateTo,
+      handleBack,
+      showOnMap,
+  }), [navigateTo, handleBack, showOnMap]);
 
   return (
-    <PostActionsContext.Provider value={postActions}>
+    <NavigationContext.Provider value={navigationContextValue}>
       <div className="flex flex-col h-screen" {...touchHandlers}>
         <Header 
           searchQuery={filterState.searchQuery}
@@ -598,11 +471,67 @@ export const App: React.FC = () => {
             <>
               <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
               <div style={{ transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` }} className={!isPulling ? 'transition-transform duration-300' : ''}>
-                <ErrorBoundary>{renderCurrentView()}</ErrorBoundary>
+                 <ErrorBoundary>
+                    <ViewManager
+                      view={view}
+                      mainView={mainView}
+                      gridView={gridView}
+                      isInitialLoading={isInitialLoading}
+                      isFiltering={isFiltering}
+                      userLocation={userLocation}
+                      postToFocusOnMap={postToFocusOnMap}
+                      onPostFocusComplete={() => setPostToFocusOnMap(null)}
+                      locationToFocus={locationToFocus}
+                      onLocationFocusComplete={() => setLocationToFocus(null)}
+                      viewingAccount={viewingAccount}
+                      viewingPostId={viewingPostId}
+                      viewingForumPostId={viewingForumPostId}
+                      nearbyPostsResult={nearbyPostsResult}
+                      notificationSettings={notificationSettings}
+                      onUpdateNotificationSettings={handleUpdateNotificationSettings}
+                      requestArchiveAccount={requestArchiveAccount}
+                      requestSignOut={requestSignOut}
+                      handleNotificationClick={handleNotificationClick}
+                      adminInitialView={adminInitialView}
+                      handleDeleteFeedback={handleDeleteFeedback}
+                      handleToggleFeedbackArchive={handleToggleFeedbackArchive}
+                      handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                      handleBulkFeedbackAction={handleBulkFeedbackAction}
+                      isGeocoding={isGeocoding}
+                    />
+                 </ErrorBoundary>
               </div>
             </>
           ) : (
-             <ErrorBoundary>{renderCurrentView()}</ErrorBoundary>
+             <ErrorBoundary>
+                <ViewManager
+                  view={view}
+                  mainView={mainView}
+                  gridView={gridView}
+                  isInitialLoading={isInitialLoading}
+                  isFiltering={isFiltering}
+                  userLocation={userLocation}
+                  postToFocusOnMap={postToFocusOnMap}
+                  onPostFocusComplete={() => setPostToFocusOnMap(null)}
+                  locationToFocus={locationToFocus}
+                  onLocationFocusComplete={() => setLocationToFocus(null)}
+                  viewingAccount={viewingAccount}
+                  viewingPostId={viewingPostId}
+                  viewingForumPostId={viewingForumPostId}
+                  nearbyPostsResult={nearbyPostsResult}
+                  notificationSettings={notificationSettings}
+                  onUpdateNotificationSettings={handleUpdateNotificationSettings}
+                  requestArchiveAccount={requestArchiveAccount}
+                  requestSignOut={requestSignOut}
+                  handleNotificationClick={handleNotificationClick}
+                  adminInitialView={adminInitialView}
+                  handleDeleteFeedback={handleDeleteFeedback}
+                  handleToggleFeedbackArchive={handleToggleFeedbackArchive}
+                  handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                  handleBulkFeedbackAction={handleBulkFeedbackAction}
+                  isGeocoding={isGeocoding}
+                />
+             </ErrorBoundary>
           )}
         </main>
         <OfflineIndicator />
@@ -619,6 +548,113 @@ export const App: React.FC = () => {
             onSignOut={requestSignOut}
         />
       </div>
-    </PostActionsContext.Provider>
+    </NavigationContext.Provider>
   );
+};
+
+// --- View Manager Component ---
+// Encapsulates the logic for rendering the current view.
+const ViewManager: React.FC<any> = (props) => {
+    const { 
+// @FIx: Add viewedPostIds to the destructuring to make it available for recommendation logic.
+        currentAccount, accounts, likedPostIds, viewedPostIds,
+        deleteAccount, updateAccountRole, toggleAccountStatus, approveAccount, rejectAccount, updateSubscription, updateAccountDetails,
+        reports, setReports, feedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
+    } = useAuth();
+    const { 
+        notifications, priceAlerts, availabilityAlerts, markAsRead, deletePriceAlert, deleteAvailabilityAlert, addNotification 
+    } = useActivity();
+    const { 
+        posts: allDisplayablePosts, archivedPosts, categories, 
+        createPost: createPostInContext, updatePost: updatePostInContext, deletePostPermanently,
+        addCategory, updateCategory, deleteCategory, findPostById,
+        priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit
+    } = usePosts();
+    const { 
+        posts: forumPosts, getPostWithComments, 
+        categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory 
+    } = useForum();
+// @FIX: Add addToast to the destructuring to enable toast notifications for admin actions.
+    const { openModal, addToast } = useUI();
+    const { filterState, isAnyFilterActive } = useFilters();
+    const { navigateTo, handleBack } = useNavigation();
+    
+    // Props passed down from App
+    const {
+        view, mainView, gridView, isInitialLoading, isFiltering, userLocation, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
+        viewingAccount, viewingPostId, viewingForumPostId, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
+        requestArchiveAccount, requestSignOut, handleNotificationClick, adminInitialView,
+        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, isGeocoding
+    } = props;
+    
+    // --- Data derived for rendering ---
+    const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (isInitialLoading) return;
+        if (!currentAccount) { setRecommendedPostIds([]); return; }
+        const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
+        const viewedPosts = viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p);
+        const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
+        setRecommendedPostIds(newRecs.map(p => p.id));
+    }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPostIds]);
+
+    const recommendations = useMemo(() => {
+        if (recommendedPostIds.length === 0) return [];
+        const postMap = new Map(allDisplayablePosts.map(p => [p.id, p]));
+        return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
+    }, [recommendedPostIds, allDisplayablePosts]);
+    
+    const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount);
+    const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
+    const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
+    const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);
+    const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(postsForMainList, isInitialLoading);
+    const displayPosts = filterState.searchQuery ? postsForMainList : paginatedPosts;
+    const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
+    const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
+    
+    switch (view) {
+        case 'all':
+            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-up"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
+            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={props.isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={onPostFocusComplete} onViewPostDetails={(post) => navigateTo('postDetail', { postId: post.id })} locationToFocus={locationToFocus} onLocationFocusComplete={onLocationFocusComplete} /></Suspense>;
+            return null;
+        case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
+        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
+        case 'admin':
+            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
+        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} isGeocoding={isGeocoding} /></Suspense> : null;
+        case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
+        case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
+        case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
+        case 'createPost':
+            if (currentAccount?.subscription.tier === 'Personal') { return null; }
+            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
+        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
+        case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
+        case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
+        case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
+        case 'settings':
+            return currentAccount ? <SettingsPage
+                settings={notificationSettings}
+                onSettingsChange={onUpdateNotificationSettings}
+                currentAccount={currentAccount}
+                onArchiveAccount={requestArchiveAccount}
+                onSignOut={requestSignOut}
+            /> : null;
+        case 'activity':
+            return currentAccount ? <ActivityPage
+                notifications={notifications}
+                alerts={priceAlerts}
+                availabilityAlerts={availabilityAlerts}
+                posts={allDisplayablePosts as Post[]}
+                onDismiss={(id) => markAsRead(id)}
+                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
+                onNotificationClick={handleNotificationClick}
+                onDeleteAlert={deletePriceAlert}
+                onDeleteAvailabilityAlert={deleteAvailabilityAlert}
+                onViewPost={(postId) => navigateTo('postDetail', { postId })}
+            /> : null;
+        default: return null;
+    }
 };
