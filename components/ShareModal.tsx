@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DisplayablePost } from '../types';
+import { Post } from '../types';
 import ModalShell from './ModalShell';
 import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, PaperAirplaneIcon } from './Icons';
-import { generatePostQrCardBlob } from '../utils/media';
+import { generatePostPreviewImage } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
 
 interface ShareModalProps {
-  post: DisplayablePost;
+  post: Post;
   onClose: () => void;
 }
 
@@ -16,7 +16,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const imageUrlRef = useRef<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
-  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
   const isMounted = useIsMounted();
@@ -27,9 +26,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   useEffect(() => {
     const generate = async () => {
         setIsGenerating(true);
-        const blob = await generatePostQrCardBlob(post);
+        const blob = await generatePostPreviewImage(post);
         if (isMounted() && blob) {
-            setImageBlob(blob);
             const url = URL.createObjectURL(blob);
             setPreviewImageUrl(url);
             imageUrlRef.current = url;
@@ -77,24 +75,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
     };
 
     try {
-        if (imageBlob) {
-            const fileName = `${post.title.replace(/[\s\W]+/g, '-').toLowerCase()}.png`;
-            const file = new File([imageBlob], fileName, { type: 'image/png' });
-            const shareData: ShareData = {
-                files: [file],
-                title: post.title,
-                text: shareText,
-                url: shareUrl,
-            };
-
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.share({ title: post.title, text: shareText, url: shareUrl });
-            }
-        } else {
-            await navigator.share({ title: post.title, text: shareText, url: shareUrl });
-        }
+        await navigator.share({ title: post.title, text: shareText, url: shareUrl });
     } catch (error) {
         if (!isAbortError(error)) {
             console.error('Error sharing:', error);
@@ -125,11 +106,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
       titleId="share-post-title"
     >
       <div className="p-6">
-        <div className="w-full aspect-[350/400] bg-gray-100 rounded-lg overflow-hidden mb-6 relative">
+        <div className="w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden mb-6 relative">
             {isGenerating ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
                     <SpinnerIcon className="w-8 h-8" />
-                    <p className="mt-2 text-sm">Generating share card...</p>
+                    <p className="mt-2 text-sm">Generating preview...</p>
                 </div>
             ) : previewImageUrl ? (
                 <img src={previewImageUrl} alt="Share preview" className="w-full h-full object-cover" />

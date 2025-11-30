@@ -1,4 +1,4 @@
-import { DisplayablePost } from '../types';
+import { Post } from '../types';
 import { formatCurrency } from './formatters';
 import { getBadgeSvg, TIER_STYLES, drawLogoOnCanvas } from '../lib/utils';
 
@@ -63,55 +63,52 @@ const wrapText = (
   y: number,
   maxWidth: number,
   lineHeight: number,
-  maxLines: number = 2
 ) => {
-  const words = text.split(' ');
-  let line = '';
-  const lines: string[] = [];
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' ';
-    const metrics = context.measureText(testLine);
-    const testWidth = metrics.width;
-    if (testWidth > maxWidth && n > 0) {
-      lines.push(line);
-      line = words[n] + ' ';
-    } else {
-      line = testLine;
+    const words = text.split(' ');
+    let line = '';
+    const lines = [];
+    for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = context.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+            lines.push(line);
+            line = words[n] + ' ';
+        } else {
+            line = testLine;
+        }
     }
-  }
-  lines.push(line);
-  
-  const finalLines = lines.slice(0, maxLines);
-  if (lines.length > maxLines) {
-    const lastLine = finalLines[maxLines - 1];
-    finalLines[maxLines - 1] = lastLine.slice(0, lastLine.length - 4) + '...';
-  }
+    lines.push(line);
 
-  for (let k = 0; k < finalLines.length; k++) {
-    context.fillText(finalLines[k].trim(), x, y + (k * lineHeight));
-  }
+    const finalLines = lines.slice(0, 2);
+    if (lines.length > 2) {
+        finalLines[1] = finalLines[1].trim().slice(0, -3) + '...';
+    }
+    
+    for (let k = 0; k < finalLines.length; k++) {
+        const currentLine = finalLines[finalLines.length - 1 - k];
+        context.fillText(currentLine.trim(), x, y - (k * lineHeight));
+    }
 };
 
 
-export const generatePostQrCardBlob = async (post: DisplayablePost): Promise<Blob | null> => {
+export const generatePostPreviewImage = async (post: Post): Promise<Blob | null> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const scale = 2; // for higher resolution
-    const cardWidth = 350;
-    const cardHeight = 400;
+    const scale = 2;
+    const cardWidth = 400;
+    const cardHeight = 210; // ~16:9
 
     canvas.width = cardWidth * scale;
     canvas.height = cardHeight * scale;
     ctx.scale(scale, scale);
-    
-    // 1. White Background
+
+    // White Background
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, cardWidth, cardHeight);
 
-    // 2. Load and draw post image
+    // Load and draw post image
     const postImg = new Image();
     postImg.crossOrigin = 'anonymous';
     let imageLoaded = false;
@@ -124,76 +121,38 @@ export const generatePostQrCardBlob = async (post: DisplayablePost): Promise<Blo
             });
             imageLoaded = true;
         } catch (e) {
-            console.error("Failed to load post image for QR card");
+            console.error("Failed to load post image for preview");
         }
     }
     
-    if(imageLoaded) {
-        ctx.drawImage(postImg, 0, 0, cardWidth, 200);
-        ctx.fillStyle = 'rgba(0,0,0,0.2)'; // slight darken for text contrast
-        ctx.fillRect(0, 0, cardWidth, 200);
+    if (imageLoaded) {
+        const hRatio = cardWidth / postImg.width;
+        const vRatio = cardHeight / postImg.height;
+        const ratio = Math.max(hRatio, vRatio);
+        const centerShift_x = (cardWidth - postImg.width * ratio) / 2;
+        const centerShift_y = (cardHeight - postImg.height * ratio) / 2;
+        ctx.drawImage(postImg, 0, 0, postImg.width, postImg.height,
+                      centerShift_x, centerShift_y, postImg.width * ratio, postImg.height * ratio);
     } else {
-        ctx.fillStyle = '#E5E7EB';
-        ctx.fillRect(0, 0, cardWidth, 200);
+        ctx.fillStyle = '#E5E7EB'; // gray-200
+        ctx.fillRect(0, 0, cardWidth, cardHeight);
     }
+
+    // Gradient overlay for text
+    const gradient = ctx.createLinearGradient(0, cardHeight, 0, cardHeight - 80);
+    gradient.addColorStop(0, 'rgba(0,0,0,0.7)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, cardWidth, cardHeight);
     
-    // 3. QR Code
-    const postUrl = `${window.location.origin}/?post=${post.id}`;
-    const qrCodeApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(postUrl)}&size=200&margin=1&ecLevel=H`;
-    const qrImg = new Image();
-    qrImg.crossOrigin = 'anonymous';
-    qrImg.src = qrCodeApiUrl;
-    try {
-        await new Promise((resolve, reject) => {
-            qrImg.onload = resolve;
-            qrImg.onerror = reject;
-        });
-        // Draw with a white border
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(cardWidth - 10 - 110, 145, 110, 110);
-        ctx.drawImage(qrImg, cardWidth - 15 - 100, 150, 100, 100);
-    } catch (e) {
-        console.error("Failed to load QR code image");
-    }
-
-    // 4. Text Content
-    const padding = 20;
-
-    // Title
-    ctx.fillStyle = '#111827'; // gray-900
-    ctx.font = 'bold 20px sans-serif';
+    // Text Content
+    const padding = 16;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 22px sans-serif';
     ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    wrapText(ctx, post.title, padding, 220, cardWidth - padding * 2, 24, 2);
-
-    // Price
-    ctx.font = 'bold 24px sans-serif';
-    const priceText = formatCurrency(post.salePrice ?? post.price);
-    ctx.fillText(priceText, padding, 280);
-
-    // Author
-    if (post.author) {
-        ctx.font = '14px sans-serif';
-        ctx.fillStyle = '#4B5563';
-        const authorText = `by ${post.author.name}`;
-        ctx.fillText(authorText, padding, 315);
-        
-        const authorTextWidth = ctx.measureText(authorText).width;
-
-        // Badge
-        if (post.author.subscription.tier !== 'Personal' && post.author.subscription.tier !== 'Basic') {
-            const badgeSvg = getBadgeSvg(post.author.subscription.tier);
-            const badgeImg = new Image();
-            badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
-            try {
-                await new Promise(r => badgeImg.onload=r);
-                ctx.drawImage(badgeImg, padding + authorTextWidth + 5, 312, 18, 18);
-            } catch (e) { console.error("Failed to load badge image for QR card"); }
-        }
-    }
+    ctx.textBaseline = 'bottom';
     
-    // 5. Logo at bottom
-    await drawLogoOnCanvas(ctx, cardWidth / 2, 360, 'large');
+    wrapText(ctx, post.title, padding, cardHeight - padding, cardWidth - padding * 2, 26);
 
-    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'));
+    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.9));
 };

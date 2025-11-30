@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { useRef } from 'react';
 import { Notification, Account, Post, DisplayablePost } from '../types';
@@ -122,11 +121,8 @@ export const AppModals: React.FC<AppModalsProps> = ({
         return <MediaViewerModal media={activeModal.data.media} startIndex={activeModal.data.startIndex} onClose={closeModal} />;
       case 'findNearby':
         return <FindNearbyModal onClose={closeModal} onSearch={handleFindNearby} isSearching={isFindingNearby} />;
-      case 'sharePost': {
-        const postWithAuthor = findPostById(activeModal.data.id);
-        if (!postWithAuthor) return null;
-        return <ShareModal post={postWithAuthor} onClose={closeModal} />;
-      }
+      case 'sharePost':
+        return <ShareModal post={activeModal.data} onClose={closeModal} />;
       case 'reportItem': {
         const item = activeModal.data.item;
         const isForumItem = 'upvotes' in item;

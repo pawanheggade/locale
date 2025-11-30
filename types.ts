@@ -196,7 +196,7 @@ export type ModalState =
   | { type: 'login' }
   | { type: 'viewMedia', data: { media: Media[], startIndex: number } }
   | { type: 'findNearby' }
-  | { type: 'sharePost', data: DisplayablePost }
+  | { type: 'sharePost', data: Post }
   | { type: 'reportItem', data: { item: Post | ForumPost | ForumComment } }
   | { type: 'filterPanel' }
   | { type: 'saveSearch' }
