@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
+import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
 
@@ -137,7 +138,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 onClick={onToggleAiSearch}
                 variant={isAiSearchEnabled ? 'pill-red' : 'outline'}
                 size="icon-sm"
-                className="text-xs font-bold uppercase tracking-wider"
+                className="text-xs font-extrabold uppercase tracking-wider"
                 aria-label={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 title={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 aria-pressed={!!isAiSearchEnabled}
@@ -211,7 +212,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           {shouldShowAiSuggestions && (
             <>
               <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
-                <SparklesIcon className="w-4 h-4 text-red-500" />
+                <AIIcon className="w-4 h-4 text-red-500" />
                 AI Suggestions
               </li>
               {isFetchingAiSuggestions && (

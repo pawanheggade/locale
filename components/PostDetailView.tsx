@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, PaperAirplaneIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
+import { AIIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, PaperAirplaneIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, renderWithMentions, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, findSimilarPosts, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -169,7 +169,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                 
                 {post.aiReasoning && (
                     <div className="mt-4 p-3 bg-amber-50 rounded-lg text-sm text-amber-900 flex items-start gap-2">
-                        <SparklesIcon className="w-5 h-5 text-amber-50 shrink-0 mt-0.5" />
+                        <AIIcon className="w-5 h-5 text-amber-50 shrink-0 mt-0.5" />
                         <span><span className="font-semibold">AI Insight:</span> {post.aiReasoning}</span>
                     </div>
                 )}
