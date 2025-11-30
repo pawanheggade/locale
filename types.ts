@@ -1,4 +1,5 @@
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -195,7 +196,7 @@ export type ModalState =
   | { type: 'login' }
   | { type: 'viewMedia', data: { media: Media[], startIndex: number } }
   | { type: 'findNearby' }
-  | { type: 'sharePost', data: Post }
+  | { type: 'sharePost', data: DisplayablePost }
   | { type: 'reportItem', data: { item: Post | ForumPost | ForumComment } }
   | { type: 'filterPanel' }
   | { type: 'saveSearch' }

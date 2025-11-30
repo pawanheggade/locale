@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +5,7 @@ import { useUI } from '../contexts/UIContext';
 import { DisplayableForumComment } from '../types';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
-import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, ShareIcon, PencilIcon, TrashIcon } from './Icons';
+import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, PaperAirplaneIcon, PencilIcon, TrashIcon } from './Icons';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { Comment as CommentComponent } from './Comment';
@@ -43,7 +41,6 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
         }
     }, [postId, post]);
 
-// @FIX: Replace usePostActions with direct implementations.
     const onViewAccount = (accountId: string) => {
         const account = allAccounts.find(a => a.id === accountId);
         if (account) navigateTo('account', { account });
@@ -101,8 +98,18 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-            } catch (err) {
-                // ignore
+            } catch (err: any) {
+                const isAbort =
+                    err.name === 'AbortError' ||
+                    err.code === 20 ||
+                    (typeof err.message === 'string' &&
+                        (err.message.toLowerCase().includes('abort') ||
+                            err.message.toLowerCase().includes('cancel') ||
+                            err.message.toLowerCase().includes('canceled')));
+
+                if (!isAbort) {
+                    console.error('Error sharing:', err);
+                }
             }
         } else {
             navigator.clipboard.writeText(shareUrl);
@@ -157,7 +164,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                                     className="text-gray-500"
                                     title="Share"
                                 >
-                                    <ShareIcon className="w-5 h-5" />
+                                    <PaperAirplaneIcon className="w-5 h-5" />
                                 </Button>
                                 {canEditPost && (
                                     <>

@@ -1,7 +1,6 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, ShareIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
+import { SparklesIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, PaperAirplaneIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, renderWithMentions, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, findSimilarPosts, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -160,7 +159,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                         aria-label="Share post"
                         title="Share post"
                       >
-                          <ShareIcon className="w-5 h-5" />
+                          <PaperAirplaneIcon className="w-5 h-5" />
                       </Button>
                       <PostActionsDropdown post={post} isArchived={isArchived} currentAccount={currentAccount} variant="modal" />
                   </div>

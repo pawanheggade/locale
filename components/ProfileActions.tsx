@@ -8,7 +8,7 @@ import {
     DocumentIcon, 
     ChartBarIcon, 
     GlobeAltIcon, 
-    ShareIcon,
+    PaperAirplaneIcon,
     FacebookIcon,
     XIcon,
     InstagramIcon,
@@ -112,7 +112,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 )}
                 <SocialsDropdown links={socialLinks} size={iconBtnSize} />
                 <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
-                    <ShareIcon className="w-4 h-4" />
+                    <PaperAirplaneIcon className="w-4 h-4" />
                 </Button>
             </>
         );
@@ -132,7 +132,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 </Button>
             ))}
             <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
+            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile"><PaperAirplaneIcon className="w-4 h-4" /></Button>
         </>
     );
 };

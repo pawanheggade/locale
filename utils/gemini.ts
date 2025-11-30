@@ -1,4 +1,6 @@
 
+
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Post } from '../types';
 import { handleApiError, withRetry } from './api';
@@ -18,11 +20,12 @@ async function generateJsonContent<T>(
     prompt: string, 
     schema: any, 
     errorContext: string,
+    model: string,
     temperature: number = 0.5
 ): Promise<T | null> {
     try {
         const response: GenerateContentResponse = await withRetry(() => ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: model,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -81,7 +84,7 @@ export const performAiSearch = async (query: string, posts: Post[]): Promise<Arr
   };
 
   const result = await generateJsonContent<Array<{id: string, reasoning: string}>>(
-      prompt, schema, "AI search", 0.1
+      prompt, schema, "AI search", "gemini-3-pro-preview", 0.1
   );
   
   return result || [];
@@ -103,7 +106,7 @@ export const generateSearchSuggestions = async (query: string): Promise<string[]
   };
 
   // We propagate the error here so the UI can decide whether to show a toast or fail silently.
-  const result = await generateJsonContent<string[]>(prompt, schema, "generating search suggestions", 0.7);
+  const result = await generateJsonContent<string[]>(prompt, schema, "generating search suggestions", "gemini-2.5-flash", 0.7);
   return result || [];
 };
 
@@ -122,7 +125,7 @@ export const suggestTagsForPost = async (title: string, description: string): Pr
     items: { type: Type.STRING, description: "A relevant, lowercase tag." },
   };
 
-  const result = await generateJsonContent<string[]>(prompt, schema, "AI tag suggestion", 0.4);
+  const result = await generateJsonContent<string[]>(prompt, schema, "AI tag suggestion", "gemini-2.5-flash", 0.4);
   return result || [];
 };
 
@@ -142,6 +145,6 @@ export const suggestCategoriesForPost = async (title: string, description: strin
     items: { type: Type.STRING, description: "A relevant category." },
   };
 
-  const result = await generateJsonContent<string[]>(prompt, schema, "AI category suggestion", 0.3);
+  const result = await generateJsonContent<string[]>(prompt, schema, "AI category suggestion", "gemini-2.5-flash", 0.3);
   return result || [];
 };

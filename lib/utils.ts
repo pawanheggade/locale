@@ -1,4 +1,5 @@
-// FIX: Import FC type from react to resolve 'Cannot find namespace React' error.
+
+
 import type { FC } from 'react';
 import { CheckBadgeIcon, CheckBadgeIconSolid } from '../components/Icons';
 
@@ -19,7 +20,6 @@ export const TIER_STYLES: Record<string, {
   ringColor: string;
   iconColor: string;
   hex: string; // For Canvas/SVG uses
-  // FIX: Use FC type instead of React.FC
   icon: FC<any> | null;
   description: string;
 }> = {
@@ -73,4 +73,76 @@ export const TIER_STYLES: Record<string, {
     icon: null,
     description: 'This is a personal account.',
   },
+};
+
+export const getBadgeSvg = (tier: string) => {
+    // Uses the centralized HEX codes
+    const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
+    
+    if (tier === 'Organisation') {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${styles.hex}" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
+    }
+    
+    // Outline style for others
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+};
+
+
+export const drawLogoOnCanvas = async (
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  y: number,
+  size: 'default' | 'large' = 'default'
+) => {
+  const isLarge = size === 'large';
+  const fontName = 'Comfortaa';
+  const fontSize = isLarge ? 24 : 20;
+  const font = `bold ${fontSize}px ${fontName}`;
+
+  await document.fonts.load(font);
+  ctx.font = `${font}, sans-serif`;
+  ctx.fillStyle = '#111827';
+
+  const text = "locale";
+  const textMeasure = ctx.measureText(text);
+  const textX = centerX - (textMeasure.width / 2);
+  
+  ctx.textAlign = 'left';
+  ctx.fillText(text, textX, y);
+  
+  const lWidth = ctx.measureText('l').width;
+  const oWidth = ctx.measureText('o').width;
+  
+  const triangleCenterX = textX + lWidth + (oWidth / 2) + 1;
+  const triangleSize = isLarge ? 15 : 12;
+  const triangleTopY = y + (isLarge ? 4 : 6);
+
+  ctx.save();
+  ctx.translate(triangleCenterX - (triangleSize / 2), triangleTopY);
+  
+  const scale = triangleSize / 12;
+  ctx.scale(scale, scale);
+  
+  // Draw triangle (red)
+  ctx.beginPath();
+  ctx.moveTo(2, 2);
+  ctx.lineTo(6, 10);
+  ctx.lineTo(10, 2);
+  ctx.closePath();
+  ctx.strokeStyle = '#DC2626';
+  ctx.lineWidth = 1.5 / scale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Draw horizontal line (black)
+  ctx.beginPath();
+  ctx.moveTo(1, 7);
+  ctx.lineTo(11, 7);
+  ctx.strokeStyle = '#111827';
+  ctx.lineWidth = 1.5 / scale;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  
+  ctx.restore();
 };

@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { useRef } from 'react';
-import { Notification, Account } from '../types';
+import { Notification, Account, Post, DisplayablePost } from '../types';
 
 // Context Imports
 import { useAuth } from '../contexts/AuthContext';
@@ -64,6 +64,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
         addCatalogItems, removeCatalogItem, addFeedback, termsContent, privacyContent,
     } = useAuth();
     
+    const { findPostById } = usePosts();
     const { 
       priceAlerts, setPriceAlert, deletePriceAlert 
     } = useActivity();
@@ -121,8 +122,11 @@ export const AppModals: React.FC<AppModalsProps> = ({
         return <MediaViewerModal media={activeModal.data.media} startIndex={activeModal.data.startIndex} onClose={closeModal} />;
       case 'findNearby':
         return <FindNearbyModal onClose={closeModal} onSearch={handleFindNearby} isSearching={isFindingNearby} />;
-      case 'sharePost':
-        return <ShareModal post={activeModal.data} onClose={closeModal} />;
+      case 'sharePost': {
+        const postWithAuthor = findPostById(activeModal.data.id);
+        if (!postWithAuthor) return null;
+        return <ShareModal post={postWithAuthor} onClose={closeModal} />;
+      }
       case 'reportItem': {
         const item = activeModal.data.item;
         const isForumItem = 'upvotes' in item;

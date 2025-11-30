@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Account } from '../types';
-import { ShareIcon } from './Icons';
+import { PaperAirplaneIcon } from './Icons';
 import { Button } from './ui/Button';
 
 interface ReferralCardProps {
@@ -20,8 +19,18 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-            } catch (err) {
-                // Ignore user abort or share errors
+            } catch (err: any) {
+                const isAbort =
+                    err.name === 'AbortError' ||
+                    err.code === 20 ||
+                    (typeof err.message === 'string' &&
+                        (err.message.toLowerCase().includes('abort') ||
+                            err.message.toLowerCase().includes('cancel') ||
+                            err.message.toLowerCase().includes('canceled')));
+
+                if (!isAbort) {
+                    console.error('Error sharing:', err);
+                }
             }
         } else {
             // Fallback to copy if share not supported
@@ -40,7 +49,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
             
             <div className="mt-3 flex justify-center">
                 <Button onClick={handleShare} variant="outline" size="sm" className="gap-2 text-amber-700 border-amber-300 bg-white">
-                    <ShareIcon className="w-4 h-4" />
+                    <PaperAirplaneIcon className="w-4 h-4" />
                     Share Code
                 </Button>
             </div>

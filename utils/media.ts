@@ -1,5 +1,6 @@
-import { Post } from '../types';
+import { DisplayablePost } from '../types';
 import { formatCurrency } from './formatters';
+import { getBadgeSvg, TIER_STYLES, drawLogoOnCanvas } from '../lib/utils';
 
 export const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -55,18 +56,18 @@ export const compressImage = (file: File, options: { maxWidth: number; quality: 
   });
 };
 
-// Function to wrap text on a canvas
 const wrapText = (
   context: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
+  maxLines: number = 2
 ) => {
   const words = text.split(' ');
   let line = '';
-  const lines = [];
+  const lines: string[] = [];
 
   for (let n = 0; n < words.length; n++) {
     const testLine = line + words[n] + ' ';
@@ -81,135 +82,118 @@ const wrapText = (
   }
   lines.push(line);
   
-  // Adjust starting y position to center the block of text
-  const totalTextHeight = lines.length * lineHeight;
-  let currentY = y - (totalTextHeight / 2) + (lineHeight / 2);
+  const finalLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    const lastLine = finalLines[maxLines - 1];
+    finalLines[maxLines - 1] = lastLine.slice(0, lastLine.length - 4) + '...';
+  }
 
-  for (let k = 0; k < lines.length; k++) {
-    context.fillText(lines[k].trim(), x, currentY);
-    currentY += lineHeight;
+  for (let k = 0; k < finalLines.length; k++) {
+    context.fillText(finalLines[k].trim(), x, y + (k * lineHeight));
   }
 };
 
-export const generatePostPreviewImage = (post: Post): Promise<Blob | null> => {
-  return new Promise((resolve) => {
+
+export const generatePostQrCardBlob = async (post: DisplayablePost): Promise<Blob | null> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return resolve(null);
-    }
+    if (!ctx) return null;
 
-    const width = 1200;
-    const height = 630;
-    canvas.width = width;
-    canvas.height = height;
+    const scale = 2; // for higher resolution
+    const cardWidth = 350;
+    const cardHeight = 400;
+
+    canvas.width = cardWidth * scale;
+    canvas.height = cardHeight * scale;
+    ctx.scale(scale, scale);
     
-    const drawTextContent = () => {
-      // App Branding
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('locale', 40, 40);
+    // 1. White Background
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, cardWidth, cardHeight);
 
-      // Prepare context text (description or tags)
-      let contextText = '';
-      if (post.description && post.description.trim().length > 10) {
-        contextText = post.description.trim();
-        if (contextText.length > 120) {
-          contextText = contextText.substring(0, 117) + '...';
+    // 2. Load and draw post image
+    const postImg = new Image();
+    postImg.crossOrigin = 'anonymous';
+    let imageLoaded = false;
+    if (post.media.length > 0 && post.media[0].type === 'image') {
+        postImg.src = post.media[0].url;
+        try {
+            await new Promise((resolve, reject) => {
+                postImg.onload = resolve;
+                postImg.onerror = reject;
+            });
+            imageLoaded = true;
+        } catch (e) {
+            console.error("Failed to load post image for QR card");
         }
-      } else if (post.tags && post.tags.length > 0) {
-        contextText = `Tags: ${post.tags.slice(0, 4).join(', ')}`;
-      }
-      
-      const hasContextText = contextText.length > 0;
-      const titleY = hasContextText ? height / 2 - 45 : height / 2;
-      const contextY = height / 2 + 65;
-
-      // Title
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 84px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 10;
-      wrapText(ctx, post.title, width / 2, titleY, width - 120, 100);
-      ctx.shadowColor = 'transparent'; // Reset shadow
-
-      // Description or Tags
-      if (hasContextText) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.font = '42px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-        ctx.shadowBlur = 8;
-        wrapText(ctx, contextText, width / 2, contextY, width - 160, 50);
-        ctx.shadowColor = 'transparent';
-      }
-
-      // Price
-      ctx.fillStyle = 'white';
-      ctx.font = 'bold 100px sans-serif';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'bottom';
-      ctx.shadowColor = 'rgba(0,0,0,0.7)';
-      ctx.shadowBlur = 15;
-      ctx.fillText(formatCurrency(post.price), width - 40, height - 40);
-      ctx.shadowColor = 'transparent'; // Reset shadow
-
-      canvas.toBlob((blob) => {
-        resolve(blob);
-      }, 'image/png');
-    };
-    
-    const drawFallbackAndText = () => {
-        ctx.fillStyle = '#4B5563'; // gray-600
-        ctx.fillRect(0, 0, width, height);
-        drawTextContent();
-    };
-
-    const bgImage = new Image();
-    bgImage.crossOrigin = 'anonymous'; // Important for images from other domains
-
-    bgImage.onload = () => {
-      // Draw background image, centered and clipped
-      const imgAspectRatio = bgImage.width / bgImage.height;
-      const canvasAspectRatio = width / height;
-      let drawWidth, drawHeight, offsetX, offsetY;
-
-      if (imgAspectRatio > canvasAspectRatio) {
-        // Image is wider than canvas
-        drawHeight = height;
-        drawWidth = drawHeight * imgAspectRatio;
-        offsetX = (width - drawWidth) / 2;
-        offsetY = 0;
-      } else {
-        // Image is taller than or same aspect as canvas
-        drawWidth = width;
-        drawHeight = drawWidth / imgAspectRatio;
-        offsetX = 0;
-        offsetY = (height - drawHeight) / 2;
-      }
-      ctx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight);
-
-      // Semi-transparent overlay for text readability
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fillRect(0, 0, width, height);
-      
-      drawTextContent();
-    };
-
-    bgImage.onerror = () => {
-      // Fallback: Gray background if image fails to load
-      drawFallbackAndText();
-    };
-    
-    if (post.media && post.media.length > 0 && post.media[0].type === 'image') {
-      bgImage.src = post.media[0].url;
-    } else {
-      drawFallbackAndText();
     }
-  });
+    
+    if(imageLoaded) {
+        ctx.drawImage(postImg, 0, 0, cardWidth, 200);
+        ctx.fillStyle = 'rgba(0,0,0,0.2)'; // slight darken for text contrast
+        ctx.fillRect(0, 0, cardWidth, 200);
+    } else {
+        ctx.fillStyle = '#E5E7EB';
+        ctx.fillRect(0, 0, cardWidth, 200);
+    }
+    
+    // 3. QR Code
+    const postUrl = `${window.location.origin}/?post=${post.id}`;
+    const qrCodeApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(postUrl)}&size=200&margin=1&ecLevel=H`;
+    const qrImg = new Image();
+    qrImg.crossOrigin = 'anonymous';
+    qrImg.src = qrCodeApiUrl;
+    try {
+        await new Promise((resolve, reject) => {
+            qrImg.onload = resolve;
+            qrImg.onerror = reject;
+        });
+        // Draw with a white border
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(cardWidth - 10 - 110, 145, 110, 110);
+        ctx.drawImage(qrImg, cardWidth - 15 - 100, 150, 100, 100);
+    } catch (e) {
+        console.error("Failed to load QR code image");
+    }
+
+    // 4. Text Content
+    const padding = 20;
+
+    // Title
+    ctx.fillStyle = '#111827'; // gray-900
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    wrapText(ctx, post.title, padding, 220, cardWidth - padding * 2, 24, 2);
+
+    // Price
+    ctx.font = 'bold 24px sans-serif';
+    const priceText = formatCurrency(post.salePrice ?? post.price);
+    ctx.fillText(priceText, padding, 280);
+
+    // Author
+    if (post.author) {
+        ctx.font = '14px sans-serif';
+        ctx.fillStyle = '#4B5563';
+        const authorText = `by ${post.author.name}`;
+        ctx.fillText(authorText, padding, 315);
+        
+        const authorTextWidth = ctx.measureText(authorText).width;
+
+        // Badge
+        if (post.author.subscription.tier !== 'Personal' && post.author.subscription.tier !== 'Basic') {
+            const badgeSvg = getBadgeSvg(post.author.subscription.tier);
+            const badgeImg = new Image();
+            badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
+            try {
+                await new Promise(r => badgeImg.onload=r);
+                ctx.drawImage(badgeImg, padding + authorTextWidth + 5, 312, 18, 18);
+            } catch (e) { console.error("Failed to load badge image for QR card"); }
+        }
+    }
+    
+    // 5. Logo at bottom
+    await drawLogoOnCanvas(ctx, cardWidth / 2, 360, 'large');
+
+    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png'));
 };

@@ -1,13 +1,11 @@
-
-
-
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
-import { ShareIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
+import { PaperAirplaneIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { SubscriptionBadge } from './SubscriptionBadge';
-import { TIER_STYLES } from '../lib/utils';
+import { TIER_STYLES, getBadgeSvg, drawLogoOnCanvas } from '../lib/utils';
+import { Logo } from './Logo';
 
 interface ProfileQRModalProps {
   account: Account;
@@ -29,21 +27,10 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
   ctx.closePath();
 }
 
-const getBadgeSvg = (tier: string) => {
-    // Uses the centralized HEX codes
-    const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
-    
-    if (tier === 'Organisation') {
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${styles.hex}" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
-    }
-    
-    // Outline style for others
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
-};
-
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const profileUrl = `${window.location.origin}/?account=${account.id}`;
   const encodedUrl = encodeURIComponent(profileUrl);
@@ -129,42 +116,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
 
     // 5. Locale Logo
-    const logoY = textY + 94; 
-    ctx.font = 'bold 20px Comfortaa, sans-serif'; // Bold for canvas
-    ctx.fillStyle = '#111827'; // gray-900
-    
-    const text = "locale";
-    const textMeasure = ctx.measureText(text);
-    const textX = (cardWidth - textMeasure.width) / 2;
-    
-    ctx.textAlign = 'left';
-    ctx.fillText(text, textX, logoY);
-    
-    // Manually approximate the position for the triangle since measureText for individual letters is tricky with variable width fonts
-    // Comfortaa is wider, so we adjust slightly.
-    const lWidth = ctx.measureText('l').width;
-    const oWidth = ctx.measureText('o').width;
-    
-    const triangleCenterX = textX + lWidth + (oWidth / 2) + 1; 
-    const triangleTopY = logoY + 6; 
-
-    ctx.save();
-    ctx.translate(triangleCenterX - 6, triangleTopY);
-    
-    ctx.beginPath();
-    ctx.moveTo(2, 2);
-    ctx.lineTo(6, 10);
-    ctx.lineTo(10, 2);
-    ctx.lineTo(2, 2);
-    ctx.moveTo(1, 7);
-    ctx.lineTo(11, 7);
-    
-    ctx.strokeStyle = '#DC2626'; 
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    ctx.restore();
+    const logoY = textY + 94;
+    await drawLogoOnCanvas(ctx, cardWidth / 2, logoY, 'default');
 
     return new Promise((resolve, reject) => {
         canvas.toBlob((blob) => {
@@ -193,6 +146,43 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     }
   };
 
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+        const blob = await generateQrCardBlob();
+        const file = new File([blob], `${account.username}-locale-qr.png`, { type: 'image/png' });
+        const shareData = {
+            files: [file],
+            title: `Check out ${account.name} on Locale`,
+            text: `Profile: ${account.name} (@${account.username})`,
+            url: profileUrl,
+        };
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.share({
+                title: shareData.title,
+                text: shareData.text,
+                url: shareData.url,
+            });
+        }
+    } catch (err: any) {
+        const isAbort =
+            err.name === 'AbortError' ||
+            err.code === 20 ||
+            (typeof err.message === 'string' &&
+                (err.message.toLowerCase().includes('abort') ||
+                    err.message.toLowerCase().includes('cancel') ||
+                    err.message.toLowerCase().includes('canceled')));
+        if (!isAbort) {
+            console.error('Error sharing profile:', err);
+        }
+    } finally {
+        setIsSharing(false);
+    }
+};
+
   return (
     <ModalShell
       panelRef={modalRef}
@@ -202,12 +192,16 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
       titleId="profile-qr-title"
     >
       <div className="p-6 flex flex-col items-center text-center">
-        <div className={`p-3 bg-white rounded-xl border-4 ${borderColorClass} inline-block shadow-md`}>
-          <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-56 h-56 rounded-md" />
-        </div>
-        <div className="mt-4">
-          <h3 className="text-xl font-bold text-gray-800">{account.name}</h3>
-          <p className="text-sm text-gray-600">@{account.username}</p>
+        <div className={`p-6 bg-white rounded-3xl border-4 ${borderColorClass} inline-block shadow-md flex flex-col items-center gap-4`}>
+            <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-56 h-56 rounded-md" />
+            <div>
+                <div className="flex items-center justify-center gap-2">
+                    <h3 className="text-xl font-bold text-gray-800">{account.name}</h3>
+                    <SubscriptionBadge tier={account.subscription.tier} iconOnly />
+                </div>
+                <p className="text-sm text-gray-600">@{account.username}</p>
+            </div>
+            <Logo />
         </div>
         <div className="mt-6 w-full space-y-3">
           <Button onClick={handleDownload} variant="pill-dark" className="w-full gap-2" isLoading={isGenerating}>
@@ -215,12 +209,12 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
           </Button>
           {navigator.share && (
             <Button 
-                onClick={async () => {
-                    await navigator.share({ url: profileUrl, title: account.name, text: `Check out ${account.name} on Locale!`});
-                }}
+                onClick={handleShare}
                 variant="outline" className="w-full gap-2"
+                isLoading={isSharing}
+                disabled={isGenerating}
             >
-              <ShareIcon className="w-5 h-5" /> More Share Options
+              {!isSharing && <><PaperAirplaneIcon className="w-5 h-5" /> Share QR Card</>}
             </Button>
           )}
         </div>

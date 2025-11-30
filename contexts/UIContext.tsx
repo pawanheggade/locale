@@ -1,12 +1,12 @@
 
 
 
+
 import React, { createContext, useReducer, useContext, useMemo, useCallback } from 'react';
 import { ModalState } from '../types';
 
 // State
 
-// FIX: Add Toast type definition
 export interface Toast {
   id: number;
   message: string;

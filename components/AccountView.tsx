@@ -126,7 +126,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `https://wa.me/${account.messageNumber?.replace(/\D/g, '')}`,
             isVisible: account.contactOptions?.includes('message') && !!account.messageNumber,
             label: 'Message',
-// @FIX: Add toast property to satisfy ProfileActionsProps type
             toast: 'Opening messaging app...',
         },
         {
@@ -135,7 +134,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `tel:${account.mobile}`,
             isVisible: account.contactOptions?.includes('mobile') && !!account.mobile,
             label: 'Call',
-// @FIX: Add toast property to satisfy ProfileActionsProps type
             toast: 'Opening phone dialer...',
         },
         {
@@ -144,7 +142,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `mailto:${account.email}?subject=${subject}&body=${body}`,
             isVisible: account.contactOptions?.includes('email') && !!account.email,
             label: 'Email',
-// @FIX: Add toast property to satisfy ProfileActionsProps type
             toast: 'Opening email client...',
         }
     ].filter(m => m.isVisible);

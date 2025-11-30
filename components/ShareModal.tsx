@@ -1,14 +1,13 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Post } from '../types';
+import { DisplayablePost } from '../types';
 import ModalShell from './ModalShell';
-import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, ShareIcon } from './Icons';
-import { generatePostPreviewImage } from '../utils/media';
+import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, PaperAirplaneIcon } from './Icons';
+import { generatePostQrCardBlob } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
 
 interface ShareModalProps {
-  post: Post;
+  post: DisplayablePost;
   onClose: () => void;
 }
 
@@ -19,6 +18,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
   const isMounted = useIsMounted();
   
   const shareUrl = `${window.location.origin}?post=${post.id}`;
@@ -27,7 +27,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   useEffect(() => {
     const generate = async () => {
         setIsGenerating(true);
-        const blob = await generatePostPreviewImage(post);
+        const blob = await generatePostQrCardBlob(post);
         if (isMounted() && blob) {
             setImageBlob(blob);
             const url = URL.createObjectURL(blob);
@@ -62,41 +62,50 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   };
 
   const handleNativeShare = async () => {
-    if (!imageBlob) {
-        return;
-    }
-
-    const fileName = `${post.title.replace(/[\s\W]+/g, '-').toLowerCase()}.png`;
-    const file = new File([imageBlob], fileName, { type: 'image/png' });
-    const shareData: ShareData = {
-        files: [file],
-        title: post.title,
-        text: shareText,
-        url: shareUrl,
-    };
-
+    setIsSharing(true);
+    
     const isAbortError = (err: any): boolean => {
-        return err instanceof DOMException && err.name === 'AbortError';
+        if (!err) return false;
+        return (
+            err.name === 'AbortError' ||
+            err.code === 20 ||
+            (typeof err.message === 'string' &&
+                (err.message.toLowerCase().includes('abort') ||
+                    err.message.toLowerCase().includes('cancel') ||
+                    err.message.toLowerCase().includes('canceled')))
+        );
     };
 
-    if (navigator.canShare && navigator.canShare(shareData)) {
-        try {
-            await navigator.share(shareData);
-        } catch (error) {
-            if (!isAbortError(error)) {
-                console.error('Error sharing:', error);
+    try {
+        if (imageBlob) {
+            const fileName = `${post.title.replace(/[\s\W]+/g, '-').toLowerCase()}.png`;
+            const file = new File([imageBlob], fileName, { type: 'image/png' });
+            const shareData: ShareData = {
+                files: [file],
+                title: post.title,
+                text: shareText,
+                url: shareUrl,
+            };
+
+            if (navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.share({ title: post.title, text: shareText, url: shareUrl });
             }
-        }
-    } else {
-        try {
+        } else {
             await navigator.share({ title: post.title, text: shareText, url: shareUrl });
-        } catch (error) {
-             if (!isAbortError(error)) {
-                console.error('Error sharing text fallback:', error);
-             }
+        }
+    } catch (error) {
+        if (!isAbortError(error)) {
+            console.error('Error sharing:', error);
+        }
+    } finally {
+        if (isMounted()) {
+            setIsSharing(false);
         }
     }
   };
+
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedText = encodeURIComponent(shareText);
@@ -116,11 +125,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
       titleId="share-post-title"
     >
       <div className="p-6">
-        <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden mb-6 relative">
+        <div className="w-full aspect-[350/400] bg-gray-100 rounded-lg overflow-hidden mb-6 relative">
             {isGenerating ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
                     <SpinnerIcon className="w-8 h-8" />
-                    <p className="mt-2 text-sm">Generating preview...</p>
+                    <p className="mt-2 text-sm">Generating share card...</p>
                 </div>
             ) : previewImageUrl ? (
                 <img src={previewImageUrl} alt="Share preview" className="w-full h-full object-cover" />
@@ -172,13 +181,17 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
           {navigator.share && (
             <Button
               onClick={handleNativeShare}
-              disabled={isGenerating || !imageBlob}
+              isLoading={isSharing}
               variant="outline"
               className="w-full flex items-center justify-center gap-2 h-12 text-base"
               aria-label="Share via system dialog"
             >
-              <ShareIcon className="w-5 h-5" />
-              <span>More Options...</span>
+              {!isSharing && (
+                <>
+                  <PaperAirplaneIcon className="w-5 h-5" />
+                  <span>More Options...</span>
+                </>
+              )}
             </Button>
           )}
         </div>
