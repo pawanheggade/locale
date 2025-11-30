@@ -139,25 +139,7 @@ export const ChatBubbleEllipsisIcon: React.FC<IconProps> = ({ className, title, 
 
 export const PencilIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />);
 
-export const PinIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill={isFilled ? "currentColor" : "none"}
-    stroke={isFilled ? "none" : "currentColor"}
-    strokeWidth={isFilled ? 0 : 1.5}
-    className={className}
-    {...props}
-  >
-    {title && <title>{title}</title>}
-    <path 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      d="M12 2a5 5 0 0 0-5 5v2.5l-1.5 2V13h5.5v8l1 1 1-1v-8h5.5v-1.5l-1.5-2v-2.5A5 5 0 0 0 12 2z" 
-    />
-  </svg>
-);
-
+export const PinIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 2a5 5 0 0 0-5 5v2.5l-1.5 2V13h5.5v8l1 1 1-1v-8h5.5v-1.5l-1.5-2v-2.5A5 5 0 0 0 12 2z" />);
 export const BellIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />);
 export const XMarkIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />);
 export const ZoomInIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />);
@@ -166,11 +148,7 @@ export const SearchIcon = createIcon(<path strokeLinecap="round" strokeLinejoin=
 export const PlusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />);
 export const MinusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />);
 export const XCircleIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />);
-export const FunnelIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
-  <Icon className={className} title={title} isFilled={isFilled} {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.417 5.416a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-  </Icon>
-);
+export const FunnelIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.417 5.416a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />);
 
 export const StarIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.545.044.77.77.326 1.163l-4.304 3.86a.562.562 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.563.563 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.304-3.86a.562.562 0 0 1 .326-1.163l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />);
 export const TrashIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />);
