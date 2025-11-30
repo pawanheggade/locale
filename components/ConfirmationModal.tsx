@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { ConfirmationModalData } from '../types';
 import ModalShell from './ModalShell';
 import { ModalFooter } from './ModalFooter';
+import { AlertIcon } from './Icons';
 
 interface ConfirmationModalProps extends ConfirmationModalData {
   onClose: () => void;
@@ -40,12 +41,19 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         submitClassName={confirmClassName}
     />
   );
+  
+  const isDestructive = confirmClassName?.includes('red') || confirmClassName?.includes('destructive') || confirmClassName?.includes('amber');
 
   return (
     <ModalShell
       panelRef={modalRef}
       onClose={onClose}
-      title={title}
+      title={
+        <div className="flex items-center gap-3">
+          {isDestructive && <AlertIcon className="w-6 h-6 text-amber-500" />}
+          <span>{title}</span>
+        </div>
+      }
       footer={renderFooter()}
       panelClassName="w-full max-w-md"
       titleId="confirmation-modal-title"

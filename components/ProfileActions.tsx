@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -28,7 +27,6 @@ interface ProfileActionsProps {
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
-    isMobile?: boolean;
 }
 
 const getSocialIcon = (platform: SocialPlatform) => {
@@ -86,56 +84,44 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
-    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, isMobile 
+    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike 
 }) => {
-    // Styling constants based on viewport
-    const btnSize = isMobile ? 'sm' : 'sm';
-    const iconBtnSize = isMobile ? 'icon' : 'icon-sm';
-    const btnClass = isMobile ? 'justify-center gap-2 px-3' : 'gap-2 px-3';
     
     if (isOwnAccount) {
         return (
             <>
-                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onEditAccount}>
+                <Button variant="overlay-dark" size="sm" className="px-3 gap-2" onClick={onOpenAnalytics}>
+                    <ChartBarIcon className="w-4 h-4" />
+                    <span className="hidden sm:inline">Analytics</span>
+                </Button>
+                <Button variant="overlay-dark" size="sm" className="px-3 gap-2" onClick={onEditAccount}>
                     <PencilIcon className="w-4 h-4" />
-                    {isMobile ? 'Edit' : <span className="hidden md:inline">Edit Profile</span>}
-                    {!isMobile && <span className="md:hidden">Edit</span>}
+                    <span className="hidden sm:inline">Edit Profile</span>
                 </Button>
                 {canHaveCatalog && (
-                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenCatalog}>
+                    <Button variant="overlay-dark" size="sm" className="px-3 gap-2" onClick={onOpenCatalog}>
                         <DocumentIcon className="w-4 h-4" />
-                        {isMobile ? 'Catalog' : <span className="hidden md:inline">Manage Catalog</span>}
-                        {!isMobile && <span className="md:hidden">Catalog</span>}
+                        <span className="hidden sm:inline">Manage Catalog</span>
                     </Button>
                 )}
-                <Button variant="pill-red" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
-                    <ChartBarIcon className="w-4 h-4" />
-                    Analytics
-                </Button>
-                <div className={`h-5 border-l border-gray-200 mx-1 ${isMobile ? 'my-auto' : ''}`}></div>
-                <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-                <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
+                <SocialsDropdown links={socialLinks} size="icon-sm" />
+                <Button variant="overlay-dark" size="icon-sm" onClick={onShare} title="Share Profile">
                     <ShareIcon className="w-4 h-4" />
                 </Button>
             </>
         );
     }
-
+    
     return (
         <>
-            {isMobile && (
-                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
-            )}
+            <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-4" includeLabel iconClassName="w-4 h-4" />
             {contactMethods.map(method => (
-                <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
+                <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size="icon-sm" title={method.label}>
                     <method.icon className="w-4 h-4" />
                 </Button>
             ))}
-            <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
-            {!isMobile && (
-                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6 ml-2" includeLabel iconClassName="w-4 h-4" />
-            )}
+            <SocialsDropdown links={socialLinks} size="icon-sm" />
+            <Button variant="overlay-dark" size="icon-sm" onClick={onShare} title="Share Profile"><ShareIcon className="w-4 h-4" /></Button>
         </>
     );
 };

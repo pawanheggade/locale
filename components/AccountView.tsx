@@ -213,10 +213,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         
         {/* Profile Header Card */}
         <div className="relative bg-white rounded-xl p-4 sm:p-6 mt-6 border border-gray-200/80">
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
-              
-              <div className="flex items-end gap-4 flex-1 min-w-0">
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-4">
+              <div className="flex items-end gap-4 flex-1 min-w-[250px]">
                   <Avatar 
                       src={account.avatarUrl} 
                       alt={account.name} 
@@ -245,23 +243,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                         {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4" /><span>Tax ID: {account.taxInfo}</span></div>)}
                       </div>
                   </div>
-              </div>
-              
-              <div className="hidden sm:flex items-center justify-end gap-2 mb-1">
-                  <ProfileActions 
-                      isOwnAccount={isOwnAccount}
-                      canHaveCatalog={canHaveCatalog}
-                      onEditAccount={() => openModal({ type: 'editAccount', data: account })}
-                      onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
-                      onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
-                      socialLinks={sortedSocialLinks}
-                      onShare={handleShareProfile}
-                      contactMethods={contactMethods}
-                      onContactAction={handleContactAction}
-                      isLiked={isLiked}
-                      onToggleLike={() => toggleLikeAccount(account.id)}
-                      isMobile={false}
-                  />
               </div>
           </div>
           
@@ -301,8 +282,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               </div>
           </div>
           
-          <div className="mt-6 flex justify-end gap-2 sm:hidden">
-             <ProfileActions 
+          {isOwnAccount && account.subscription.tier !== 'Personal' && (
+              <div className="mt-6">
+                  <ReferralCard account={account} />
+              </div>
+          )}
+
+          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-start gap-2">
+            <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
                   onEditAccount={() => openModal({ type: 'editAccount', data: account })}
@@ -314,15 +301,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   onContactAction={handleContactAction}
                   isLiked={isLiked}
                   onToggleLike={() => toggleLikeAccount(account.id)}
-                  isMobile={true}
               />
           </div>
-          
-          {isOwnAccount && account.subscription.tier !== 'Personal' && (
-              <div className="mt-6 border-t border-gray-100 pt-6">
-                  <ReferralCard account={account} />
-              </div>
-          )}
         </div>
 
         {/* Content Section */}

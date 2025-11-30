@@ -500,7 +500,7 @@ export const App: React.FC = () => {
             <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
           )}
           <div 
-            style={{ transform: `translateY(${(view === 'all' && mainView === 'grid') ? (isRefreshing ? pullThreshold : pullPosition) : 0}px)` }} 
+            style={(view === 'all' && mainView === 'grid') ? { transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` } : undefined} 
             className={(view === 'all' && mainView === 'grid' && !isPulling) ? 'transition-transform duration-300' : ''}
           >
             <ErrorBoundary>

@@ -1,5 +1,5 @@
-
 import React from 'react';
+// @FIX: Import SparklesIcon to resolve missing component error.
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
@@ -138,14 +138,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
         {onToggleAiSearch && (
             <Button
                 onClick={onToggleAiSearch}
-                variant={isAiSearchEnabled ? 'pill-red' : 'outline'}
-                size="icon-sm"
-                className="text-xs font-bold uppercase tracking-wider"
+                variant={isAiSearchEnabled ? 'pill-red' : 'ghost'}
+                size="sm"
+                className={`font-bold ${!isAiSearchEnabled ? 'text-gray-500 hover:text-red-600' : ''}`}
                 aria-label={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 title={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
                 aria-pressed={!!isAiSearchEnabled}
             >
-                ai
+                AI
             </Button>
         )}
       </div>
