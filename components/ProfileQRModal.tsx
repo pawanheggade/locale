@@ -4,7 +4,6 @@ import { Account } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { ShareIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
-import { useUI } from '../contexts/UIContext';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { TIER_STYLES } from '../lib/utils';
 
@@ -42,7 +41,6 @@ const getBadgeSvg = (tier: string) => {
 
 export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
-  const { addToast } = useUI();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const profileUrl = `${window.location.origin}/?account=${account.id}`;
@@ -186,10 +184,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        addToast('QR Card downloaded!', 'success');
     } catch (error) {
       console.error('Download failed', error);
-      addToast('Failed to generate QR card.', 'error');
     } finally {
         setIsGenerating(false);
     }
@@ -217,7 +213,6 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
       } else {
           // Fallback to clipboard copy
           navigator.clipboard.writeText(profileUrl);
-          addToast('Profile link copied to clipboard', 'success');
       }
     } catch (error: any) {
         // Robust check for user cancellation
@@ -238,11 +233,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
         // If file generation failed but user still wants to share, fallback to link copy
         if (error.message === 'Blob creation failed' || error.message === 'Canvas context failed') {
              navigator.clipboard.writeText(profileUrl);
-             addToast('Image share failed. Link copied instead.', 'success');
              return;
         }
-
-        addToast('Could not open share menu', 'error');
     } finally {
         setIsGenerating(false);
     }

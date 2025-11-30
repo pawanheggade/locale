@@ -1,17 +1,14 @@
 
-
 import React from 'react';
 import { Account } from '../types';
 import { ShareIcon } from './Icons';
 import { Button } from './ui/Button';
-import { useUI } from '../contexts/UIContext';
 
 interface ReferralCardProps {
     account: Account;
 }
 
 export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
-    const { addToast } = useUI();
 
     const handleShare = async () => {
         const shareData = {
@@ -29,7 +26,6 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
         } else {
             // Fallback to copy if share not supported
             navigator.clipboard.writeText(shareData.text);
-            addToast('Referral code copied to clipboard!', 'success');
         }
     };
 

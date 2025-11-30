@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -91,7 +92,6 @@ function formReducer(state: FormState, action: Action): FormState {
 
 export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmitPost, onUpdatePost, onNavigateToPost, editingPost, currentAccount, categories, onUpdateCurrentAccountDetails }) => {
   const isEditing = !!editingPost;
-  const { addToast } = useUI();
   const { priceUnits } = usePosts();
   
   const [state, dispatch] = useReducer(formReducer, initialState);
@@ -200,7 +200,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   
   const handleSuggestTags = async () => {
     if (!title && !description) {
-        addToast("Please provide a title or description first.", "error");
         return;
     }
     setIsSuggestingTags(true);
@@ -208,7 +207,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         const suggested = await suggestTagsForPost(title, description);
         dispatch({ type: 'SET_TAGS', payload: [...new Set([...tags, ...suggested])].slice(0, 10) });
     } catch (e) {
-        addToast(e instanceof Error ? e.message : 'Could not suggest tags.', 'error');
+        console.error('Could not suggest tags', e);
     } finally {
         setIsSuggestingTags(false);
     }
@@ -216,7 +215,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
 
   const handleSuggestCategories = async () => {
     if (!title && !description) {
-        addToast("Please provide a title or description first.", "error");
         return;
     }
     setIsSuggestingCategories(true);
@@ -224,7 +222,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         const suggested = await suggestCategoriesForPost(title, description, categories);
         if(suggested.length > 0) dispatch({ type: 'SET_FIELD', field: 'category', payload: suggested[0] });
     } catch (e) {
-        addToast(e instanceof Error ? e.message : 'Could not suggest a category.', 'error');
+        console.error('Could not suggest category', e);
     } finally {
         setIsSuggestingCategories(false);
     }

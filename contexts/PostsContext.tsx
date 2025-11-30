@@ -43,7 +43,6 @@ interface PostsContextType {
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
     const { accountsById } = useAuth();
     const { checkAvailabilityAlerts } = useActivity();
@@ -76,7 +75,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories,
         setItems: setRawPosts,
         setArchivedItems: setRawArchivedPosts,
-        addToast,
         itemTypeLabel: 'Category',
         field: 'category',
         shouldSort: true
@@ -93,7 +91,6 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories: setPriceUnits,
         setItems: setRawPosts,
         setArchivedItems: setRawArchivedPosts,
-        addToast,
         itemTypeLabel: 'Price unit',
         field: 'priceUnit',
         shouldSort: false // Preserve order for price units mostly, or let user append
@@ -121,9 +118,8 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const createPost = useCallback((postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string): Post => {
         const newPost = addPostSilently(postData, authorId);
-        addToast('Post created successfully!', 'success');
         return newPost;
-    }, [addPostSilently, addToast]);
+    }, [addPostSilently]);
       
     const updatePost = useCallback(async (updatedPost: Post): Promise<Post> => {
         let updated: Post | undefined;
@@ -145,13 +141,12 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 return p;
             }));
         }
-        addToast('Post updated!', 'success');
         if (!updated) throw new Error("Post not found for update");
 
         checkAvailabilityAlerts(updated);
 
         return updated;
-    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
+    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, checkAvailabilityAlerts]);
     
     const archivePost = useCallback((postId: string) => {
         showConfirmation({
@@ -162,23 +157,21 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 if (postToArchive) {
                     setRawPosts(prev => prev.filter(p => p.id !== postId));
                     setRawArchivedPosts(prev => [{...postToArchive, isPinned: false}, ...prev]); // Unpin when archiving
-                    addToast('Post archived.', 'success');
                 }
             },
             confirmText: 'Archive',
             confirmClassName: 'bg-amber-600 text-white',
         });
-    }, [rawPosts, setRawPosts, setRawArchivedPosts, addToast, showConfirmation]);
+    }, [rawPosts, setRawPosts, setRawArchivedPosts, showConfirmation]);
       
     const unarchivePost = useCallback((postId: string) => {
         const postToUnarchive = rawArchivedPosts.find(p => p.id === postId);
         if (postToUnarchive) {
             setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
             setRawPosts(prev => [postToUnarchive, ...prev]);
-            addToast('Post unarchived and is now live.', 'success');
             checkAvailabilityAlerts(postToUnarchive);
         }
-    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, addToast, checkAvailabilityAlerts]);
+    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, checkAvailabilityAlerts]);
     
     const deletePostPermanently = useCallback((postId: string) => {
         showConfirmation({
@@ -187,24 +180,21 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             onConfirm: () => {
                 setRawPosts(prev => prev.filter(p => p.id !== postId));
                 setRawArchivedPosts(prev => prev.filter(p => p.id !== postId));
-                addToast('Post permanently deleted.', 'success');
             },
             confirmText: 'Delete Permanently',
         });
-    }, [setRawPosts, setRawArchivedPosts, addToast, showConfirmation]);
+    }, [setRawPosts, setRawArchivedPosts, showConfirmation]);
 
     const togglePinPost = useCallback((postId: string) => {
         const post = findPostById(postId);
         if (!post) {
-            addToast('Post not found.', 'error');
             return;
         }
 
         setRawPosts(prev => prev.map(p =>
             p.id === postId ? { ...p, isPinned: !p.isPinned } : p
         ));
-        addToast(post.isPinned ? 'Post unpinned.' : 'Post pinned to profile.', 'success');
-    }, [findPostById, setRawPosts, addToast]);
+    }, [findPostById, setRawPosts]);
     
     const value = useMemo(() => ({
         posts, archivedPosts, categories, allAvailableTags, priceUnits,

@@ -36,7 +36,7 @@ const ForumContext = createContext<ForumContextType | undefined>(undefined);
 export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currentAccount, accountsById } = useAuth();
     const { addNotification } = useActivity();
-    const { addToast, openModal } = useUI();
+    const { openModal } = useUI();
 
     const [rawPosts, setRawPosts] = useLargePersistentState<ForumPost[]>(STORAGE_KEYS.FORUM_POSTS, mockForumPosts);
     const [comments, setComments] = useLargePersistentState<ForumComment[]>(STORAGE_KEYS.FORUM_COMMENTS, mockForumComments);
@@ -49,7 +49,6 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         categories,
         setCategories,
         setItems: setRawPosts,
-        addToast,
         itemTypeLabel: 'Category',
         field: 'category',
         shouldSort: true
@@ -120,8 +119,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             isPinned: false,
         };
         setRawPosts(prev => [newPost, ...prev]);
-        addToast('Discussion started!', 'success');
-    }, [currentAccount, setRawPosts, addToast, openModal]);
+    }, [currentAccount, setRawPosts, openModal]);
 
     const addComment = useCallback((commentData: Omit<ForumComment, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes'>) => {
         if (!currentAccount) {
@@ -203,19 +201,16 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const updatePost = useCallback((postId: string, newContent: string) => {
         setRawPosts(prev => prev.map(p => p.id === postId ? { ...p, content: newContent, timestamp: Date.now() } : p));
-        addToast('Post updated.', 'success');
-    }, [setRawPosts, addToast]);
+    }, [setRawPosts]);
     
     const updateComment = useCallback((commentId: string, newContent: string) => {
         setComments(prev => prev.map(c => c.id === commentId ? { ...c, content: newContent, timestamp: Date.now() } : c));
-        addToast('Comment updated.', 'success');
-    }, [setComments, addToast]);
+    }, [setComments]);
 
     const deletePost = useCallback((postId: string) => {
         setRawPosts(prev => prev.filter(p => p.id !== postId));
         setComments(prev => prev.filter(c => c.postId !== postId));
-        addToast('Discussion deleted.', 'success');
-    }, [setRawPosts, setComments, addToast]);
+    }, [setRawPosts, setComments]);
 
     const deleteComment = useCallback((commentId: string) => {
         let commentsToDelete = new Set<string>([commentId]);
@@ -232,8 +227,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (commentsToDelete.size === sizeBefore) changed = false;
         }
         setComments(prev => prev.filter(c => !commentsToDelete.has(c.id)));
-        addToast('Comment deleted.', 'success');
-    }, [comments, setComments, addToast]);
+    }, [comments, setComments]);
 
     const value = useMemo(() => ({
         posts, comments, categories,

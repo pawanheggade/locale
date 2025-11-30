@@ -89,7 +89,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { addToast, openModal } = useUI();
+    const { openModal } = useUI();
 
     const [accounts, setAccounts] = useLargePersistentState<Account[]>(STORAGE_KEYS.ACCOUNTS, mockAccounts);
     const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(STORAGE_KEYS.CURRENT_ACCOUNT_ID, null);
@@ -150,8 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             reporterId: currentAccount.id 
         };
         setReports(prev => [newReport, ...prev]);
-        addToast('Report submitted.', 'success');
-    }, [currentAccount, setReports, addToast]);
+    }, [currentAccount, setReports]);
 
     const addForumReport = useCallback((item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => {
         if (!currentAccount) return;
@@ -164,8 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           forumCommentId: type === 'comment' ? item.id : undefined,
         };
         setReports(prev => [newReport, ...prev]);
-        addToast('Report submitted.', 'success');
-    }, [currentAccount, setReports, addToast]);
+    }, [currentAccount, setReports]);
 
     const addFeedback = useCallback((content: string) => {
         if (!currentAccount) return;
@@ -177,20 +175,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isRead: false,
         };
         setFeedbackList(prev => [newFeedback, ...prev]);
-        addToast('Feedback sent! Thank you.', 'success');
-    }, [currentAccount, setFeedbackList, addToast]);
+    }, [currentAccount, setFeedbackList]);
 
     const login = useCallback((account: Account, rememberMe: boolean) => {
         if (account.status === 'archived' && !account.archivedByAdmin) {
              setAccounts(prev => prev.map(a => a.id === account.id ? { ...a, status: 'active', archivedByAdmin: false } : a));
-             addToast('Welcome back! Your account has been reactivated.', 'success');
         }
 
         setCurrentAccountId(account.id);
         if (!rememberMe) {
             localStorage.removeItem(STORAGE_KEYS.CURRENT_ACCOUNT_ID);
         }
-    }, [setCurrentAccountId, setAccounts, addToast]);
+    }, [setCurrentAccountId, setAccounts]);
 
     const signOut = useCallback(() => {
         setCurrentAccountId(null);
@@ -240,26 +236,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         }
                         return acc;
                     }));
-                    addToast(`Referral successful! ${referrer.name} has received a subscription bonus.`, 'success');
-                } else {
-                    addToast('Referral code applied. Your friend will receive a bonus if you become a seller.', 'success');
                 }
-            } else {
-                addToast('Invalid referral code entered.', 'error');
             }
         }
         
         setAccounts(prev => [...prev, newAccount]);
 
-        if (isSeller) {
-          addToast('Seller account created! It is now under review.', 'success');
-        } else {
-          addToast(`Welcome, ${newAccount.name}! Your account has been created.`, 'success');
-        }
         login(newAccount, true);
 
         return newAccount;
-    }, [accounts, setAccounts, addToast, login]);
+    }, [accounts, setAccounts, login]);
 
     const socialLogin = useCallback(async (provider: 'google' | 'apple') => {
         const mockUser = provider === 'google' ? { email: 'google.user@example.com', name: 'Google User', username: 'google_user', avatarUrl: 'https://i.pravatar.cc/150?u=google-user' } : { email: 'apple.user@example.com', name: 'Apple User', username: 'apple_user', avatarUrl: 'https://i.pravatar.cc/150?u=apple-user' };
@@ -272,8 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateAccount = useCallback(async (updatedAccount: Account) => {
         setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
-        addToast('Account updated successfully!', 'success');
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const updateAccountDetails = useCallback((updatedAccount: Account) => {
         setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
@@ -288,22 +273,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (newTier === 'Verified' || newTier === 'Business') {
                     const trialEndDate = Date.now() + 14 * 24 * 60 * 60 * 1000;
                     subscription = { tier: newTier, renewalDate: trialEndDate, isTrial: true, trialEndDate };
-                    addToast(`You've started a 14-day free trial of the ${newTier} plan! Your account is now under review.`, 'success');
                 } else { 
                     subscription = { tier: 'Basic', renewalDate: null, isTrial: false, trialEndDate: null };
-                    addToast(`Your account has been upgraded to Basic and is now under review.`, 'success');
                 }
                 
                 return { ...updatedAccount, subscription };
             }
             return acc;
         }));
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
       
     const toggleLikeAccount = useCallback((accountIdToLike: string) => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
-        const targetAccount = accounts.find(a => a.id === accountIdToLike);
-        if (!loggedInAccount || !targetAccount) return;
+        if (!loggedInAccount) return;
         const wasLiked = (loggedInAccount.likedAccountIds || []).includes(accountIdToLike);
         setAccounts(prev => prev.map(acc => {
             if (acc.id === loggedInAccount.id) {
@@ -314,8 +296,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addToast(wasLiked ? `Unliked profile: ${targetAccount.name}.` : `Liked profile: ${targetAccount.name}!`);
-    }, [accounts, currentAccountId, addToast, setAccounts]);
+    }, [accounts, currentAccountId, setAccounts]);
 
     const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
@@ -330,9 +311,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addToast(wasLiked ? 'Post unliked.' : 'Post liked!');
         return { wasLiked: !wasLiked };
-    }, [accounts, currentAccountId, setAccounts, addToast]);
+    }, [accounts, currentAccountId, setAccounts]);
 
     const updateSubscription = useCallback((accountId: string, tier: Subscription['tier']) => {
         setAccounts(prev => prev.map(acc => {
@@ -347,14 +327,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addToast('Subscription updated.', 'success');
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const toggleAccountStatus = useCallback((accountId: string, byAdmin: boolean = false) => {
         setAccounts(prev => prev.map(acc => {
             if (acc.id === accountId) {
                 const newStatus = acc.status === 'active' ? 'archived' : 'active';
-                addToast(`Account ${newStatus}.`, 'success');
                 
                 const updates: Partial<Account> = { status: newStatus };
                 if (newStatus === 'archived') {
@@ -366,7 +344,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const deleteAccount = useCallback((accountId: string) => {
         showConfirmation({
@@ -377,16 +355,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (accountId === currentAccountId) {
                     signOut();
                 }
-                addToast('Account deleted.', 'success');
             },
             confirmText: 'Delete Permanently',
         });
-    }, [setAccounts, currentAccountId, signOut, addToast, showConfirmation]);
+    }, [setAccounts, currentAccountId, signOut, showConfirmation]);
 
     const updateAccountRole = useCallback((accountId: string, role: 'account' | 'admin') => {
         setAccounts(prev => prev.map(acc => acc.id === accountId ? { ...acc, role } : acc));
-        addToast("Account role updated.", "success");
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const approveAccount = useCallback((accountId: string) => {
         setAccounts(prev => prev.map(acc => {
@@ -395,8 +371,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addToast("Account approved.", "success");
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const rejectAccount = useCallback((accountId: string) => {
         setAccounts(prev => prev.map(acc => {
@@ -405,8 +380,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             return acc;
         }));
-        addToast("Account rejected.", "success");
-    }, [setAccounts, addToast]);
+    }, [setAccounts]);
 
     const addToBag = useCallback((postId: string, quantity: number) => {
         if (!currentAccountId) return;
@@ -418,8 +392,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const newItem: BagItem = { id: `bag-${Date.now()}`, postId, quantity, isChecked: false, savedListIds: [] };
             updateCurrentUserSpecificData({ bag: [...currentUserData.bag, newItem] });
         }
-        addToast('Item added to bag.', 'success');
-    }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData, addToast]);
+    }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData]);
 
     const updateBagItem = useCallback((itemId: string, updates: Partial<Pick<BagItem, 'quantity' | 'isChecked' | 'savedListIds'>>) => {
         const newBag = currentUserData.bag.map(item => item.id === itemId ? { ...item, ...updates } : item);
@@ -475,31 +448,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
          updateCurrentUserSpecificData({ bag: newBag });
-         addToast(targetListIds.length > 0 ? 'Saved to list(s).' : 'Moved to bag.', 'success');
-    }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData, addToast]);
+    }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData]);
 
     const removeBagItem = useCallback((itemId: string) => {
         updateCurrentUserSpecificData({ bag: currentUserData.bag.filter(item => item.id !== itemId) });
-        addToast('Item removed from bag.', 'success');
-    }, [currentUserData.bag, updateCurrentUserSpecificData, addToast]);
+    }, [currentUserData.bag, updateCurrentUserSpecificData]);
 
     const clearCheckedBagItems = useCallback(() => {
         updateCurrentUserSpecificData({ bag: currentUserData.bag.filter(item => !(item.isChecked && item.savedListIds.length === 0)) });
-        addToast('Checked items cleared.', 'success');
-    }, [currentUserData.bag, updateCurrentUserSpecificData, addToast]);
+    }, [currentUserData.bag, updateCurrentUserSpecificData]);
     
     const createSavedList = useCallback((name: string) => {
         if (!currentAccountId) return;
         const newList: SavedList = { id: `list-${Date.now()}`, name: name.trim() };
         updateCurrentUserSpecificData({ savedLists: [...currentUserData.savedLists, newList] });
-        addToast(`List "${newList.name}" created.`, 'success');
-    }, [currentAccountId, currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
+    }, [currentAccountId, currentUserData.savedLists, updateCurrentUserSpecificData]);
 
     const renameSavedList = useCallback((listId: string, newName: string) => {
         const newLists = currentUserData.savedLists.map(list => list.id === listId ? { ...list, name: newName.trim() } : list);
         updateCurrentUserSpecificData({ savedLists: newLists });
-        addToast(`List renamed to "${newName.trim()}".`, 'success');
-    }, [currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
+    }, [currentUserData.savedLists, updateCurrentUserSpecificData]);
 
     const deleteListAndMoveItems = useCallback((listId: string) => {
         const itemsWithListRemoved = currentUserData.bag.map(item => ({ ...item, savedListIds: item.savedListIds.filter(id => id !== listId) }));
@@ -523,8 +491,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         const newLists = currentUserData.savedLists.filter(list => list.id !== listId);
         updateCurrentUserSpecificData({ bag: finalBag, savedLists: newLists });
-        addToast('List deleted and its items moved to bag.', 'success');
-    }, [currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
+    }, [currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData]);
 
     const addListToBag = useCallback((listId: string) => {
         if (!currentAccountId) return;
@@ -532,11 +499,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!list) return;
         const itemsFromList = currentUserData.bag.filter(item => item.savedListIds.includes(listId));
         if (itemsFromList.length === 0) {
-            addToast(`List "${list.name}" is empty.`, 'error');
             return;
         }
         let bagUpdates = [...currentUserData.bag];
-        let itemsAddedCount = 0;
         itemsFromList.forEach(itemFromList => {
             const existingInBagItem = bagUpdates.find(bagItem => bagItem.postId === itemFromList.postId && bagItem.savedListIds.length === 0);
             if (existingInBagItem) {
@@ -545,11 +510,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const newItemForBag: BagItem = { id: `bag-${Date.now()}-${itemFromList.postId}-${Math.random()}`, postId: itemFromList.postId, quantity: itemFromList.quantity, isChecked: false, savedListIds: [] };
                 bagUpdates.push(newItemForBag);
             }
-            itemsAddedCount++;
         });
         updateCurrentUserSpecificData({ bag: bagUpdates });
-        addToast(`${itemsAddedCount} item(s) from "${list.name}" added to bag.`, 'success');
-    }, [currentAccountId, currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData, addToast]);
+    }, [currentAccountId, currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData]);
 
     const addPostToViewHistory = useCallback((postId: string) => {
         if (!currentAccountId) return;
@@ -568,22 +531,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 newItems.push({ id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, url, type, name: file.name });
             } catch (error) {
                 console.error(`Failed to process file ${file.name}`, error);
-                addToast(`Failed to process ${file.name}`, 'error');
             }
         }
         if (newItems.length > 0) {
             const updatedCatalog = [...(currentAccount.catalog || []), ...newItems];
             setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
-            addToast(`${newItems.length} item(s) added to catalogs.`, 'success');
         }
-    }, [currentAccountId, currentAccount, setAccounts, addToast]);
+    }, [currentAccountId, currentAccount, setAccounts]);
 
     const removeCatalogItem = useCallback(async (itemId: string) => {
          if (!currentAccountId || !currentAccount) return;
          const updatedCatalog = (currentAccount.catalog || []).filter(item => item.id !== itemId);
          setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
-         addToast('Catalog item removed.', 'success');
-    }, [currentAccountId, currentAccount, setAccounts, addToast]);
+    }, [currentAccountId, currentAccount, setAccounts]);
     
     const toggleSavedSearchAlert = useCallback((searchId: string) => {
         setSavedSearches(prev => prev.map(search => search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search));

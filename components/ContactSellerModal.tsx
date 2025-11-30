@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { Account, Post } from '../types';
 import ModalShell from './ModalShell';
 import { PhoneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
-import { useUI } from '../contexts/UIContext';
 import { Avatar } from './Avatar';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
@@ -19,7 +18,6 @@ interface ContactSellerModalProps {
 export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, post, currentAccount, onClose, prefilledMessage }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const isMounted = useIsMounted();
-  const { addToast } = useUI();
 
   const contactMethods = useMemo(() => {
     const subject = encodeURIComponent(post ? `Inquiry about your post: "${post.title}" on Locale` : `Inquiry from Locale`);
@@ -32,7 +30,6 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
             Icon: EnvelopeIcon,
             href: `mailto:${author.email}?subject=${subject}&body=${body}`,
             isVisible: author.contactOptions?.includes('email') && !!author.email,
-            toast: 'Opening your email client...',
         },
         {
             key: 'mobile' as const,
@@ -40,7 +37,6 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
             Icon: PhoneIcon,
             href: `tel:${author.mobile}`,
             isVisible: author.contactOptions?.includes('mobile') && !!author.mobile,
-            toast: 'Opening your phone app...',
         },
         {
             key: 'message' as const,
@@ -48,7 +44,6 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
             Icon: ChatBubbleBottomCenterTextIcon,
             href: `https://wa.me/${author.messageNumber?.replace(/\D/g, '')}`,
             isVisible: author.contactOptions?.includes('message') && !!author.messageNumber,
-            toast: 'Opening messaging app...',
         }
     ];
   }, [author, post, currentAccount, prefilledMessage]);
@@ -88,7 +83,6 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                   target={method.key === 'message' ? '_blank' : undefined}
                   rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
                   onClick={() => {
-                    addToast(method.toast, 'success');
                     setTimeout(() => { if (isMounted()) onClose(); }, 500);
                   }}
                   variant="overlay-dark"
@@ -104,5 +98,3 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
     </ModalShell>
   );
 };
-
-export default ContactSellerModal;

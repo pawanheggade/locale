@@ -1,7 +1,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { EditPageModal } from './EditPageModal';
-import { useUI } from '../contexts/UIContext';
 import { sanitizeHtml } from '../utils/security';
 import { Button } from './ui/Button';
 import { PencilIcon } from './Icons';
@@ -48,20 +47,17 @@ const PageSection: React.FC<{
 export const AdminPagesView: React.FC<AdminPagesViewProps> = ({ termsContent, onUpdateTerms, privacyContent, onUpdatePrivacy }) => {
   const [editing, setEditing] = useState<EditingPage>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const { addToast } = useUI();
 
   const handleSave = useCallback((content: string) => {
     setIsSaving(true);
     if (editing === 'terms') {
       onUpdateTerms(content);
-      addToast('Terms of Service updated.', 'success');
     } else if (editing === 'privacy') {
       onUpdatePrivacy(content);
-      addToast('Privacy Policy updated.', 'success');
     }
     setIsSaving(false);
     setEditing(null);
-  }, [editing, onUpdateTerms, onUpdatePrivacy, addToast]);
+  }, [editing, onUpdateTerms, onUpdatePrivacy]);
 
   return (
     <>

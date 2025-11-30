@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';
@@ -29,7 +29,6 @@ const ActivityContext = createContext<ActivityContextType | undefined>(undefined
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentAccount } = useAuth();
-  const { addToast } = useUI();
 
   // We store all activity data in one object keyed by userId to persist across logins
   const [allActivityData, setAllActivityData] = usePersistentState<Record<string, {
@@ -119,31 +118,27 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       newAlerts.push({ id: `alert-${Date.now()}`, postId, targetPrice });
     }
     updateUserData({ priceAlerts: newAlerts });
-    addToast('Price alert set!', 'success');
-  }, [priceAlerts, updateUserData, addToast]);
+  }, [priceAlerts, updateUserData]);
 
   const deletePriceAlert = useCallback((postId: string) => {
     updateUserData({
       priceAlerts: priceAlerts.filter(a => a.postId !== postId)
     });
-    addToast('Price alert removed.', 'success');
-  }, [priceAlerts, updateUserData, addToast]);
+  }, [priceAlerts, updateUserData]);
 
   const setAvailabilityAlert = useCallback((postId: string) => {
     if (!availabilityAlerts.some(a => a.postId === postId)) {
       updateUserData({
         availabilityAlerts: [...availabilityAlerts, { id: `avail-${Date.now()}`, postId }]
       });
-      addToast('You will be notified when available.', 'success');
     }
-  }, [availabilityAlerts, updateUserData, addToast]);
+  }, [availabilityAlerts, updateUserData]);
 
   const deleteAvailabilityAlert = useCallback((postId: string) => {
     updateUserData({
       availabilityAlerts: availabilityAlerts.filter(a => a.postId !== postId)
     });
-    addToast('Availability alert removed.', 'success');
-  }, [availabilityAlerts, updateUserData, addToast]);
+  }, [availabilityAlerts, updateUserData]);
 
   const checkAvailabilityAlerts = useCallback((post: Post) => {
     // Only checking globally to see if any user needs an alert

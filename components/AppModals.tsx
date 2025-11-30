@@ -24,7 +24,8 @@ import SetPriceAlertModal from './SetPriceAlertModal';
 import AddToBagModal from './AddToBagModal';
 import SaveToListModal from './SaveToListModal';
 import { AccountModal } from './AccountModal';
-import ContactSellerModal from './ContactSellerModal';
+// @FIX: ContactSellerModal is a named export, not a default one.
+import { ContactSellerModal } from './ContactSellerModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
 import { StaticContentModal } from './StaticContentModal';
 import { CreateForumPostModal } from './CreateForumPostModal';

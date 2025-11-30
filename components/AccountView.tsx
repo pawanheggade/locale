@@ -48,7 +48,7 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
 );
 
 export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts, isGeocoding }) => {
-  const { addToast, openModal } = useUI();
+  const { openModal } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap } = useNavigation();
   const { toggleLikeAccount } = useAuth();
@@ -180,7 +180,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           openModal({ type: 'login' });
           return;
       }
-      addToast(method.toast, 'success');
   };
 
   const handleShareProfile = async () => {
@@ -192,19 +191,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   url: profileUrl,
               });
           } catch (err: any) {
-              const isAbort = 
-                  err.name === 'AbortError' || 
-                  err.code === 20 ||
-                  (typeof err.message === 'string' && (
-                      err.message.toLowerCase().includes('abort') || 
-                      err.message.toLowerCase().includes('cancel') ||
-                      err.message.toLowerCase().includes('canceled')
-                  ));
-              
-              if (!isAbort) {
-                  console.error('Error sharing:', err);
-                  addToast('Unable to open share menu.', 'error');
-              }
+              // ignore
           }
       } else {
           openModal({ type: 'profileQR', data: account });

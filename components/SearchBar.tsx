@@ -3,7 +3,6 @@ import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, SparklesIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
-import { useUI } from '../contexts/UIContext';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -38,7 +37,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   isAiSearching,
   autoFocus = false,
 }) => {
-  const { addToast } = useUI();
 
   const {
     isDropdownVisible,
@@ -61,9 +59,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     isAiSearchEnabled: !!isAiSearchEnabled,
     onSelectSuggestion: onSearchChange,
     onError: (error) => {
-        // Debounce or check if toast already recently shown could be added here if needed
-        // For now, a simple error message
-        addToast(error.message || "Failed to generate AI suggestions", 'error');
+        // Silent fail
     }
   });
 

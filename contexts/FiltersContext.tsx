@@ -98,7 +98,6 @@ const FiltersContext = createContext<FiltersContextType | undefined>(undefined);
 export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialFiltersState, initFilters);
   const { posts } = usePosts();
-  const { addToast } = useUI();
 
   // Persist filters to local storage whenever they change
   useEffect(() => {
@@ -128,12 +127,11 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const results = await performAiSearch(query, posts);
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: results });
     } catch (error) {
-      addToast(error instanceof Error ? error.message : 'AI Search failed.', 'error');
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: [] });
     } finally {
       dispatchFilterAction({ type: 'SET_AI_SEARCHING', payload: false });
     }
-  }, [posts, addToast]);
+  }, [posts]);
 
   const handleToggleAiSearch = useCallback(() => {
     const isTurningOff = filterState.isAiSearchEnabled;

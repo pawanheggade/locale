@@ -4,7 +4,6 @@ import { Post } from '../types';
 import ModalShell from './ModalShell';
 import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, ShareIcon } from './Icons';
 import { generatePostPreviewImage } from '../utils/media';
-import { useUI } from '../contexts/UIContext';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
 
@@ -21,7 +20,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
   const isMounted = useIsMounted();
-  const { addToast } = useUI();
   
   const shareUrl = `${window.location.origin}?post=${post.id}`;
   const shareText = `Check out this ${post.type.toLowerCase()} on Locale: "${post.title}"`;
@@ -65,7 +63,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
 
   const handleNativeShare = async () => {
     if (!imageBlob) {
-        addToast('Preview image is not ready yet.', 'error');
         return;
     }
 
@@ -88,7 +85,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
         } catch (error) {
             if (!isAbortError(error)) {
                 console.error('Error sharing:', error);
-                addToast('Could not open share dialog.', 'error');
             }
         }
     } else {
@@ -97,7 +93,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
         } catch (error) {
              if (!isAbortError(error)) {
                 console.error('Error sharing text fallback:', error);
-                addToast('Could not open share dialog.', 'error');
              }
         }
     }

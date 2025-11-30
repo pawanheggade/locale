@@ -223,14 +223,6 @@ export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetai
 
 // --- Context API Action Types ---
 
-export interface ToastMessage {
-  id: number;
-  message: string;
-  type: 'success' | 'error';
-  onUndo?: () => void;
-  onTimeout?: () => void;
-}
-
 export interface FiltersState {
   searchQuery: string;
   filterType: 'all' | PostType;
@@ -247,10 +239,6 @@ export interface FiltersState {
   isAiSearching: boolean;
   aiSmartFilterResults: Array<{ id: string; reasoning: string }> | null;
 }
-
-export type ToastAction = 
-  | { type: 'ADD_TOAST'; payload: ToastMessage }
-  | { type: 'REMOVE_TOAST'; payload: { id: number } };
 
 export type ModalAction = 
   | { type: 'OPEN_MODAL'; payload: ModalState }

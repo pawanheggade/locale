@@ -23,7 +23,6 @@ interface UseMediaUploaderOptions {
 
 export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: UseMediaUploaderOptions) => {
   const [mediaUploads, setMediaUploads] = useState<MediaUpload[]>([]);
-  const { addToast } = useUI();
   const isMounted = useIsMounted();
 
   // Cleanup object URLs to prevent memory leaks
@@ -78,7 +77,6 @@ export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: 
       const fileType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : null;
 
       if (mediaUploads.length + newUploads.length >= maxFiles) {
-        addToast(`You can upload a maximum of ${maxFiles} media files${subscriptionTier ? ` with your ${subscriptionTier} plan` : ''}.`, 'error');
         break;
       }
 
@@ -103,7 +101,7 @@ export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: 
         }
       });
     }
-  }, [mediaUploads.length, maxFiles, maxFileSizeMB, subscriptionTier, addToast, processFile]);
+  }, [mediaUploads.length, maxFiles, maxFileSizeMB, subscriptionTier, processFile]);
 
   const removeMedia = useCallback((id: string) => {
     setMediaUploads(prev => {

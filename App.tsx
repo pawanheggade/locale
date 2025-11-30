@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -49,6 +48,7 @@ interface HistoryItem {
     viewingPostId: string | null;
     viewingAccount: Account | null;
     viewingForumPostId: string | null;
+    scrollPosition: number;
 }
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
@@ -88,7 +88,7 @@ export const App: React.FC = () => {
   } = usePosts();
   
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
-  const { activeModal, openModal, closeModal, addToast } = useUI();
+  const { activeModal, openModal, closeModal } = useUI();
   const showConfirmation = useConfirmationModal();
   const isMounted = useIsMounted();
 
@@ -138,7 +138,6 @@ export const App: React.FC = () => {
 
   const handleUpdateNotificationSettings = (newSettings: NotificationSettings) => {
     setNotificationSettings(newSettings);
-    addToast('Settings saved!', 'success');
   };
 
   const navigateTo = useCallback((
@@ -154,7 +153,6 @@ export const App: React.FC = () => {
 
       if (newView === 'createPost' && currentAccount?.subscription.tier === 'Personal') {
           setView('subscription');
-          addToast('You need a seller account to create posts.', 'error');
           return;
       }
 
@@ -166,14 +164,26 @@ export const App: React.FC = () => {
           incrementProfileViews(options.account.id);
       }
 
-      setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
+      // Capture current scroll position before navigating away
+      const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
+
+      setHistory(h => [...h, { 
+          view, 
+          mainView, 
+          viewingPostId, 
+          viewingAccount, 
+          viewingForumPostId,
+          scrollPosition: currentScrollPosition
+      }]);
 
       setView(newView);
       setViewingPostId(options.postId || null);
       setViewingAccount(options.account || null);
       setViewingForumPostId(options.forumPostId || null);
+      
+      // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, currentAccount, addPostToViewHistory, addToast, incrementProfileViews]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, currentAccount, addPostToViewHistory, incrementProfileViews]);
 
   const handleNotificationClick = useCallback((notification: Notification) => {
     markAsRead(notification.id);
@@ -195,10 +205,9 @@ export const App: React.FC = () => {
     setTimeout(() => {
         if (isMounted()) {
             setIsRefreshing(false);
-            addToast('Refreshed', 'success');
         }
     }, 800);
-  }, [isRefreshing, refreshPosts, addToast, isMounted]);
+  }, [isRefreshing, refreshPosts, isMounted]);
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
   
@@ -214,7 +223,6 @@ export const App: React.FC = () => {
 
   const handleToggleFeedbackArchive = (feedbackId: string) => {
       setFeedbackList(prev => prev.map(f => f.id === feedbackId ? { ...f, isArchived: !f.isArchived } : f));
-      addToast('Feedback updated.', 'success');
   };
 
   const handleDeleteFeedback = (feedbackId: string) => {
@@ -223,7 +231,6 @@ export const App: React.FC = () => {
         message: 'Are you sure you want to delete this feedback?',
         onConfirm: () => {
             setFeedbackList(prev => prev.filter(f => f.id !== feedbackId));
-            addToast('Feedback deleted.', 'success');
         },
         confirmText: 'Delete',
         confirmClassName: 'bg-red-600 text-white',
@@ -241,7 +248,6 @@ export const App: React.FC = () => {
             message: `Are you sure you want to delete ${ids.length} feedback items?`,
             onConfirm: () => {
                 setFeedbackList(prev => prev.filter(f => !ids.includes(f.id)));
-                addToast(`${ids.length} feedback items deleted.`, 'success');
             },
             confirmText: 'Delete',
             confirmClassName: 'bg-red-600 text-white',
@@ -257,7 +263,6 @@ export const App: React.FC = () => {
                   return f;
               });
           });
-          addToast(`${ids.length} feedback items updated.`, 'success');
       }
   };
 
@@ -268,12 +273,11 @@ export const App: React.FC = () => {
         message: 'Are you sure you want to clear your search history?',
         onConfirm: () => {
             setRecentSearches([]);
-            addToast('Search history cleared.', 'success');
         },
         confirmText: 'Clear History',
         confirmClassName: 'bg-red-600 text-white',
       });
-  }, [recentSearches.length, showConfirmation, setRecentSearches, addToast]);
+  }, [recentSearches.length, showConfirmation, setRecentSearches]);
 
   const handleAiSearchSubmitWithHistory = useCallback((query: string) => {
     handleSearchSubmit(query);
@@ -307,7 +311,6 @@ export const App: React.FC = () => {
     if (currentAccount) {
         toggleAccountStatus(currentAccount.id);
         performSignOut();
-        addToast('Account archived and signed out.', 'success');
     }
   };
 
@@ -335,18 +338,43 @@ export const App: React.FC = () => {
           setViewingPostId(previousState.viewingPostId);
           setViewingAccount(previousState.viewingAccount);
           setViewingForumPostId(previousState.viewingForumPostId);
-          if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+          
+          // Restore scroll position after render
+          requestAnimationFrame(() => {
+              if (mainContentRef.current) {
+                  mainContentRef.current.scrollTop = previousState.scrollPosition;
+              }
+          });
       }
   }, [history, view, isAnyFilterActive, onClearFilters]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
       if (mainView === newMainView) return;
-      setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
+      // When switching main view modes, we don't necessarily want to save scroll position of the previous mode
+      // as they are different representations. However, saving state allows 'back' to work.
+      const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
+      setHistory(h => [...h, { 
+          view, 
+          mainView, 
+          viewingPostId, 
+          viewingAccount, 
+          viewingForumPostId,
+          scrollPosition: currentScrollPosition
+      }]);
       setMainView(newMainView);
   }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId]);
 
   const showOnMap = useCallback(async (target: string | Account) => {
-    setHistory(h => [...h, { view, mainView, viewingPostId, viewingAccount, viewingForumPostId }]);
+    const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
+    setHistory(h => [...h, { 
+        view, 
+        mainView, 
+        viewingPostId, 
+        viewingAccount, 
+        viewingForumPostId,
+        scrollPosition: currentScrollPosition
+    }]);
+    
     if (typeof target === 'string') {
       setView('all'); setMainView('map'); setPostToFocusOnMap(target);
     } else {
@@ -355,13 +383,13 @@ export const App: React.FC = () => {
       if (!coords && account.address) {
         setIsGeocoding(true);
         try { coords = await geocodeLocation(account.address); } 
-        catch (e) { addToast('Failed to find location', 'error'); } 
+        catch (e) { console.error('Failed to find location'); } 
         finally { if (isMounted()) setIsGeocoding(false); }
       }
       if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
-      else { addToast(`Could not find location for ${account.name}.`, 'error'); }
+      else { console.error(`Could not find location for ${account.name}.`); }
     }
-  }, [addToast, isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId]);
+  }, [isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
       if (isFindingNearby) return;
@@ -380,11 +408,11 @@ export const App: React.FC = () => {
           closeModal();
           navigateTo('nearbyPosts');
       } catch (error) {
-          addToast('Failed to find nearby posts', 'error');
+          console.error('Failed to find nearby posts', error);
       } finally {
           if (isMounted()) setIsFindingNearby(false);
       }
-  }, [isFindingNearby, allDisplayablePosts, addToast, closeModal, navigateTo, isMounted]);
+  }, [isFindingNearby, allDisplayablePosts, closeModal, navigateTo, isMounted]);
   
   // Optimized Scroll Handler using requestAnimationFrame
   const handleScroll = useCallback(() => {
@@ -556,7 +584,6 @@ export const App: React.FC = () => {
 // Encapsulates the logic for rendering the current view.
 const ViewManager: React.FC<any> = (props) => {
     const { 
-// @FIx: Add viewedPostIds to the destructuring to make it available for recommendation logic.
         currentAccount, accounts, likedPostIds, viewedPostIds,
         deleteAccount, updateAccountRole, toggleAccountStatus, approveAccount, rejectAccount, updateSubscription, updateAccountDetails,
         reports, setReports, feedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
@@ -574,8 +601,7 @@ const ViewManager: React.FC<any> = (props) => {
         posts: forumPosts, getPostWithComments, 
         categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory 
     } = useForum();
-// @FIX: Add addToast to the destructuring to enable toast notifications for admin actions.
-    const { openModal, addToast } = useUI();
+    const { openModal } = useUI();
     const { filterState, isAnyFilterActive } = useFilters();
     const { navigateTo, handleBack } = useNavigation();
     
@@ -622,7 +648,7 @@ const ViewManager: React.FC<any> = (props) => {
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
         case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
         case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); addToast('Report handled.', 'success'); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
+            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
         case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} isGeocoding={isGeocoding} /></Suspense> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
