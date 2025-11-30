@@ -73,7 +73,7 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
                 onClick={handleUseMyLocationClick}
                 disabled={isSearching || locationInput.status === 'geolocating'}
                 variant="outline"
-                className="w-full flex items-center justify-center gap-2 h-12 text-base text-red-600 border-red-200 hover:bg-red-50"
+                className="w-full flex items-center justify-center gap-2 h-12 text-base text-red-600 border-red-200"
               >
                 {isSearching || locationInput.status === 'geolocating' ? <SpinnerIcon className="w-6 h-6" /> : <CrosshairsIcon className="w-6 h-6" />}
                 Use My Current Location

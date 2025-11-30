@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useReducer } from 'react';
 import { Post, PriceAlert } from '../types';
 import ModalShell from './ModalShell';
@@ -147,7 +148,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
               <CurrencyInput
                 value={targetPrice}
                 onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'targetPrice', payload: e.target.value })}
-                className="bg-gray-50 hover:bg-gray-100 disabled:bg-gray-100 disabled:text-gray-500"
+                className="bg-gray-50 disabled:bg-gray-100 disabled:text-gray-500"
                 autoFocus
                 disabled={alertOnAnyDrop}
               />

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, KeyboardEvent, ReactNode, forwardRef } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { ChevronDownIcon } from '../Icons';
@@ -105,7 +106,6 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                 key={item.value}
                 onClick={() => handleSelect(item.value)}
                 onKeyDown={(e) => handleItemKeyDown(e, item.value)}
-                onMouseOver={() => setActiveIndex(index)}
                 className={cn(
                   'px-4 py-2 text-sm text-gray-700 cursor-pointer',
                   index === activeIndex && 'bg-gray-100',

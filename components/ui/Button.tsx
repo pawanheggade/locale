@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { SpinnerIcon } from '../Icons';
@@ -9,7 +10,7 @@ const buttonVariants = {
     outline: 'border border-gray-300 bg-white text-gray-600',
     secondary: 'bg-gray-100 text-gray-600 border border-gray-200',
     ghost: 'border border-transparent bg-transparent text-gray-600',
-    link: 'text-red-600 underline-offset-4 hover:underline',
+    link: 'text-red-600 underline-offset-4',
     'pill-red': 'button-pill-red',
     'circular-red': 'button-circular-red',
     'pill-lightred': 'button-pill-lightred',

@@ -82,7 +82,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
       </div>
       <div className="flex-1">
         <div className="flex items-baseline gap-2 text-sm">
-          <button onClick={() => onViewAccount(comment.authorId)} className="font-semibold text-gray-800 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{comment.author?.name || 'Unknown User'}</button>
+          <button onClick={() => onViewAccount(comment.authorId)} className="font-semibold text-gray-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{comment.author?.name || 'Unknown User'}</button>
           <span className="text-gray-500 text-xs">{timeSince(comment.timestamp)}</span>
         </div>
         <div className="mt-1 prose prose-sm max-w-none text-gray-600">

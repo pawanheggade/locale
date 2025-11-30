@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
@@ -103,7 +104,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
                             variant="ghost"
                             className={cn(
                                 "justify-start h-auto p-2 rounded-md text-left w-full flex-shrink-0 gap-2",
-                                selectedIndex === index ? "bg-white ring-1 ring-gray-200" : "hover:bg-gray-100"
+                                selectedIndex === index ? "bg-white ring-1 ring-gray-200" : ""
                             )}
                         >
                             {item.type === 'image' ? (

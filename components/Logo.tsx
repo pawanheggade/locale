@@ -44,7 +44,8 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
                 isLarge ? "top-[80%] w-[25px] h-[25px]" : "top-[80%] w-[15px] h-[15px]"
             )}
         >
-          <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M1 7H11" stroke="#111827" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
       <span>cale</span>

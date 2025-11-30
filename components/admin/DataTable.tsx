@@ -106,7 +106,7 @@ export function DataTable<T extends { id: string | number }>({
                                     onClick={handlePrev}
                                     disabled={currentPage === 1}
                                     variant="outline"
-                                    className="rounded-l-md rounded-r-none px-2 py-2 text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                    className="rounded-l-md rounded-r-none px-2 py-2 text-sm text-gray-500 disabled:opacity-50"
                                     aria-label="Previous"
                                 >
                                     <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
@@ -118,7 +118,7 @@ export function DataTable<T extends { id: string | number }>({
                                     onClick={handleNext}
                                     disabled={currentPage === totalPages}
                                     variant="outline"
-                                    className="rounded-r-md rounded-l-none px-2 py-2 text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                    className="rounded-r-md rounded-l-none px-2 py-2 text-sm text-gray-500 disabled:opacity-50"
                                     aria-label="Next"
                                 >
                                     <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />

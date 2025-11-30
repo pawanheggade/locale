@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from '../Icons';
 import { Button } from '../ui/Button';
@@ -27,7 +28,7 @@ export const SortableHeader: React.FC<{
       <Button
         onClick={() => requestSort(sortKey)}
         variant="ghost"
-        className="p-0 h-auto font-medium text-gray-600 hover:text-gray-900 gap-1 uppercase tracking-wider text-xs"
+        className="p-0 h-auto font-medium text-gray-600 gap-1 uppercase tracking-wider text-xs"
         aria-label={typeof label === 'string' ? `Sort by ${label}` : 'Sort column'}
       >
         {label}

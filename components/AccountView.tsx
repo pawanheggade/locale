@@ -1,6 +1,5 @@
 
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -29,7 +28,7 @@ interface AccountViewProps {
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
     <div
         onClick={onClick}
-        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors border"
+        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer transition-colors border"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
@@ -237,7 +236,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       src={account.avatarUrl} 
                       alt={account.name} 
                       tier={account.subscription.tier} 
-                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer hover:opacity-90 transition-opacity"
+                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer transition-opacity"
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
                   <div className="mb-1">
@@ -249,7 +248,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                   onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full h-5 px-2"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2"
                               >
                                   Subscription
                               </Button>
@@ -275,12 +274,12 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                            {(account.googleMapsUrl || account.appleMapsUrl) && (
                               <div className="flex items-center gap-1.5 shrink-0">
                                   {account.googleMapsUrl && (
-                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Google Maps">
+                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1 -m-1 rounded-full" title="Google Maps">
                                           <GoogleIcon className="w-4 h-4" />
                                       </a>
                                   )}
                                   {account.appleMapsUrl && (
-                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 transition-colors p-1 -m-1 rounded-full" title="Apple Maps">
+                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1 -m-1 rounded-full" title="Apple Maps">
                                           <AppleIcon className="w-4 h-4" />
                                       </a>
                                   )}
@@ -294,7 +293,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                               className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
                           >
                               <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
-                              <span className="group-hover:underline">{account.address}</span>
+                              <span className="">{account.address}</span>
                           </div>
                       </div>
                   )}

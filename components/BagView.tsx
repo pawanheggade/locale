@@ -71,7 +71,7 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
           onClick={onViewDetails}
           title={post.title}
           className={cn(
-            '!p-0 !h-auto !justify-start !text-left !block !truncate font-semibold hover:!underline',
+            '!p-0 !h-auto !justify-start !text-left !block !truncate font-semibold',
             isChecked ? 'text-gray-500 line-through' : 'text-gray-800'
           )}
         >

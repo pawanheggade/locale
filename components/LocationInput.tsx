@@ -97,7 +97,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         disabled={isVerifying}
                         variant="ghost"
                         size="icon"
-                        className="flex-shrink-0 text-gray-600 border border-gray-200 hover:bg-gray-50"
+                        className="flex-shrink-0 text-gray-600 border border-gray-200"
                         aria-label="Use my current location" 
                         title="Use my current location"
                     >
@@ -109,7 +109,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                     onClick={onOpenMapPicker} 
                     variant="ghost"
                     size="icon"
-                    className="flex-shrink-0 text-gray-600 border border-gray-200 hover:bg-gray-50"
+                    className="flex-shrink-0 text-gray-600 border border-gray-200"
                     aria-label="Select location on maps" 
                     title="Select location on maps"
                 >
@@ -129,7 +129,6 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                                 key={suggestion}
                                 role="option"
                                 aria-selected={index === activeIndex}
-                                onMouseOver={() => setActiveIndex(index)}
                                 onClick={() => onSuggestionSelect(suggestion)}
                                 className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${ index === activeIndex ? 'bg-red-500 text-white' : ''}`}
                             >

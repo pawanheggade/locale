@@ -32,7 +32,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({ title, description, on
       onClick={handleRowClick}
       className={cn(
         "w-full text-left p-4 -m-4 rounded-lg transition-colors",
-        onClick && "cursor-pointer hover:bg-gray-50 active:bg-gray-100",
+        onClick && "cursor-pointer active:bg-gray-100",
         className
       )}
       role={onClick ? "button" : undefined}

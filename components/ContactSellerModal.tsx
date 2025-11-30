@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useEffect, useMemo } from 'react';
 import { Account, Post } from '../types';
 import ModalShell from './ModalShell';
@@ -86,7 +87,7 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                     setTimeout(() => { if (isMounted()) onClose(); }, 500);
                   }}
                   variant="overlay-dark"
-                  className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left hover:bg-gray-50 rounded-lg"
+                  className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left rounded-lg"
                   aria-label={method.label}
                 >
                   <method.Icon className="w-8 h-8 text-red-600 flex-shrink-0" />

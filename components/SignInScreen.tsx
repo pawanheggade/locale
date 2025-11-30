@@ -1,3 +1,4 @@
+
 import React, { useState, useReducer } from 'react';
 import { Account } from '../types';
 import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
@@ -194,8 +195,8 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
 
         <div className="mt-2 text-center text-xs text-gray-600">
             By signing in, you agree to our{' '}
-            <Button variant="link" size="sm" onClick={onOpenTermsModal} className="px-0 h-auto underline text-xs text-gray-600 hover:text-gray-900">Terms of Service</Button> and{' '}
-            <Button variant="link" size="sm" onClick={onOpenPrivacyModal} className="px-0 h-auto underline text-xs text-gray-600 hover:text-gray-900">Privacy Policy</Button>.
+            <Button variant="link" size="sm" onClick={onOpenTermsModal} className="px-0 h-auto underline text-xs text-gray-600">Terms of Service</Button> and{' '}
+            <Button variant="link" size="sm" onClick={onOpenPrivacyModal} className="px-0 h-auto underline text-xs text-gray-600">Privacy Policy</Button>.
         </div>
     </div>
   );

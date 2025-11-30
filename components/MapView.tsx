@@ -403,7 +403,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
     return <MapSkeleton />;
   }
 
-  const whiteButtonClass = "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200";
+  const whiteButtonClass = "bg-white text-gray-700 border border-gray-200";
 
   return (
     <div className="h-full w-full relative">

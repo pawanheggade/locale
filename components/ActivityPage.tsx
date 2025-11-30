@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Notification, PriceAlert, Post, AvailabilityAlert } from '../types';
 import { timeSince, formatCurrency } from '../utils/formatters';
@@ -120,7 +121,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                     <p className="text-xs text-gray-600 mt-1">{timeSince(notification.timestamp)}</p>
                 </div>
                 {!notification.isRead && (
-                    <Button onClick={() => onDismiss(notification.id)} size="xs" variant="ghost" className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600" aria-label="Mark as read">
+                    <Button onClick={() => onDismiss(notification.id)} size="xs" variant="ghost" className="h-6 w-6 p-0 text-gray-400" aria-label="Mark as read">
                         <XMarkIcon className="w-4 h-4" />
                     </Button>
                 )}

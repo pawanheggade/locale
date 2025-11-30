@@ -2,7 +2,7 @@
 import React from 'react';
 import { DisplayablePost } from '../types';
 import { DataTable } from './admin/DataTable';
-import { useSort } from '../hooks/useSort';
+import { useSort } from '../../hooks/useSort';
 import { formatCurrency, formatFullDate } from '../utils/formatters';
 
 export interface PostWithStats extends DisplayablePost {
@@ -26,7 +26,7 @@ export const PostPerformanceTable: React.FC<PostPerformanceTableProps> = ({ post
     ];
 
     const renderRow = (post: PostWithStats) => (
-        <tr key={post.id} className="hover:bg-gray-50 transition-colors">
+        <tr key={post.id} className="transition-colors">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">

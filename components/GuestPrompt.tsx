@@ -73,7 +73,7 @@ export const GuestPrompt: React.FC<GuestPromptProps> = ({ onSignIn, onCreateAcco
                     variant="ghost"
                     size="icon-sm"
                     onClick={handleDismiss} 
-                    className="absolute -top-3 -right-3 bg-white rounded-full shadow-md border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 z-10"
+                    className="absolute -top-3 -right-3 bg-white rounded-full shadow-md border border-gray-200 text-gray-500 z-10"
                     aria-label="Dismiss"
                 >
                     <XMarkIcon className="w-4 h-4" />

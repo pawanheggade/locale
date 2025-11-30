@@ -126,7 +126,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                             className="text-[10px] h-auto min-h-0"
                         />
                         <span>&bull;</span>
-                        <span>Posted by <button onClick={() => onViewAccount(post.authorId)} className="font-semibold text-gray-600 hover:underline focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{post.author?.name || 'Unknown'}</button></span>
+                        <span>Posted by <button onClick={() => onViewAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{post.author?.name || 'Unknown'}</button></span>
                         <span>{timeSince(post.timestamp)}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{post.title}</h1>

@@ -124,7 +124,7 @@ export const renderWithMentions = (
           {
             key: `${index}`,
             onClick: (e: React.MouseEvent) => { e.stopPropagation(); onViewAccount(account.id); },
-            className: "font-semibold text-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-sm hover:underline"
+            className: "font-semibold text-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-sm"
           },
           part
         );
@@ -138,7 +138,7 @@ export const renderWithMentions = (
             {
                 key: `${index}`,
                 onClick: (e: React.MouseEvent) => { e.stopPropagation(); onFilterByTag(tag); },
-                className: "font-medium text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 rounded-sm hover:underline hover:text-gray-900"
+                className: "font-medium text-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 rounded-sm"
             },
             part
         );

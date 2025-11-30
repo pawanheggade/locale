@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useReducer } from 'react';
 import ModalShell from './ModalShell';
 import { FormField } from './FormField';
@@ -68,7 +69,7 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
                 type="text"
                 value={state.name}
                 onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
-                className="bg-gray-50 hover:bg-gray-100"
+                className="bg-gray-50"
                 placeholder="e.g., 'Vintage furniture in SF'"
                 required
                 autoFocus

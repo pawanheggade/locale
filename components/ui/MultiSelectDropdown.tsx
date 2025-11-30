@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { ChevronDownIcon, SearchIcon } from '../Icons';
@@ -87,7 +88,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <li
                 key={item.value}
                 onClick={() => handleToggleItem(item.value)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer"
                 role="option"
                 aria-selected={selectedValues.includes(item.value)}
               >
