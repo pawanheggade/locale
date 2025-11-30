@@ -32,16 +32,16 @@ export const Logo: React.FC<LogoProps> = ({ className, variant = 'default', onCl
     >
       <span>l</span>
       <span className="relative inline-flex flex-col items-center">
-        <span>o</span>
+        <span className="locale-logo-o">o</span>
         <svg 
-            width={isLarge ? "25" : "15"} 
-            height={isLarge ? "25" : "15"} 
+            width={isLarge ? "25" : "20"}
+            height={isLarge ? "25" : "20"}
             viewBox="0 0 12 12" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
             className={cn(
-                "absolute", 
-                isLarge ? "top-[80%] w-[25px] h-[25px]" : "top-[80%] w-[15px] h-[15px]"
+                "absolute top-[75%]",
+                isLarge ? "w-[25px] h-[25px]" : "w-[20px] h-[20px]"
             )}
         >
           <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

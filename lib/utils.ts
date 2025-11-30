@@ -1,5 +1,3 @@
-
-
 import type { FC } from 'react';
 import { CheckBadgeIcon, CheckBadgeIconSolid } from '../components/Icons';
 
@@ -100,20 +98,38 @@ export const drawLogoOnCanvas = async (
   const font = `bold ${fontSize}px ${fontName}`;
 
   await document.fonts.load(font);
-  ctx.font = `${font}, sans-serif`;
+  ctx.font = font;
   ctx.fillStyle = '#111827';
-
-  const text = "locale";
-  const textMeasure = ctx.measureText(text);
-  const textX = centerX - (textMeasure.width / 2);
-  
   ctx.textAlign = 'left';
-  ctx.fillText(text, textX, y);
+
+  const lPart = "l";
+  const calePart = "cale";
+  const oMetrics = ctx.measureText('o');
+  const oWidth = oMetrics.width;
+  
+  const totalWidth = ctx.measureText(lPart).width + oWidth + ctx.measureText(calePart).width;
+  const startX = centerX - totalWidth / 2;
+
+  // Draw 'l'
+  ctx.fillText(lPart, startX, y);
+
+  // Draw solid circle for 'o'
+  const circleX = startX + ctx.measureText(lPart).width + (oWidth / 2);
+  // Comfortaa x-height is ~54% of font size. Circle diameter = x-height. Radius = x-height/2.
+  const circleRadius = (fontSize * 0.54) / 2; 
+  // Center of circle should be at half of x-height above baseline.
+  const circleY = y - circleRadius; 
+  ctx.beginPath();
+  ctx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw 'cale'
+  const caleX = startX + ctx.measureText(lPart).width + oWidth;
+  ctx.fillText(calePart, caleX, y);
   
   const lWidth = ctx.measureText('l').width;
-  const oWidth = ctx.measureText('o').width;
   
-  const triangleCenterX = textX + lWidth + (oWidth / 2) + 1;
+  const triangleCenterX = startX + lWidth + (oWidth / 2) + 1;
   const triangleSize = isLarge ? 15 : 12;
   const triangleTopY = y + (isLarge ? 4 : 6);
 
@@ -121,7 +137,6 @@ export const drawLogoOnCanvas = async (
   ctx.translate(triangleCenterX - (triangleSize / 2), triangleTopY);
   
   const scale = triangleSize / 12;
-  ctx.scale(scale, scale);
   
   // Draw triangle (red)
   ctx.beginPath();
