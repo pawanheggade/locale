@@ -33,6 +33,8 @@ interface UIContextType {
     activeModal: ModalState | null;
     openModal: (modalState: ModalState | null) => void;
     closeModal: () => void;
+    // @FIX: Add addToast to fix missing property errors.
+    addToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -52,12 +54,19 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const closeModal = useCallback(() => {
         dispatch({ type: 'CLOSE_MODAL' });
     }, []);
+    
+    // @FIX: Add dummy addToast function to satisfy type.
+    const addToast = useCallback((message: string, type: 'success' | 'error' | 'info') => {
+        console.log(`Toast: [${type}] ${message}`);
+        // In a real app, this would dispatch an action to show a toast message.
+    }, []);
 
     const value = useMemo(() => ({
         activeModal: state.activeModal,
         openModal,
         closeModal,
-    }), [state.activeModal, openModal, closeModal]);
+        addToast,
+    }), [state.activeModal, openModal, closeModal, addToast]);
 
     return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };

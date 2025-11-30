@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -30,6 +31,7 @@ interface AdminPanelProps {
   reports: Report[];
   onReportAction: (report: Report, action: 'dismiss' | 'delete') => void;
   onViewPost: (post: DisplayablePost) => void;
+  onViewAccount: (account: Account) => void;
   onEditPost: (postId: string) => void;
   onDeletePost: (postId: string) => void;
   termsContent: string;

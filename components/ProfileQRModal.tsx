@@ -1,4 +1,3 @@
-
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
@@ -149,19 +148,26 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     ctx.save();
     ctx.translate(triangleCenterX - 6, triangleTopY);
     
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Draw triangle
     ctx.beginPath();
     ctx.moveTo(2, 2);
     ctx.lineTo(6, 10);
     ctx.lineTo(10, 2);
     ctx.lineTo(2, 2);
+    ctx.strokeStyle = '#DC2626'; 
+    ctx.stroke();
+    
+    // Draw horizontal line
+    ctx.beginPath();
     ctx.moveTo(1, 7);
     ctx.lineTo(11, 7);
-    
-    ctx.strokeStyle = '#DC2626'; 
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'black'; 
     ctx.stroke();
+
     ctx.restore();
 
     return new Promise((resolve, reject) => {
@@ -277,7 +283,8 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
                     <span className="relative inline-flex flex-col items-center">
                         <span>o</span>
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[75%]">
-                            <path d="M2 2L6 10L10 2H2Z M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M1 7H11" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </span>
                     <span>cale</span>

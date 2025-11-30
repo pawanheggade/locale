@@ -22,6 +22,8 @@ interface ActivityContextType {
   
   setAvailabilityAlert: (postId: string) => void;
   deleteAvailabilityAlert: (postId: string) => void;
+  // @FIX: Add toggleAvailabilityAlert to fix missing property error.
+  toggleAvailabilityAlert: (postId: string) => void;
   checkAvailabilityAlerts: (post: Post) => void;
 }
 
@@ -140,6 +142,16 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, [availabilityAlerts, updateUserData]);
 
+  // @FIX: Implement toggleAvailabilityAlert to fix missing property error.
+  const toggleAvailabilityAlert = useCallback((postId: string) => {
+    const isSet = availabilityAlerts.some(a => a.postId === postId);
+    if (isSet) {
+      deleteAvailabilityAlert(postId);
+    } else {
+      setAvailabilityAlert(postId);
+    }
+  }, [availabilityAlerts, deleteAvailabilityAlert, setAvailabilityAlert]);
+
   const checkAvailabilityAlerts = useCallback((post: Post) => {
     // Only checking globally to see if any user needs an alert
     // This is a simulated backend check
@@ -192,11 +204,13 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     deletePriceAlert,
     setAvailabilityAlert,
     deleteAvailabilityAlert,
+    toggleAvailabilityAlert,
     checkAvailabilityAlerts
   }), [
     notifications, priceAlerts, availabilityAlerts, unreadCount,
     addNotification, markAsRead, markAllAsRead, clearAllNotifications,
     setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert,
+    toggleAvailabilityAlert,
     checkAvailabilityAlerts
   ]);
 

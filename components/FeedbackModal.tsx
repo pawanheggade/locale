@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useReducer } from 'react';
 import ModalShell from './ModalShell';
 import { Textarea } from './ui/Textarea';
@@ -37,7 +38,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
   const renderFooter = () => (
     <ModalFooter
         onCancel={onClose}
-        onSubmit={handleSubmit}
+        // @FIX: Removed `onSubmit` prop which caused a type error. `submitFormId` handles form submission.
         submitText="Send Feedback"
         isSubmitting={isSubmitting}
         isSubmitDisabled={!state.content.trim()}
