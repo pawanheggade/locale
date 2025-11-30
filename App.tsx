@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -495,72 +496,43 @@ export const App: React.FC = () => {
           onBack={(view === 'all' && isAnyFilterActive) || history.length > 0 ? handleBack : undefined}
         />
         <main ref={mainContentRef} onScroll={handleScroll} className={cn("relative flex-1 overflow-y-auto bg-gray-50 pt-16", isInitialLoading && "overflow-hidden", isPulling && "overflow-hidden")}>
-          {view === 'all' && mainView === 'grid' ? (
-            <>
-              <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
-              <div style={{ transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` }} className={!isPulling ? 'transition-transform duration-300' : ''}>
-                 <ErrorBoundary>
-                    <ViewManager
-                      view={view}
-                      mainView={mainView}
-                      gridView={gridView}
-                      isInitialLoading={isInitialLoading}
-                      isFiltering={isFiltering}
-                      userLocation={userLocation}
-                      postToFocusOnMap={postToFocusOnMap}
-                      onPostFocusComplete={() => setPostToFocusOnMap(null)}
-                      locationToFocus={locationToFocus}
-                      onLocationFocusComplete={() => setLocationToFocus(null)}
-                      viewingAccount={viewingAccount}
-                      viewingPostId={viewingPostId}
-                      viewingForumPostId={viewingForumPostId}
-                      nearbyPostsResult={nearbyPostsResult}
-                      notificationSettings={notificationSettings}
-                      onUpdateNotificationSettings={handleUpdateNotificationSettings}
-                      requestArchiveAccount={requestArchiveAccount}
-                      requestSignOut={requestSignOut}
-                      handleNotificationClick={handleNotificationClick}
-                      adminInitialView={adminInitialView}
-                      handleDeleteFeedback={handleDeleteFeedback}
-                      handleToggleFeedbackArchive={handleToggleFeedbackArchive}
-                      handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
-                      handleBulkFeedbackAction={handleBulkFeedbackAction}
-                      isGeocoding={isGeocoding}
-                    />
-                 </ErrorBoundary>
-              </div>
-            </>
-          ) : (
-             <ErrorBoundary>
-                <ViewManager
-                  view={view}
-                  mainView={mainView}
-                  gridView={gridView}
-                  isInitialLoading={isInitialLoading}
-                  isFiltering={isFiltering}
-                  userLocation={userLocation}
-                  postToFocusOnMap={postToFocusOnMap}
-                  onPostFocusComplete={() => setPostToFocusOnMap(null)}
-                  locationToFocus={locationToFocus}
-                  onLocationFocusComplete={() => setLocationToFocus(null)}
-                  viewingAccount={viewingAccount}
-                  viewingPostId={viewingPostId}
-                  viewingForumPostId={viewingForumPostId}
-                  nearbyPostsResult={nearbyPostsResult}
-                  notificationSettings={notificationSettings}
-                  onUpdateNotificationSettings={handleUpdateNotificationSettings}
-                  requestArchiveAccount={requestArchiveAccount}
-                  requestSignOut={requestSignOut}
-                  handleNotificationClick={handleNotificationClick}
-                  adminInitialView={adminInitialView}
-                  handleDeleteFeedback={handleDeleteFeedback}
-                  handleToggleFeedbackArchive={handleToggleFeedbackArchive}
-                  handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
-                  handleBulkFeedbackAction={handleBulkFeedbackAction}
-                  isGeocoding={isGeocoding}
-                />
-             </ErrorBoundary>
+          {view === 'all' && mainView === 'grid' && (
+            <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
           )}
+          <div 
+            style={{ transform: `translateY(${(view === 'all' && mainView === 'grid') ? (isRefreshing ? pullThreshold : pullPosition) : 0}px)` }} 
+            className={(view === 'all' && mainView === 'grid' && !isPulling) ? 'transition-transform duration-300' : ''}
+          >
+            <ErrorBoundary>
+              <ViewManager
+                view={view}
+                mainView={mainView}
+                gridView={gridView}
+                isInitialLoading={isInitialLoading}
+                isFiltering={isFiltering}
+                userLocation={userLocation}
+                postToFocusOnMap={postToFocusOnMap}
+                onPostFocusComplete={() => setPostToFocusOnMap(null)}
+                locationToFocus={locationToFocus}
+                onLocationFocusComplete={() => setLocationToFocus(null)}
+                viewingAccount={viewingAccount}
+                viewingPostId={viewingPostId}
+                viewingForumPostId={viewingForumPostId}
+                nearbyPostsResult={nearbyPostsResult}
+                notificationSettings={notificationSettings}
+                onUpdateNotificationSettings={handleUpdateNotificationSettings}
+                requestArchiveAccount={requestArchiveAccount}
+                requestSignOut={requestSignOut}
+                handleNotificationClick={handleNotificationClick}
+                adminInitialView={adminInitialView}
+                handleDeleteFeedback={handleDeleteFeedback}
+                handleToggleFeedbackArchive={handleToggleFeedbackArchive}
+                handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                handleBulkFeedbackAction={handleBulkFeedbackAction}
+                isGeocoding={isGeocoding}
+              />
+            </ErrorBoundary>
+          </div>
         </main>
         <OfflineIndicator />
         {!currentAccount && (view === 'all' || view === 'postDetail' || view === 'account') && (

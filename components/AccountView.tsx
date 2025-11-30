@@ -225,7 +225,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
                   <div className="mb-1">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-baseline gap-2 flex-wrap">
                           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                           <SubscriptionBadge tier={account.subscription.tier} />
                           {isOwnAccount && (
