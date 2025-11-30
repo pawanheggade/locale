@@ -98,3 +98,5 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
     </ModalShell>
   );
 };
+
+export default ContactSellerModal;

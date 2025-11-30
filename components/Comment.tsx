@@ -1,5 +1,6 @@
 
 
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -132,7 +133,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
           </div>
         )}
         <div className="mt-6 space-y-6">
-{/* @FIX: Correct recursive component call from CommentComponent to Comment. */}
           {comment.replies.map(reply => (
             <Comment key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
           ))}

@@ -38,7 +38,6 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose, onSubmit 
   const renderFooter = () => (
     <ModalFooter
         onCancel={onClose}
-        // @FIX: Removed `onSubmit` prop which caused a type error. `submitFormId` handles form submission.
         submitText="Send Feedback"
         isSubmitting={isSubmitting}
         isSubmitDisabled={!state.content.trim()}

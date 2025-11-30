@@ -154,8 +154,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
           <div className="grid grid-cols-3 gap-3">
             {socialLinks.map(({ name, icon: Icon, url }) => (
               <Button
-                key={name}
                 as="a"
+                key={name}
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"

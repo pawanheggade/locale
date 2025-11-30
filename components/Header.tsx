@@ -163,7 +163,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
           Spacing is handled by flex gap and justify-between.
         - Desktop (sm+): Grid. Logo | Search+Filter | RightButtons.
       */}
-      <div className={`px-2 sm:px-6 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center justify-between sm:justify-start gap-0 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      <div className={`px-4 sm:px-6 lg:px-8 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center justify-between sm:justify-start gap-0 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         
         {/* Left Section: Back Button + Logo */}
         <div className="flex items-center gap-2 shrink-0">

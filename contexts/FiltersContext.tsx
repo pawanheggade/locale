@@ -127,6 +127,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const results = await performAiSearch(query, posts);
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: results });
     } catch (error) {
+      console.error(error);
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: [] });
     } finally {
       dispatchFilterAction({ type: 'SET_AI_SEARCHING', payload: false });

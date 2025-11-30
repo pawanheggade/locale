@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, ChatBubbleEllipsisIcon } from './Icons';
+import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, ChatBubbleEllipsisIcon, CheckBadgeIconSolid } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { Avatar } from './Avatar';
@@ -205,7 +205,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                                 <div className="my-1 h-px bg-gray-100" role="separator" />
                                 <div className="p-2" role="none">
                                     <Button onClick={() => handleMenuAction(() => onViewChange('admin'))} variant="ghost" className="w-full justify-center gap-4 px-4 py-2.5 text-base h-auto font-medium text-gray-600 rounded-xl" role="menuitem">
-                                        <ChatBubbleEllipsisIcon className="w-6 h-6 text-gray-600" />
+                                        <UserIcon className="w-6 h-6 text-gray-600" />
                                         <span>Admin Panel</span>
                                     </Button>
                                 </div>

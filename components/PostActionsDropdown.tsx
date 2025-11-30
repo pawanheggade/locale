@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from './Icons';
@@ -47,7 +48,6 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isMounted = useIsMounted();
-// @FIX: Replace deprecated usePostActions with direct context hooks.
   const { deletePostPermanently } = usePosts();
   const { navigateTo } = useNavigation();
 

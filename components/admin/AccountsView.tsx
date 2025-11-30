@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Account, Subscription } from '../../types';
 import { PencilIcon, CheckIcon, XMarkIcon, ArrowUturnLeftIcon, ArchiveBoxIcon } from '../Icons';
@@ -19,10 +18,9 @@ interface AccountsViewProps {
     onApproveAccount: (accountId: string) => void;
     onRejectAccount: (account: Account) => void;
     onUpdateSubscription: (accountId: string, tier: Subscription['tier']) => void;
-    onViewAccount: (account: Account) => void;
 }
 
-export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAccount, onUpdateAccountRole, onEditAccount, onToggleAccountStatus, onApproveAccount, onRejectAccount, onUpdateSubscription, currentAccount, onViewAccount }) => {
+export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAccount, onUpdateAccountRole, onEditAccount, onToggleAccountStatus, onApproveAccount, onRejectAccount, onUpdateSubscription, currentAccount }) => {
     const { items: sortedAccounts, requestSort, sortConfig } = useSort(accounts, { key: 'joinDate', direction: 'desc' });
     
     const columns = [
@@ -40,18 +38,15 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
         return (
              <tr key={account.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                        onClick={() => onViewAccount(account)}
-                        className="flex items-center text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-md"
-                    >
+                    <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                             <Avatar src={account.avatarUrl} alt={account.name} size="md" tier={account.subscription.tier} />
                         </div>
                         <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors">{account.name}</div>
+                            <div className="text-sm font-medium text-gray-900">{account.name}</div>
                             <div className="text-sm text-gray-600">@{account.username}</div>
                         </div>
-                    </button>
+                    </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

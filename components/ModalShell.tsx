@@ -10,7 +10,7 @@ interface ModalShellProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   panelClassName?: string;
-  position?: 'center' | 'right' | 'left';
+  position?: 'center' | 'right';
   trapFocus?: boolean;
 }
 

@@ -1,7 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { fileToDataUrl, compressImage } from '../utils/media';
-import { useUI } from '../contexts/UIContext';
 import { useIsMounted } from './useIsMounted';
 
 export interface MediaUpload {
@@ -77,6 +76,7 @@ export const useMediaUploader = ({ maxFiles, maxFileSizeMB, subscriptionTier }: 
       const fileType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : null;
 
       if (mediaUploads.length + newUploads.length >= maxFiles) {
+        console.error(`You can upload a maximum of ${maxFiles} media files${subscriptionTier ? ` with your ${subscriptionTier} plan` : ''}.`);
         break;
       }
 

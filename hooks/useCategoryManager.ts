@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface UseCategoryManagerProps<T> {
@@ -8,6 +7,7 @@ interface UseCategoryManagerProps<T> {
     setCategories: React.Dispatch<React.SetStateAction<string[]>>;
     setItems: React.Dispatch<React.SetStateAction<T[]>>;
     setArchivedItems?: React.Dispatch<React.SetStateAction<T[]>>;
+    addToast: (message: string, type?: 'success' | 'error') => void;
     itemTypeLabel: string; // e.g. 'Category', 'Unit'
     field: keyof T;
     shouldSort?: boolean;
@@ -20,6 +20,7 @@ export const useCategoryManager = <T>({
     setCategories,
     setItems,
     setArchivedItems,
+    addToast,
     itemTypeLabel,
     field,
     shouldSort = true,
@@ -31,6 +32,9 @@ export const useCategoryManager = <T>({
                 const newCats = [...prev, name];
                 return shouldSort ? newCats.sort((a, b) => a.localeCompare(b)) : newCats;
             });
+            addToast(`${itemTypeLabel} added.`, 'success');
+        } else {
+            addToast(`${itemTypeLabel} already exists or name is invalid.`, 'error');
         }
     };
 
@@ -46,15 +50,20 @@ export const useCategoryManager = <T>({
             if (setArchivedItems) {
                 setArchivedItems(prev => prev.map(p => p[field] === oldName ? { ...p, [field]: newName } : p));
             }
+            addToast(`${itemTypeLabel} updated.`, 'success');
+        } else {
+            addToast('New name is invalid or already exists.', 'error');
         }
     };
 
     const deleteCategory = (name: string) => {
         const isUsed = items.some(p => p[field] === name) || archivedItems.some(p => p[field] === name);
         if (isUsed) {
+            addToast(`Cannot delete ${itemTypeLabel.toLowerCase()} as it is in use.`, 'error');
             return;
         }
         setCategories(prev => prev.filter(c => c !== name));
+        addToast(`${itemTypeLabel} deleted.`, 'success');
     };
 
     return { addCategory, updateCategory, deleteCategory };

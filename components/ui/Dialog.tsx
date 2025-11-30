@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { XMarkIcon } from '../Icons';
+import { XMarkIcon, ChevronLeftIcon } from '../Icons';
 import { Button } from './Button';
 import { useIsMounted } from '../../hooks/useIsMounted';
 
@@ -10,7 +10,7 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
-  position?: 'center' | 'right' | 'left';
+  position?: 'center' | 'right';
 }
 
 const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position = 'center' }) => {
@@ -50,7 +50,6 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
   const positionContainerClasses = {
     center: 'justify-center items-center p-4',
     right: 'justify-end',
-    left: 'justify-start',
   };
 
   return (
@@ -76,20 +75,18 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
 
 const DialogContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { isClosing?: boolean, position?: 'center' | 'right' | 'left', className?: string, trapFocus?: boolean }
+  React.HTMLAttributes<HTMLDivElement> & { isClosing?: boolean, position?: 'center' | 'right', className?: string, trapFocus?: boolean }
 >(({ className, children, isClosing, position = 'center', trapFocus = true, ...props }, ref) => {
   const internalRef = useRef<HTMLDivElement>(null);
   const dialogRef = (ref || internalRef) as React.RefObject<HTMLDivElement>;
 
   const panelPositionAnims = {
       center: { open: 'animate-fade-in-up', close: 'animate-fade-out-down' },
-      right: { open: 'animate-slide-in-right', close: 'animate-slide-out-right' },
-      left: { open: 'animate-slide-in-left', close: 'animate-slide-out-left' }
+      right: { open: 'animate-slide-in-right', close: 'animate-slide-out-right' }
   };
   const panelPositionClasses = {
     center: 'rounded-xl max-h-[90vh]',
-    right: 'h-full',
-    left: 'h-full',
+    right: 'h-full'
   };
 
   const panelAnimation = isClosing ? panelPositionAnims[position].close : panelPositionAnims[position].open;
@@ -125,12 +122,12 @@ const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
 ));
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-    <h2 ref={ref} className={cn("text-lg font-bold text-gray-800 leading-none tracking-tight text-center px-8", className)} {...props} />
+    <h2 ref={ref} className={cn("text-lg font-bold text-gray-800 leading-none tracking-tight", className)} {...props} />
 ));
 
 const DialogClose: React.FC<{ onClick?: () => void }> = ({ onClick }) => (
-    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute top-4 right-4 text-gray-800" aria-label="Close">
-        <XMarkIcon className="w-6 h-6" />
+    <Button onClick={onClick} variant="overlay-dark" size="icon-sm" className="absolute left-4 top-4 text-gray-800" aria-label="Back">
+        <ChevronLeftIcon className="w-6 h-6" />
     </Button>
 );
 

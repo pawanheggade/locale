@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { NotificationSettings, Account } from '../types';
 import { useUI } from '../contexts/UIContext';
@@ -15,15 +14,17 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onArchiveAccount, onSignOut, currentAccount }) => {
-  const { openModal } = useUI();
+  const { addToast, openModal } = useUI();
   const [notificationPermission, setNotificationPermission] = useState('Notification' in window ? Notification.permission : 'default');
 
   const handleEnableNotifications = async () => {
     if (!('Notification' in window)) {
+        addToast("This browser does not support desktop notifications.", 'error');
         return;
     }
 
     if (notificationPermission === 'granted') {
+        addToast("Notifications are already enabled.", 'success');
         return;
     }
 
@@ -31,10 +32,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
         const permission = await Notification.requestPermission();
         setNotificationPermission(permission);
         if (permission === 'granted') {
+            addToast("Notifications enabled successfully!", 'success');
             new Notification("Notifications Enabled", { body: "You will now receive updates from Locale." });
+        } else {
+            addToast("Notification permission was not granted.", 'error');
         }
     } catch (error) {
         console.error("Error requesting notification permission:", error);
+        addToast("Failed to enable notifications.", 'error');
     }
   };
 

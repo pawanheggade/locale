@@ -73,7 +73,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         onClose={onClose}
         title="Filters"
         footer={renderFooter()}
-        position="left"
+        position="right"
         panelClassName="w-full max-w-sm"
         titleId="filter-panel-title"
     >

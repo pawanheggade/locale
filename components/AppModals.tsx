@@ -24,8 +24,7 @@ import SetPriceAlertModal from './SetPriceAlertModal';
 import AddToBagModal from './AddToBagModal';
 import SaveToListModal from './SaveToListModal';
 import { AccountModal } from './AccountModal';
-// @FIX: ContactSellerModal is a named export, not a default one.
-import { ContactSellerModal } from './ContactSellerModal';
+import ContactSellerModal from './ContactSellerModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
 import { StaticContentModal } from './StaticContentModal';
 import { CreateForumPostModal } from './CreateForumPostModal';
@@ -70,7 +69,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
     } = useActivity();
 
     const { addPost: createForumPost } = useForum();
-    const { addToast } = useUI();
     const { dispatchFilterAction } = useFilters();
     const showConfirmation = useConfirmationModal();
 
@@ -83,7 +81,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
         if (search) {
             dispatchFilterAction({ type: 'SET_FILTERS_FROM_SAVED', payload: search.filters });
             closeModal();
-            addToast(`Loaded search: ${search.name}`, 'success');
         }
     };
 
@@ -143,7 +140,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
       case 'filterPanel':
         return <FilterPanel isOpen={true} onClose={closeModal} isLocationAvailable={!!userLocation} onOpenFindNearbyModal={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} savedSearchesCount={savedSearches.length} currentAccount={currentAccount} />;
       case 'saveSearch':
-        return <SaveSearchModal onSave={(name) => { addSavedSearch({ id: `saved-${Date.now()}`, name, filters: {} as any }); addToast('Search saved!', 'success'); }} onClose={closeModal} />;
+        return <SaveSearchModal onSave={(name) => { addSavedSearch({ id: `saved-${Date.now()}`, name, filters: {} as any }); }} onClose={closeModal} />;
       case 'viewSavedSearches':
         return <SavedSearchesModal savedSearches={savedSearches} onLoad={handleLoadSearch} onDelete={deleteSavedSearch} onClose={closeModal} />;
       case 'setPriceAlert':

@@ -49,6 +49,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         categories,
         setCategories,
         setItems: setRawPosts,
+        addToast: () => {},
         itemTypeLabel: 'Category',
         field: 'category',
         shouldSort: true

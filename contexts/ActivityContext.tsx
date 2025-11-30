@@ -1,5 +1,7 @@
 
-import React, { createContext, useContext, useMemo, useCallback } from 'react';
+
+
+import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';
@@ -22,7 +24,6 @@ interface ActivityContextType {
   
   setAvailabilityAlert: (postId: string) => void;
   deleteAvailabilityAlert: (postId: string) => void;
-  // @FIX: Add toggleAvailabilityAlert to fix missing property error.
   toggleAvailabilityAlert: (postId: string) => void;
   checkAvailabilityAlerts: (post: Post) => void;
 }
@@ -31,6 +32,7 @@ const ActivityContext = createContext<ActivityContextType | undefined>(undefined
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentAccount } = useAuth();
+  const { addToast } = useUI();
 
   // We store all activity data in one object keyed by userId to persist across logins
   const [allActivityData, setAllActivityData] = usePersistentState<Record<string, {
@@ -120,32 +122,34 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       newAlerts.push({ id: `alert-${Date.now()}`, postId, targetPrice });
     }
     updateUserData({ priceAlerts: newAlerts });
-  }, [priceAlerts, updateUserData]);
+    addToast('Price alert set!', 'success');
+  }, [priceAlerts, updateUserData, addToast]);
 
   const deletePriceAlert = useCallback((postId: string) => {
     updateUserData({
       priceAlerts: priceAlerts.filter(a => a.postId !== postId)
     });
-  }, [priceAlerts, updateUserData]);
+    addToast('Price alert removed.', 'success');
+  }, [priceAlerts, updateUserData, addToast]);
 
   const setAvailabilityAlert = useCallback((postId: string) => {
     if (!availabilityAlerts.some(a => a.postId === postId)) {
       updateUserData({
         availabilityAlerts: [...availabilityAlerts, { id: `avail-${Date.now()}`, postId }]
       });
+      addToast('You will be notified when available.', 'success');
     }
-  }, [availabilityAlerts, updateUserData]);
+  }, [availabilityAlerts, updateUserData, addToast]);
 
   const deleteAvailabilityAlert = useCallback((postId: string) => {
     updateUserData({
       availabilityAlerts: availabilityAlerts.filter(a => a.postId !== postId)
     });
-  }, [availabilityAlerts, updateUserData]);
+    addToast('Availability alert removed.', 'success');
+  }, [availabilityAlerts, updateUserData, addToast]);
 
-  // @FIX: Implement toggleAvailabilityAlert to fix missing property error.
   const toggleAvailabilityAlert = useCallback((postId: string) => {
-    const isSet = availabilityAlerts.some(a => a.postId === postId);
-    if (isSet) {
+    if (availabilityAlerts.some(a => a.postId === postId)) {
       deleteAvailabilityAlert(postId);
     } else {
       setAvailabilityAlert(postId);

@@ -43,6 +43,7 @@ interface PostsContextType {
 const PostsContext = createContext<PostsContextType | undefined>(undefined);
 
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
     const { accountsById } = useAuth();
     const { checkAvailabilityAlerts } = useActivity();
@@ -75,6 +76,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories,
         setItems: setRawPosts,
         setArchivedItems: setRawArchivedPosts,
+        addToast,
         itemTypeLabel: 'Category',
         field: 'category',
         shouldSort: true
@@ -91,6 +93,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories: setPriceUnits,
         setItems: setRawPosts,
         setArchivedItems: setRawArchivedPosts,
+        addToast,
         itemTypeLabel: 'Price unit',
         field: 'priceUnit',
         shouldSort: false // Preserve order for price units mostly, or let user append

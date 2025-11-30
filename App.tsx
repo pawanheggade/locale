@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -384,7 +383,7 @@ export const App: React.FC = () => {
       if (!coords && account.address) {
         setIsGeocoding(true);
         try { coords = await geocodeLocation(account.address); } 
-        catch (e) { console.error('Failed to find location'); } 
+        catch (e) { console.error(e); } 
         finally { if (isMounted()) setIsGeocoding(false); }
       }
       if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
@@ -496,43 +495,72 @@ export const App: React.FC = () => {
           onBack={(view === 'all' && isAnyFilterActive) || history.length > 0 ? handleBack : undefined}
         />
         <main ref={mainContentRef} onScroll={handleScroll} className={cn("relative flex-1 overflow-y-auto bg-gray-50 pt-16", isInitialLoading && "overflow-hidden", isPulling && "overflow-hidden")}>
-          {view === 'all' && mainView === 'grid' && (
-            <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
+          {view === 'all' && mainView === 'grid' ? (
+            <>
+              <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
+              <div style={{ transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` }} className={!isPulling ? 'transition-transform duration-300' : ''}>
+                 <ErrorBoundary>
+                    <ViewManager
+                      view={view}
+                      mainView={mainView}
+                      gridView={gridView}
+                      isInitialLoading={isInitialLoading}
+                      isFiltering={isFiltering}
+                      userLocation={userLocation}
+                      postToFocusOnMap={postToFocusOnMap}
+                      onPostFocusComplete={() => setPostToFocusOnMap(null)}
+                      locationToFocus={locationToFocus}
+                      onLocationFocusComplete={() => setLocationToFocus(null)}
+                      viewingAccount={viewingAccount}
+                      viewingPostId={viewingPostId}
+                      viewingForumPostId={viewingForumPostId}
+                      nearbyPostsResult={nearbyPostsResult}
+                      notificationSettings={notificationSettings}
+                      onUpdateNotificationSettings={handleUpdateNotificationSettings}
+                      requestArchiveAccount={requestArchiveAccount}
+                      requestSignOut={requestSignOut}
+                      handleNotificationClick={handleNotificationClick}
+                      adminInitialView={adminInitialView}
+                      handleDeleteFeedback={handleDeleteFeedback}
+                      handleToggleFeedbackArchive={handleToggleFeedbackArchive}
+                      handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                      handleBulkFeedbackAction={handleBulkFeedbackAction}
+                      isGeocoding={isGeocoding}
+                    />
+                 </ErrorBoundary>
+              </div>
+            </>
+          ) : (
+             <ErrorBoundary>
+                <ViewManager
+                  view={view}
+                  mainView={mainView}
+                  gridView={gridView}
+                  isInitialLoading={isInitialLoading}
+                  isFiltering={isFiltering}
+                  userLocation={userLocation}
+                  postToFocusOnMap={postToFocusOnMap}
+                  onPostFocusComplete={() => setPostToFocusOnMap(null)}
+                  locationToFocus={locationToFocus}
+                  onLocationFocusComplete={() => setLocationToFocus(null)}
+                  viewingAccount={viewingAccount}
+                  viewingPostId={viewingPostId}
+                  viewingForumPostId={viewingForumPostId}
+                  nearbyPostsResult={nearbyPostsResult}
+                  notificationSettings={notificationSettings}
+                  onUpdateNotificationSettings={handleUpdateNotificationSettings}
+                  requestArchiveAccount={requestArchiveAccount}
+                  requestSignOut={requestSignOut}
+                  handleNotificationClick={handleNotificationClick}
+                  adminInitialView={adminInitialView}
+                  handleDeleteFeedback={handleDeleteFeedback}
+                  handleToggleFeedbackArchive={handleToggleFeedbackArchive}
+                  handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                  handleBulkFeedbackAction={handleBulkFeedbackAction}
+                  isGeocoding={isGeocoding}
+                />
+             </ErrorBoundary>
           )}
-          <div 
-            style={(view === 'all' && mainView === 'grid') ? { transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` } : undefined} 
-            className={(view === 'all' && mainView === 'grid' && !isPulling) ? 'transition-transform duration-300' : ''}
-          >
-            <ErrorBoundary>
-              <ViewManager
-                view={view}
-                mainView={mainView}
-                gridView={gridView}
-                isInitialLoading={isInitialLoading}
-                isFiltering={isFiltering}
-                userLocation={userLocation}
-                postToFocusOnMap={postToFocusOnMap}
-                onPostFocusComplete={() => setPostToFocusOnMap(null)}
-                locationToFocus={locationToFocus}
-                onLocationFocusComplete={() => setLocationToFocus(null)}
-                viewingAccount={viewingAccount}
-                viewingPostId={viewingPostId}
-                viewingForumPostId={viewingForumPostId}
-                nearbyPostsResult={nearbyPostsResult}
-                notificationSettings={notificationSettings}
-                onUpdateNotificationSettings={handleUpdateNotificationSettings}
-                requestArchiveAccount={requestArchiveAccount}
-                requestSignOut={requestSignOut}
-                handleNotificationClick={handleNotificationClick}
-                adminInitialView={adminInitialView}
-                handleDeleteFeedback={handleDeleteFeedback}
-                handleToggleFeedbackArchive={handleToggleFeedbackArchive}
-                handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
-                handleBulkFeedbackAction={handleBulkFeedbackAction}
-                isGeocoding={isGeocoding}
-              />
-            </ErrorBoundary>
-          </div>
         </main>
         <OfflineIndicator />
         {!currentAccount && (view === 'all' || view === 'postDetail' || view === 'account') && (
@@ -620,7 +648,7 @@ const ViewManager: React.FC<any> = (props) => {
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
         case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
         case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onViewAccount={(account) => navigateTo('account', { account })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
+            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
         case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} isGeocoding={isGeocoding} /></Suspense> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;

@@ -285,7 +285,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     const toggleLikeAccount = useCallback((accountIdToLike: string) => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
-        if (!loggedInAccount) return;
+        const targetAccount = accounts.find(a => a.id === accountIdToLike);
+        if (!loggedInAccount || !targetAccount) return;
         const wasLiked = (loggedInAccount.likedAccountIds || []).includes(accountIdToLike);
         setAccounts(prev => prev.map(acc => {
             if (acc.id === loggedInAccount.id) {
@@ -502,6 +503,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
         let bagUpdates = [...currentUserData.bag];
+        let itemsAddedCount = 0;
         itemsFromList.forEach(itemFromList => {
             const existingInBagItem = bagUpdates.find(bagItem => bagItem.postId === itemFromList.postId && bagItem.savedListIds.length === 0);
             if (existingInBagItem) {
@@ -510,6 +512,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const newItemForBag: BagItem = { id: `bag-${Date.now()}-${itemFromList.postId}-${Math.random()}`, postId: itemFromList.postId, quantity: itemFromList.quantity, isChecked: false, savedListIds: [] };
                 bagUpdates.push(newItemForBag);
             }
+            itemsAddedCount++;
         });
         updateCurrentUserSpecificData({ bag: bagUpdates });
     }, [currentAccountId, currentUserData.bag, currentUserData.savedLists, updateCurrentUserSpecificData]);

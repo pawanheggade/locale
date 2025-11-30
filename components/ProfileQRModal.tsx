@@ -1,3 +1,6 @@
+
+
+
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
@@ -148,26 +151,19 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     ctx.save();
     ctx.translate(triangleCenterX - 6, triangleTopY);
     
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    
-    // Draw triangle
     ctx.beginPath();
     ctx.moveTo(2, 2);
     ctx.lineTo(6, 10);
     ctx.lineTo(10, 2);
     ctx.lineTo(2, 2);
-    ctx.strokeStyle = '#DC2626'; 
-    ctx.stroke();
-    
-    // Draw horizontal line
-    ctx.beginPath();
     ctx.moveTo(1, 7);
     ctx.lineTo(11, 7);
-    ctx.strokeStyle = 'black'; 
+    
+    ctx.strokeStyle = '#DC2626'; 
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.stroke();
-
     ctx.restore();
 
     return new Promise((resolve, reject) => {
@@ -185,123 +181,48 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${account.username}-qr-card.png`;
+        link.download = `${account.username}-locale-qr.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Download failed', error);
+        console.error("Failed to generate QR card:", error);
     } finally {
         setIsGenerating(false);
     }
   };
-
-  const handleShare = async () => {
-    setIsGenerating(true);
-    try {
-      // Generate the image
-      const blob = await generateQrCardBlob();
-      const file = new File([blob], `${account.username}-qr-card.png`, { type: 'image/png' });
-      
-      const shareData: ShareData = {
-          title: `Check out ${account.name} on Locale`,
-          text: `Scan this QR code to visit ${account.name}'s profile on Locale.`,
-          url: profileUrl,
-      };
-
-      // Try sharing with file if supported
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ ...shareData, files: [file] });
-      } else if (navigator.share) {
-          // Fallback to text/url share if file sharing not supported
-          await navigator.share(shareData);
-      } else {
-          // Fallback to clipboard copy
-          navigator.clipboard.writeText(profileUrl);
-      }
-    } catch (error: any) {
-        // Robust check for user cancellation
-        const isAbort = error.name === 'AbortError' || 
-                        error.name === 'NotAllowedError' ||
-                        (typeof error.message === 'string' && (
-                            error.message.toLowerCase().includes('abort') || 
-                            error.message.toLowerCase().includes('cancel') ||
-                            error.message.toLowerCase().includes('cancelled')
-                        ));
-        
-        if (isAbort) {
-            return; // Silently exit on user cancellation
-        }
-
-        console.error('Share failed', error);
-        
-        // If file generation failed but user still wants to share, fallback to link copy
-        if (error.message === 'Blob creation failed' || error.message === 'Canvas context failed') {
-             navigator.clipboard.writeText(profileUrl);
-             return;
-        }
-    } finally {
-        setIsGenerating(false);
-    }
-  };
-
-  const shouldShowBadge = account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic';
 
   return (
     <ModalShell
       panelRef={modalRef}
       onClose={onClose}
-      title="Profile QR Code"
+      title="Share Profile"
+      panelClassName="w-full max-w-xs"
       titleId="profile-qr-title"
-      panelClassName="w-full max-w-sm p-0 overflow-hidden rounded-2xl"
     >
-      <div className="flex flex-col items-center">
-        <div className="p-8 pb-6 bg-white w-full flex flex-col items-center">
-            {/* Unified Card Container */}
-            <div className={`relative p-6 rounded-3xl border-[5px] ${borderColorClass} bg-white shadow-sm flex flex-col items-center w-full max-w-[280px]`}>
-                
-                {/* QR Code */}
-                <div className="relative mb-4 w-full aspect-square">
-                    <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-full h-full object-contain rounded-lg" />
-                </div>
-                
-                {/* Name & Username */}
-                <div className="text-center mb-6">
-                    <div className="flex items-center justify-center gap-1.5">
-                        <h2 className="text-2xl font-bold text-gray-900 leading-tight">{account.name}</h2>
-                        {shouldShowBadge && (
-                            <SubscriptionBadge tier={account.subscription.tier} iconOnly className="w-6 h-6 mt-0.5" />
-                        )}
-                    </div>
-                    <p className="text-gray-500 font-medium mt-1">@{account.username}</p>
-                </div>
-
-                {/* Locale Logo */}
-                <div className="flex items-baseline text-gray-900 font-bold text-xl select-none pointer-events-none font-['Comfortaa']">
-                    <span>l</span>
-                    <span className="relative inline-flex flex-col items-center">
-                        <span>o</span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-[75%]">
-                            <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M1 7H11" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </span>
-                    <span>cale</span>
-                </div>
-            </div>
+      <div className="p-6 flex flex-col items-center text-center">
+        <div className={`p-3 bg-white rounded-xl border-4 ${borderColorClass} inline-block shadow-md`}>
+          <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-56 h-56 rounded-md" />
         </div>
-
-        {/* Footer Actions */}
-        <div className="w-full bg-gray-50 border-t p-4 flex gap-3 justify-center">
-            <Button onClick={handleDownload} variant="outline" className="flex-1 justify-center" disabled={isGenerating}>
-                {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ArrowDownTrayIcon className="w-5 h-5 mr-2" />}
-                {isGenerating ? 'Saving...' : 'Download'}
+        <div className="mt-4">
+          <h3 className="text-xl font-bold text-gray-800">{account.name}</h3>
+          <p className="text-sm text-gray-600">@{account.username}</p>
+        </div>
+        <div className="mt-6 w-full space-y-3">
+          <Button onClick={handleDownload} variant="pill-dark" className="w-full gap-2" isLoading={isGenerating}>
+            {isGenerating ? 'Generating...' : <><ArrowDownTrayIcon className="w-5 h-5" /> Download</>}
+          </Button>
+          {navigator.share && (
+            <Button 
+                onClick={async () => {
+                    await navigator.share({ url: profileUrl, title: account.name, text: `Check out ${account.name} on Locale!`});
+                }}
+                variant="outline" className="w-full gap-2"
+            >
+              <ShareIcon className="w-5 h-5" /> More Share Options
             </Button>
-            <Button onClick={handleShare} variant="outline" className="flex-1 justify-center" disabled={isGenerating}>
-                {isGenerating ? <SpinnerIcon className="w-5 h-5" /> : <ShareIcon className="w-5 h-5 mr-2" />}
-                Share Card
-            </Button>
+          )}
         </div>
       </div>
     </ModalShell>

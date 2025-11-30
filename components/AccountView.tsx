@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -125,7 +127,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `https://wa.me/${account.messageNumber?.replace(/\D/g, '')}`,
             isVisible: account.contactOptions?.includes('message') && !!account.messageNumber,
             label: 'Message',
-            toast: 'Opening messaging app...'
+// @FIX: Add toast property to satisfy ProfileActionsProps type
+            toast: 'Opening messaging app...',
         },
         {
             key: 'mobile',
@@ -133,7 +136,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `tel:${account.mobile}`,
             isVisible: account.contactOptions?.includes('mobile') && !!account.mobile,
             label: 'Call',
-            toast: 'Opening phone app...'
+// @FIX: Add toast property to satisfy ProfileActionsProps type
+            toast: 'Opening phone dialer...',
         },
         {
             key: 'email',
@@ -141,7 +145,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
             href: `mailto:${account.email}?subject=${subject}&body=${body}`,
             isVisible: account.contactOptions?.includes('email') && !!account.email,
             label: 'Email',
-            toast: 'Opening email client...'
+// @FIX: Add toast property to satisfy ProfileActionsProps type
+            toast: 'Opening email client...',
         }
     ].filter(m => m.isVisible);
   }, [account, currentAccount]);
@@ -191,7 +196,18 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   url: profileUrl,
               });
           } catch (err: any) {
-              // ignore
+              const isAbort = 
+                  err.name === 'AbortError' || 
+                  err.code === 20 ||
+                  (typeof err.message === 'string' && (
+                      err.message.toLowerCase().includes('abort') || 
+                      err.message.toLowerCase().includes('cancel') ||
+                      err.message.toLowerCase().includes('canceled')
+                  ));
+              
+              if (!isAbort) {
+                  console.error('Error sharing:', err);
+              }
           }
       } else {
           openModal({ type: 'profileQR', data: account });
@@ -213,8 +229,10 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         
         {/* Profile Header Card */}
         <div className="relative bg-white rounded-xl p-4 sm:p-6 mt-6 border border-gray-200/80">
-          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-4">
-              <div className="flex items-end gap-4 flex-1 min-w-[250px]">
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
+              
+              <div className="flex items-end gap-4">
                   <Avatar 
                       src={account.avatarUrl} 
                       alt={account.name} 
@@ -222,8 +240,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
-                  <div className="mb-1 flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 flex-wrap">
+                  <div className="mb-1">
+                      <div className="flex items-center gap-2 flex-wrap">
                           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                           <SubscriptionBadge tier={account.subscription.tier} />
                           {isOwnAccount && (
@@ -244,6 +262,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       </div>
                   </div>
               </div>
+              
           </div>
           
           <div className="mt-4">
@@ -282,14 +301,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               </div>
           </div>
           
-          {isOwnAccount && account.subscription.tier !== 'Personal' && (
-              <div className="mt-6">
-                  <ReferralCard account={account} />
-              </div>
-          )}
-
-          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-start gap-2">
-            <ProfileActions 
+          <div className="mt-6 flex flex-wrap justify-start gap-2">
+             <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
                   onEditAccount={() => openModal({ type: 'editAccount', data: account })}
@@ -301,8 +314,15 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   onContactAction={handleContactAction}
                   isLiked={isLiked}
                   onToggleLike={() => toggleLikeAccount(account.id)}
+                  isMobile={false}
               />
           </div>
+          
+          {isOwnAccount && account.subscription.tier !== 'Personal' && (
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                  <ReferralCard account={account} />
+              </div>
+          )}
         </div>
 
         {/* Content Section */}

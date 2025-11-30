@@ -13,7 +13,6 @@ import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
 import { useMediaUploader } from '../hooks/useMediaUploader';
-import { useUI } from '../contexts/UIContext';
 import { useLocationInput } from '../hooks/useLocationInput';
 import { validatePostData } from '../utils/validation';
 import { MediaUploader } from './MediaUploader';
@@ -200,6 +199,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   
   const handleSuggestTags = async () => {
     if (!title && !description) {
+        console.error("Please provide a title or description first.");
         return;
     }
     setIsSuggestingTags(true);
@@ -207,7 +207,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         const suggested = await suggestTagsForPost(title, description);
         dispatch({ type: 'SET_TAGS', payload: [...new Set([...tags, ...suggested])].slice(0, 10) });
     } catch (e) {
-        console.error('Could not suggest tags', e);
+        console.error(e);
     } finally {
         setIsSuggestingTags(false);
     }
@@ -215,6 +215,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
 
   const handleSuggestCategories = async () => {
     if (!title && !description) {
+        console.error("Please provide a title or description first.");
         return;
     }
     setIsSuggestingCategories(true);
@@ -222,7 +223,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         const suggested = await suggestCategoriesForPost(title, description, categories);
         if(suggested.length > 0) dispatch({ type: 'SET_FIELD', field: 'category', payload: suggested[0] });
     } catch (e) {
-        console.error('Could not suggest category', e);
+        console.error(e);
     } finally {
         setIsSuggestingCategories(false);
     }
