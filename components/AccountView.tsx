@@ -216,7 +216,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           
           <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
               
-              <div className="flex items-end gap-4">
+              <div className="flex items-end gap-4 flex-1 min-w-0">
                   <Avatar 
                       src={account.avatarUrl} 
                       alt={account.name} 
@@ -224,7 +224,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
-                  <div className="mb-1">
+                  <div className="mb-1 flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap">
                           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                           <SubscriptionBadge tier={account.subscription.tier} />
