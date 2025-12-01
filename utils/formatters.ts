@@ -33,14 +33,28 @@ export const formatTimeRemaining = (expiryDate: number): string => {
 
 export const formatCurrency = (price: number | undefined | null): string => {
   if (price === undefined || price === null) return 'Contact for Price';
-  return price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+  
+  const options: Intl.NumberFormatOptions = {
+    style: 'currency',
+    currency: 'INR',
+  };
+
+  // If the number is an integer, show no decimal places.
+  if (price % 1 === 0) {
+    options.minimumFractionDigits = 0;
+    options.maximumFractionDigits = 0;
+  }
+  // Otherwise, let toLocaleString decide (usually 2 for currency).
+
+  return price.toLocaleString('en-IN', options);
 };
 
 export const formatCompactCurrency = (price: number | undefined | null): string => {
     if (price === undefined || price === null) return 'Contact';
-    if (price >= 10000000) return `₹${(price / 10000000).toFixed(1)}Cr`;
-    if (price >= 100000) return `₹${(price / 100000).toFixed(1)}L`;
-    if (price >= 1000) return `₹${(price / 1000).toFixed(1)}K`;
+    // Using Number() to remove trailing .0 from toFixed(1)
+    if (price >= 10000000) return `₹${Number((price / 10000000).toFixed(1))}Cr`;
+    if (price >= 100000) return `₹${Number((price / 100000).toFixed(1))}L`;
+    if (price >= 1000) return `₹${Number((price / 1000).toFixed(1))}K`;
     return `₹${price.toFixed(0)}`;
 };
 

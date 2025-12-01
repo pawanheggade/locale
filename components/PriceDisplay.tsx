@@ -47,7 +47,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price, salePrice, pr
     const unitText = priceUnit && priceUnit !== 'Fixed' ? <span className="text-sm font-normal text-gray-600 ml-1">/{priceUnit.toLowerCase()}</span> : null;
 
     return (
-        <div className={`flex items-baseline flex-nowrap gap-2 ${className}`}>
+        <div className={`flex items-baseline flex-wrap gap-2 ${className}`}>
             <div className="flex flex-row items-baseline gap-2 min-w-0">
                 {onSale ? (
                     <>
