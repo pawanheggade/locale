@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
@@ -233,10 +232,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           <hr className="border-gray-200" />
 
-          <FilterSection title="Status" isActive={filterState.filterLast7Days || filterState.filterExpiringSoon || filterState.filterShowExpired}>
+          <FilterSection title="Status" isActive={filterState.filterExpiringSoon || filterState.filterShowExpired}>
             <div className="space-y-4 pt-2">
               {[
-                { id: 'filter-last-7-days', label: 'New Arrivals', checked: filterState.filterLast7Days, action: 'SET_FILTER_LAST_7_DAYS' },
                 { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
                 { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
               ].map(({id, label, checked, action}) => (
