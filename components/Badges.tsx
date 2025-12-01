@@ -10,12 +10,44 @@ export const LocaleChoiceBadge: React.FC<{ className?: string }> = ({ className 
 );
 
 export const SaleBadge: React.FC<{ percentage: number; size?: 'small' | 'medium'; className?: string }> = ({ percentage, size = 'small', className = '' }) => {
-  const sizeClasses = size === 'small'
-    ? 'text-base px-2.5 py-1'
-    : 'text-lg px-3 py-1';
+  const isSmall = size === 'small';
   
+  // Tag styling variables
+  const heightClass = isSmall ? 'h-6' : 'h-7';
+  const textSize = isSmall ? 'text-xs' : 'text-sm';
+  const padding = isSmall ? 'px-2' : 'px-3';
+  
+  // Arrow geometry
+  const arrowWidth = isSmall ? '10px' : '12px';
+  const arrowLeft = isSmall ? '-10px' : '-12px';
+  const marginLeft = isSmall ? 'ml-2.5' : 'ml-3'; // Compensation for the arrow sticking out
+  const holeClass = isSmall ? 'w-1 h-1 -left-1' : 'w-1.5 h-1.5 -left-1.5';
+
   return (
-    <div className={`bg-amber-100 text-amber-800 font-bold rounded-md ${sizeClasses} ${className}`}>
+    <div 
+        className={cn(
+            "relative inline-flex items-center bg-amber-100 text-amber-800 font-bold rounded-r-md select-none",
+            heightClass,
+            textSize,
+            padding,
+            marginLeft,
+            className
+        )}
+        title={`${percentage}% Discount`}
+    >
+      {/* Triangle tip */}
+      <div 
+        className="absolute top-0 bottom-0 bg-amber-100"
+        style={{ 
+            left: arrowLeft,
+            width: arrowWidth,
+            clipPath: 'polygon(100% 0, 100% 100%, 0 50%)'
+        }}
+      />
+      
+      {/* Hole simulation */}
+      <div className={cn("absolute bg-white rounded-full top-1/2 -translate-y-1/2 shadow-sm", holeClass)} />
+      
       {percentage}% OFF
     </div>
   );
