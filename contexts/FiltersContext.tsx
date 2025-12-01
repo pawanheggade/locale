@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useReducer, useContext, useMemo, useCallback, useEffect } from 'react';
 import { PostType, FilterAction, FiltersState, SavedSearchFilters } from '../types';
 import { performAiSearch } from '../utils/gemini';
@@ -10,7 +11,7 @@ export const initialFiltersState: FiltersState = {
   searchQuery: '',
   filterType: 'all',
   filterCategory: 'all',
-  sortOption: 'date-desc',
+  sortOption: 'relevance-desc',
   minPrice: '',
   maxPrice: '',
   filterTags: [],
@@ -148,7 +149,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const isAnyFilterActive = useMemo(() => {
     return (
-        filterState.sortOption !== 'date-desc' ||
+        filterState.sortOption !== 'relevance-desc' ||
         filterState.searchQuery.trim() !== '' ||
         filterState.filterType !== 'all' ||
         filterState.filterCategory !== 'all' ||

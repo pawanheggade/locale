@@ -1,4 +1,5 @@
 
+
 import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -147,9 +148,8 @@ export const applyFiltersToPosts = (
     }
     
     if (userLocation && filterState.filterDistance > 0) {
-      if (!post.coordinates) return false;
-      const distance = haversineDistance(userLocation, post.coordinates);
-      if (distance > filterState.filterDistance) return false;
+      if (post.distance === undefined) return false;
+      if (post.distance > filterState.filterDistance) return false;
     }
 
     if (lowercasedQuery) {
@@ -162,14 +162,6 @@ export const applyFiltersToPosts = (
     }
     
     return true;
-  }).map(post => {
-    if (userLocation && post.coordinates) {
-      return {
-        ...post,
-        distance: haversineDistance(userLocation, post.coordinates),
-      };
-    }
-    return post;
   });
 };
 
@@ -183,20 +175,43 @@ export const sortFilteredPosts = (
 
   const sorted = [...filteredPosts];
   sorted.sort((a, b) => {
-    const localeChoiceComparison = (b.isLocaleChoice ? 1 : 0) - (a.isLocaleChoice ? 1 : 0);
-    if (localeChoiceComparison !== 0) return localeChoiceComparison;
-    
     let comparison = 0;
     switch (filterState.sortOption) {
+      case 'relevance-desc':
+        const pinA = a.isPinned ? 1 : 0;
+        const pinB = b.isPinned ? 1 : 0;
+        if (pinA !== pinB) return pinB - pinA;
+
+        const choiceA = a.isLocaleChoice ? 1 : 0;
+        const choiceB = b.isLocaleChoice ? 1 : 0;
+        if (choiceA !== choiceB) return choiceB - choiceA;
+        
+        comparison = parseInt(b.id) - parseInt(a.id);
+        break;
+      case 'popularity-desc':
+        comparison = (b.likeCount || 0) - (a.likeCount || 0);
+        break;
       case 'price-asc': comparison = (a.price ?? 0) - (b.price ?? 0); break;
       case 'price-desc': comparison = (b.price ?? 0) - (a.price ?? 0); break;
       case 'title-asc': comparison = a.title.localeCompare(b.title); break;
       case 'title-desc': comparison = b.title.localeCompare(a.title); break;
       case 'date-asc': comparison = parseInt(a.id) - parseInt(b.id); break;
       case 'distance-asc': comparison = (a.distance ?? Infinity) - (b.distance ?? Infinity); break;
+      case 'distance-desc': {
+        const distA = a.distance ?? Infinity;
+        const distB = b.distance ?? Infinity;
+        if (distA === Infinity && distB !== Infinity) {
+          comparison = 1; // a (no location) comes after b
+        } else if (distA !== Infinity && distB === Infinity) {
+          comparison = -1; // a comes before b (no location)
+        } else {
+          comparison = distB - distA; // Sort descending
+        }
+        break;
+      }
       case 'location-asc': comparison = a.location.localeCompare(b.location); break;
       case 'location-desc': comparison = b.location.localeCompare(a.location); break;
-      case 'date-desc': // Explicitly handle default
+      case 'date-desc': 
       default: comparison = parseInt(b.id) - parseInt(a.id); break;
     }
 

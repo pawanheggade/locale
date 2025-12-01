@@ -130,7 +130,7 @@ export const drawLogoOnCanvas = async (
   const lWidth = ctx.measureText('l').width;
   
   const triangleCenterX = startX + lWidth + (oWidth / 2) + 1;
-  const triangleSize = isLarge ? 15 : 12;
+  const triangleSize = isLarge ? 15 : 11;
   const triangleTopY = y + (isLarge ? 4 : 6);
 
   ctx.save();

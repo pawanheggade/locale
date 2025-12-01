@@ -49,11 +49,12 @@ interface AppModalsProps {
     
     // Session mgmt override if needed, otherwise handled locally
     onSignOut: () => void;
+    onEnableLocation: () => Promise<void>;
 }
 
 export const AppModals: React.FC<AppModalsProps> = ({ 
     activeModal, closeModal, openModal, 
-    isFindingNearby, handleFindNearby, userLocation, onSignOut
+    isFindingNearby, handleFindNearby, userLocation, onSignOut, onEnableLocation
 }) => {
     const { 
         currentAccount, accounts, bag, 
@@ -138,7 +139,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
         return <ReportItemModal item={item} onClose={closeModal} onSubmit={handleSubmit} />;
       }
       case 'filterPanel':
-        return <FilterPanel isOpen={true} onClose={closeModal} isLocationAvailable={!!userLocation} onOpenFindNearbyModal={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} savedSearchesCount={savedSearches.length} currentAccount={currentAccount} />;
+        return <FilterPanel isOpen={true} onClose={closeModal} isLocationAvailable={!!userLocation} onOpenFindNearbyModal={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} savedSearchesCount={savedSearches.length} currentAccount={currentAccount} onEnableLocation={onEnableLocation} />;
       case 'saveSearch':
         return <SaveSearchModal onSave={(name) => { addSavedSearch({ id: `saved-${Date.now()}`, name, filters: {} as any }); }} onClose={closeModal} />;
       case 'viewSavedSearches':

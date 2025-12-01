@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -88,7 +89,7 @@ export const App: React.FC = () => {
   } = usePosts();
   
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
-  const { activeModal, openModal, closeModal } = useUI();
+  const { activeModal, openModal, closeModal, addToast } = useUI();
   const showConfirmation = useConfirmationModal();
   const isMounted = useIsMounted();
 
@@ -413,6 +414,43 @@ export const App: React.FC = () => {
           if (isMounted()) setIsFindingNearby(false);
       }
   }, [isFindingNearby, allDisplayablePosts, closeModal, navigateTo, isMounted]);
+
+  const handleEnableLocation = useCallback(async () => {
+      if (!navigator.geolocation) {
+          addToast("Geolocation is not supported by your browser.", 'error');
+          return;
+      }
+
+      return new Promise<void>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  const coords = {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                  };
+                  setUserLocation(coords);
+                  addToast("Location enabled successfully.", 'success');
+                  resolve();
+              },
+              (error) => {
+                  let message = "Could not get your location.";
+                  switch (error.code) {
+                      case error.PERMISSION_DENIED:
+                          message = "Location access denied. Please enable it in your browser settings.";
+                          break;
+                      case error.POSITION_UNAVAILABLE:
+                          message = "Location information is unavailable.";
+                          break;
+                      case error.TIMEOUT:
+                          message = "The request to get user location timed out.";
+                          break;
+                  }
+                  addToast(message, 'error');
+                  reject(error);
+              }
+          );
+      });
+  }, [addToast]);
   
   // Optimized Scroll Handler using requestAnimationFrame
   const handleScroll = useCallback(() => {
@@ -456,43 +494,16 @@ export const App: React.FC = () => {
     <NavigationContext.Provider value={navigationContextValue}>
       <div className="flex flex-col h-screen" {...touchHandlers}>
         <Header 
-          searchQuery={filterState.searchQuery}
-          onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
-          onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
-          autoCompleteSuggestions={allAvailableTags}
           recentSearches={recentSearches}
           onRemoveRecentSearch={(q) => setRecentSearches(p => p.filter(s => s !== q))}
           onClearRecentSearches={handleClearRecentSearchesConfirm}
-          isAiSearchEnabled={filterState.isAiSearchEnabled}
-          onToggleAiSearch={handleToggleAiSearch}
-          isAiSearching={filterState.isAiSearching}
-          onAiSearchSubmit={handleAiSearchSubmitWithHistory}
-          mainView={mainView}
-          onMainViewChange={handleMainViewChange}
-          gridView={gridView}
-          onGridViewChange={setGridView}
           onGoHome={() => { setView('all'); setMainView('grid'); setHistory([]); onClearFilters(); handleRefresh(); if (mainContentRef.current) mainContentRef.current.scrollTo({ top: 0, behavior: 'smooth' }); }}
           onRefresh={handleRefresh}
-          currentView={view}
-          onViewChange={(newView) => navigateTo(newView)}
-          bagCount={bag.length}
-          unreadNotificationsCount={notifications.filter(n => !n.isRead).length}
-          currentAccount={currentAccount}
-          onOpenAccount={() => navigateTo('account', { account: currentAccount! })}
-          onEditProfile={() => openModal({ type: 'editAccount', data: currentAccount! })}
-          onOpenSubscriptionPage={() => navigateTo('subscription')}
-          onOpenActivityPage={() => navigateTo('activity')}
-          onOpenCreateModal={() => navigateTo('createPost')}
-          onOpenLoginModal={() => openModal({ type: 'login' })}
-          onOpenSettingsModal={() => navigateTo('settings')}
-          onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
           viewingAccount={viewingAccount}
-          onClearFilters={onClearFilters}
-          isAnyFilterActive={isAnyFilterActive}
-          onOpenFilterPanel={() => openModal({ type: 'filterPanel' })}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
           onBack={(view === 'all' && isAnyFilterActive) || history.length > 0 ? handleBack : undefined}
+          view={view}
         />
         <main ref={mainContentRef} onScroll={handleScroll} className={cn("relative flex-1 overflow-y-auto bg-gray-50 pt-16", isInitialLoading && "overflow-hidden", isPulling && "overflow-hidden")}>
           {view === 'all' && mainView === 'grid' ? (
@@ -574,6 +585,7 @@ export const App: React.FC = () => {
             handleFindNearby={handleFindNearby}
             userLocation={userLocation}
             onSignOut={requestSignOut}
+            onEnableLocation={handleEnableLocation}
         />
       </div>
     </NavigationContext.Provider>
@@ -631,7 +643,7 @@ const ViewManager: React.FC<any> = (props) => {
         return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
     }, [recommendedPostIds, allDisplayablePosts]);
     
-    const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount);
+    const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount, accounts);
     const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
     const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
     const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);

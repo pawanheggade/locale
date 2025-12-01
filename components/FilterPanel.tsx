@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
 import ModalShell from './ModalShell';
@@ -10,6 +12,7 @@ import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
 import { MultiSelectDropdown } from './ui/MultiSelectDropdown';
+import { cn } from '../lib/utils';
 
 interface FilterPanelProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ interface FilterPanelProps {
   onOpenFindNearbyModal: () => void;
   isFindingNearby: boolean;
   currentAccount: Account | null;
+  onEnableLocation: () => Promise<void>;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -29,11 +33,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onOpenFindNearbyModal,
   isFindingNearby,
   currentAccount,
+  onEnableLocation,
 }) => {
   const { filterState, dispatchFilterAction, onClearFilters, isAnyFilterActive } = useFilters();
   const { allAvailableTags, categories: allCategories } = usePosts();
   const { openModal } = useUI();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   
   const handleSavedClick = () => {
     if (currentAccount) {
@@ -47,6 +53,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handleClearFilters = () => {
       onClearFilters();
       onClose();
+  };
+
+  const handleEnableLocationClick = async () => {
+      setIsLoadingLocation(true);
+      try {
+          await onEnableLocation();
+      } catch (e) {
+          // Error handling is managed by the App component (toasts)
+      } finally {
+          setIsLoadingLocation(false);
+      }
   };
   
   const tagItems = allAvailableTags.map(tag => ({ value: tag, label: tag }));
@@ -64,6 +81,37 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       const stepIndex = parseInt(e.target.value, 10);
       dispatchFilterAction({ type: 'SET_FILTER_DISTANCE', payload: DISTANCE_STEPS[stepIndex] });
   };
+
+  // Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
+  const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
+    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'popularity-desc', label: 'Popular' },
+    { value: 'date-desc', label: 'Recent' },
+  ], []);
+
+  const granularSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'distance-asc', label: 'Distance: Nearest', disabled: !isLocationAvailable },
+    { value: 'distance-desc', label: 'Distance: Farthest', disabled: !isLocationAvailable },
+  ], [isLocationAvailable]);
+
+  const sortOptionsToShow = useMemo(() => {
+    const isCurrentSelectionMain = mainSortOptions.some(opt => opt.value === filterState.sortOption);
+    
+    if (isCurrentSelectionMain) {
+      const currentMainOption = mainSortOptions.find(opt => opt.value === filterState.sortOption);
+      // Prepend the current main sort option so it's visible as the selected value,
+      // but don't include the other main options to keep the list clean.
+      return currentMainOption ? [currentMainOption, ...granularSortOptions] : granularSortOptions;
+    }
+    
+    // If a granular option is selected (or nothing matching main), return only the granular options
+    return granularSortOptions;
+    
+  }, [filterState.sortOption, mainSortOptions, granularSortOptions]);
+  
+  const isSortActive = !mainSortOptions.some(opt => opt.value === filterState.sortOption);
 
   if (!isOpen) return null;
 
@@ -102,7 +150,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <hr className="border-gray-200" />
           
           <FilterSection title="Distance" htmlFor="distance-filter" isActive={filterState.filterDistance > 0}>
-            <div className="flex items-center gap-4">
+            <div className={cn("flex items-center gap-4", !isLocationAvailable && "opacity-50")}>
                 <input
                   id="distance-filter"
                   type="range"
@@ -119,7 +167,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   {filterState.filterDistance > 0 ? `Within ${filterState.filterDistance} km` : 'Any Distance'}
                 </span>
             </div>
-            {!isLocationAvailable && <p className="text-xs text-gray-600 mt-1">Enable location services to use this filter.</p>}
+            {!isLocationAvailable && (
+                <div className="mt-3">
+                    <Button 
+                        onClick={handleEnableLocationClick} 
+                        isLoading={isLoadingLocation}
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                        Enable Location Services
+                    </Button>
+                </div>
+            )}
           </FilterSection>
 
           <hr className="border-gray-200" />
@@ -132,12 +192,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </FilterSection>
 
-          <FilterSection title="Sort By" htmlFor="sort-option-filter" isActive={filterState.sortOption !== 'date-desc'}>
-            <Select id="sort-option-filter" value={filterState.sortOption} onChange={(e) => dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: e.target.value })} variant="overlay">
-                <option value="date-desc">Newest First</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="distance-asc" disabled={!isLocationAvailable}>Distance: Nearest {isLocationAvailable ? '' : '(Unavailable)'}</option>
+          <FilterSection title="Sort By" htmlFor="sort-by-filter" isActive={isSortActive}>
+            <Select
+              id="sort-by-filter"
+              value={filterState.sortOption}
+              onChange={(e) => dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: e.target.value })}
+              variant="overlay"
+            >
+              {sortOptionsToShow.map(option => (
+                <option key={option.value} value={option.value} disabled={option.disabled}>
+                  {option.label}
+                </option>
+              ))}
             </Select>
           </FilterSection>
 

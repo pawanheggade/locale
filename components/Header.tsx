@@ -1,97 +1,58 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import SearchBar from './SearchBar';
-import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon, SearchIcon } from './Icons';
+import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon, SearchIcon, CheckIcon } from './Icons';
 import { Account, AppView } from '../types';
 import { AccountMenu } from './AccountMenu';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { Logo } from './Logo';
+import { useFilters } from '../contexts/FiltersContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useActivity } from '../contexts/ActivityContext';
+import { useUI } from '../contexts/UIContext';
+import { useNavigation } from '../App';
 
 interface HeaderProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onSearchSubmit: (query: string) => void;
-  autoCompleteSuggestions: string[];
   recentSearches: string[];
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
-  isAiSearchEnabled: boolean;
-  onToggleAiSearch: () => void;
-  onAiSearchSubmit: (query: string) => void;
-  isAiSearching: boolean;
-  mainView: 'grid' | 'map';
-  onMainViewChange: (view: 'grid' | 'map') => void;
-  gridView: 'default' | 'compact';
-  onGridViewChange: (view: 'default' | 'compact') => void;
-  currentView: AppView;
-  onViewChange: (view: AppView) => void;
   onGoHome: () => void;
   onRefresh: () => void;
-  onClearFilters: () => void;
-  bagCount: number;
-  unreadNotificationsCount: number;
-  currentAccount: Account | null;
-  onOpenAccount: () => void;
-  onEditProfile: () => void;
-  onOpenSubscriptionPage: () => void;
-  onOpenActivityPage: () => void;
-  onOpenCreateModal: () => void;
-  onOpenLoginModal: () => void;
-  onOpenSettingsModal: () => void;
-  onOpenCreateAccountModal: () => void;
   viewingAccount: Account | null;
-  isAnyFilterActive: boolean;
-  onOpenFilterPanel: () => void;
   isScrolled: boolean;
   isVisible: boolean;
   onBack?: () => void;
+  view: AppView;
 }
 
 const HeaderComponent: React.FC<HeaderProps> = ({ 
-  searchQuery, 
-  onSearchChange, 
-  onSearchSubmit,
-  autoCompleteSuggestions,
   recentSearches,
   onRemoveRecentSearch,
   onClearRecentSearches,
-  isAiSearchEnabled,
-  onToggleAiSearch,
-  onAiSearchSubmit,
-  isAiSearching,
-  mainView,
-  onMainViewChange,
-  gridView,
-  onGridViewChange,
-  onViewChange,
   onGoHome,
-  onClearFilters,
   onRefresh,
-  currentView,
-  bagCount,
-  unreadNotificationsCount,
-  currentAccount,
-  onOpenAccount,
-  onEditProfile,
-  onOpenSubscriptionPage,
-  onOpenActivityPage,
-  onOpenCreateModal,
-  onOpenLoginModal,
-  onOpenSettingsModal,
-  onOpenCreateAccountModal,
   viewingAccount,
-  isAnyFilterActive,
-  onOpenFilterPanel,
   isScrolled,
   isVisible,
   onBack,
+  view,
 }) => {
+  const { filterState, dispatchFilterAction, handleAiSearchSubmit, handleToggleAiSearch, onClearFilters, isAnyFilterActive } = useFilters();
+  const { currentAccount, bag } = useAuth();
+  const { notifications } = useActivity();
+  const { openModal } = useUI();
+  const { navigateTo } = useNavigation();
+
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   
   const mobileSearchRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  const unreadNotificationsCount = notifications.filter(n => !n.isRead).length;
 
   useEffect(() => {
     const handleResize = () => {
@@ -105,51 +66,107 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   }, []);
   
   useClickOutside(mobileSearchRef, (e) => {
-    // Prevent closing if the click originated from the search toggle button
-    if (searchButtonRef.current && searchButtonRef.current.contains(e.target as Node)) {
-        return;
-    }
+    if (searchButtonRef.current && searchButtonRef.current.contains(e.target as Node)) return;
     setIsMobileSearchOpen(false);
   }, isMobileSearchOpen);
+
+  useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
   
   const handleLogoClick = () => {
     onGoHome();
   };
 
-  const isViewToggleDisabled = currentView !== 'all';
+  const isViewToggleDisabled = filterState.searchQuery !== '' || view !== 'all';
 
-  const handleAccountViewToggle = () => {
-    // Always navigate to own account page. If already there, `navigateTo` will do nothing.
-    onOpenAccount();
+  const handleSearchSubmit = (query: string) => {
+    // This is the original non-AI submit logic from App.tsx
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+    onRemoveRecentSearch(trimmedQuery); // This function actually adds/updates recent searches
+  };
+  
+  const handleAiSearchSubmitWithHistory = (query: string) => {
+    handleSearchSubmit(query);
+    handleAiSearchSubmit(query);
   };
     
   const placeholder = useMemo(() => {
-    // AI Search Logic
-    if (isAiSearchEnabled) {
+    if (filterState.isAiSearchEnabled) {
         return windowWidth < 640 ? 'Ask AI' : 'Ask AI anything...';
     }
-
-    // Standard Search Logic
     return 'Search products, services, events...';
-  }, [windowWidth, isAiSearchEnabled]);
+  }, [windowWidth, filterState.isAiSearchEnabled]);
+
+  const sortOptions = [
+    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'date-desc', label: 'Recent' },
+    { value: 'popularity-desc', label: 'Popular' },
+  ];
+
+  const handleSortChange = (option: string) => {
+    dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: option });
+    setIsFilterDropdownOpen(false);
+  };
+
+  const handleOpenFilterPanel = () => {
+    openModal({ type: 'filterPanel' });
+    setIsFilterDropdownOpen(false);
+  };
 
   const renderFilterButton = (className?: string) => (
-    <Button 
-        onClick={onOpenFilterPanel}
-        disabled={isViewToggleDisabled}
-        variant="overlay-dark"
-        size="icon"
-        className={cn(
-            "shrink-0 transition-colors !rounded-xl",
-            isAnyFilterActive && "text-red-600",
-            className
+    <div className="relative" ref={filterDropdownRef}>
+        <Button 
+            onClick={() => setIsFilterDropdownOpen(prev => !prev)}
+            disabled={isViewToggleDisabled}
+            variant="overlay-dark"
+            size="icon"
+            className={cn(
+                "shrink-0 transition-colors !rounded-xl",
+                isAnyFilterActive && "text-red-600",
+                className
+            )}
+            aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
+            title={isAnyFilterActive ? "Filters active" : "Filters"}
+            aria-haspopup="true"
+            aria-expanded={isFilterDropdownOpen}
+        >
+            <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
+        </Button>
+        {isFilterDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in" role="menu">
+                <div className="p-2">
+                  <ul>
+                      {sortOptions.map(option => (
+                          <li key={option.value}>
+                              <Button
+                                  onClick={() => handleSortChange(option.value)}
+                                  variant="ghost"
+                                  className={cn(
+                                    "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold",
+                                    filterState.sortOption === option.value ? "text-red-600" : "text-gray-600"
+                                  )}
+                                  role="menuitem"
+                              >
+                                  {option.label}
+                              </Button>
+                          </li>
+                      ))}
+                  </ul>
+                  <div className="my-1 h-px bg-gray-100" />
+                  <Button
+                      onClick={handleOpenFilterPanel}
+                      variant="ghost"
+                      className="w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600"
+                      role="menuitem"
+                  >
+                      More Filters
+                  </Button>
+                </div>
+            </div>
         )}
-        aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
-        title={isAnyFilterActive ? "Filters active" : "Filters"}
-    >
-        <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
-    </Button>
+    </div>
   );
+
 
   return (
     <header className={cn(
@@ -157,15 +174,8 @@ const HeaderComponent: React.FC<HeaderProps> = ({
       'bg-white border-b border-gray-200',
       !isVisible && '-translate-y-full'
     )}>
-      {/* 
-        Layout:
-        - Mobile: Flexbox row. Logo | Spacer | SearchIcon | Filter | Forums | Menu.
-          Spacing is handled by flex gap and justify-between.
-        - Desktop (sm+): Grid. Logo | Search+Filter | RightButtons.
-      */}
       <div className={`px-4 sm:px-6 lg:px-8 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center justify-between sm:justify-start gap-0 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
         
-        {/* Left Section: Back Button + Logo */}
         <div className="flex items-center gap-2 shrink-0">
             {onBack && (
               <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
@@ -175,32 +185,28 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             <Logo onClick={handleLogoClick} />
         </div>
         
-        {/* Center Section: Search & Desktop Filter (Hidden on Mobile) */}
         <div className="hidden sm:flex flex-1 justify-center min-w-0 sm:col-start-2">
             <div className="w-full flex items-center gap-1">
                 <SearchBar 
-                    searchQuery={searchQuery}
-                    onSearchChange={onSearchChange}
-                    onSearchSubmit={onSearchSubmit}
+                    searchQuery={filterState.searchQuery}
+                    onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                    onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
                     placeholder={placeholder}
                     wrapperClassName="flex-1 min-w-0"
-                    suggestions={autoCompleteSuggestions}
+                    suggestions={[]}
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
                     onClearRecentSearches={onClearRecentSearches}
-                    isAiSearchEnabled={isAiSearchEnabled}
-                    onToggleAiSearch={onToggleAiSearch}
-                    onAiSearchSubmit={onAiSearchSubmit}
-                    isAiSearching={isAiSearching}
+                    isAiSearchEnabled={filterState.isAiSearchEnabled}
+                    onToggleAiSearch={handleToggleAiSearch}
+                    onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                    isAiSearching={filterState.isAiSearching}
                 />
-                {/* Desktop Filter Button */}
                 {renderFilterButton()}
             </div>
         </div>
 
-        {/* Right Section: Icons Group */}
         <div className="flex items-center gap-1 shrink-0 sm:justify-self-end">
-            {/* Mobile Search Toggle */}
             <Button
                 ref={searchButtonRef}
                 onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
@@ -208,83 +214,70 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                 size="icon"
                 className={cn(
                     "sm:hidden shrink-0 !rounded-xl",
-                    (isMobileSearchOpen || (searchQuery && windowWidth < 640)) && "text-red-600"
+                    (isMobileSearchOpen || (filterState.searchQuery && windowWidth < 640)) && "text-red-600"
                 )}
                 aria-label="Toggle search"
             >
                 <SearchIcon className="w-6 h-6" />
             </Button>
 
-            {/* Mobile Filter Button */}
             {renderFilterButton("sm:hidden")}
 
-            {/* Forums Button */}
             <Button 
-                onClick={() => {
-                    if (currentView === 'forums') {
-                        onViewChange('all');
-                    } else {
-                        onViewChange('forums');
-                    }
-                }}
+                onClick={() => navigateTo(view === 'forums' ? 'all' : 'forums')}
                 variant="overlay-dark"
                 size="icon"
-                className={cn(
-                    "shrink-0 transition-colors !rounded-xl",
-                    currentView === 'forums' && "text-red-600"
-                )}
-                aria-label={currentView === 'forums' ? "Back to feed" : "Community Forums"}
-                title={currentView === 'forums' ? "Back to feed" : "Community Forums"}
+                className={cn("shrink-0 transition-colors !rounded-xl", view === 'forums' && "text-red-600")}
+                aria-label={view === 'forums' ? "Back to feed" : "Community Forums"}
+                title={view === 'forums' ? "Back to feed" : "Community Forums"}
             >
-                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={currentView === 'forums'} />
+                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={view === 'forums'} />
             </Button>
 
-            {/* Account Menu / Sign In */}
             <div className="relative">
                  {currentAccount ? (
                     <AccountMenu
                         currentAccount={currentAccount}
                         unreadNotificationsCount={unreadNotificationsCount}
-                        onOpenCreateModal={onOpenCreateModal}
-                        onViewChange={onViewChange}
-                        currentView={currentView}
-                        handleAccountViewToggle={handleAccountViewToggle}
-                        onEditProfile={onEditProfile}
-                        onOpenActivityPage={onOpenActivityPage}
-                        mainView={mainView}
-                        onMainViewChange={onMainViewChange}
-                        gridView={gridView}
-                        onGridViewChange={onGridViewChange}
-                        bagCount={bagCount}
-                        onOpenSettingsModal={onOpenSettingsModal}
-                        onOpenSubscriptionPage={onOpenSubscriptionPage}
+                        onOpenCreateModal={() => navigateTo('createPost')}
+                        onViewChange={(v) => navigateTo(v)}
+                        currentView={view}
+                        handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
+                        onEditProfile={() => openModal({ type: 'editAccount', data: currentAccount })}
+                        onOpenActivityPage={() => navigateTo('activity')}
+                        mainView={'grid'}
+                        onMainViewChange={() => {}}
+                        gridView={'default'}
+                        onGridViewChange={() => {}}
+                        bagCount={bag.length}
+                        onOpenSettingsModal={() => navigateTo('settings')}
+                        onOpenSubscriptionPage={() => navigateTo('subscription')}
                     />
                 ) : (
                     <div className="flex items-center gap-2">
-                        <Button onClick={onOpenLoginModal} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                        <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
                     </div>
                 )}
             </div>
         </div>
       </div>
 
-      {/* Mobile Search Subheader */}
       {isMobileSearchOpen && (
           <div ref={mobileSearchRef} className="sm:hidden px-2 pb-2 bg-white border-b border-gray-100 animate-fade-in-up">
               <SearchBar 
-                  searchQuery={searchQuery}
-                  onSearchChange={onSearchChange}
-                  onSearchSubmit={(q) => { onSearchSubmit(q); setIsMobileSearchOpen(false); }}
-                  placeholder={isAiSearchEnabled ? "Ask AI anything..." : "Search products, services, events..."}
+                  searchQuery={filterState.searchQuery}
+                  onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                  onSearchSubmit={(q) => { (filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit)(q); setIsMobileSearchOpen(false); }}
+                  placeholder={placeholder}
                   wrapperClassName="w-full"
-                  suggestions={autoCompleteSuggestions}
+                  suggestions={[]}
                   recentSearches={recentSearches}
                   onRemoveRecentSearch={onRemoveRecentSearch}
                   onClearRecentSearches={onClearRecentSearches}
-                  isAiSearchEnabled={isAiSearchEnabled}
-                  onToggleAiSearch={onToggleAiSearch}
-                  onAiSearchSubmit={(q) => { onAiSearchSubmit(q); setIsMobileSearchOpen(false); }}
-                  isAiSearching={isAiSearching}
+                  isAiSearchEnabled={filterState.isAiSearchEnabled}
+                  onToggleAiSearch={handleToggleAiSearch}
+                  onAiSearchSubmit={(q) => { handleAiSearchSubmitWithHistory(q); setIsMobileSearchOpen(false); }}
+                  isAiSearching={filterState.isAiSearching}
                   autoFocus={true}
               />
           </div>

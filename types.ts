@@ -104,6 +104,7 @@ export interface DisplayablePost extends Post {
   aiReasoning?: string;
   isAddedToBag?: boolean;
   hasPriceAlert?: boolean;
+  likeCount?: number;
 }
 
 export interface SavedSearchFilters {
