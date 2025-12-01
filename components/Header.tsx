@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import SearchBar from './SearchBar';
-import { ChevronLeftIcon, FunnelIcon, ChatBubbleEllipsisIcon, SearchIcon, CheckIcon } from './Icons';
+import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
-import { AccountMenu } from './AccountMenu';
 import { Button } from './ui/Button';
-import { cn } from '../lib/utils';
-import { useClickOutside } from '../hooks/useClickOutside';
 import { Logo } from './Logo';
+import SearchBar from './SearchBar';
+import { AccountMenu } from './AccountMenu';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { useNavigation } from '../App';
+import { useClickOutside } from '../hooks/useClickOutside';
+import { cn } from '../lib/utils';
 
 interface HeaderProps {
   recentSearches: string[];
@@ -26,7 +26,7 @@ interface HeaderProps {
   view: AppView;
 }
 
-const HeaderComponent: React.FC<HeaderProps> = ({ 
+export const Header: React.FC<HeaderProps> = ({
   recentSearches,
   onRemoveRecentSearch,
   onClearRecentSearches,
@@ -38,73 +38,29 @@ const HeaderComponent: React.FC<HeaderProps> = ({
   onBack,
   view,
 }) => {
-  const { filterState, dispatchFilterAction, handleAiSearchSubmit, handleToggleAiSearch, onClearFilters, isAnyFilterActive } = useFilters();
+  const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit } = useFilters();
   const { currentAccount, bag } = useAuth();
-  const { notifications } = useActivity();
+  const { unreadCount } = useActivity();
   const { openModal } = useUI();
   const { navigateTo } = useNavigation();
 
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
-  
-  const mobileSearchRef = useRef<HTMLDivElement>(null);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
-  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
 
-  const unreadNotificationsCount = notifications.filter(n => !n.isRead).length;
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+
+  useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
 
   useEffect(() => {
-    const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-        if (window.innerWidth >= 640) {
-            setIsMobileSearchOpen(false);
-        }
-    };
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
-  useClickOutside(mobileSearchRef, (e) => {
-    if (searchButtonRef.current && searchButtonRef.current.contains(e.target as Node)) return;
-    setIsMobileSearchOpen(false);
-  }, isMobileSearchOpen);
 
-  useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
-  
-  const handleLogoClick = () => {
-    onGoHome();
-  };
-
-  const isViewToggleDisabled = filterState.searchQuery !== '' || view !== 'all';
-
-  const handleSearchSubmit = (query: string) => {
-    // This is the original non-AI submit logic from App.tsx
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return;
-    onRemoveRecentSearch(trimmedQuery); // This function actually adds/updates recent searches
-  };
-  
-  const handleAiSearchSubmitWithHistory = (query: string) => {
-    handleSearchSubmit(query);
-    handleAiSearchSubmit(query);
-  };
-    
-  const placeholder = useMemo(() => {
-    if (filterState.isAiSearchEnabled) {
-        return windowWidth < 640 ? 'Ask AI' : 'Ask AI anything...';
-    }
-    return 'Search products, services, events...';
-  }, [windowWidth, filterState.isAiSearchEnabled]);
-
-  const sortOptions = [
-    { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'date-desc', label: 'Recent' },
-    { value: 'popularity-desc', label: 'Popular' },
-  ];
-
-  const handleSortChange = (option: string) => {
-    dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: option });
+  const handleSortChange = (sortOption: string) => {
+    dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });
     setIsFilterDropdownOpen(false);
   };
 
@@ -113,17 +69,42 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     setIsFilterDropdownOpen(false);
   };
 
+  const handleSearchSubmit = (query: string) => {
+    dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: query });
+    setIsMobileSearchOpen(false);
+  };
+
+  const handleAiSearchSubmitWithHistory = (query: string) => {
+      handleSearchSubmit(query);
+      handleAiSearchSubmit(query);
+  };
+
+  const handleLogoClick = () => {
+      onGoHome();
+  };
+
+  const isViewToggleDisabled = view !== 'all';
+
+  const sortOptions = [
+    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'popularity-desc', label: 'Popular' },
+    { value: 'date-desc', label: 'Recent' },
+  ];
+
+  const placeholder = viewingAccount 
+    ? `Search ${viewingAccount.name.split(' ')[0]}'s items...` 
+    : (filterState.isAiSearchEnabled ? "Ask Locale AI..." : "Search for items, services...");
+
   const renderFilterButton = (className?: string) => (
-    <div className="relative" ref={filterDropdownRef}>
+    <div className={cn("relative shrink-0", className)} ref={filterDropdownRef}>
         <Button 
             onClick={() => setIsFilterDropdownOpen(prev => !prev)}
             disabled={isViewToggleDisabled}
             variant="overlay-dark"
             size="icon"
             className={cn(
-                "shrink-0 transition-colors !rounded-xl",
-                isAnyFilterActive && "text-red-600",
-                className
+                "transition-colors !rounded-xl",
+                isAnyFilterActive && "text-red-600"
             )}
             aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
             title={isAnyFilterActive ? "Filters active" : "Filters"}
@@ -167,7 +148,6 @@ const HeaderComponent: React.FC<HeaderProps> = ({
     </div>
   );
 
-
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
@@ -202,7 +182,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                     onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                     isAiSearching={filterState.isAiSearching}
                 />
-                {renderFilterButton()}
+                {windowWidth >= 640 && renderFilterButton()}
             </div>
         </div>
 
@@ -221,7 +201,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                 <SearchIcon className="w-6 h-6" />
             </Button>
 
-            {renderFilterButton("sm:hidden")}
+            {windowWidth < 640 && renderFilterButton()}
 
             <Button 
                 onClick={() => navigateTo(view === 'forums' ? 'all' : 'forums')}
@@ -238,7 +218,7 @@ const HeaderComponent: React.FC<HeaderProps> = ({
                  {currentAccount ? (
                     <AccountMenu
                         currentAccount={currentAccount}
-                        unreadNotificationsCount={unreadNotificationsCount}
+                        unreadNotificationsCount={unreadCount}
                         onOpenCreateModal={() => navigateTo('createPost')}
                         onViewChange={(v) => navigateTo(v)}
                         currentView={view}
@@ -261,29 +241,27 @@ const HeaderComponent: React.FC<HeaderProps> = ({
             </div>
         </div>
       </div>
-
-      {isMobileSearchOpen && (
-          <div ref={mobileSearchRef} className="sm:hidden px-2 pb-2 bg-white border-b border-gray-100 animate-fade-in-up">
+      
+      {/* Mobile Search Bar */}
+      {isMobileSearchOpen && windowWidth < 640 && (
+          <div className="px-4 pb-3 sm:hidden animate-fade-in-up">
               <SearchBar 
-                  searchQuery={filterState.searchQuery}
-                  onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
-                  onSearchSubmit={(q) => { (filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit)(q); setIsMobileSearchOpen(false); }}
-                  placeholder={placeholder}
-                  wrapperClassName="w-full"
-                  suggestions={[]}
-                  recentSearches={recentSearches}
-                  onRemoveRecentSearch={onRemoveRecentSearch}
-                  onClearRecentSearches={onClearRecentSearches}
-                  isAiSearchEnabled={filterState.isAiSearchEnabled}
-                  onToggleAiSearch={handleToggleAiSearch}
-                  onAiSearchSubmit={(q) => { handleAiSearchSubmitWithHistory(q); setIsMobileSearchOpen(false); }}
-                  isAiSearching={filterState.isAiSearching}
-                  autoFocus={true}
+                    searchQuery={filterState.searchQuery}
+                    onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                    onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
+                    placeholder={placeholder}
+                    suggestions={[]}
+                    recentSearches={recentSearches}
+                    onRemoveRecentSearch={onRemoveRecentSearch}
+                    onClearRecentSearches={onClearRecentSearches}
+                    isAiSearchEnabled={filterState.isAiSearchEnabled}
+                    onToggleAiSearch={handleToggleAiSearch}
+                    onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                    isAiSearching={filterState.isAiSearching}
+                    autoFocus
               />
           </div>
       )}
     </header>
   );
 };
-
-export const Header = React.memo(HeaderComponent);
