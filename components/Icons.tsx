@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Generic base Icon component to reduce boilerplate
@@ -172,7 +173,7 @@ export const WhatsAppIcon = createIcon(<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 
 export const GoogleIcon = createIcon(<path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.333.533 12S5.867 24 12.48 24c3.44 0 6.053-1.147 8.587-3.787 2.54-2.54 3.32-6.08 3.32-8.94 0-.853-.093-1.693-.267-2.347h-11.64z" fill="currentColor" stroke="none" />);
 export const AppleIcon = createIcon(<path d="M17.05 19.36c-.9.92-2.12 1.87-3.52 1.88-1.45 0-1.95-.85-3.65-.85-1.69 0-2.18.83-3.61.85-1.41.03-2.82-1.14-3.93-2.75-2.26-3.26-1.91-8.07.85-10.05 1.36-.97 3.25-.99 4.33-.29 1.03.67 1.99.65 2.97.01 1.27-.84 3.18-.82 4.86.22 1.93 1.19 2.75 3.02 2.8 3.07-.03.05-1.68.65-2.13 3.19-.44 2.52 1.89 4.39 2.01 4.5-.02.05-.31 1.04-1.03 2.09.66 1.03 1.35 2.05 2.05 3.07zM12.03 7.25c.76-1.01 1.22-2.3 1.09-3.64-1.17.05-2.56.8-3.38 1.77-.72.85-1.33 2.18-1.17 3.48 1.29.1 2.61-.53 3.46-1.61z" fill="currentColor" stroke="none" />);
 
-export const PaperAirplaneIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />);
+export const PaperAirplaneIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" transform="rotate(-45 12 12)" />);
 export const FlagIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />);
 export const UserIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />);
 export const HashtagIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5" />);
