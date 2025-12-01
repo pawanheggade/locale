@@ -9,7 +9,7 @@ export interface DropdownItem {
   label: string;
 }
 
-interface DropdownProps {
+interface DropdownProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onSelect' | 'value'> {
   items: DropdownItem[];
   selectedValue: string;
   onSelect: (value: string) => void;
@@ -19,7 +19,7 @@ interface DropdownProps {
 }
 
 export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
-  ({ items, selectedValue, onSelect, placeholder = 'Select...', variant = 'default', className }, ref) => {
+  ({ items, selectedValue, onSelect, placeholder = 'Select...', variant = 'default', className, id, ...props }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -81,16 +81,23 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
       overlay: overlayInputBaseStyles,
     };
 
+    const listboxId = id ? `${id}-listbox` : undefined;
+    const activeDescendantId = isOpen && activeIndex >= 0 && id ? `${id}-option-${activeIndex}` : undefined;
+
     return (
       <div className={cn('relative w-full', className)} ref={dropdownRef}>
         <button
           ref={ref}
           type="button"
+          id={id}
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
           className={cn('flex items-center justify-between w-full text-left text-sm text-gray-800', buttonStyles[variant])}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
+          aria-controls={isOpen ? listboxId : undefined}
+          aria-activedescendant={activeDescendantId}
+          {...props}
         >
           <span className="truncate">{selectedItem?.label || placeholder}</span>
           <ChevronDownIcon className={cn('w-4 h-4 text-gray-400 transition-transform', isOpen && 'rotate-180')} />
@@ -98,12 +105,15 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
         {isOpen && (
           <ul
             ref={listRef}
+            id={listboxId}
             className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto animate-fade-in-up"
             role="listbox"
+            tabIndex={-1}
           >
             {items.map((item, index) => (
               <li
                 key={item.value}
+                id={id ? `${id}-option-${index}` : undefined}
                 onClick={() => handleSelect(item.value)}
                 onKeyDown={(e) => handleItemKeyDown(e, item.value)}
                 className={cn(

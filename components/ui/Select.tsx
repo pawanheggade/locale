@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { Dropdown, DropdownItem } from './Dropdown';
@@ -44,6 +43,7 @@ const Select = React.forwardRef<
       onSelect={handleSelect}
       variant={variant}
       className={className}
+      {...props}
     />
   );
 });

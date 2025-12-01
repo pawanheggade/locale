@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -98,6 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
   const renderFilterButton = (className?: string) => (
     <div className={cn("relative shrink-0", className)} ref={filterDropdownRef}>
         <Button 
+            id="filter-dropdown-trigger"
             onClick={() => setIsFilterDropdownOpen(prev => !prev)}
             disabled={isViewToggleDisabled}
             variant="overlay-dark"
@@ -106,15 +108,16 @@ export const Header: React.FC<HeaderProps> = ({
                 "transition-colors !rounded-xl",
                 isAnyFilterActive && "text-red-600"
             )}
-            aria-label={isAnyFilterActive ? "Filters active. Open filters." : "Open filters"}
+            aria-label={isAnyFilterActive ? "Filters active. Open sort and filter options." : "Open sort and filter options"}
             title={isAnyFilterActive ? "Filters active" : "Filters"}
             aria-haspopup="true"
             aria-expanded={isFilterDropdownOpen}
+            aria-controls={isFilterDropdownOpen ? "filter-dropdown-menu" : undefined}
         >
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in" role="menu">
+            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
                 <div className="p-2">
                   <ul>
                       {sortOptions.map(option => (
@@ -126,7 +129,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold",
                                     filterState.sortOption === option.value ? "text-red-600" : "text-gray-600"
                                   )}
-                                  role="menuitem"
                               >
                                   {option.label}
                               </Button>
@@ -138,7 +140,6 @@ export const Header: React.FC<HeaderProps> = ({
                       onClick={handleOpenFilterPanel}
                       variant="ghost"
                       className="w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600"
-                      role="menuitem"
                   >
                       More Filters
                   </Button>
