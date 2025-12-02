@@ -25,6 +25,10 @@ interface HeaderProps {
   isVisible: boolean;
   onBack?: () => void;
   view: AppView;
+  mainView: 'grid' | 'map';
+  onMainViewChange: (view: 'grid' | 'map') => void;
+  gridView: 'default' | 'compact';
+  onGridViewChange: (view: 'default' | 'compact') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -38,6 +42,10 @@ export const Header: React.FC<HeaderProps> = ({
   isVisible,
   onBack,
   view,
+  mainView,
+  onMainViewChange,
+  gridView,
+  onGridViewChange,
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit } = useFilters();
   const { currentAccount, bag } = useAuth();
@@ -50,7 +58,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
 
   const filterDropdownRef = useRef<HTMLDivElement>(null);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
 
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
 
@@ -59,6 +66,12 @@ export const Header: React.FC<HeaderProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+      if (windowWidth >= 640 && isMobileSearchOpen) {
+          setIsMobileSearchOpen(false);
+      }
+  }, [windowWidth, isMobileSearchOpen]);
 
   const handleSortChange = (sortOption: string) => {
     dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });
@@ -83,6 +96,13 @@ export const Header: React.FC<HeaderProps> = ({
   const handleLogoClick = () => {
       onGoHome();
   };
+  
+  const handleClearSearch = () => {
+    dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: '' });
+    if (filterState.isAiSearchEnabled) {
+      dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: null });
+    }
+  };
 
   const isViewToggleDisabled = view !== 'all';
 
@@ -94,7 +114,25 @@ export const Header: React.FC<HeaderProps> = ({
 
   const placeholder = viewingAccount 
     ? `Search ${viewingAccount.name.split(' ')[0]}'s items...` 
-    : (filterState.isAiSearchEnabled ? "Ask Locale AI..." : "Search for items, services...");
+    : (filterState.isAiSearchEnabled ? "Ask Locale AI..." : "Search products, services, events…");
+  
+  const renderAiButton = (className?: string) => (
+    <Button
+        onClick={handleToggleAiSearch}
+        variant={filterState.isAiSearchEnabled ? 'pill-red' : 'ghost'}
+        size="icon-sm"
+        className={cn(
+          "text-xs font-extrabold uppercase tracking-wider rounded-full",
+          !filterState.isAiSearchEnabled && "text-gray-500",
+          className
+        )}
+        aria-label={filterState.isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
+        title={filterState.isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
+        aria-pressed={!!filterState.isAiSearchEnabled}
+    >
+        ai
+    </Button>
+  );
 
   const renderFilterButton = (className?: string) => (
     <div className={cn("relative shrink-0", className)} ref={filterDropdownRef}>
@@ -155,19 +193,35 @@ export const Header: React.FC<HeaderProps> = ({
       'bg-white border-b border-gray-200',
       !isVisible && '-translate-y-full'
     )}>
-      <div className={`px-4 sm:px-6 lg:px-8 flex sm:grid sm:grid-cols-[auto_1fr_auto] items-center justify-between sm:justify-start gap-0 sm:gap-6 md:gap-8 transition-all duration-300 ${isScrolled ? 'h-14' : 'h-16'}`}>
+      {/* Main Header */}
+      <div className={cn(
+          'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center sm:justify-start gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
+          isScrolled ? 'h-14' : 'h-16'
+      )}>
         
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Left Section */}
+        <div className="flex items-center gap-1 shrink-0 col-start-1 justify-self-start">
             {onBack && (
-              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
+              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl sm:hidden" aria-label="Go back">
                 <ChevronLeftIcon className="w-6 h-6" />
               </Button>
             )}
             <Logo onClick={handleLogoClick} />
         </div>
         
-        <div className="hidden sm:flex flex-1 justify-center min-w-0 sm:col-start-2">
-            <div className="w-full flex items-center gap-1">
+        {/* Center Section */}
+        <div className="flex flex-1 justify-center min-w-0 col-start-2">
+            {/* Mobile Mini Search Bar */}
+            <div 
+                className="sm:hidden flex items-center justify-center bg-gray-100 border border-gray-200/80 rounded-full h-10 px-4 w-full"
+                onClick={() => setIsMobileSearchOpen(true)}
+            >
+                <SearchIcon className="h-5 w-5 text-gray-400" />
+                <span className="text-sm text-gray-600 ml-2 truncate">{placeholder}</span>
+            </div>
+
+            {/* Desktop Search Bar & Filter */}
+            <div className="hidden sm:flex items-center gap-2 w-full max-w-xl">
                 <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -178,32 +232,17 @@ export const Header: React.FC<HeaderProps> = ({
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
                     onClearRecentSearches={onClearRecentSearches}
-                    isAiSearchEnabled={filterState.isAiSearchEnabled}
-                    onToggleAiSearch={handleToggleAiSearch}
                     onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                     isAiSearching={filterState.isAiSearching}
+                    onCancelSearch={filterState.searchQuery ? handleClearSearch : undefined}
                 />
-                {windowWidth >= 640 && renderFilterButton()}
+                {renderAiButton()}
+                {renderFilterButton()}
             </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 sm:justify-self-end">
-            <Button
-                ref={searchButtonRef}
-                onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                variant="ghost"
-                size="icon"
-                className={cn(
-                    "sm:hidden shrink-0 !rounded-xl",
-                    (isMobileSearchOpen || (filterState.searchQuery && windowWidth < 640)) && "text-red-600"
-                )}
-                aria-label="Toggle search"
-            >
-                <SearchIcon className="w-6 h-6" />
-            </Button>
-
-            {windowWidth < 640 && renderFilterButton()}
-
+        {/* Right Section */}
+        <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
             <Button 
                 onClick={() => navigateTo(view === 'forums' ? 'all' : 'forums')}
                 variant="overlay-dark"
@@ -226,10 +265,10 @@ export const Header: React.FC<HeaderProps> = ({
                         handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
                         onEditProfile={() => openModal({ type: 'editAccount', data: currentAccount })}
                         onOpenActivityPage={() => navigateTo('activity')}
-                        mainView={'grid'}
-                        onMainViewChange={() => {}}
-                        gridView={'default'}
-                        onGridViewChange={() => {}}
+                        mainView={mainView}
+                        onMainViewChange={onMainViewChange}
+                        gridView={gridView}
+                        onGridViewChange={onGridViewChange}
                         bagCount={bag.length}
                         onOpenSettingsModal={() => navigateTo('settings')}
                         onOpenSubscriptionPage={() => navigateTo('subscription')}
@@ -243,24 +282,26 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
       
-      {/* Mobile Search Bar */}
+      {/* Mobile Search Sub-Header */}
       {isMobileSearchOpen && windowWidth < 640 && (
-          <div className="px-4 pb-3 sm:hidden animate-fade-in-up">
+          <div className="px-4 pb-3 sm:hidden animate-fade-in-up flex items-center gap-2">
               <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
                     onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
                     placeholder={placeholder}
+                    wrapperClassName="flex-1 min-w-0"
                     suggestions={[]}
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
                     onClearRecentSearches={onClearRecentSearches}
-                    isAiSearchEnabled={filterState.isAiSearchEnabled}
-                    onToggleAiSearch={handleToggleAiSearch}
                     onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                     isAiSearching={filterState.isAiSearching}
+                    onCancelSearch={() => setIsMobileSearchOpen(false)}
                     autoFocus
               />
+              {renderAiButton()}
+              {renderFilterButton()}
           </div>
       )}
     </header>

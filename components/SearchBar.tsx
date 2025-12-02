@@ -1,9 +1,9 @@
 
-
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -15,10 +15,9 @@ interface SearchBarProps {
   recentSearches?: string[];
   onRemoveRecentSearch?: (query: string) => void;
   onClearRecentSearches?: () => void;
-  isAiSearchEnabled?: boolean;
-  onToggleAiSearch?: () => void;
   onAiSearchSubmit: (query: string) => void;
   isAiSearching?: boolean;
+  onCancelSearch?: () => void;
   autoFocus?: boolean;
 }
 
@@ -32,10 +31,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   recentSearches = [],
   onRemoveRecentSearch,
   onClearRecentSearches,
-  isAiSearchEnabled,
-  onToggleAiSearch,
   onAiSearchSubmit,
   isAiSearching,
+  onCancelSearch,
   autoFocus = false,
 }) => {
 
@@ -57,7 +55,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     searchQuery,
     suggestions,
     recentSearches,
-    isAiSearchEnabled: !!isAiSearchEnabled,
+    isAiSearchEnabled: false, // AI enabled state is now managed externally
     onSelectSuggestion: onSearchChange,
   });
 
@@ -78,11 +76,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       const query = searchQuery.trim();
 
       if (query) {
-        if (isAiSearchEnabled && onAiSearchSubmit) {
-          onAiSearchSubmit(query);
-        } else if (!isAiSearchEnabled && onSearchSubmit) {
-          onSearchSubmit(query);
-        }
+        onSearchSubmit(query);
       }
 
       // Blur the input to close any potential dropdown and signify submission.
@@ -100,6 +94,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onRemoveRecentSearch?.(query);
   };
   
+  const hasCancel = !!onCancelSearch;
+
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClearRecentSearches?.();
@@ -119,8 +115,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onFocus={inputProps.onFocus}
         onKeyDown={handleKeyDown}
         autoFocus={autoFocus} 
-        // Reduced right padding as filter button is removed. Changed py-3 to h-10 for consistent 40px height with buttons.
-        className="block w-full h-10 bg-gray-100 border border-gray-200/80 rounded-full pl-11 pr-20 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate"
+        className={cn(
+          "block w-full h-10 bg-gray-100 border border-gray-200/80 rounded-full pl-11 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate",
+          hasCancel ? 'pr-12' : 'pr-4'
+        )}
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
@@ -128,23 +126,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
         aria-controls="suggestions-listbox"
         aria-activedescendant={activeIndex > -1 ? `suggestion-${activeIndex}` : undefined}
       />
-      <div className="absolute inset-y-0 right-0 pr-2 sm:pr-2.5 flex items-center space-x-1 sm:space-x-1.5">
+      <div className="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
         {isAiSearching && (
             <SpinnerIcon className="h-5 w-5 text-gray-400" />
         )}
         
-        {onToggleAiSearch && (
-            <Button
-                onClick={onToggleAiSearch}
-                variant={isAiSearchEnabled ? 'pill-red' : 'outline'}
-                size="icon-sm"
-                className="text-xs font-extrabold uppercase tracking-wider"
-                aria-label={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
-                title={isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
-                aria-pressed={!!isAiSearchEnabled}
-            >
-                ai
-            </Button>
+        {onCancelSearch && (
+          <Button
+              type="button"
+              onClick={onCancelSearch}
+              variant="ghost"
+              size="icon-sm"
+              className="text-gray-500 rounded-full"
+              aria-label="Cancel search"
+          >
+              <XMarkIcon className="w-5 h-5" />
+          </Button>
         )}
       </div>
       {isDropdownVisible && (

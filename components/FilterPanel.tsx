@@ -126,7 +126,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     >
         <div className="p-4 sm:p-6 space-y-6">
           {isAnyFilterActive && (
-            <Button onClick={handleClearFilters} variant="overlay-dark" className="w-full gap-2 text-base font-medium text-gray-600">
+            <Button onClick={handleClearFilters} variant="overlay-red" className="w-full gap-2 text-base font-medium">
               <XCircleIcon className="w-5 h-5" aria-hidden="true" />
               <span>Clear All Filters</span>
             </Button>

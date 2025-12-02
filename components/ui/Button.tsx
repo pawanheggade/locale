@@ -48,10 +48,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   ({ className, as = 'button', variant = 'default', size = 'default', isLoading = false, children, ...props }, ref) => {
     const Comp: any = as;
+    const hasCustomFocus = variant?.startsWith('pill-') || variant?.startsWith('circular-');
+
     return (
       <Comp
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+          !hasCustomFocus && 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
           buttonVariants.variant[variant],
           buttonVariants.size[size],
           size === 'xs' && 'text-xs',
