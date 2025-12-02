@@ -202,7 +202,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left Section */}
         <div className="flex items-center gap-1 shrink-0 col-start-1 justify-self-start">
             {onBack && (
-              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl sm:hidden" aria-label="Go back">
+              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
                 <ChevronLeftIcon className="w-6 h-6" />
               </Button>
             )}
