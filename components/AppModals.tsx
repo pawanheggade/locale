@@ -97,8 +97,15 @@ export const AppModals: React.FC<AppModalsProps> = ({
                 panelRef={modalRef} 
                 onClose={closeModal} 
                 title={
-                    <div className="flex flex-col items-center pb-2">
-                        <Logo variant="large" />
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
+                        <div className="flex justify-end">
+                            <Logo className="text-3xl sm:text-4xl" />
+                        </div>
+                        <div className="h-10 w-px bg-gray-300"></div>
+                        <div className="flex flex-col items-start justify-center">
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
+                        </div>
                     </div>
                 }
                 panelClassName="w-full max-w-md" 

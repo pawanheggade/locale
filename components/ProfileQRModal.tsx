@@ -1,3 +1,4 @@
+
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
@@ -204,13 +205,13 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
             <Logo />
         </div>
         <div className="mt-6 w-full space-y-3">
-          <Button onClick={handleDownload} variant="pill-dark" className="w-full gap-2" isLoading={isGenerating}>
+          <Button onClick={handleDownload} variant="overlay-dark" className="w-full gap-2" isLoading={isGenerating}>
             {isGenerating ? 'Generating...' : <><ArrowDownTrayIcon className="w-5 h-5" /> Download</>}
           </Button>
           {navigator.share && (
             <Button 
                 onClick={handleShare}
-                variant="outline" className="w-full gap-2"
+                variant="overlay-dark" className="w-full gap-2"
                 isLoading={isSharing}
                 disabled={isGenerating}
             >

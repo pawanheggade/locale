@@ -82,7 +82,7 @@ export const getBadgeSvg = (tier: string) => {
     }
     
     // Outline style for others
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1 1.043 3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
 };
 
 
@@ -113,18 +113,12 @@ export const drawLogoOnCanvas = async (
   // Draw 'l'
   ctx.fillText(lPart, startX, y);
 
-  // Draw solid circle for 'o'
-  const circleX = startX + ctx.measureText(lPart).width + (oWidth / 2);
-  // Comfortaa x-height is ~54% of font size. Circle diameter = x-height. Radius = x-height/2.
-  const circleRadius = (fontSize * 0.54) / 2; 
-  // Center of circle should be at half of x-height above baseline.
-  const circleY = y - circleRadius; 
-  ctx.beginPath();
-  ctx.arc(circleX, circleY, circleRadius, 0, Math.PI * 2);
-  ctx.fill();
+  // Draw 'o'
+  const oX = startX + ctx.measureText(lPart).width;
+  ctx.fillText("o", oX, y);
 
   // Draw 'cale'
-  const caleX = startX + ctx.measureText(lPart).width + oWidth;
+  const caleX = oX + oWidth;
   ctx.fillText(calePart, caleX, y);
   
   const lWidth = ctx.measureText('l').width;
