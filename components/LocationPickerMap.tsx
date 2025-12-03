@@ -93,7 +93,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
   }, [mapInstanceRef, initialCoordinates, updateMarker]);
 
   return (
-    <div className="h-[60vh] flex flex-col relative">
+    <div className="h-[60vh] flex flex-col relative animate-fade-in-down">
       <div ref={mapRef} className="flex-grow w-full" />
       <div className="p-3 bg-white border-t border-gray-200 flex-shrink-0">
         <div className="min-h-[40px]">

@@ -406,7 +406,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
   const whiteButtonClass = "bg-white text-gray-700 border border-gray-200";
 
   return (
-    <div className="h-full w-full relative">
+    <div className="h-full w-full relative animate-fade-in-down">
       <div ref={mapRef} className="h-full w-full" />
       <div className="absolute top-4 right-4 z-[401] flex flex-col items-end gap-2">
         <div className="flex items-center gap-2 flex-row">
