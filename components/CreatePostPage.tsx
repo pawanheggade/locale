@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -312,7 +311,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto animate-fade-in-up pb-28 p-4 sm:p-6 lg:p-8">
+      <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
           {showMapPicker ? (
           <LocationPickerMap
               initialCoordinates={type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates}
@@ -331,7 +330,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
               <h1 className="text-3xl font-bold text-gray-800 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
               <form id="create-post-form" onSubmit={handleSubmit} className="space-y-6">
                   {needsSellerDetails && (
-                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in-up">
+                      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in-down">
                           <h3 className="font-semibold text-amber-900">Complete Your Seller Profile</h3>
                           <p className="text-sm text-amber-800 mb-4">Before you can post, please set your payment and delivery options. This helps buyers know how they can purchase from you.</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -432,7 +431,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                 </div>
                             </div>
                             {isOnSale && (
-                                <div className="mt-1 animate-fade-in-up">
+                                <div className="mt-1 animate-fade-in-down">
                                      <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice}>
                                         <Input type="number" value={salePrice} onChange={e => setField('salePrice', e.target.value)} required placeholder="0.00" min="0" step="0.01" />
                                     </FormField>
@@ -457,7 +456,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                   )}
                   
                   {type === PostType.EVENT && (
-                      <div className="p-4 bg-gray-50 border rounded-xl space-y-4 animate-fade-in-up">
+                      <div className="p-4 bg-gray-50 border rounded-xl space-y-4 animate-fade-in-down">
                           <h3 className="font-semibold text-gray-800">Event Details</h3>
                           <FormField id="event-location" label="Venue / Event Location" error={errors.eventLocation || eventLocationInput.error}>
                               <LocationInput
@@ -518,7 +517,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                             </div>
                           </div>
                           {hasExpiry && (
-                              <div className="mt-2 animate-fade-in-up">
+                              <div className="mt-2 animate-fade-in-down">
                                    <FormField id="expiry-date" label="" error={errors.expiryDate}>
                                     <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} />
                                   </FormField>

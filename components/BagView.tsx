@@ -287,7 +287,7 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
   }
 
   return (
-    <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
+    <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Bag</h1>
       
       {/* IN BAG SECTION */}
@@ -355,7 +355,7 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
         </div>
         
         {showCreateListForm && (
-            <form onSubmit={handleCreateListSubmit} className="p-4 mb-4 bg-gray-50 rounded-xl flex items-center gap-2 animate-fade-in-up">
+            <form onSubmit={handleCreateListSubmit} className="p-4 mb-4 bg-gray-50 rounded-xl flex items-center gap-2 animate-fade-in-down">
                 <Input 
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}

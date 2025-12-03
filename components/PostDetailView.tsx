@@ -114,7 +114,7 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
   
   return (
     <div>
-      <div className="animate-fade-in-up pb-28 p-4 sm:p-6 lg:p-8">
+      <div className="animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
         <div className="bg-white rounded-xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Media Section */}

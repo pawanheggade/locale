@@ -360,7 +360,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             )}
             
             {(!isCreating || step === 2) && (
-                <div className={cn("space-y-4", isCreating && "animate-fade-in-up")}>
+                <div className={cn("space-y-4", isCreating && "animate-fade-in-down")}>
                     {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 2: Optional Information</h3>}
 
                     {isCreating && (
@@ -427,7 +427,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         </div>
 
                         {(isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal')) && (
-                            <div className="animate-fade-in-up space-y-4 pt-4 mt-4 border-t">
+                            <div className="animate-fade-in-down space-y-4 pt-4 mt-4 border-t">
                                 <h3 className="text-base font-medium text-gray-800">Business Information</h3>
                                 <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
                                     <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />

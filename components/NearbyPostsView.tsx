@@ -21,7 +21,7 @@ export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
   const { posts, locationName } = result;
 
   return (
-    <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
+    <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
         <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-800">Nearby Posts</h1>
             {locationName && <p className="text-md text-gray-600 mt-1">Showing results within 50km of <strong>{locationName}</strong></p>}

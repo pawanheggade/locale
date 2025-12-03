@@ -30,7 +30,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
   };
 
   return (
-    <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
+    <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
       <div className="mb-6 border-b border-gray-200">
         <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist" aria-label="Likes content">
           <TabButton onClick={() => setActiveTab('posts')} isActive={activeTab === 'posts'}>

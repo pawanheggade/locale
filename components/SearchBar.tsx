@@ -145,7 +145,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
       {isDropdownVisible && (
-        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-up">
+        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-down">
           {shouldShowRecent && (
             <>
               <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent Searches</li>

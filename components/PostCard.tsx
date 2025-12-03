@@ -112,7 +112,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       ref={cardRef}
       className={cn(
         'group cursor-pointer transition-all duration-300',
-        enableEntryAnimation && (hasAnimated ? 'animate-fade-in-up' : 'opacity-0 translate-y-4')
+        enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
       onClick={() => navigateTo('postDetail', { postId: post.id })}

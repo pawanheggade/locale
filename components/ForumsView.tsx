@@ -70,7 +70,7 @@ export const ForumsView: React.FC = () => {
     }, [posts, activeCategory, sortOption]);
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-up">
+        <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={() => openModal({ type: 'createForumPost' })} size="sm" variant="pill-red" className="shrink-0">

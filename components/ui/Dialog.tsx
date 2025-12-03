@@ -81,7 +81,7 @@ const DialogContent = React.forwardRef<
   const dialogRef = (ref || internalRef) as React.RefObject<HTMLDivElement>;
 
   const panelPositionAnims = {
-      center: { open: 'animate-fade-in-up', close: 'animate-fade-out-down' },
+      center: { open: 'animate-fade-in-down', close: 'animate-fade-out-up' },
       right: { open: 'animate-slide-in-right', close: 'animate-slide-out-right' }
   };
   const panelPositionClasses = {

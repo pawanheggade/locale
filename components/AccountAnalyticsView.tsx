@@ -41,7 +41,7 @@ export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ acco
   }, [accountPosts, allAccounts]);
 
   return (
-    <div className="animate-fade-in-up p-4 sm:p-6 lg:p-8">
+    <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Profile Analytics</h1>
         <p className="text-md text-gray-500 mt-1">Insights into your posts and performance.</p>

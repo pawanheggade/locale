@@ -124,7 +124,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         panelClassName="w-full max-w-sm"
         titleId="filter-panel-title"
     >
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-4 space-y-6">
           {isAnyFilterActive && (
             <Button onClick={handleClearFilters} variant="overlay-red" className="w-full gap-2 text-base font-medium">
               <XCircleIcon className="w-5 h-5" aria-hidden="true" />
@@ -149,7 +149,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <hr className="border-gray-200" />
           
           <FilterSection title="Distance" htmlFor="distance-filter" isActive={filterState.filterDistance > 0}>
-            <div className={cn("flex items-center gap-4", !isLocationAvailable && "opacity-50")}>
+            <div className={cn("flex items-center gap-3", !isLocationAvailable && "opacity-50")}>
                 <input
                   id="distance-filter"
                   type="range"
@@ -159,10 +159,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   value={currentStepIndex}
                   onChange={handleDistanceSliderChange}
                   disabled={!isLocationAvailable}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600 disabled:bg-gray-100 disabled:accent-gray-400"
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600 disabled:bg-gray-100 disabled:accent-gray-400"
                   aria-valuetext={filterState.filterDistance > 0 ? `Within ${filterState.filterDistance} km` : 'Any Distance'}
                 />
-                <span className="font-semibold text-gray-800 w-28 text-center bg-gray-100 py-1 rounded-md text-sm">
+                <span className="font-semibold text-gray-800 w-28 text-center bg-gray-100 py-1 rounded-md text-sm shrink-0">
                   {filterState.filterDistance > 0 ? `Within ${filterState.filterDistance} km` : 'Any Distance'}
                 </span>
             </div>
@@ -185,9 +185,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           
           <FilterSection title="Price Range" isActive={filterState.minPrice !== '' || filterState.maxPrice !== ''}>
             <div className="flex items-center gap-2">
-              <Input type="number" placeholder="Min Price" value={filterState.minPrice} onChange={(e) => dispatchFilterAction({ type: 'SET_MIN_PRICE', payload: e.target.value })} variant="overlay" />
+              <Input type="number" placeholder="Min Price" value={filterState.minPrice} onChange={(e) => dispatchFilterAction({ type: 'SET_MIN_PRICE', payload: e.target.value })} variant="overlay" className="flex-1 min-w-0" />
               <span className="text-gray-600">–</span>
-              <Input type="number" placeholder="Max Price" value={filterState.maxPrice} onChange={(e) => dispatchFilterAction({ type: 'SET_MAX_PRICE', payload: e.target.value })} variant="overlay" />
+              <Input type="number" placeholder="Max Price" value={filterState.maxPrice} onChange={(e) => dispatchFilterAction({ type: 'SET_MAX_PRICE', payload: e.target.value })} variant="overlay" className="flex-1 min-w-0" />
             </div>
           </FilterSection>
 

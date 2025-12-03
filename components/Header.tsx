@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -155,8 +154,8 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
-                <div className="p-2">
+            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+                <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
                           <li key={option.value}>
@@ -164,8 +163,8 @@ export const Header: React.FC<HeaderProps> = ({
                                   onClick={() => handleSortChange(option.value)}
                                   variant="ghost"
                                   className={cn(
-                                    "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold",
-                                    filterState.sortOption === option.value ? "text-red-600" : "text-gray-600"
+                                    "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                    filterState.sortOption === option.value ? "text-red-600 bg-red-50" : "text-gray-600"
                                   )}
                               >
                                   {option.label}
@@ -177,7 +176,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button
                       onClick={handleOpenFilterPanel}
                       variant="ghost"
-                      className="w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600"
+                      className="w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600 whitespace-nowrap"
                   >
                       More Filters
                   </Button>
@@ -284,7 +283,7 @@ export const Header: React.FC<HeaderProps> = ({
       
       {/* Mobile Search Sub-Header */}
       {isMobileSearchOpen && windowWidth < 640 && (
-          <div className="px-4 pb-3 sm:hidden animate-fade-in-up flex items-center gap-2">
+          <div className="px-4 pb-3 sm:hidden animate-fade-in-down flex items-center gap-2">
               <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}

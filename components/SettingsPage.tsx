@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NotificationSettings, Account } from '../types';
 import { useUI } from '../contexts/UIContext';
 import { SettingsSection } from './SettingsSection';
@@ -14,39 +14,12 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onArchiveAccount, onSignOut, currentAccount }) => {
-  const { addToast, openModal } = useUI();
-  const [notificationPermission, setNotificationPermission] = useState('Notification' in window ? Notification.permission : 'default');
-
-  const handleEnableNotifications = async () => {
-    if (!('Notification' in window)) {
-        addToast("This browser does not support desktop notifications.", 'error');
-        return;
-    }
-
-    if (notificationPermission === 'granted') {
-        addToast("Notifications are already enabled.", 'success');
-        return;
-    }
-
-    try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
-        if (permission === 'granted') {
-            addToast("Notifications enabled successfully!", 'success');
-            new Notification("Notifications Enabled", { body: "You will now receive updates from Locale." });
-        } else {
-            addToast("Notification permission was not granted.", 'error');
-        }
-    } catch (error) {
-        console.error("Error requesting notification permission:", error);
-        addToast("Failed to enable notifications.", 'error');
-    }
-  };
+  const { openModal } = useUI();
 
   const isSeller = currentAccount.subscription.tier !== 'Personal';
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-up max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Settings</h1>
         <div className="space-y-8">
             {isSeller && (
@@ -65,7 +38,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
                     />
                 
                     {settings.expiryAlertsEnabled && (
-                        <div className="pt-4 mt-4 border-t border-gray-200 animate-fade-in-up">
+                        <div className="pt-4 mt-4 border-t border-gray-200 animate-fade-in-down">
                             <label htmlFor="expiry-threshold" className="block text-sm font-medium text-gray-600">
                                 Notify me when an item will expire in:
                             </label>
@@ -88,33 +61,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
                 </SettingsSection>
             )}
 
-            <SettingsSection title="Browser Notifications">
-                {notificationPermission !== 'granted' ? (
-                    <SettingsRow
-                        onClick={handleEnableNotifications}
-                        title="Enable Push Notifications"
-                        description={
-                            notificationPermission === 'denied' 
-                            ? "You have blocked notifications. Please enable them in your browser settings."
-                            : "Get notified about new messages and important updates."
-                        }
-                        variant={notificationPermission === 'denied' ? 'destructive' : 'default'}
-                    />
-                ) : (
-                    <div className="p-3 bg-green-50 text-green-800 rounded-md text-sm">
-                        Browser push notifications are currently <span className="font-semibold">enabled</span>.
-                    </div>
-                )}
-            </SettingsSection>
-
-            <SettingsSection title="Support">
-                 <SettingsRow
-                    onClick={() => openModal({ type: 'feedback' })}
-                    title="Send Feedback"
-                    description="Share your thoughts or report issues to help us improve."
-                />
-            </SettingsSection>
-            
             <SettingsSection title="Account">
                 <SettingsRow
                     onClick={onArchiveAccount}
@@ -127,6 +73,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
                     title="Sign Out"
                     description="End your session on this device."
                     variant="destructive"
+                />
+            </SettingsSection>
+            
+            <SettingsSection title="Support">
+                 <SettingsRow
+                    onClick={() => openModal({ type: 'feedback' })}
+                    title="Send Feedback"
+                    description="Share your thoughts or report issues to help us improve."
                 />
             </SettingsSection>
         </div>

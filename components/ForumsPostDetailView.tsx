@@ -118,7 +118,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-up">
+        <div className="bg-white rounded-xl border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-down">
             <div className="flex gap-4">
                 <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
                 <div className="flex-1 min-w-0">

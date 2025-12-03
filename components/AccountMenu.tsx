@@ -1,10 +1,8 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon, ChatBubbleEllipsisIcon, CheckBadgeIconSolid } from './Icons';
+import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
-import { Avatar } from './Avatar';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { cn } from '../lib/utils';
@@ -34,15 +32,15 @@ const MenuItem: React.FC<{
   badgeCount?: number;
   animateBadge?: boolean;
 }> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
-    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl">
-      <div className="w-full flex items-center justify-start gap-3 p-3">
-        <div className="relative w-6 h-6 flex items-center justify-center">
+    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right">
+      <div className="w-full flex items-center justify-end gap-2 p-2">
+        <span className="text-sm font-bold text-gray-600">{label}</span>
+        <div className="relative w-5 h-5 flex items-center justify-center">
             {icon}
             {badgeCount > 0 && (
                 <span className={`absolute -top-1 -right-1.5 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white ${animateBadge ? 'animate-badge-pop-in' : ''}`}>{badgeCount}</span>
             )}
         </div>
-        <span className="text-sm font-semibold text-gray-600">{label}</span>
       </div>
     </Button>
 );
@@ -108,7 +106,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
       onGridViewChange(gridView === 'default' ? 'compact' : 'default');
     };
 
-    const iconClass = "w-6 h-6";
+    const iconClass = "w-5 h-5";
 
     return (
         <div ref={accountMenuRef}>
@@ -140,71 +138,38 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
             {isAccountMenuOpen && (
                 <div
                   id="account-menu-dropdown"
-                  className={`absolute right-0 mt-2 w-72 origin-top-right bg-white rounded-xl border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
+                  className={`absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
                 >
-                    <Button 
-                        onClick={() => handleMenuAction(handleAccountViewToggle)} 
-                        variant="ghost"
-                        className="w-full h-auto text-left p-0 border-b bg-gray-50 rounded-t-xl rounded-b-none"
-                    >
-                        <div className="w-full flex items-center justify-start gap-3 p-4">
-                            <Avatar 
-                                src={currentAccount.avatarUrl} 
-                                alt={currentAccount.name} 
-                                size="lg" 
-                                tier={currentAccount.subscription.tier} 
-                            />
-                            <div>
-                                <p className="font-bold text-gray-800 truncate">{currentAccount.name}</p>
-                                <p className="text-sm text-gray-600">View Profile</p>
-                            </div>
-                        </div>
-                    </Button>
-                    <div className="py-1">
-                        <div className="p-2">
+                    <div className="p-1.5">
+                        <div>
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
-                                <Button 
-                                    onClick={() => handleMenuAction(onOpenCreateModal)} 
-                                    variant="pill-red"
-                                    className="w-full justify-center gap-2 px-4 py-3 text-base font-semibold mb-2 h-auto" 
-                                >
-                                    <PencilIcon className="w-5 h-5" />
-                                    <span>Post</span>
-                                </Button>
+                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-600" />} label="Post" />
                             )}
-                            <div className="grid grid-cols-2 gap-2">
-                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-6 h-6 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
-                                <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-6 h-6 text-gray-600" />} label="Likes" />
-                                <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-6 h-6 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />
-                                <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-6 h-6 text-gray-600" />} label="Settings" />
-                            </div>
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-600" />} label="Likes" />
+                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />
+                            <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-600" />} label="Settings" />
+                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-600" />} label="Profile" />
                         </div>
-                        <div className="my-1 h-px bg-gray-100" />
-                        <div className="px-2">
-                           <div className="grid grid-cols-2 gap-2">
-                               <Button onClick={() => handleMenuAction(handleViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-xl">
-                                    <div className="w-6 h-6 flex items-center justify-center text-gray-600">
-                                       {mainView === 'grid' ? <MapPinIcon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
-                                    </div>
-                                    <span className="text-xs font-semibold text-gray-600">{mainView === 'grid' ? 'Maps' : 'Grid'}</span>
-                                </Button>
-                                <Button onClick={() => handleMenuAction(handleGridViewToggle)} variant="ghost" className="flex-col h-auto gap-2 p-2 rounded-xl">
-                                     <div className="w-6 h-6 flex items-center justify-center text-gray-600">
-                                       {gridView === 'default' ? <Squares3X3Icon className={iconClass}/> : <Squares2X2Icon className={iconClass}/>}
-                                    </div>
-                                    <span className="text-xs font-semibold text-gray-600">{gridView === 'default' ? 'Compact' : 'Default'}</span>
-                                </Button>
-                           </div>
+                        <div className="my-1.5 h-px bg-gray-100" />
+                        <div>
+                            <MenuItem
+                                onClick={() => handleMenuAction(handleViewToggle)}
+                                icon={mainView === 'grid' ? <MapPinIcon className={cn(iconClass, "text-gray-600")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-600")}/>}
+                                label={mainView === 'grid' ? 'Map' : 'Grid'}
+                            />
+                            <MenuItem
+                                onClick={() => handleMenuAction(handleGridViewToggle)}
+                                icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-600")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-600")}/>}
+                                label={gridView === 'default' ? 'Compact' : 'Default'}
+                            />
                         </div>
 
                         {currentAccount.role === 'admin' && (
                             <>
-                                <div className="my-1 h-px bg-gray-100" />
-                                <div className="p-2">
-                                    <Button onClick={() => handleMenuAction(() => onViewChange('admin'))} variant="ghost" className="w-full justify-center gap-4 px-4 py-2.5 text-base h-auto font-medium text-gray-600 rounded-xl">
-                                        <UserIcon className="w-6 h-6 text-gray-600" />
-                                        <span>Admin Panel</span>
-                                    </Button>
+                                <div className="my-1.5 h-px bg-gray-100" />
+                                <div>
+                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5 text-gray-600" />} label="Admin Panel" />
                                 </div>
                             </>
                         )}
