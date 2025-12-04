@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from 'react';
+import React from 'react';
 import { ContactOption } from '../types';
 import { CheckboxGroup } from './ui/CheckboxGroup';
 
@@ -10,72 +10,46 @@ const CONTACT_OPTIONS: { id: ContactOption, label: string }[] = [
     { id: 'message', label: 'Message (e.g. WhatsApp)' }
 ];
 
-// Reducer logic
 export interface SellerOptionsState {
     paymentMethods: string[];
     deliveryOptions: string[];
     contactOptions: ContactOption[];
 }
 
-type Action =
-    | { type: 'SET_PAYMENT_METHODS'; payload: string[] }
-    | { type: 'SET_DELIVERY_OPTIONS'; payload: string[] }
-    | { type: 'SET_CONTACT_OPTIONS'; payload: ContactOption[] }
-    | { type: 'RESET'; payload: SellerOptionsState };
-
-const reducer = (state: SellerOptionsState, action: Action): SellerOptionsState => {
-    switch (action.type) {
-        case 'SET_PAYMENT_METHODS':
-            return { ...state, paymentMethods: action.payload };
-        case 'SET_DELIVERY_OPTIONS':
-            return { ...state, deliveryOptions: action.payload };
-        case 'SET_CONTACT_OPTIONS':
-            return { ...state, contactOptions: action.payload };
-        case 'RESET':
-            return action.payload;
-        default:
-            return state;
-    }
-};
-
 interface SellerOptionsFormProps {
-    initialState: SellerOptionsState;
-    onChange: (newState: SellerOptionsState) => void;
+    paymentMethods: string[];
+    deliveryOptions: string[];
+    contactOptions: ContactOption[];
+    onPaymentChange: (methods: string[]) => void;
+    onDeliveryChange: (options: string[]) => void;
+    onContactChange: (options: ContactOption[]) => void;
     isSeller: boolean;
     error?: string;
 }
 
 export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
-    initialState,
-    onChange,
+    paymentMethods,
+    deliveryOptions,
+    contactOptions,
+    onPaymentChange,
+    onDeliveryChange,
+    onContactChange,
     isSeller,
     error,
 }) => {
-    const [state, dispatch] = useReducer(reducer, initialState);
-
-    // Effect to inform parent component of changes
-    useEffect(() => {
-        onChange(state);
-    }, [state, onChange]);
-
-    // Effect to reset internal state if the initial state from parent changes
-    useEffect(() => {
-        dispatch({ type: 'RESET', payload: initialState });
-    }, [initialState]);
-
     return (
         <>
             <CheckboxGroup
                 title="Payment Methods Accepted"
                 options={PAYMENT_OPTIONS}
-                selectedOptions={state.paymentMethods}
-                onChange={(payload) => dispatch({ type: 'SET_PAYMENT_METHODS', payload })}
+                selectedOptions={paymentMethods}
+                onChange={onPaymentChange}
             />
             <CheckboxGroup
                 title="Delivery Options"
                 options={DELIVERY_OPTIONS}
-                selectedOptions={state.deliveryOptions}
-                onChange={(payload) => dispatch({ type: 'SET_DELIVERY_OPTIONS', payload })}
+                selectedOptions={deliveryOptions}
+                onChange={onDeliveryChange}
             />
              {isSeller && (
                 <div className="md:col-span-2">
@@ -83,8 +57,8 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                         title="Contact Methods"
                         description="Select how customers can contact you (at least one is required)."
                         options={CONTACT_OPTIONS}
-                        selectedOptions={state.contactOptions}
-                        onChange={(payload) => dispatch({ type: 'SET_CONTACT_OPTIONS', payload: payload as ContactOption[] })}
+                        selectedOptions={contactOptions}
+                        onChange={(payload) => onContactChange(payload as ContactOption[])}
                         error={error}
                     />
                 </div>

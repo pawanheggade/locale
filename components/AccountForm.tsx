@@ -146,6 +146,13 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         }
     };
 
+    const handleSellerOptionChange = (field: keyof SellerOptionsState, value: any) => {
+        dispatch({
+            type: 'SET_SELLER_OPTIONS',
+            payload: { ...state.sellerOptions, [field]: value }
+        });
+    };
+
     const handleMapToggle = (isOpen: boolean) => {
         setShowMapPicker(isOpen);
         if (onToggleMap) onToggleMap(isOpen);
@@ -446,8 +453,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 </FormField>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <SellerOptionsForm
-                                        initialState={state.sellerOptions}
-                                        onChange={(payload) => dispatch({ type: 'SET_SELLER_OPTIONS', payload })}
+                                        paymentMethods={state.sellerOptions.paymentMethods}
+                                        deliveryOptions={state.sellerOptions.deliveryOptions}
+                                        contactOptions={state.sellerOptions.contactOptions}
+                                        onPaymentChange={(methods) => handleSellerOptionChange('paymentMethods', methods)}
+                                        onDeliveryChange={(options) => handleSellerOptionChange('deliveryOptions', options)}
+                                        onContactChange={(options) => handleSellerOptionChange('contactOptions', options)}
                                         isSeller={isSeller}
                                         error={errors.contactOptions}
                                     />
