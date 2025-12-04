@@ -100,9 +100,9 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
 
     return (
-        <div className="flex flex-col gap-3 w-full sm:w-auto">
+        <div className="flex flex-col gap-3 w-full">
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:justify-between items-stretch sm:items-center">
                 {/* Primary Actions Group: Like + Primary Contact */}
                 <div className="flex gap-2 w-full sm:w-auto">
                     <LikeButton 
@@ -132,7 +132,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 </div>
 
                 {/* Secondary Actions Group: Other Contacts + Socials + Share */}
-                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-start">
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end">
                     {secondaryContacts.map(method => (
                         <Button 
                             key={method.key} 
