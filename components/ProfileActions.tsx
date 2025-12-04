@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -62,7 +63,7 @@ const DropdownItem: React.FC<{
             className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:bg-gray-50"
         >
             <span className="text-gray-500 flex-shrink-0">{icon}</span>
-            <span className="font-medium truncate">{label}</span>
+            <span className="font-medium whitespace-nowrap">{label}</span>
         </Component>
     );
 };
@@ -102,7 +103,7 @@ const ConnectDropdown = ({
                 <ChevronDownIcon className="w-5 h-5 text-gray-500" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
+                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-auto min-w-[12rem] bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
                     <div className="py-1">
                         {hasContacts && contacts.map((method) => (
                             <DropdownItem
@@ -173,7 +174,7 @@ const PrimaryContactDropdown = ({
                 <ChevronDownIcon className="w-4 h-4 ml-1 opacity-70" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
+                <div className="absolute top-full left-0 mt-2 w-auto min-w-[12rem] bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
                     <div className="py-1">
                         {methods.map((method) => (
                             <DropdownItem
