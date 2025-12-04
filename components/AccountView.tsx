@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -286,7 +285,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                           openModal({ type: 'login' });
                       }
                   }}
-                  isMobile={false}
               />
           </div>
           

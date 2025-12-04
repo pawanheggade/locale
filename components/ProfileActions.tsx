@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -30,18 +29,42 @@ interface ProfileActionsProps {
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
-    isMobile?: boolean; 
 }
 
 const getSocialIcon = (platform: SocialPlatform) => {
+    const className = "w-4 h-4";
     switch (platform) {
-        case 'facebook': return <FacebookIcon className="w-4 h-4" />;
-        case 'twitter': return <XIcon className="w-4 h-4" />;
-        case 'instagram': return <InstagramIcon className="w-4 h-4" />;
-        case 'youtube': return <YouTubeIcon className="w-4 h-4" />;
-        case 'website': return <GlobeAltIcon className="w-4 h-4" />;
-        default: return <GlobeAltIcon className="w-4 h-4" />;
+        case 'facebook': return <FacebookIcon className={className} />;
+        case 'twitter': return <XIcon className={className} />;
+        case 'instagram': return <InstagramIcon className={className} />;
+        case 'youtube': return <YouTubeIcon className={className} />;
+        case 'website': return <GlobeAltIcon className={className} />;
+        default: return <GlobeAltIcon className={className} />;
     }
+};
+
+// Reusable list item to reduce code duplication in dropdowns
+const DropdownItem: React.FC<{
+    icon: React.ReactNode;
+    label: string;
+    onClick: (e: React.MouseEvent) => void;
+    href?: string;
+    target?: string;
+    rel?: string;
+}> = ({ icon, label, onClick, href, target, rel }) => {
+    const Component = href ? 'a' : 'button';
+    return (
+        <Component
+            href={href}
+            target={target}
+            rel={rel}
+            onClick={onClick}
+            className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:bg-gray-50"
+        >
+            <span className="text-gray-500 flex-shrink-0">{icon}</span>
+            <span className="font-medium truncate">{label}</span>
+        </Component>
+    );
 };
 
 const ConnectDropdown = ({ 
@@ -82,33 +105,37 @@ const ConnectDropdown = ({
                 <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
                     <div className="py-1">
                         {hasContacts && contacts.map((method) => (
-                            <a
+                            <DropdownItem
                                 key={method.key}
                                 href={method.href}
                                 onClick={(e) => { onContactAction(e, method); setIsOpen(false); }}
-                                className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                            >
-                                <span className="text-gray-500"><method.icon className="w-4 h-4" /></span>
-                                <span className="font-medium">{method.label}</span>
-                            </a>
+                                icon={<method.icon className="w-4 h-4" />}
+                                label={method.label}
+                            />
                         ))}
                         
                         {hasContacts && (hasSocials || onShare) && <div className="my-1 h-px bg-gray-100" />}
 
                         {hasSocials && socialLinks.map((link) => (
-                             <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900" onClick={() => setIsOpen(false)}>
-                                <span className="text-gray-500">{getSocialIcon(link.platform)}</span>
-                                <span className="capitalize font-medium">{link.platform}</span>
-                            </a>
+                             <DropdownItem
+                                key={link.platform}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setIsOpen(false)}
+                                icon={getSocialIcon(link.platform)}
+                                label={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                            />
                         ))}
                         
                         {hasSocials && onShare && <div className="my-1 h-px bg-gray-100" />}
                         
                         {onShare && (
-                            <button onClick={(e) => { e.stopPropagation(); onShare(); setIsOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                               <span className="text-gray-500"><PaperAirplaneIcon className="w-4 h-4" /></span>
-                               <span className="font-medium">Share Profile</span>
-                            </button>
+                            <DropdownItem
+                                onClick={(e) => { e.stopPropagation(); onShare(); setIsOpen(false); }}
+                                icon={<PaperAirplaneIcon className="w-4 h-4" />}
+                                label="Share Profile"
+                            />
                         )}
                     </div>
                 </div>
@@ -149,7 +176,7 @@ const PrimaryContactDropdown = ({
                 <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
                     <div className="py-1">
                         {methods.map((method) => (
-                            <button
+                            <DropdownItem
                                 key={method.key}
                                 onClick={(e) => { 
                                     e.preventDefault();
@@ -157,11 +184,9 @@ const PrimaryContactDropdown = ({
                                     onSelect(method.key); 
                                     setIsOpen(false); 
                                 }}
-                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                            >
-                                <span className="text-gray-500"><method.icon className="w-4 h-4" /></span>
-                                <span className="font-medium">{method.label}</span>
-                            </button>
+                                icon={<method.icon className="w-4 h-4" />}
+                                label={method.label}
+                            />
                         ))}
                     </div>
                 </div>
@@ -211,9 +236,9 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 />
                 
                 {primaryContact && (
-                    isOwnAccount ? (
+                    isOwnAccount && contactMethods.length > 1 ? (
                         <PrimaryContactDropdown 
-                            methods={contactMethods} // Show ALL methods for owner in dropdown
+                            methods={contactMethods} 
                             primaryLabel={primaryContact.label}
                             primaryIcon={primaryContact.icon}
                             onSelect={setActiveContactKey}
