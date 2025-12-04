@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -49,13 +48,13 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
   const localQuantity = quantityInputValue ?? String(item.quantity);
 
   return (
-    <li className="relative p-4 flex items-start gap-4">
+    <li className="relative p-4 flex items-center gap-4">
       {onToggleCheck && (
         <input
           type="checkbox"
           checked={isChecked}
           onChange={(e) => onToggleCheck(e.target.checked)}
-          className="h-5 w-5 rounded border-gray-300 text-red-600 focus:ring-red-500 mt-1 flex-shrink-0"
+          className="h-5 w-5 rounded border-gray-300 text-red-600 focus:ring-red-500 flex-shrink-0"
           aria-label={`Select ${post.title}`}
         />
       )}
@@ -82,7 +81,7 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
           {formatCurrency(post.salePrice ?? post.price)}
         </p>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
+        <div className="mt-2">
           <QuantitySelector
              value={localQuantity}
              onChange={onQuantityChange}
@@ -92,8 +91,10 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
              onRemove={onRemove}
              canRemove={true}
            />
-          {actionButton}
         </div>
+      </div>
+      <div className="ml-4 flex-shrink-0">
+        {actionButton}
       </div>
     </li>
   );
