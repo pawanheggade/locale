@@ -211,14 +211,13 @@ export type ModalState =
   | { type: 'termsOfService' }
   | { type: 'privacyPolicy' }
   | { type: 'confirmation', data: ConfirmationModalData }
-  | { type: 'createForumPost' }
   | { type: 'upgradeToSeller', data: { tier: Subscription['tier'] } }
   | { type: 'feedback' }
   | { type: 'viewCatalog', data: { catalog: CatalogItem[] } }
   | { type: 'profileQR', data: Account };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
 
 
 // --- Context API Action Types ---

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useRef } from 'react';
-import { Notification, Account, Post, DisplayablePost } from '../types';
+import { Notification, Account, Post, DisplayablePost, ForumPost, ForumComment } from '../types';
 
 // Context Imports
 import { useAuth } from '../contexts/AuthContext';
@@ -26,7 +26,6 @@ import { AccountModal } from './AccountModal';
 import ContactSellerModal from './ContactSellerModal';
 import ForgotPasswordModal from './ForgotPasswordModal';
 import { StaticContentModal } from './StaticContentModal';
-import { CreateForumPostModal } from './CreateForumPostModal';
 import { FeedbackModal } from './FeedbackModal';
 import { SignInScreen } from './SignInScreen';
 import { ViewCatalogModal } from './ViewCatalogModal';
@@ -190,8 +189,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
           />
         );
       }
-      case 'createForumPost':
-        return <CreateForumPostModal onClose={closeModal} onSubmit={(data) => { createForumPost(data); closeModal(); }} />;
       case 'upgradeToSeller':
           return <AccountModal mode="upgrade" accountToEdit={currentAccount!} allAccounts={accounts} onClose={closeModal} onUpgrade={(sellerData, tier) => upgradeToSeller(currentAccount!.id, sellerData, tier)} targetTier={activeModal.data.tier} />;
       case 'feedback':

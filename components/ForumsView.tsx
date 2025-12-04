@@ -54,6 +54,7 @@ export const ForumsView: React.FC = () => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
     const { openModal } = useUI();
     const { currentAccount } = useAuth();
+    const { navigateTo } = useNavigation();
     const [sortOption, setSortOption] = useState<SortOption>('latest');
 
     const displayPosts = useMemo(() => {
@@ -72,7 +73,7 @@ export const ForumsView: React.FC = () => {
 
     const handleDiscussClick = () => {
       if (currentAccount) {
-        openModal({ type: 'createForumPost' });
+        navigateTo('createForumPost');
       } else {
         openModal({ type: 'login' });
       }

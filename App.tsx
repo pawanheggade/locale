@@ -45,6 +45,7 @@ const ForumsView = React.lazy(() => import('./components/ForumsView').then(modul
 const EditPageView = React.lazy(() => import('./components/EditPageView').then(module => ({ default: module.EditPageView })));
 const EditProfilePage = React.lazy(() => import('./components/EditProfilePage').then(module => ({ default: module.EditProfilePage })));
 const ManageCatalogPage = React.lazy(() => import('./components/ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
+const CreateForumPostPage = React.lazy(() => import('./components/CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 
 interface HistoryItem {
     view: AppView;
@@ -92,7 +93,7 @@ export const App: React.FC = () => {
     priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
-  const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory } = useForum();
+  const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
   const { activeModal, openModal, closeModal, addToast } = useUI();
   const showConfirmation = useConfirmationModal();
   const isMounted = useIsMounted();
@@ -496,6 +497,17 @@ export const App: React.FC = () => {
     });
   }, []);
 
+  const handleCreateForumPost = useCallback(async (postData: any) => {
+    const newPost = createForumPost(postData);
+    if (newPost) {
+        // Navigate to the new post, but modify history so "back" goes to the forum list, not the create page.
+        setHistory(h => h.slice(0, -1)); // remove the 'createForumPost' view from history
+        navigateTo('forumPostDetail', { forumPostId: newPost.id });
+    } else {
+        handleBack(); // Fallback if creation fails
+    }
+  }, [createForumPost, navigateTo, handleBack, setHistory]);
+
   const navigationContextValue = useMemo(() => ({
       navigateTo,
       handleBack,
@@ -531,6 +543,7 @@ export const App: React.FC = () => {
         handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
         handleBulkFeedbackAction={handleBulkFeedbackAction}
         isGeocoding={isGeocoding}
+        handleCreateForumPost={handleCreateForumPost}
       />
     </ErrorBoundary>
   );
@@ -615,7 +628,7 @@ const ViewManager: React.FC<any> = (props) => {
         view, mainView, gridView, isInitialLoading, isFiltering, userLocation, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
         viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
         requestArchiveAccount, requestSignOut, handleNotificationClick, adminInitialView,
-        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, isGeocoding
+        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, isGeocoding, handleCreateForumPost
     } = props;
     
     // --- Data derived for rendering ---
@@ -692,6 +705,8 @@ const ViewManager: React.FC<any> = (props) => {
             return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><EditProfilePage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
         case 'manageCatalog':
             return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><ManageCatalogPage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
+        case 'createForumPost':
+            return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage onBack={handleBack} onSubmit={handleCreateForumPost} /></Suspense>;
         default: return null;
     }
 };

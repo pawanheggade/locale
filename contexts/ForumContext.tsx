@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback, useState } from 'react';
 import { ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -19,7 +20,7 @@ interface ForumContextType {
   getPostWithComments: (postId: string) => DisplayableForumPost | null;
   findForumPostById: (postId: string) => ForumPost | undefined;
   getPostComments: (postId: string) => DisplayableForumComment[];
-  addPost: (postData: Omit<ForumPost, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes' | 'isPinned'>) => void;
+  addPost: (postData: Omit<ForumPost, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes' | 'isPinned'>) => ForumPost | null;
   addComment: (commentData: Omit<ForumComment, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes'>) => void;
   toggleVote: (type: 'post' | 'comment', id: string, vote: 'up' | 'down') => void;
   updatePost: (postId: string, newContent: string) => void;
@@ -105,10 +106,10 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             .filter((p): p is DisplayableForumPost => p !== null);
     }, [rawPosts, getPostWithComments]);
 
-    const addPost = useCallback((postData: Omit<ForumPost, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes' | 'isPinned'>) => {
+    const addPost = useCallback((postData: Omit<ForumPost, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes' | 'isPinned'>): ForumPost | null => {
         if (!currentAccount) {
             openModal({ type: 'login' });
-            return;
+            return null;
         }
         const newPost: ForumPost = {
             ...postData,
@@ -120,6 +121,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             isPinned: false,
         };
         setRawPosts(prev => [newPost, ...prev]);
+        return newPost;
     }, [currentAccount, setRawPosts, openModal]);
 
     const addComment = useCallback((commentData: Omit<ForumComment, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes'>) => {
