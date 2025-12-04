@@ -43,7 +43,6 @@ interface SellerOptionsFormProps {
     onChange: (newState: SellerOptionsState) => void;
     isSeller: boolean;
     error?: string;
-    hiddenContactOptions?: ContactOption[];
 }
 
 export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
@@ -51,7 +50,6 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
     onChange,
     isSeller,
     error,
-    hiddenContactOptions = [],
 }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -64,8 +62,6 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
     useEffect(() => {
         dispatch({ type: 'RESET', payload: initialState });
     }, [initialState]);
-
-    const filteredContactOptions = CONTACT_OPTIONS.filter(opt => !hiddenContactOptions.includes(opt.id));
 
     return (
         <>
@@ -81,12 +77,12 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                 selectedOptions={state.deliveryOptions}
                 onChange={(payload) => dispatch({ type: 'SET_DELIVERY_OPTIONS', payload })}
             />
-             {isSeller && filteredContactOptions.length > 0 && (
+             {isSeller && (
                 <div className="md:col-span-2">
                     <CheckboxGroup
                         title="Contact Methods"
                         description="Select how customers can contact you (at least one is required)."
-                        options={filteredContactOptions}
+                        options={CONTACT_OPTIONS}
                         selectedOptions={state.contactOptions}
                         onChange={(payload) => dispatch({ type: 'SET_CONTACT_OPTIONS', payload: payload as ContactOption[] })}
                         error={error}

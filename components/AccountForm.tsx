@@ -151,21 +151,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (onToggleMap) onToggleMap(isOpen);
     };
 
-    const toggleContactOption = (option: ContactOption, checked: boolean) => {
-        const currentOptions = state.sellerOptions.contactOptions;
-        let newOptions: ContactOption[];
-        if (checked) {
-            newOptions = currentOptions.includes(option) ? currentOptions : [...currentOptions, option];
-        } else {
-            newOptions = currentOptions.filter(o => o !== option);
-        }
-        
-        dispatch({ 
-            type: 'SET_SELLER_OPTIONS', 
-            payload: { ...state.sellerOptions, contactOptions: newOptions } 
-        });
-    };
-
     const validate = (fieldToValidate?: keyof AccountValidationData, forStep1: boolean = false): boolean => {
         const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
         const validationData: AccountValidationData = { 
@@ -408,35 +393,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <Textarea rows={3} value={state.description} onChange={(e) => handleFieldChange('description', e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
                         </FormField>
                         <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
-                            <div className="space-y-2">
-                                <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
-                                <div className="flex items-center">
-                                    <input 
-                                        id="show-mobile" 
-                                        type="checkbox" 
-                                        checked={state.sellerOptions.contactOptions.includes('mobile')} 
-                                        onChange={(e) => toggleContactOption('mobile', e.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
-                                    />
-                                    <label htmlFor="show-mobile" className="ml-2 text-xs text-gray-600 select-none cursor-pointer">Show mobile number on profile</label>
-                                </div>
-                            </div>
+                            <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                         </FormField>
                         <div>
                             <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
-                                <div className="space-y-2">
-                                    <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
-                                    <div className="flex items-center">
-                                        <input 
-                                            id="show-message" 
-                                            type="checkbox" 
-                                            checked={state.sellerOptions.contactOptions.includes('message')} 
-                                            onChange={(e) => toggleContactOption('message', e.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"
-                                        />
-                                        <label htmlFor="show-message" className="ml-2 text-xs text-gray-600 select-none cursor-pointer">Show message number on profile</label>
-                                    </div>
-                                </div>
+                                <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                             </FormField>
                             <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
                         </div>
@@ -489,7 +450,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                         onChange={(payload) => dispatch({ type: 'SET_SELLER_OPTIONS', payload })}
                                         isSeller={isSeller}
                                         error={errors.contactOptions}
-                                        hiddenContactOptions={['mobile', 'message']}
                                     />
                                 </div>
                             </div>
