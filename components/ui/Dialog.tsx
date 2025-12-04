@@ -54,7 +54,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[3000] bg-black/60 backdrop-blur-sm',
+        'fixed inset-0 z-[3000] bg-black/70',
         backdropAnimation
       )}
       onClick={handleClose}
