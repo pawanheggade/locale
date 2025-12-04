@@ -93,28 +93,39 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     
     if (isOwnAccount) {
         return (
-            <>
-                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
-                    <ChartBarIcon className="w-4 h-4" />
-                    Analytics
-                </Button>
-                <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onEditAccount}>
-                    <PencilIcon className="w-4 h-4" />
-                    {isMobile ? 'Edit' : <span className="hidden md:inline">Edit Profile</span>}
-                    {!isMobile && <span className="md:hidden">Edit</span>}
-                </Button>
-                {canHaveCatalog && (
-                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenCatalog}>
-                        <DocumentIcon className="w-4 h-4" />
-                        {isMobile ? 'Catalog' : <span className="hidden md:inline">Manage Catalog</span>}
-                        {!isMobile && <span className="md:hidden">Catalog</span>}
+            <div className="flex w-full flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Public-facing actions */}
+                    {contactMethods.map(method => (
+                        <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
+                            <method.icon className="w-4 h-4" />
+                        </Button>
+                    ))}
+                    <SocialsDropdown links={socialLinks} size={iconBtnSize} />
+                    <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
+                        <PaperAirplaneIcon className="w-4 h-4" />
                     </Button>
-                )}
-                <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-                <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
-                    <PaperAirplaneIcon className="w-4 h-4" />
-                </Button>
-            </>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Management actions */}
+                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
+                        <ChartBarIcon className="w-4 h-4" />
+                        Analytics
+                    </Button>
+                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onEditAccount}>
+                        <PencilIcon className="w-4 h-4" />
+                        {isMobile ? 'Edit' : <span className="hidden md:inline">Edit Profile</span>}
+                        {!isMobile && <span className="md:hidden">Edit</span>}
+                    </Button>
+                    {canHaveCatalog && (
+                        <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenCatalog}>
+                            <DocumentIcon className="w-4 h-4" />
+                            {isMobile ? 'Catalog' : <span className="hidden md:inline">Manage Catalog</span>}
+                            {!isMobile && <span className="md:hidden">Catalog</span>}
+                        </Button>
+                    )}
+                </div>
+            </div>
         );
     }
 
@@ -132,7 +143,9 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 </Button>
             ))}
             <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile"><PaperAirplaneIcon className="w-4 h-4" /></Button>
+            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
+                <PaperAirplaneIcon className="w-4 h-4" />
+            </Button>
         </>
     );
 };
