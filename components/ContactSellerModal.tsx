@@ -1,12 +1,13 @@
 
 
+
 import React, { useRef, useEffect, useMemo } from 'react';
 import { Account, Post } from '../types';
 import ModalShell from './ModalShell';
-import { PhoneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { generateContactMethods } from '../utils/account';
 
 interface ContactSellerModalProps {
   author: Account;
@@ -20,36 +21,10 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
   const modalRef = useRef<HTMLDivElement>(null);
   const isMounted = useIsMounted();
 
-  const contactMethods = useMemo(() => {
-    const subject = encodeURIComponent(post ? `Inquiry about your post: "${post.title}" on Locale` : `Inquiry from Locale`);
-    const body = encodeURIComponent(prefilledMessage || (post ? `Hi ${author.name},\n\nI'm interested in your post "${post.title}" (ID: ${post.id}).\n\n[Your message here]\n\nThanks,\n${currentAccount.name}` : `Hi ${author.name},\n\nI'm interested in your profile on Locale.\n\n[Your message here]\n\nThanks,\n${currentAccount.name}`));
-
-    return [
-        {
-            key: 'email' as const,
-            label: 'Send Email',
-            Icon: EnvelopeIcon,
-            href: `mailto:${author.email}?subject=${subject}&body=${body}`,
-            isVisible: author.contactOptions?.includes('email') && !!author.email,
-        },
-        {
-            key: 'mobile' as const,
-            label: 'Call Mobile',
-            Icon: PhoneIcon,
-            href: `tel:${author.mobile}`,
-            isVisible: author.contactOptions?.includes('mobile') && !!author.mobile,
-        },
-        {
-            key: 'message' as const,
-            label: 'Send Message',
-            Icon: ChatBubbleBottomCenterTextIcon,
-            href: `https://wa.me/${author.messageNumber?.replace(/\D/g, '')}`,
-            isVisible: author.contactOptions?.includes('message') && !!author.messageNumber,
-        }
-    ];
-  }, [author, post, currentAccount, prefilledMessage]);
-
-  const availableMethods = contactMethods.filter(m => m.isVisible);
+  const availableMethods = useMemo(() => 
+    generateContactMethods(author, currentAccount, post, prefilledMessage), 
+    [author, currentAccount, post, prefilledMessage]
+  );
 
   return (
     <ModalShell
@@ -90,7 +65,8 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                   className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left rounded-lg"
                   aria-label={method.label}
                 >
-                  <method.Icon className="w-8 h-8 text-red-600 flex-shrink-0" />
+                  {/* FIX: The property for the icon component is 'icon' (lowercase), not 'Icon'. */}
+                  <method.icon className="w-8 h-8 text-red-600 flex-shrink-0" />
                   <p className="font-semibold text-gray-800">{method.label}</p>
                 </Button>
           ))}

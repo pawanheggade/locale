@@ -15,6 +15,7 @@ import { useForum } from '../contexts/ForumContext';
 import { useNavigation } from '../App';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
+import { generateContactMethods } from '../utils/account';
 
 interface AccountViewProps {
   account: Account;
@@ -115,37 +116,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     }
   }, [availableTabs, activeTab]);
 
-  const contactMethods = useMemo(() => {
-    const subject = encodeURIComponent(`Inquiry from Locale`);
-    const body = encodeURIComponent(`Hi ${account.name},\n\nI'm interested in your profile on Locale.\n\nThanks,\n${currentAccount?.name || ''}`);
-
-    return [
-        {
-            key: 'message',
-            icon: ChatBubbleBottomCenterTextIcon,
-            href: `https://wa.me/${account.messageNumber?.replace(/\D/g, '')}`,
-            isVisible: account.contactOptions?.includes('message') && !!account.messageNumber,
-            label: 'Message',
-            toast: 'Opening messaging app...',
-        },
-        {
-            key: 'mobile',
-            icon: PhoneIcon,
-            href: `tel:${account.mobile}`,
-            isVisible: account.contactOptions?.includes('mobile') && !!account.mobile,
-            label: 'Call',
-            toast: 'Opening phone dialer...',
-        },
-        {
-            key: 'email',
-            icon: EnvelopeIcon,
-            href: `mailto:${account.email}?subject=${subject}&body=${body}`,
-            isVisible: account.contactOptions?.includes('email') && !!account.email,
-            label: 'Email',
-            toast: 'Opening email client...',
-        }
-    ].filter(m => m.isVisible);
-  }, [account, currentAccount]);
+  const contactMethods = useMemo(() => generateContactMethods(account, currentAccount), [account, currentAccount]);
 
   const sortedSocialLinks = useMemo(() => {
       if (!account.socialLinks) return [];
