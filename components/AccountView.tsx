@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -63,14 +63,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
   const salePosts = useMemo(() => isBusinessAccount ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isBusinessAccount, accountPosts]);
   const postCategories = useMemo(() => isBusinessAccount ? Array.from(new Set(accountPosts.map(p => p.category))).sort() : [], [isBusinessAccount, accountPosts]);
-  const canHaveCatalog = account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic';
+  const canHaveCatalog = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   const hasCatalogContent = account.catalog && account.catalog.length > 0;
+  
+  const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
+  const pinnedPosts = useMemo(() => accountPosts.filter(p => p.isPinned), [accountPosts]);
   
   // --- TAB MANAGEMENT ---
   const availableTabs = useMemo(() => {
     const tabs = [];
     
-    // The main posts tab is always an option, though might be empty.
+    if (isPaidTier) {
+        tabs.push({ id: 'pins', label: 'Pins' });
+    }
+    
     tabs.push({ id: 'all', label: 'Posts' });
     
     if (userForumPosts.length > 0) {
@@ -95,6 +101,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
     return tabs;
   }, [
+    isPaidTier,
     userForumPosts.length,
     salePosts.length,
     canHaveCatalog,
@@ -104,13 +111,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     accountArchivedPosts.length,
   ]);
 
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>(isPaidTier ? 'pins' : 'all');
   
-  // Effect to select a default tab or reset if the current one disappears
   useEffect(() => {
     const isCurrentTabVisible = availableTabs.some(t => t.id === activeTab);
-    if (!isCurrentTabVisible && availableTabs.length > 0) {
-        setActiveTab(availableTabs[0].id);
+    if (!isCurrentTabVisible) {
+        if (availableTabs.length > 0) {
+            setActiveTab(availableTabs[0].id);
+        }
     }
   }, [availableTabs, activeTab]);
 
@@ -129,20 +137,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [account.socialLinks]);
 
   const displayedPosts = useMemo(() => {
+    if (activeTab === 'pins') return pinnedPosts;
     if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'archives') return accountArchivedPosts;
     if (activeTab === 'all') {
-        // Sort pinned posts to the top
         return [...accountPosts].sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
-            return 0; // Maintain original sort (usually date) for same pin status
+            return b.lastUpdated - a.lastUpdated;
         });
     }
     // Category filter
     return accountPosts.filter(p => p.category === activeTab);
-  }, [activeTab, salePosts, accountArchivedPosts, accountPosts]);
+  }, [activeTab, salePosts, accountArchivedPosts, accountPosts, pinnedPosts]);
 
   const handleContactAction = (e: React.MouseEvent, method: { toast: string }) => {
       if (!currentAccount) {
@@ -309,7 +317,24 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           </div>
 
           <div className="p-4 sm:p-6 min-h-[300px]">
-            {activeTab === 'catalogs' ? (
+            {activeTab === 'pins' ? (
+                <div className="animate-fade-in">
+                    {pinnedPosts.length > 0 ? (
+                        <PostList 
+                            posts={pinnedPosts} 
+                            currentAccount={currentAccount}
+                            variant="compact"
+                        />
+                    ) : (
+                        <EmptyState
+                            icon={<PinIcon />}
+                            title="No Pinned Posts"
+                            description={isOwnAccount ? "Pin your most important posts to feature them here." : "This seller hasn't pinned any posts yet."}
+                            className="bg-gray-50 rounded-xl"
+                        />
+                    )}
+                </div>
+            ) : activeTab === 'catalogs' ? (
                 <div className="space-y-4 animate-fade-in">
                     {hasCatalogContent ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
