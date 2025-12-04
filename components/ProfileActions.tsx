@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -13,7 +14,8 @@ import {
     FacebookIcon,
     XIcon,
     InstagramIcon,
-    YouTubeIcon
+    YouTubeIcon,
+    ChatBubbleEllipsisIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -42,13 +44,31 @@ const getSocialIcon = (platform: SocialPlatform) => {
     }
 };
 
-const SocialsDropdown = ({ links, size = 'icon-sm', className, showLabel = false }: { links: SocialLink[], size?: ButtonProps['size'], className?: string, showLabel?: boolean }) => {
+const ConnectDropdown = ({ 
+    contacts, 
+    socialLinks, 
+    onShare, 
+    size = 'sm', 
+    className, 
+    showLabel = false, 
+    onContactAction 
+}: { 
+    contacts: any[], 
+    socialLinks: SocialLink[],
+    onShare: () => void,
+    size?: ButtonProps['size'], 
+    className?: string, 
+    showLabel?: boolean, 
+    onContactAction: (e: React.MouseEvent, method: { toast: string }) => void 
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-
     useClickOutside(menuRef, () => setIsOpen(false), isOpen);
 
-    if (!links || links.length === 0) return null;
+    const hasContacts = contacts && contacts.length > 0;
+    const hasSocials = socialLinks && socialLinks.length > 0;
+    const hasContent = hasContacts || hasSocials || !!onShare;
+    if (!hasContent) return null;
 
     return (
         <div className="relative" ref={menuRef}>
@@ -56,34 +76,51 @@ const SocialsDropdown = ({ links, size = 'icon-sm', className, showLabel = false
                 onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
                 variant="overlay-dark"
                 size={size}
-                title="Social Profiles"
+                title="Connect"
                 className={cn(className, isOpen ? 'text-red-600 bg-red-50' : '', showLabel ? 'gap-1.5 px-3' : '')}
             >
                 <GlobeAltIcon className="w-5 h-5" />
-                {showLabel && <span>Socials</span>}
+                {showLabel && <span>Connect</span>}
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-right">
                     <div className="py-1">
-                        {links.map((link, idx) => (
+                        {hasContacts && contacts.map((method) => (
                             <a
-                                key={idx}
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                key={method.key}
+                                href={method.href}
+                                onClick={(e) => { onContactAction(e, method); setIsOpen(false); }}
                                 className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                onClick={() => setIsOpen(false)}
                             >
+                                <span className="text-gray-500"><method.icon className="w-4 h-4" /></span>
+                                <span className="font-medium">{method.label}</span>
+                            </a>
+                        ))}
+                        
+                        {hasContacts && (hasSocials || onShare) && <div className="my-1 h-px bg-gray-100" />}
+
+                        {hasSocials && socialLinks.map((link) => (
+                             <a key={link.platform} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900" onClick={() => setIsOpen(false)}>
                                 <span className="text-gray-500">{getSocialIcon(link.platform)}</span>
                                 <span className="capitalize font-medium">{link.platform}</span>
                             </a>
                         ))}
+                        
+                        {hasSocials && onShare && <div className="my-1 h-px bg-gray-100" />}
+                        
+                        {onShare && (
+                            <button onClick={(e) => { e.stopPropagation(); onShare(); setIsOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                               <span className="text-gray-500"><PaperAirplaneIcon className="w-4 h-4" /></span>
+                               <span className="font-medium">Share Profile</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
         </div>
     );
 };
+
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
@@ -102,13 +139,14 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     return (
         <div className="flex flex-col gap-3 w-full">
             
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-stretch sm:justify-between">
-                {/* Primary Actions Group */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full items-stretch sm:justify-between">
+                {/* Primary Actions Group: Like + Primary Contact */}
                 <div className="flex gap-2 w-full sm:w-auto">
                     <LikeButton 
                         isLiked={isLiked} 
                         onToggle={onToggleLike} 
                         variant={isLiked ? "pill-lightred" : "pill-red"} 
+                        // Flex-1 on mobile ensures full width split, fixed padding on desktop
                         className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
                         includeLabel 
                         iconClassName="w-5 h-5"
@@ -130,47 +168,23 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     )}
                 </div>
 
-                {/* Secondary Actions Group */}
+                {/* Secondary Actions Group: Other Contacts + Socials + Share */}
                 <div className="flex flex-wrap gap-1.5 w-full sm:w-auto justify-start sm:justify-end">
-                    {secondaryContacts.map(method => (
-                        <Button 
-                            key={method.key} 
-                            as="a" 
-                            href={method.href} 
-                            onClick={(e) => onContactAction(e, method)} 
-                            variant="overlay-dark" 
-                            size="sm" 
-                            title={method.label}
-                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                        >
-                            <method.icon className="w-5 h-5" />
-                            <span>{method.label}</span>
-                        </Button>
-                    ))}
-                    
-                    <SocialsDropdown 
-                        links={socialLinks} 
-                        size="sm" 
-                        showLabel={true}
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl" 
+                    <ConnectDropdown 
+                        contacts={secondaryContacts}
+                        socialLinks={socialLinks}
+                        onShare={onShare}
+                        onContactAction={onContactAction}
+                        size="icon-sm" 
+                        showLabel={false}
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl"
                     />
-
-                    <Button 
-                        variant="overlay-dark" 
-                        size="sm" 
-                        onClick={onShare} 
-                        title="Share Profile"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                    >
-                        <PaperAirplaneIcon className="w-5 h-5" />
-                        <span>Share</span>
-                    </Button>
                 </div>
             </div>
 
             {/* Owner Management Buttons (Rendered below standard actions) */}
             {isOwnAccount && (
-                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100 sm:border-t-0 sm:pt-0">
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100">
                     <Button 
                         onClick={onOpenAnalytics} 
                         variant="overlay-dark"
