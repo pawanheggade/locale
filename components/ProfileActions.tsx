@@ -57,7 +57,7 @@ const SocialsDropdown = ({ links, size = 'icon-sm', className, showLabel = false
                 variant="overlay-dark"
                 size={size}
                 title="Social Profiles"
-                className={cn(className, isOpen ? 'text-red-600 bg-red-50' : '', showLabel ? 'gap-2 px-4' : '')}
+                className={cn(className, isOpen ? 'text-red-600 bg-red-50' : '', showLabel ? 'gap-1.5 px-3' : '')}
             >
                 <GlobeAltIcon className="w-5 h-5" />
                 {showLabel && <span>Socials</span>}
@@ -102,14 +102,13 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     return (
         <div className="flex flex-col gap-3 w-full">
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:justify-between items-stretch sm:items-center">
-                {/* Primary Actions Group: Like + Primary Contact */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-stretch sm:justify-between">
+                {/* Primary Actions Group */}
                 <div className="flex gap-2 w-full sm:w-auto">
                     <LikeButton 
                         isLiked={isLiked} 
                         onToggle={onToggleLike} 
                         variant={isLiked ? "pill-lightred" : "pill-red"} 
-                        // Flex-1 on mobile ensures full width split, fixed padding on desktop
                         className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
                         includeLabel 
                         iconClassName="w-5 h-5"
@@ -131,8 +130,8 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     )}
                 </div>
 
-                {/* Secondary Actions Group: Other Contacts + Socials + Share */}
-                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end">
+                {/* Secondary Actions Group */}
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto justify-start sm:justify-end">
                     {secondaryContacts.map(method => (
                         <Button 
                             key={method.key} 
@@ -142,7 +141,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             variant="overlay-dark" 
                             size="sm" 
                             title={method.label}
-                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                         >
                             <method.icon className="w-5 h-5" />
                             <span>{method.label}</span>
@@ -161,7 +160,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                         size="sm" 
                         onClick={onShare} 
                         title="Share Profile"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                     >
                         <PaperAirplaneIcon className="w-5 h-5" />
                         <span>Share</span>
@@ -171,12 +170,12 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
             {/* Owner Management Buttons (Rendered below standard actions) */}
             {isOwnAccount && (
-                <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100 sm:border-t-0 sm:pt-0">
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100 sm:border-t-0 sm:pt-0">
                     <Button 
                         onClick={onOpenAnalytics} 
                         variant="overlay-dark"
                         size="sm"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                     >
                         <ChartBarIcon className="w-5 h-5" />
                         <span>Analytics</span>
@@ -185,7 +184,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                         onClick={onEditAccount} 
                         variant="overlay-dark"
                         size="sm"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                     >
                         <PencilIcon className="w-5 h-5" />
                         <span>Edit Profile</span>
@@ -195,10 +194,10 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             onClick={onOpenCatalog} 
                             variant="overlay-dark" 
                             size="sm"
-                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                         >
                             <DocumentIcon className="w-5 h-5" />
-                            <span>Catalog</span>
+                            <span>Catalogs</span>
                         </Button>
                     )}
                 </div>
