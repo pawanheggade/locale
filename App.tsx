@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -160,8 +161,21 @@ export const App: React.FC = () => {
       if (isSameView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey) return;
 
       if (newView === 'createPost' && currentAccount?.subscription.tier === 'Personal') {
-          setView('subscription');
+          navigateTo('subscription');
           return;
+      }
+
+      if (newView === 'accountAnalytics') {
+          // Analytics can only be viewed by the logged-in owner of the account
+          if (!currentAccount || !options.account || options.account.id !== currentAccount.id) {
+              // This case shouldn't happen with the UI, so we can just block navigation
+              return; 
+          }
+          const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(currentAccount.subscription.tier);
+          if (!isPaidTier) {
+              navigateTo('subscription'); // Redirect to upgrade
+              return;
+          }
       }
 
       if (newView === 'postDetail' && options.postId && currentAccount) {

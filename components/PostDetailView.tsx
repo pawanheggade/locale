@@ -143,7 +143,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                   <div className="flex items-center gap-4 flex-shrink-0">
                       {!isOwnPost && (
                           <Button 
-                            onClick={() => openModal({ type: 'reportItem', data: { item: post } })} 
+                            onClick={() => {
+                                if (!currentAccount) {
+                                    openModal({ type: 'login' });
+                                    return;
+                                }
+                                openModal({ type: 'reportItem', data: { item: post } });
+                            }} 
                             variant="ghost" 
                             size="icon-sm"
                             className="text-gray-500"

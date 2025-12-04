@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { SocialPlatform, SocialLink } from '../types';
+import { Account, SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
 import { LikeButton } from './LikeButton';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -19,6 +20,7 @@ import {
 } from './Icons';
 
 interface ProfileActionsProps {
+    account: Account;
     isOwnAccount: boolean;
     canHaveCatalog: boolean;
     onEditAccount: () => void;
@@ -197,12 +199,14 @@ const PrimaryContactDropdown = ({
 }
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
-    isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
+    account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
     socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike
 }) => {
     
     // Local state to allow owner to switch the visible primary contact for preview
     const [activeContactKey, setActiveContactKey] = useState<string | null>(null);
+
+    const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
 
     // Calculate Primary Contact
     // Priority: User Selected > Message > Mobile > Email
@@ -270,15 +274,17 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
             {/* Right-aligned Owner Management Buttons */}
             {isOwnAccount && (
                 <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 justify-start sm:justify-end">
-                    <Button 
-                        onClick={onOpenAnalytics} 
-                        variant="overlay-dark"
-                        size="sm"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                    >
-                        <ChartBarIcon className="w-5 h-5" />
-                        <span>Analytics</span>
-                    </Button>
+                    {isPaidTier && (
+                        <Button 
+                            onClick={onOpenAnalytics} 
+                            variant="overlay-dark"
+                            size="sm"
+                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                        >
+                            <ChartBarIcon className="w-5 h-5" />
+                            <span>Analytics</span>
+                        </Button>
+                    )}
                     <Button 
                         onClick={onEditAccount} 
                         variant="overlay-dark"

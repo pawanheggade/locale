@@ -267,7 +267,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
           </div>
           
           <div className="mt-6 relative z-20">
-             <ProfileActions 
+             <ProfileActions
+                  account={account}
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
                   onEditAccount={() => navigateTo('editProfile', { account })}
