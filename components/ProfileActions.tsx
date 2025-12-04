@@ -129,16 +129,52 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         );
     }
 
+    const messageMethod = contactMethods.find(m => m.key === 'message');
+    const otherMethods = contactMethods.filter(m => m.key !== 'message');
+
     return (
         <>
-            {isMobile && (
-                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
+            {isMobile ? (
+                <>
+                    <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
+                    {messageMethod && (
+                        <Button
+                            as="a"
+                            href={messageMethod.href}
+                            target={'_blank'}
+                            rel={'noopener noreferrer'}
+                            onClick={(e) => onContactAction(e, messageMethod)}
+                            variant="pill-dark"
+                            className="flex-1 justify-center gap-2"
+                        >
+                            <messageMethod.icon className="w-5 h-5" />
+                            <span>{messageMethod.label}</span>
+                        </Button>
+                    )}
+                </>
+            ) : (
+                <>
+                    <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6" includeLabel iconClassName="w-4 h-4" />
+                    {messageMethod && (
+                        <Button
+                            as="a"
+                            href={messageMethod.href}
+                            target={'_blank'}
+                            rel={'noopener noreferrer'}
+                            onClick={(e) => onContactAction(e, messageMethod)}
+                            variant="pill-dark"
+                            size="sm"
+                            className="gap-2 px-6"
+                        >
+                            <messageMethod.icon className="w-4 h-4" />
+                            <span>{messageMethod.label}</span>
+                        </Button>
+                    )}
+                </>
             )}
-            {!isMobile && (
-                <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6" includeLabel iconClassName="w-4 h-4" />
-            )}
-            {contactMethods.map(method => (
-                <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
+
+            {otherMethods.map(method => (
+                <Button as="a" key={method.key} href={method.href} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
                     <method.icon className="w-4 h-4" />
                 </Button>
             ))}
