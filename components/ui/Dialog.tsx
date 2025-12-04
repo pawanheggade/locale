@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -98,7 +97,7 @@ const DialogContent = React.forwardRef<
     <div
       ref={dialogRef}
       className={cn(
-        'bg-white/80 backdrop-blur-xl shadow-xl border border-gray-200/60 flex flex-col m-0 overflow-hidden',
+        'bg-white shadow-xl border border-gray-200/60 flex flex-col m-0 overflow-hidden',
         panelPositionClasses[position],
         panelAnimation,
         className

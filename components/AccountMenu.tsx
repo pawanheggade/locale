@@ -140,7 +140,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                   id="account-menu-dropdown"
                   className={cn(
                       "absolute right-0 mt-2 w-auto origin-top-right z-30 focus:outline-none shadow-xl rounded-xl border border-gray-200/60",
-                      "bg-white/80 backdrop-blur-xl", // Glass effect
+                      "bg-white",
                       isClosing ? 'animate-zoom-out' : 'animate-zoom-in'
                   )}
                 >
