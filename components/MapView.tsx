@@ -233,7 +233,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
                     <h3 class="font-bold text-base text-gray-800 truncate" title="${post.title}">${post.title}</h3>
                     <div class="flex justify-between items-center mt-2">
                         <p class="text-lg font-extrabold text-gray-900">${formatCurrency(post.price)}</p>
-                        <button class="view-details-btn text-center button-pill-red text-white px-3 py-1.5 rounded-full text-xs font-semibold transition-colors">
+                        <button class="view-details-btn text-center button-pill-red text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">
                             Details
                         </button>
                     </div>
