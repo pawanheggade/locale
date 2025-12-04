@@ -81,7 +81,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         tabs.push({ id: 'sale', label: 'Sale' });
     }
 
-    if (hasCatalogContent) {
+    if (canHaveCatalog) {
         tabs.push({ id: 'catalogs', label: 'Catalogs' });
     }
 
@@ -97,7 +97,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [
     userForumPosts.length,
     salePosts.length,
-    hasCatalogContent,
+    canHaveCatalog,
     isBusinessAccount,
     postCategories,
     isOwnAccount,
