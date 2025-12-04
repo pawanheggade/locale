@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
 import { LikeButton } from './LikeButton';
@@ -29,7 +30,7 @@ interface ProfileActionsProps {
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
-    isMobile?: boolean; // Kept for interface compatibility but largely superseded by responsive classes
+    isMobile?: boolean; 
 }
 
 const getSocialIcon = (platform: SocialPlatform) => {
@@ -78,7 +79,7 @@ const ConnectDropdown = ({
                 <ChevronDownIcon className="w-5 h-5 text-gray-500" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-left">
+                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
                     <div className="py-1">
                         {hasContacts && contacts.map((method) => (
                             <a
@@ -116,18 +117,82 @@ const ConnectDropdown = ({
     );
 };
 
+const PrimaryContactDropdown = ({ 
+    methods, 
+    primaryLabel, 
+    primaryIcon: PrimaryIcon,
+    onSelect
+}: { 
+    methods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[],
+    primaryLabel: string,
+    primaryIcon: React.FC<any>,
+    onSelect: (key: string) => void
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    useClickOutside(menuRef, () => setIsOpen(false), isOpen);
+
+    if (!methods || methods.length === 0) return null;
+
+    return (
+        <div className="relative flex-1 sm:flex-none" ref={menuRef}>
+            <Button
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                variant="pill-dark"
+                className="w-full sm:w-auto justify-center gap-2 px-6"
+            >
+                <PrimaryIcon className="w-5 h-5" />
+                <span>{primaryLabel}</span>
+                <ChevronDownIcon className="w-4 h-4 ml-1 opacity-70" />
+            </Button>
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
+                    <div className="py-1">
+                        {methods.map((method) => (
+                            <button
+                                key={method.key}
+                                onClick={(e) => { 
+                                    e.preventDefault();
+                                    e.stopPropagation(); 
+                                    onSelect(method.key); 
+                                    setIsOpen(false); 
+                                }}
+                                className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                                <span className="text-gray-500"><method.icon className="w-4 h-4" /></span>
+                                <span className="font-medium">{method.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
     socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike
 }) => {
     
-    // Unified Logic: Calculate Primary and Secondary contacts for ALL users (Owners and Visitors)
-    // Determine Primary Contact (Priority: Message -> Mobile -> Email)
-    const primaryContact = contactMethods.find(m => m.key === 'message') 
-                        || contactMethods.find(m => m.key === 'mobile') 
-                        || contactMethods.find(m => m.key === 'email');
+    // Local state to allow owner to switch the visible primary contact for preview
+    const [activeContactKey, setActiveContactKey] = useState<string | null>(null);
+
+    // Calculate Primary Contact
+    // Priority: User Selected > Message > Mobile > Email
+    const primaryContact = 
+        contactMethods.find(m => m.key === activeContactKey) || 
+        contactMethods.find(m => m.key === 'message') || 
+        contactMethods.find(m => m.key === 'mobile') || 
+        contactMethods.find(m => m.key === 'email');
     
+    // Ensure activeContactKey is valid if methods change
+    useEffect(() => {
+        if (activeContactKey && !contactMethods.some(m => m.key === activeContactKey)) {
+            setActiveContactKey(null);
+        }
+    }, [contactMethods, activeContactKey]);
+
     // Filter out primary from the list to show remaining as secondary icons
     const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
 
@@ -146,18 +211,27 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 />
                 
                 {primaryContact && (
-                    <Button
-                        as="a"
-                        href={primaryContact.href}
-                        target={primaryContact.key === 'message' ? '_blank' : undefined}
-                        rel={primaryContact.key === 'message' ? 'noopener noreferrer' : undefined}
-                        onClick={(e) => onContactAction(e, primaryContact)}
-                        variant="pill-dark"
-                        className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6"
-                    >
-                        <primaryContact.icon className="w-5 h-5" />
-                        <span>{primaryContact.label}</span>
-                    </Button>
+                    isOwnAccount ? (
+                        <PrimaryContactDropdown 
+                            methods={contactMethods} // Show ALL methods for owner in dropdown
+                            primaryLabel={primaryContact.label}
+                            primaryIcon={primaryContact.icon}
+                            onSelect={setActiveContactKey}
+                        />
+                    ) : (
+                        <Button
+                            as="a"
+                            href={primaryContact.href}
+                            target={primaryContact.key === 'message' ? '_blank' : undefined}
+                            rel={primaryContact.key === 'message' ? 'noopener noreferrer' : undefined}
+                            onClick={(e) => onContactAction(e, primaryContact)}
+                            variant="pill-dark"
+                            className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6"
+                        >
+                            <primaryContact.icon className="w-5 h-5" />
+                            <span>{primaryContact.label}</span>
+                        </Button>
+                    )
                 )}
                  <ConnectDropdown 
                     contacts={secondaryContacts}
@@ -169,7 +243,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
 
             {/* Right-aligned Owner Management Buttons */}
             {isOwnAccount && (
-                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100 justify-start sm:justify-end">
                     <Button 
                         onClick={onOpenAnalytics} 
                         variant="overlay-dark"
