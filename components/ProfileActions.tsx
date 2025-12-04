@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -133,9 +132,10 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
 
     return (
-        <div className="flex flex-col gap-3 w-full">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 w-full">
             
-            <div className="flex flex-wrap gap-2 w-full items-stretch">
+            {/* Left-aligned actions (for everyone) */}
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto items-stretch">
                 <LikeButton 
                     isLiked={isLiked} 
                     onToggle={onToggleLike} 
@@ -167,9 +167,9 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 />
             </div>
 
-            {/* Owner Management Buttons (Rendered below standard actions) */}
+            {/* Right-aligned Owner Management Buttons */}
             {isOwnAccount && (
-                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                     <Button 
                         onClick={onOpenAnalytics} 
                         variant="overlay-dark"
