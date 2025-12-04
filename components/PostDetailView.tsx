@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { AIIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, PaperAirplaneIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
@@ -264,7 +265,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                     {!isOwnPost && (
                         <LikeButton
                             isLiked={isAuthorLiked}
-                            onToggle={() => { if (post.author) toggleLikeAccount(post.author.id); }}
+                            onToggle={() => {
+                                if (!currentAccount) {
+                                    openModal({ type: 'login' });
+                                    return;
+                                }
+                                if (post.author) toggleLikeAccount(post.author.id); 
+                            }}
                             className={cn(
                                 'p-0',
                                 isAuthorLiked ? 'text-red-600' : 'text-gray-500'

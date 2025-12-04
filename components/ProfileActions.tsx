@@ -3,6 +3,7 @@ import { SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
 import { LikeButton } from './LikeButton';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { cn } from '../lib/utils';
 import { 
     PencilIcon, 
     DocumentIcon, 
@@ -27,7 +28,7 @@ interface ProfileActionsProps {
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
-    isMobile?: boolean;
+    isMobile?: boolean; // Kept for interface compatibility but largely superseded by responsive classes
 }
 
 const getSocialIcon = (platform: SocialPlatform) => {
@@ -41,7 +42,7 @@ const getSocialIcon = (platform: SocialPlatform) => {
     }
 };
 
-const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], size?: ButtonProps['size'] }) => {
+const SocialsDropdown = ({ links, size = 'icon-sm', className, showLabel = false }: { links: SocialLink[], size?: ButtonProps['size'], className?: string, showLabel?: boolean }) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -56,12 +57,13 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
                 variant="overlay-dark"
                 size={size}
                 title="Social Profiles"
-                className={isOpen ? 'text-red-600' : ''}
+                className={cn(className, isOpen ? 'text-red-600 bg-red-50' : '', showLabel ? 'gap-2 px-4' : '')}
             >
-                <GlobeAltIcon className="w-4 h-4" />
+                <GlobeAltIcon className="w-5 h-5" />
+                {showLabel && <span>Socials</span>}
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl border border-gray-100 z-30 animate-zoom-in overflow-hidden origin-top-right">
+                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-48 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
                     <div className="py-1">
                         {links.map((link, idx) => (
                             <a
@@ -69,10 +71,10 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600"
+                                className="flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <span className="text-gray-600">{getSocialIcon(link.platform)}</span>
+                                <span className="text-gray-500">{getSocialIcon(link.platform)}</span>
                                 <span className="capitalize font-medium">{link.platform}</span>
                             </a>
                         ))}
@@ -85,103 +87,122 @@ const SocialsDropdown = ({ links, size = 'icon-sm' }: { links: SocialLink[], siz
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
-    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, isMobile 
+    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike
 }) => {
-    const btnSize = isMobile ? 'sm' : 'sm';
-    const iconBtnSize = isMobile ? 'icon' : 'icon-sm';
-    const btnClass = isMobile ? 'justify-center gap-2 px-3' : 'gap-2 px-3';
     
-    if (isOwnAccount) {
-        return (
-            <div className="flex w-full flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Public-facing actions (Contacts, Socials, Share) */}
-                    {contactMethods.map(method => (
-                        <Button as="a" key={method.key} href={method.href} target={method.key === 'message' ? '_blank' : undefined} rel={method.key === 'message' ? 'noopener noreferrer' : undefined} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
-                            <method.icon className="w-4 h-4" />
-                        </Button>
-                    ))}
-                    <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-                    <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
-                        <PaperAirplaneIcon className="w-4 h-4" />
-                    </Button>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                    {/* Management actions (Analytics, Edit, Catalog) on a new line */}
-                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenAnalytics}>
-                        <ChartBarIcon className="w-4 h-4" />
-                        Analytics
-                    </Button>
-                    <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onEditAccount}>
-                        <PencilIcon className="w-4 h-4" />
-                        {isMobile ? 'Edit' : <span className="hidden md:inline">Edit Profile</span>}
-                        {!isMobile && <span className="md:hidden">Edit</span>}
-                    </Button>
-                    {canHaveCatalog && (
-                        <Button variant="overlay-dark" size={btnSize} className={btnClass} onClick={onOpenCatalog}>
-                            <DocumentIcon className="w-4 h-4" />
-                            {isMobile ? 'Catalog' : <span className="hidden md:inline">Manage Catalog</span>}
-                            {!isMobile && <span className="md:hidden">Catalog</span>}
-                        </Button>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    const messageMethod = contactMethods.find(m => m.key === 'message');
-    const otherMethods = contactMethods.filter(m => m.key !== 'message');
+    // Unified Logic: Calculate Primary and Secondary contacts for ALL users (Owners and Visitors)
+    // Determine Primary Contact (Priority: Message -> Mobile -> Email)
+    const primaryContact = contactMethods.find(m => m.key === 'message') 
+                        || contactMethods.find(m => m.key === 'mobile') 
+                        || contactMethods.find(m => m.key === 'email');
+    
+    // Filter out primary from the list to show remaining as secondary icons
+    const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
 
     return (
-        <>
-            {isMobile ? (
-                <>
-                    <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} className="flex-1 justify-center gap-2" includeLabel />
-                    {messageMethod && (
+        <div className="flex flex-col gap-3 w-full sm:w-auto">
+            
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
+                {/* Primary Actions Group: Like + Primary Contact */}
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <LikeButton 
+                        isLiked={isLiked} 
+                        onToggle={onToggleLike} 
+                        variant={isLiked ? "pill-lightred" : "pill-red"} 
+                        // Flex-1 on mobile ensures full width split, fixed padding on desktop
+                        className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
+                        includeLabel 
+                        iconClassName="w-5 h-5"
+                    />
+                    
+                    {primaryContact && (
                         <Button
                             as="a"
-                            href={messageMethod.href}
-                            target={'_blank'}
-                            rel={'noopener noreferrer'}
-                            onClick={(e) => onContactAction(e, messageMethod)}
+                            href={primaryContact.href}
+                            target={primaryContact.key === 'message' ? '_blank' : undefined}
+                            rel={primaryContact.key === 'message' ? 'noopener noreferrer' : undefined}
+                            onClick={(e) => onContactAction(e, primaryContact)}
                             variant="pill-dark"
-                            className="flex-1 justify-center gap-2"
+                            className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6"
                         >
-                            <messageMethod.icon className="w-5 h-5" />
-                            <span>{messageMethod.label}</span>
+                            <primaryContact.icon className="w-5 h-5" />
+                            <span>{primaryContact.label}</span>
                         </Button>
                     )}
-                </>
-            ) : (
-                <>
-                    <LikeButton isLiked={isLiked} onToggle={onToggleLike} variant={isLiked ? "pill-lightred" : "pill-red"} size="sm" className="gap-2 px-6" includeLabel iconClassName="w-4 h-4" />
-                    {messageMethod && (
-                        <Button
-                            as="a"
-                            href={messageMethod.href}
-                            target={'_blank'}
-                            rel={'noopener noreferrer'}
-                            onClick={(e) => onContactAction(e, messageMethod)}
-                            variant="pill-dark"
-                            size="sm"
-                            className="gap-2 px-6"
-                        >
-                            <messageMethod.icon className="w-4 h-4" />
-                            <span>{messageMethod.label}</span>
-                        </Button>
-                    )}
-                </>
-            )}
+                </div>
 
-            {otherMethods.map(method => (
-                <Button as="a" key={method.key} href={method.href} onClick={(e) => onContactAction(e, method)} variant="overlay-dark" size={iconBtnSize} title={method.label}>
-                    <method.icon className="w-4 h-4" />
-                </Button>
-            ))}
-            <SocialsDropdown links={socialLinks} size={iconBtnSize} />
-            <Button variant="overlay-dark" size={iconBtnSize} onClick={onShare} title="Share Profile">
-                <PaperAirplaneIcon className="w-4 h-4" />
-            </Button>
-        </>
+                {/* Secondary Actions Group: Other Contacts + Socials + Share */}
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-start">
+                    {secondaryContacts.map(method => (
+                        <Button 
+                            key={method.key} 
+                            as="a" 
+                            href={method.href} 
+                            onClick={(e) => onContactAction(e, method)} 
+                            variant="overlay-dark" 
+                            size="sm" 
+                            title={method.label}
+                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                        >
+                            <method.icon className="w-5 h-5" />
+                            <span>{method.label}</span>
+                        </Button>
+                    ))}
+                    
+                    <SocialsDropdown 
+                        links={socialLinks} 
+                        size="sm" 
+                        showLabel={true}
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl" 
+                    />
+
+                    <Button 
+                        variant="overlay-dark" 
+                        size="sm" 
+                        onClick={onShare} 
+                        title="Share Profile"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                    >
+                        <PaperAirplaneIcon className="w-5 h-5" />
+                        <span>Share</span>
+                    </Button>
+                </div>
+            </div>
+
+            {/* Owner Management Buttons (Rendered below standard actions) */}
+            {isOwnAccount && (
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center mt-1 pt-3 border-t border-gray-100 sm:border-t-0 sm:pt-0">
+                    <Button 
+                        onClick={onOpenAnalytics} 
+                        variant="overlay-dark"
+                        size="sm"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                    >
+                        <ChartBarIcon className="w-5 h-5" />
+                        <span>Analytics</span>
+                    </Button>
+                    <Button 
+                        onClick={onEditAccount} 
+                        variant="overlay-dark"
+                        size="sm"
+                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                        <span>Edit Profile</span>
+                    </Button>
+                    {canHaveCatalog && (
+                        <Button 
+                            onClick={onOpenCatalog} 
+                            variant="overlay-dark" 
+                            size="sm"
+                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-2 px-4"
+                        >
+                            <DocumentIcon className="w-5 h-5" />
+                            <span>Catalog</span>
+                        </Button>
+                    )}
+                </div>
+            )}
+        </div>
     );
 };

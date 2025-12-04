@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -268,7 +267,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
               </div>
           </div>
           
-          <div className="mt-6 flex flex-wrap justify-start gap-2">
+          <div className="mt-6">
              <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
@@ -280,7 +279,13 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   contactMethods={contactMethods}
                   onContactAction={handleContactAction}
                   isLiked={isLiked}
-                  onToggleLike={() => toggleLikeAccount(account.id)}
+                  onToggleLike={() => {
+                      if (currentAccount) {
+                          toggleLikeAccount(account.id);
+                      } else {
+                          openModal({ type: 'login' });
+                      }
+                  }}
                   isMobile={false}
               />
           </div>
