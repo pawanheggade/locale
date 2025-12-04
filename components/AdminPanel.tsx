@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -34,9 +35,7 @@ interface AdminPanelProps {
   onEditPost: (postId: string) => void;
   onDeletePost: (postId: string) => void;
   termsContent: string;
-  onUpdateTerms: (content: string) => void;
   privacyContent: string;
-  onUpdatePrivacy: (content: string) => void;
   initialView?: AdminView;
   // Forum props for moderation
   forumPosts: ForumPost[];
@@ -179,7 +178,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
             onDeletePriceUnit={props.onDeletePriceUnit}
           />}
           {view === 'analytics' && <DataVisualizationView accounts={props.accounts} allPosts={props.allPosts} categories={props.categories} />}
-          {view === 'pages' && <AdminPagesView termsContent={props.termsContent} onUpdateTerms={props.onUpdateTerms} privacyContent={props.privacyContent} onUpdatePrivacy={props.onUpdatePrivacy} />}
+          {view === 'pages' && <AdminPagesView termsContent={props.termsContent} privacyContent={props.privacyContent} />}
           {view === 'feedback' && <FeedbackView feedbackList={props.feedbackList} accounts={props.accounts} onDeleteFeedback={props.onDeleteFeedback} onToggleFeedbackArchive={props.onToggleFeedbackArchive} onMarkFeedbackAsRead={props.onMarkFeedbackAsRead} onBulkAction={props.onBulkFeedbackAction} />}
         </main>
       </div>

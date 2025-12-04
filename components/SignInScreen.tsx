@@ -1,4 +1,3 @@
-
 import React, { useState, useReducer } from 'react';
 import { Account } from '../types';
 import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
@@ -119,9 +118,10 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         )}
         
         {activeAccounts.length > 0 && (
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
-                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-600">Or use another account</span></div>
+            <div className="relative flex items-center">
+                <div className="flex-grow border-t border-gray-900/10" />
+                <span className="flex-shrink mx-4 text-sm text-gray-600">Or use another account</span>
+                <div className="flex-grow border-t border-gray-900/10" />
             </div>
         )}
 
@@ -172,9 +172,10 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         </form>
 
         <div className="space-y-3">
-             <div className="relative">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-gray-200" /></div>
-                <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-600">Or social sign in</span></div>
+            <div className="relative flex items-center">
+                <div className="flex-grow border-t border-gray-900/10" />
+                <span className="flex-shrink mx-4 text-sm text-gray-600">Or social sign in</span>
+                <div className="flex-grow border-t border-gray-900/10" />
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <Button type="button" onClick={() => handleSocialClick('google')} disabled={isLoading || !!loadingProvider} variant="outline" className="w-full gap-2">

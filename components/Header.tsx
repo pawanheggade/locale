@@ -189,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
-      'bg-white border-b border-gray-200',
+      'bg-white/80 backdrop-blur-md border-b border-gray-200',
       !isVisible && '-translate-y-full'
     )}>
       {/* Main Header */}
@@ -262,7 +262,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onViewChange={(v) => navigateTo(v)}
                         currentView={view}
                         handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
-                        onEditProfile={() => openModal({ type: 'editAccount', data: currentAccount })}
+                        onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}
                         onOpenActivityPage={() => navigateTo('activity')}
                         mainView={mainView}
                         onMainViewChange={onMainViewChange}

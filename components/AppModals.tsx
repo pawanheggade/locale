@@ -29,7 +29,6 @@ import { StaticContentModal } from './StaticContentModal';
 import { CreateForumPostModal } from './CreateForumPostModal';
 import { FeedbackModal } from './FeedbackModal';
 import { SignInScreen } from './SignInScreen';
-import { ManageCatalogModal } from './ManageCatalogModal';
 import { ViewCatalogModal } from './ViewCatalogModal';
 import { ProfileQRModal } from './ProfileQRModal';
 import ModalShell from './ModalShell';
@@ -58,10 +57,10 @@ export const AppModals: React.FC<AppModalsProps> = ({
 }) => {
     const { 
         currentAccount, accounts, bag, 
-        login, socialLogin, createAccount, updateAccount, upgradeToSeller, 
+        login, socialLogin, createAccount, upgradeToSeller, 
         addReport, addForumReport, 
         addToBag, removeBagItem, savedSearches, addSavedSearch, deleteSavedSearch, 
-        addCatalogItems, removeCatalogItem, addFeedback, termsContent, privacyContent,
+        addFeedback, termsContent, privacyContent,
     } = useAuth();
     
     const { findPostById } = usePosts();
@@ -101,7 +100,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
                         <div className="flex justify-end">
                             <Logo className="text-3xl sm:text-4xl" />
                         </div>
-                        <div className="h-10 w-px bg-gray-300"></div>
+                        <div className="h-10 w-px bg-gray-900/10"></div>
                         <div className="flex flex-col items-start justify-center">
                             <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
                             <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
@@ -179,8 +178,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
         return <AccountModal mode="create" allAccounts={accounts} onClose={closeModal} onCreate={async (d, s, r) => { await createAccount(d, s, r); }} isSellerSignup={activeModal.data?.isSeller} />;
       case 'forgotPassword':
         return <ForgotPasswordModal onClose={closeModal} />;
-      case 'editAccount':
-        return <AccountModal mode="edit" accountToEdit={activeModal.data} allAccounts={accounts} onClose={closeModal} onUpdate={updateAccount} />;
       case 'termsOfService':
         return <StaticContentModal title="Terms of Service" content={termsContent} onClose={closeModal} />;
       case 'privacyPolicy':
@@ -199,8 +196,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
           return <AccountModal mode="upgrade" accountToEdit={currentAccount!} allAccounts={accounts} onClose={closeModal} onUpgrade={(sellerData, tier) => upgradeToSeller(currentAccount!.id, sellerData, tier)} targetTier={activeModal.data.tier} />;
       case 'feedback':
           return <FeedbackModal onClose={closeModal} onSubmit={(c) => { addFeedback(c); closeModal(); }} />;
-      case 'manageCatalog':
-          return addCatalogItems && removeCatalogItem && currentAccount ? <ManageCatalogModal onClose={closeModal} onAdd={addCatalogItems} onRemove={removeCatalogItem} catalog={currentAccount.catalog || []} /> : null;
       case 'viewCatalog':
           return <ViewCatalogModal catalog={activeModal.data.catalog} onClose={closeModal} />;
       case 'profileQR':

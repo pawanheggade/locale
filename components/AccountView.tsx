@@ -301,8 +301,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
              <ProfileActions 
                   isOwnAccount={isOwnAccount}
                   canHaveCatalog={canHaveCatalog}
-                  onEditAccount={() => openModal({ type: 'editAccount', data: account })}
-                  onOpenCatalog={() => openModal({ type: 'manageCatalog' })}
+                  onEditAccount={() => navigateTo('editProfile', { account })}
+                  onOpenCatalog={() => navigateTo('manageCatalog', { account })}
                   onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
                   socialLinks={sortedSocialLinks}
                   onShare={handleShareProfile}

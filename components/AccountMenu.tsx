@@ -32,9 +32,9 @@ const MenuItem: React.FC<{
   badgeCount?: number;
   animateBadge?: boolean;
 }> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
-    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right">
+    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right hover:bg-white/50 transition-colors">
       <div className="w-full flex items-center justify-end gap-2 p-2">
-        <span className="text-sm font-bold text-gray-600">{label}</span>
+        <span className="text-sm font-bold text-gray-700 whitespace-nowrap">{label}</span>
         <div className="relative w-5 h-5 flex items-center justify-center">
             {icon}
             {badgeCount > 0 && (
@@ -138,38 +138,42 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
             {isAccountMenuOpen && (
                 <div
                   id="account-menu-dropdown"
-                  className={`absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl border border-gray-100 z-30 focus:outline-none ${isClosing ? 'animate-zoom-out' : 'animate-zoom-in'}`}
+                  className={cn(
+                      "absolute right-0 mt-2 w-auto origin-top-right z-30 focus:outline-none shadow-xl rounded-xl border border-gray-200/60",
+                      "bg-white/80 backdrop-blur-xl", // Glass effect
+                      isClosing ? 'animate-zoom-out' : 'animate-zoom-in'
+                  )}
                 >
                     <div className="p-1.5">
                         <div>
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
-                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-600" />} label="Post" />
+                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-700" />} label="Post" />
                             )}
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-600" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-600" />} label="Likes" />
-                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-600" />} label="Activity" badgeCount={unreadNotificationsCount} />
-                            <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-600" />} label="Settings" />
-                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-600" />} label="Profile" />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-700" />} label="Likes" />
+                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={unreadNotificationsCount} />
+                            <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
+                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
                         </div>
-                        <div className="my-1.5 h-px bg-gray-100" />
+                        <div className="my-1.5 h-px bg-gray-200/50" />
                         <div>
                             <MenuItem
                                 onClick={() => handleMenuAction(handleViewToggle)}
-                                icon={mainView === 'grid' ? <MapPinIcon className={cn(iconClass, "text-gray-600")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-600")}/>}
+                                icon={mainView === 'grid' ? <MapPinIcon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
                                 label={mainView === 'grid' ? 'Map' : 'Grid'}
                             />
                             <MenuItem
                                 onClick={() => handleMenuAction(handleGridViewToggle)}
-                                icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-600")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-600")}/>}
+                                icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
                                 label={gridView === 'default' ? 'Compact' : 'Default'}
                             />
                         </div>
 
                         {currentAccount.role === 'admin' && (
                             <>
-                                <div className="my-1.5 h-px bg-gray-100" />
+                                <div className="my-1.5 h-px bg-gray-200/50" />
                                 <div>
-                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5 text-gray-600" />} label="Admin Panel" />
+                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Admin Panel" />
                                 </div>
                             </>
                         )}

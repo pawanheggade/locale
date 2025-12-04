@@ -55,7 +55,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children, position 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[3000] bg-black/50', // Removed backdrop-blur-sm, increased opacity
+        'fixed inset-0 z-[3000] bg-black/60 backdrop-blur-sm',
         backdropAnimation
       )}
       onClick={handleClose}
@@ -98,7 +98,7 @@ const DialogContent = React.forwardRef<
     <div
       ref={dialogRef}
       className={cn(
-        'bg-white border border-gray-200 flex flex-col m-0 overflow-hidden', // Replaced glass classes with solid bg
+        'bg-white/80 backdrop-blur-xl shadow-xl border border-gray-200/60 flex flex-col m-0 overflow-hidden',
         panelPositionClasses[position],
         panelAnimation,
         className
@@ -114,11 +114,11 @@ const DialogContent = React.forwardRef<
 });
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("relative flex items-center justify-center p-4 py-4 border-b border-gray-200 min-h-16 h-auto", className)} {...props} />
+    <div ref={ref} className={cn("relative flex items-center justify-center p-4 py-4 border-b border-gray-200/50 min-h-16 h-auto", className)} {...props} />
 ));
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-4 bg-transparent border-t border-gray-200 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
+    <div ref={ref} className={cn("p-4 bg-transparent border-t border-gray-200/50 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
 ));
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (

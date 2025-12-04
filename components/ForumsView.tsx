@@ -53,6 +53,7 @@ type SortOption = 'latest' | 'top';
 export const ForumsView: React.FC = () => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
     const { openModal } = useUI();
+    const { currentAccount } = useAuth();
     const [sortOption, setSortOption] = useState<SortOption>('latest');
 
     const displayPosts = useMemo(() => {
@@ -69,11 +70,19 @@ export const ForumsView: React.FC = () => {
         });
     }, [posts, activeCategory, sortOption]);
 
+    const handleDiscussClick = () => {
+      if (currentAccount) {
+        openModal({ type: 'createForumPost' });
+      } else {
+        openModal({ type: 'login' });
+      }
+    };
+
     return (
         <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
-                <Button onClick={() => openModal({ type: 'createForumPost' })} size="sm" variant="pill-red" className="shrink-0">
+                <Button onClick={handleDiscussClick} size="sm" variant="pill-red" className="shrink-0">
                     <PencilIcon className="w-4 h-4 mr-2" />
                     Discuss
                 </Button>

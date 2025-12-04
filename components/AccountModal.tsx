@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, Subscription } from '../types';
 import ModalShell from './ModalShell';
@@ -8,46 +9,39 @@ import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
 
 interface AccountModalProps {
-  mode: 'create' | 'edit' | 'upgrade';
+  mode: 'create' | 'upgrade';
   onClose: () => void;
   onCreate?: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'likedAccountIds' | 'referralCode' | 'referralCount' | 'referredBy'>, isSeller: boolean, referralCode?: string) => Promise<any>;
-  onUpdate?: (updatedAccount: Account) => Promise<any>;
   onUpgrade?: (sellerData: Partial<Account>, tier: Subscription['tier']) => Promise<void>;
   allAccounts: Account[];
-  accountToEdit?: Account;
+  accountToEdit?: Account; // Used for upgrade mode
   isSellerSignup?: boolean;
   targetTier?: Subscription['tier'];
 }
 
-export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCreate, onUpdate, onUpgrade, allAccounts, accountToEdit, isSellerSignup, targetTier }) => {
+export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCreate, onUpgrade, allAccounts, accountToEdit, isSellerSignup, targetTier }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const isMounted = useIsMounted();
 
-  const isEditing = mode === 'edit';
   const isUpgrading = mode === 'upgrade';
   const isCreating = mode === 'create';
 
   const title = isMapPickerOpen ? 'Select Location' 
-    : isEditing ? 'Edit Account'
     : isUpgrading ? 'Become a Seller'
     : (isSellerSignup ? 'Create a Seller Account' : 'Create New Account');
   
-  const submitText = isEditing ? 'Save Changes' 
-    : isUpgrading ? 'Submit for Review'
-    : 'Create Account';
+  const submitText = isUpgrading ? 'Submit for Review' : 'Create Account';
 
   const handleSubmit = async (formData: any, confirmPassword?: string, referralCode?: string) => {
     setIsSubmitting(true);
     setFormError('');
     try {
-      if (isEditing && onUpdate && accountToEdit) {
-        await onUpdate({ ...accountToEdit, ...formData });
-      } else if (isUpgrading && onUpgrade && targetTier) {
+      if (isUpgrading && onUpgrade && targetTier) {
         await onUpgrade(formData, targetTier);
-      } else if (mode === 'create' && onCreate) {
+      } else if (isCreating && onCreate) {
         await onCreate(formData, !!isSellerSignup, referralCode);
       }
       if (isMounted()) {
@@ -93,7 +87,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
         )}
         <AccountForm
           account={accountToEdit}
-          isEditing={isEditing || isUpgrading}
+          isEditing={isUpgrading} // isEditing is true only for upgrade form now
           allAccounts={allAccounts}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}

@@ -81,9 +81,9 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
             </div>
 
             <div className="relative flex items-center text-center">
-              <div className="flex-grow border-t border-gray-300"></div>
+              <div className="flex-grow border-t border-gray-200/50"></div>
               <span className="flex-shrink mx-4 text-sm font-medium text-gray-600">OR</span>
-              <div className="flex-grow border-t border-gray-300"></div>
+              <div className="flex-grow border-t border-gray-200/50"></div>
             </div>
             
             <div className="space-y-4">

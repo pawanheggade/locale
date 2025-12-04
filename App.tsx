@@ -42,6 +42,9 @@ const BagView = React.lazy(() => import('./components/BagView').then(module => (
 const AccountAnalyticsView = React.lazy(() => import('./components/AccountAnalyticsView').then(module => ({ default: module.AccountAnalyticsView })));
 const NearbyPostsView = React.lazy(() => import('./components/NearbyPostsView').then(module => ({ default: module.NearbyPostsView })));
 const ForumsView = React.lazy(() => import('./components/ForumsView').then(module => ({ default: module.ForumsView })));
+const EditPageView = React.lazy(() => import('./components/EditPageView').then(module => ({ default: module.EditPageView })));
+const EditProfilePage = React.lazy(() => import('./components/EditProfilePage').then(module => ({ default: module.EditProfilePage })));
+const ManageCatalogPage = React.lazy(() => import('./components/ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 
 interface HistoryItem {
     view: AppView;
@@ -49,6 +52,7 @@ interface HistoryItem {
     viewingPostId: string | null;
     viewingAccount: Account | null;
     viewingForumPostId: string | null;
+    editingAdminPageKey: 'terms' | 'privacy' | null;
     scrollPosition: number;
 }
 
@@ -56,7 +60,7 @@ const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
 
 // --- Navigation Context ---
 interface NavigationContextType {
-  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string }) => void;
+  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' }) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
 }
@@ -100,6 +104,7 @@ export const App: React.FC = () => {
   const [gridView, setGridView] = usePersistentState<'default' | 'compact'>('localeAppGridView', 'default');
   const [viewingPostId, setViewingPostId] = useState<string | null>(null);
   const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
+  const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -143,14 +148,15 @@ export const App: React.FC = () => {
 
   const navigateTo = useCallback((
       newView: AppView,
-      options: { postId?: string; account?: Account, forumPostId?: string } = {}
+      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' } = {}
   ) => {
       const isSameView = view === newView;
       const isSamePost = viewingPostId === (options.postId || null);
       const isSameAccount = viewingAccount?.id === (options.account?.id || null);
       const isSameForumPost = viewingForumPostId === (options.forumPostId || null);
+      const isSamePageKey = editingAdminPageKey === (options.pageKey || null);
 
-      if (isSameView && isSamePost && isSameAccount && isSameForumPost) return;
+      if (isSameView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey) return;
 
       if (newView === 'createPost' && currentAccount?.subscription.tier === 'Personal') {
           setView('subscription');
@@ -174,6 +180,7 @@ export const App: React.FC = () => {
           viewingPostId, 
           viewingAccount, 
           viewingForumPostId,
+          editingAdminPageKey,
           scrollPosition: currentScrollPosition
       }]);
 
@@ -181,10 +188,11 @@ export const App: React.FC = () => {
       setViewingPostId(options.postId || null);
       setViewingAccount(options.account || null);
       setViewingForumPostId(options.forumPostId || null);
+      setEditingAdminPageKey(options.pageKey || null);
       
       // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, currentAccount, addPostToViewHistory, incrementProfileViews]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, addPostToViewHistory, incrementProfileViews]);
 
   const handleNotificationClick = useCallback((notification: Notification) => {
     markAsRead(notification.id);
@@ -292,6 +300,7 @@ export const App: React.FC = () => {
     setViewingAccount(null);
     setViewingPostId(null);
     setViewingForumPostId(null);
+    setEditingAdminPageKey(null);
     setHistory([]);
     if (mainContentRef.current) {
         mainContentRef.current.scrollTop = 0;
@@ -339,6 +348,7 @@ export const App: React.FC = () => {
           setViewingPostId(previousState.viewingPostId);
           setViewingAccount(previousState.viewingAccount);
           setViewingForumPostId(previousState.viewingForumPostId);
+          setEditingAdminPageKey(previousState.editingAdminPageKey);
           
           // Restore scroll position after render
           requestAnimationFrame(() => {
@@ -360,10 +370,11 @@ export const App: React.FC = () => {
           viewingPostId, 
           viewingAccount, 
           viewingForumPostId,
+          editingAdminPageKey,
           scrollPosition: currentScrollPosition
       }]);
       setMainView(newMainView);
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey]);
 
   const showOnMap = useCallback(async (target: string | Account) => {
     const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
@@ -373,6 +384,7 @@ export const App: React.FC = () => {
         viewingPostId, 
         viewingAccount, 
         viewingForumPostId,
+        editingAdminPageKey,
         scrollPosition: currentScrollPosition
     }]);
     
@@ -390,7 +402,7 @@ export const App: React.FC = () => {
       if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
       else { console.error(`Could not find location for ${account.name}.`); }
     }
-  }, [isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId]);
+  }, [isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId, editingAdminPageKey]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
       if (isFindingNearby) return;
@@ -506,6 +518,7 @@ export const App: React.FC = () => {
         viewingAccount={viewingAccount}
         viewingPostId={viewingPostId}
         viewingForumPostId={viewingForumPostId}
+        editingAdminPageKey={editingAdminPageKey}
         nearbyPostsResult={nearbyPostsResult}
         notificationSettings={notificationSettings}
         onUpdateNotificationSettings={handleUpdateNotificationSettings}
@@ -600,7 +613,7 @@ const ViewManager: React.FC<any> = (props) => {
     // Props passed down from App
     const {
         view, mainView, gridView, isInitialLoading, isFiltering, userLocation, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
-        viewingAccount, viewingPostId, viewingForumPostId, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
+        viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
         requestArchiveAccount, requestSignOut, handleNotificationClick, adminInitialView,
         handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, isGeocoding
     } = props;
@@ -640,7 +653,7 @@ const ViewManager: React.FC<any> = (props) => {
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
         case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
         case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => openModal({ type: 'editAccount', data: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} onUpdateTerms={setTermsContent} privacyContent={privacyContent} onUpdatePrivacy={setPrivacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
+            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel accounts={accounts} allPosts={allDisplayablePosts} currentAccount={currentAccount} onDeleteAccount={(account) => deleteAccount(account.id)} onUpdateAccountRole={updateAccountRole} onEditAccount={(acc) => navigateTo('editProfile', { account: acc })} onToggleAccountStatus={(acc) => toggleAccountStatus(acc.id, true)} onApproveAccount={(id) => { approveAccount(id); addNotification({ recipientId: id, message: 'Your account has been approved.', type: 'account_approved' }); }} onRejectAccount={(acc) => rejectAccount(acc.id)} categories={categories} onAddCategory={addCategory} onUpdateCategory={updateCategory} onDeleteCategory={deleteCategory} onUpdateSubscription={updateSubscription} reports={reports} onReportAction={(report, action) => { if(action==='delete') { /* delete logic handled in context */ } setReports(prev => prev.filter(r => r.id !== report.id)); }} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} onViewPost={(post) => navigateTo('postDetail', { postId: post.id })} onEditPost={(postId) => navigateTo('editPost', { postId })} onDeletePost={deletePostPermanently} termsContent={termsContent} privacyContent={privacyContent} initialView={adminInitialView} forumPosts={forumPosts} getPostWithComments={getPostWithComments} onViewForumPost={(postId) => navigateTo('forumPostDetail', { forumPostId: postId })} forumCategories={forumCategories} onAddForumCategory={addForumCategory} onUpdateForumCategory={updateForumCategory} onDeleteForumCategory={deleteForumCategory} priceUnits={priceUnits} onAddPriceUnit={addPriceUnit} onUpdatePriceUnit={updatePriceUnit} onDeletePriceUnit={deletePriceUnit} /></Suspense> : null;
         case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} isGeocoding={isGeocoding} /></Suspense> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
@@ -673,6 +686,12 @@ const ViewManager: React.FC<any> = (props) => {
                 onDeleteAvailabilityAlert={deleteAvailabilityAlert}
                 onViewPost={(postId) => navigateTo('postDetail', { postId })}
             /> : null;
+        case 'editAdminPage':
+            return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;
+        case 'editProfile':
+            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><EditProfilePage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
+        case 'manageCatalog':
+            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><ManageCatalogPage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
         default: return null;
     }
 };
