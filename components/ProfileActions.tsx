@@ -15,7 +15,7 @@ import {
     XIcon,
     InstagramIcon,
     YouTubeIcon,
-    ChatBubbleEllipsisIcon
+    ChevronDownIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -48,17 +48,11 @@ const ConnectDropdown = ({
     contacts, 
     socialLinks, 
     onShare, 
-    size = 'sm', 
-    className, 
-    showLabel = false, 
     onContactAction 
 }: { 
     contacts: any[], 
     socialLinks: SocialLink[],
     onShare: () => void,
-    size?: ButtonProps['size'], 
-    className?: string, 
-    showLabel?: boolean, 
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void 
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -74,16 +68,18 @@ const ConnectDropdown = ({
         <div className="relative" ref={menuRef}>
             <Button
                 onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-                variant="overlay-dark"
-                size={size}
-                title="Connect"
-                className={cn(className, isOpen ? 'text-red-600 bg-red-50' : '', showLabel ? 'gap-1.5 px-3' : '')}
+                variant="outline"
+                size="icon"
+                title="More actions"
+                className={cn(
+                    "rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50",
+                    isOpen ? 'bg-gray-100' : ''
+                )}
             >
-                <GlobeAltIcon className="w-5 h-5" />
-                {showLabel && <span>Connect</span>}
+                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-right">
+                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl border border-gray-100 shadow-lg z-30 animate-zoom-in overflow-hidden origin-top-left">
                     <div className="py-1">
                         {hasContacts && contacts.map((method) => (
                             <a
@@ -139,47 +135,36 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
     return (
         <div className="flex flex-col gap-3 w-full">
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full items-stretch sm:justify-between">
-                {/* Primary Actions Group: Like + Primary Contact */}
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <LikeButton 
-                        isLiked={isLiked} 
-                        onToggle={onToggleLike} 
-                        variant={isLiked ? "pill-lightred" : "pill-red"} 
-                        // Flex-1 on mobile ensures full width split, fixed padding on desktop
-                        className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
-                        includeLabel 
-                        iconClassName="w-5 h-5"
-                    />
-                    
-                    {primaryContact && (
-                        <Button
-                            as="a"
-                            href={primaryContact.href}
-                            target={primaryContact.key === 'message' ? '_blank' : undefined}
-                            rel={primaryContact.key === 'message' ? 'noopener noreferrer' : undefined}
-                            onClick={(e) => onContactAction(e, primaryContact)}
-                            variant="pill-dark"
-                            className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6"
-                        >
-                            <primaryContact.icon className="w-5 h-5" />
-                            <span>{primaryContact.label}</span>
-                        </Button>
-                    )}
-                </div>
-
-                {/* Secondary Actions Group: Other Contacts + Socials + Share */}
-                <div className="flex flex-wrap gap-1.5 w-full sm:w-auto justify-start sm:justify-end">
-                    <ConnectDropdown 
-                        contacts={secondaryContacts}
-                        socialLinks={socialLinks}
-                        onShare={onShare}
-                        onContactAction={onContactAction}
-                        size="icon-sm" 
-                        showLabel={false}
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl"
-                    />
-                </div>
+            <div className="flex flex-wrap gap-2 w-full items-stretch">
+                <LikeButton 
+                    isLiked={isLiked} 
+                    onToggle={onToggleLike} 
+                    variant={isLiked ? "pill-lightred" : "pill-red"} 
+                    className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
+                    includeLabel 
+                    iconClassName="w-5 h-5"
+                />
+                
+                {primaryContact && (
+                    <Button
+                        as="a"
+                        href={primaryContact.href}
+                        target={primaryContact.key === 'message' ? '_blank' : undefined}
+                        rel={primaryContact.key === 'message' ? 'noopener noreferrer' : undefined}
+                        onClick={(e) => onContactAction(e, primaryContact)}
+                        variant="pill-dark"
+                        className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6"
+                    >
+                        <primaryContact.icon className="w-5 h-5" />
+                        <span>{primaryContact.label}</span>
+                    </Button>
+                )}
+                 <ConnectDropdown 
+                    contacts={secondaryContacts}
+                    socialLinks={socialLinks}
+                    onShare={onShare}
+                    onContactAction={onContactAction}
+                />
             </div>
 
             {/* Owner Management Buttons (Rendered below standard actions) */}
