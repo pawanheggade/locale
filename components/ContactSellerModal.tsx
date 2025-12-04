@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useRef, useEffect, useMemo } from 'react';
 import { Account, Post } from '../types';
 import ModalShell from './ModalShell';
@@ -51,25 +52,27 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
             {availableMethods.length > 0 ? 'Choose your preferred method to contact the store.' : 'This store has not provided any contact methods.'}
           </p>
           
-          {availableMethods.map(method => (
-                <Button
-                  as="a"
-                  key={method.key}
-                  href={method.href}
-                  target={method.key === 'message' ? '_blank' : undefined}
-                  rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
-                  onClick={() => {
-                    setTimeout(() => { if (isMounted()) onClose(); }, 500);
-                  }}
-                  variant="overlay-dark"
-                  className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left rounded-lg"
-                  aria-label={method.label}
-                >
-                  {/* FIX: The property for the icon component is 'icon' (lowercase), not 'Icon'. */}
-                  <method.icon className="w-8 h-8 text-red-600 flex-shrink-0" />
-                  <p className="font-semibold text-gray-800">{method.label}</p>
-                </Button>
-          ))}
+          {availableMethods.map(method => {
+                const Icon = method.icon;
+                return (
+                    <Button
+                      as="a"
+                      key={method.key}
+                      href={method.href}
+                      target={method.key === 'message' ? '_blank' : undefined}
+                      rel={method.key === 'message' ? 'noopener noreferrer' : undefined}
+                      onClick={() => {
+                        setTimeout(() => { if (isMounted()) onClose(); }, 500);
+                      }}
+                      variant="overlay-dark"
+                      className="w-full justify-start gap-4 h-auto p-3 sm:p-4 text-left rounded-lg"
+                      aria-label={method.label}
+                    >
+                      <Icon className="w-8 h-8 text-red-600 flex-shrink-0" />
+                      <p className="font-semibold text-gray-800">{method.label}</p>
+                    </Button>
+                );
+          })}
         </div>
       </div>
     </ModalShell>

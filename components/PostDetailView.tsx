@@ -1,4 +1,5 @@
 
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { AIIcon, ClockIcon, BellIcon, ShoppingBagIcon, ChatBubbleBottomCenterTextIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, MapPinIcon, FlagIcon, PaperAirplaneIcon, CashIcon, PinIcon, PencilIcon } from './Icons';
@@ -179,7 +180,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                     <PriceDisplay price={post.price} salePrice={post.salePrice} priceUnit={post.priceUnit} isExpired={isExpired} size="small" />
                     {!isOwnPost && isPurchasable && !isExpired && (
                         <Button
-                            onClick={() => openModal({ type: 'setPriceAlert', data: post })}
+                            onClick={() => {
+                                if (!currentAccount) {
+                                    openModal({ type: 'login' });
+                                    return;
+                                }
+                                openModal({ type: 'setPriceAlert', data: post });
+                            }}
                             variant="ghost"
                             size="icon-sm"
                             className={cn(isAlertSet ? "text-red-600" : "text-gray-500")}
@@ -351,7 +358,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                       ) : (
                           <>
                               {isExpired && !isArchived ? (
-                                  <Button onClick={() => toggleAvailabilityAlert(post.id)} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} className="flex-1 gap-2 font-semibold">
+                                  <Button onClick={() => {
+                                      if (!currentAccount) {
+                                          openModal({ type: 'login' });
+                                          return;
+                                      }
+                                      toggleAvailabilityAlert(post.id);
+                                  }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} className="flex-1 gap-2 font-semibold">
                                       <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
                                       <span>{isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}</span>
                                   </Button>
@@ -359,7 +372,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                   <>
                                       {isPurchasable && (
                                           <Button 
-                                              onClick={() => post.author && openModal({ type: 'contactStore', data: { author: post.author, post } })}
+                                              onClick={() => {
+                                                  if (!currentAccount) {
+                                                      openModal({ type: 'login' });
+                                                      return;
+                                                  }
+                                                  post.author && openModal({ type: 'contactStore', data: { author: post.author, post } });
+                                              }}
                                               variant="overlay-dark"
                                               size="icon"
                                               className="text-gray-500 flex-shrink-0"
@@ -371,6 +390,10 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                                       )}
                                       <Button 
                                         onClick={() => {
+                                            if (!currentAccount) {
+                                                openModal({ type: 'login' });
+                                                return;
+                                            }
                                             if (isPurchasable) isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post });
                                             else if (post.type === PostType.SERVICE) openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
                                             else openModal({ type: 'contactStore', data: { author: post.author!, post } });
@@ -386,7 +409,13 @@ const PostDetailViewComponent: React.FC<PostDetailViewProps> = ({
                               
                               <LikeButton 
                                 isLiked={likedPostIds.has(post.id)}
-                                onToggle={() => toggleLikePost(post.id)}
+                                onToggle={() => {
+                                    if (!currentAccount) {
+                                        openModal({ type: 'login' });
+                                        return;
+                                    }
+                                    toggleLikePost(post.id);
+                                }}
                                 variant="overlay-dark"
                                 size="icon"
                                 className={likedPostIds.has(post.id) ? "text-red-600" : "text-gray-500"}
