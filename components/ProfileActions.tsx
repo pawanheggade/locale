@@ -134,7 +134,7 @@ const ConnectDropdown = ({
                             <DropdownItem
                                 onClick={(e) => { e.stopPropagation(); onShare(); setIsOpen(false); }}
                                 icon={<PaperAirplaneIcon className="w-4 h-4" />}
-                                label="Share Profile"
+                                label="Share"
                             />
                         )}
                     </div>
