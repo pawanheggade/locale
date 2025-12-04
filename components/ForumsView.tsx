@@ -1,5 +1,3 @@
-
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -102,7 +100,7 @@ export const ForumsView: React.FC = () => {
                             onClick={() => setSortOption('latest')} 
                             variant={sortOption === 'latest' ? 'secondary' : 'ghost'}
                             size="xs"
-                            className="rounded-full font-semibold"
+                            className="rounded-xl font-semibold"
                          >
                             Latest
                          </Button>
@@ -110,7 +108,7 @@ export const ForumsView: React.FC = () => {
                             onClick={() => setSortOption('top')} 
                             variant={sortOption === 'top' ? 'secondary' : 'ghost'}
                             size="xs"
-                            className="rounded-full font-semibold"
+                            className="rounded-xl font-semibold"
                          >
                             Top
                          </Button>

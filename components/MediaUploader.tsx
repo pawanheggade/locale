@@ -41,7 +41,7 @@ const MediaPreview: React.FC<{ upload: MediaUpload; onRemove: () => void; }> = (
                 onClick={(e) => { e.stopPropagation(); onRemove(); }}
                 variant="overlay"
                 size="xs"
-                className="absolute top-1 right-1 w-6 h-6 p-0 flex items-center justify-center rounded-full transition-all z-10 text-white drop-shadow-md"
+                className="absolute top-1 right-1 w-6 h-6 p-0 flex items-center justify-center rounded-xl transition-all z-10 text-white drop-shadow-md"
                 aria-label="Remove media"
             >
                 <XMarkIcon className="w-4 h-4" />

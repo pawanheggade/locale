@@ -1,3 +1,4 @@
+
 import React, { useState, useReducer, useEffect } from 'react';
 import { ForumPost } from '../types';
 import { useForum } from '../contexts/ForumContext';
@@ -68,7 +69,8 @@ export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack
                             <Input value={title} onChange={e => dispatch({ type: 'SET_FIELD', field: 'title', payload: e.target.value })} required autoFocus />
                         </FormField>
                         <FormField id="post-category" label="Category">
-                            <Select value={category} onChange={e => dispatch({ type: 'SET_FIELD', field: 'category', payload: e.target.value })} required>
+                            {/* FIX: Removed 'required' prop as it's not supported by the custom Select component. */}
+                            <Select value={category} onChange={e => dispatch({ type: 'SET_FIELD', field: 'category', payload: e.target.value })}>
                                 {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                             </Select>
                         </FormField>

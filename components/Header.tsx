@@ -102,6 +102,13 @@ export const Header: React.FC<HeaderProps> = ({
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: null });
     }
   };
+  
+  const handleMobileSearchCancel = () => {
+    if (filterState.searchQuery) {
+        handleClearSearch();
+    }
+    setIsMobileSearchOpen(false);
+  };
 
   const isViewToggleDisabled = view !== 'all';
 
@@ -121,8 +128,8 @@ export const Header: React.FC<HeaderProps> = ({
         variant={filterState.isAiSearchEnabled ? 'pill-red' : 'ghost'}
         size="icon-sm"
         className={cn(
-          "text-xs font-extrabold uppercase tracking-wider rounded-full",
-          !filterState.isAiSearchEnabled && "text-gray-500",
+          "text-xs font-extrabold uppercase tracking-wider rounded-xl",
+          !filterState.isAiSearchEnabled && "text-gray-500 ring-1 ring-inset ring-gray-300",
           className
         )}
         aria-label={filterState.isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
@@ -212,7 +219,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex flex-1 justify-center min-w-0 col-start-2">
             {/* Mobile Mini Search Bar */}
             <div 
-                className="sm:hidden flex items-center justify-center bg-gray-100 border border-gray-200/80 rounded-full h-10 px-4 w-full"
+                className="sm:hidden flex items-center justify-center bg-gray-100 border border-gray-200/80 rounded-xl h-10 px-4 w-full"
                 onClick={() => setIsMobileSearchOpen(true)}
             >
                 <SearchIcon className="h-5 w-5 text-gray-400" />
@@ -220,13 +227,13 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Desktop Search Bar & Filter */}
-            <div className="hidden sm:flex items-center gap-2 w-full max-w-xl">
+            <div className="hidden sm:flex items-center w-full max-w-xl">
                 <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
                     onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
                     placeholder={placeholder}
-                    wrapperClassName="flex-1 min-w-0"
+                    wrapperClassName="w-full"
                     suggestions={[]}
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
@@ -234,9 +241,9 @@ export const Header: React.FC<HeaderProps> = ({
                     onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                     isAiSearching={filterState.isAiSearching}
                     onCancelSearch={filterState.searchQuery ? handleClearSearch : undefined}
+                    aiButton={renderAiButton()}
+                    filterButton={renderFilterButton()}
                 />
-                {renderAiButton()}
-                {renderFilterButton()}
             </div>
         </div>
 
@@ -283,24 +290,24 @@ export const Header: React.FC<HeaderProps> = ({
       
       {/* Mobile Search Sub-Header */}
       {isMobileSearchOpen && windowWidth < 640 && (
-          <div className="px-4 pb-3 sm:hidden animate-fade-in-down flex items-center gap-2">
+          <div className="px-4 pb-3 sm:hidden animate-fade-in-down flex items-center">
               <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
                     onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
                     placeholder={placeholder}
-                    wrapperClassName="flex-1 min-w-0"
+                    wrapperClassName="w-full"
                     suggestions={[]}
                     recentSearches={recentSearches}
                     onRemoveRecentSearch={onRemoveRecentSearch}
                     onClearRecentSearches={onClearRecentSearches}
                     onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                     isAiSearching={filterState.isAiSearching}
-                    onCancelSearch={() => setIsMobileSearchOpen(false)}
+                    onCancelSearch={handleMobileSearchCancel}
                     autoFocus
+                    aiButton={renderAiButton()}
+                    filterButton={renderFilterButton()}
               />
-              {renderAiButton()}
-              {renderFilterButton()}
           </div>
       )}
     </header>

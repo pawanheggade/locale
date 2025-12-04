@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
@@ -19,6 +18,8 @@ interface SearchBarProps {
   isAiSearching?: boolean;
   onCancelSearch?: () => void;
   autoFocus?: boolean;
+  aiButton?: React.ReactNode;
+  filterButton?: React.ReactNode;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -35,6 +36,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   isAiSearching,
   onCancelSearch,
   autoFocus = false,
+  aiButton,
+  filterButton,
 }) => {
 
   const {
@@ -94,7 +97,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onRemoveRecentSearch?.(query);
   };
   
-  const hasCancel = !!onCancelSearch;
+  const showClearButton = onCancelSearch && searchQuery;
 
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -102,48 +105,53 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className={`relative ${wrapperClassName}`} ref={wrapperRef}>
-      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-      </div>
-      <input
-        id="global-search-bar"
-        type="search"
-        placeholder={placeholder}
-        value={searchQuery}
-        onChange={(e) => onSearchChange(e.target.value)}
-        onFocus={inputProps.onFocus}
-        onKeyDown={handleKeyDown}
-        autoFocus={autoFocus} 
-        className={cn(
-          "block w-full h-10 bg-gray-100 border border-gray-200/80 rounded-full pl-11 text-sm text-gray-900 placeholder-gray-600 focus:bg-white focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all duration-200 truncate",
-          hasCancel ? 'pr-12' : 'pr-4'
-        )}
-        autoComplete="off"
-        role="combobox"
-        aria-autocomplete="list"
-        aria-expanded={isDropdownVisible}
-        aria-controls="suggestions-listbox"
-        aria-activedescendant={activeIndex > -1 ? `suggestion-${activeIndex}` : undefined}
-      />
-      <div className="absolute inset-y-0 right-0 pr-2 flex items-center space-x-1">
-        {isAiSearching && (
-            <SpinnerIcon className="h-5 w-5 text-gray-400" />
-        )}
-        
-        {onCancelSearch && (
-          <Button
-              type="button"
-              onClick={onCancelSearch}
-              variant="ghost"
-              size="icon-sm"
-              className="text-gray-500 rounded-full"
-              aria-label="Cancel search"
-          >
-              <XMarkIcon className="w-5 h-5" />
-          </Button>
-        )}
-      </div>
+    <div className={cn('relative', wrapperClassName)} ref={wrapperRef}>
+        <div className={cn(
+            "relative flex items-center w-full h-10 bg-gray-100 border border-gray-200/80 rounded-xl transition-all duration-200",
+            "focus-within:bg-white focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50"
+        )}>
+            <div className="pl-4 flex items-center pointer-events-none">
+                <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+            </div>
+            <input
+                id="global-search-bar"
+                type="search"
+                placeholder={placeholder}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={inputProps.onFocus}
+                onKeyDown={handleKeyDown}
+                autoFocus={autoFocus} 
+                className="block w-full h-full bg-transparent border-0 pl-2 text-sm text-gray-900 placeholder-gray-600 focus:ring-0 focus:outline-none truncate"
+                autoComplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={isDropdownVisible}
+                aria-controls="suggestions-listbox"
+                aria-activedescendant={activeIndex > -1 ? `suggestion-${activeIndex}` : undefined}
+            />
+            <div className="pr-1 flex items-center flex-shrink-0 h-full gap-1">
+                {isAiSearching && (
+                    <SpinnerIcon className="h-5 w-5 text-gray-400" />
+                )}
+                
+                {onCancelSearch && (
+                  <Button
+                      type="button"
+                      onClick={onCancelSearch}
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-gray-500 rounded-xl"
+                      aria-label={searchQuery ? "Clear search" : "Close search"}
+                  >
+                      <XMarkIcon className="w-5 h-5" />
+                  </Button>
+                )}
+                
+                {aiButton}
+                {filterButton}
+            </div>
+        </div>
       {isDropdownVisible && (
         <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-down">
           {shouldShowRecent && (
