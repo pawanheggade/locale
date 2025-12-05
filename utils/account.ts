@@ -25,7 +25,7 @@ export const generateContactMethods = (
             icon: ChatBubbleBottomCenterTextIcon,
             href: `https://wa.me/${author.messageNumber?.replace(/\D/g, '')}`,
             isVisible: author.contactOptions?.includes('message') && !!author.messageNumber,
-            label: 'Message via WhatsApp',
+            label: 'Message',
             toast: 'Opening messaging app...',
         },
         {
@@ -33,7 +33,7 @@ export const generateContactMethods = (
             icon: PhoneIcon,
             href: `tel:${author.mobile}`,
             isVisible: author.contactOptions?.includes('mobile') && !!author.mobile,
-            label: 'Call Mobile Number',
+            label: 'Call',
             toast: 'Opening phone dialer...',
         },
         {
