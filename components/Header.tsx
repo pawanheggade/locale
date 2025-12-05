@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const placeholder = viewingAccount 
-    ? `Search ${viewingAccount.name.split(' ')[0]}'s items...` 
+    ? `Search ${viewingAccount.name.split(' ')[0]}'s page...` 
     : (filterState.isAiSearchEnabled ? "Ask Locale AI..." : "Search products, services, events…");
   
   const renderAiButton = (className?: string) => (
