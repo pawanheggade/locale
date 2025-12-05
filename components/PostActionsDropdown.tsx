@@ -1,9 +1,7 @@
 
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
-import { EllipsisVerticalIcon, TrashIcon, PencilIcon } from './Icons';
+import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -16,6 +14,7 @@ interface PostActionsDropdownProps {
   currentAccount: Account | null;
   variant: 'card' | 'modal';
   wrapperClassName?: string;
+  onReport?: () => void;
 }
 
 const DropdownMenuItem: React.FC<{
@@ -43,6 +42,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   currentAccount,
   variant,
   wrapperClassName = '',
+  onReport,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,6 +65,22 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   };
 
   const menuItems: React.ReactNode[] = [];
+
+  // Report item
+  if (onReport && !isOwnPost) {
+    menuItems.push(
+      <DropdownMenuItem
+        key="report"
+        onClick={(e) => {
+          e.stopPropagation();
+          onReport();
+          setIsOpen(false);
+        }}
+        icon={<FlagIcon className="w-5 h-5 text-gray-500" />}
+        label="Report"
+      />
+    );
+  }
 
   // Admin/Owner items
   const adminItems: React.ReactNode[] = [];
@@ -119,7 +135,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         aria-expanded={isOpen}
         aria-label="More options"
         title="More options"
-        className={variant === 'modal' ? 'text-gray-500' : 'text-white'}
+        className={variant === 'modal' ? 'text-gray-500' : 'text-gray-400 hover:text-gray-600'}
       >
         <EllipsisVerticalIcon className="w-5 h-5" aria-hidden="true" />
       </Button>

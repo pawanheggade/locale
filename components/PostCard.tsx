@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon } from './Icons';
+import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -18,6 +18,7 @@ import { useNavigation } from '../App';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
+import { PostActionsDropdown } from './PostActionsDropdown';
 
 interface PostCardProps {
   post: DisplayablePost;
@@ -33,8 +34,8 @@ interface PostCardProps {
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
   const { navigateTo, showOnMap } = useNavigation();
-  const { toggleLikePost, toggleLikeAccount } = useAuth();
-  const { togglePinPost } = usePosts();
+  const { toggleLikePost, toggleLikeAccount, bag } = useAuth();
+  const { togglePinPost, archivePost, unarchivePost } = usePosts();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
   const { openModal } = useUI();
   const { dispatchFilterAction } = useFilters();
@@ -43,6 +44,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const isProfileLiked = currentAccount?.likedAccountIds?.includes(post.authorId) ?? false;
   const isAvailabilityAlertSet = useMemo(() => availabilityAlerts.some(alert => alert.postId === post.id), [availabilityAlerts, post.id]);
   const isPriceAlertSet = useMemo(() => priceAlerts.some(alert => alert.postId === post.id), [priceAlerts, post.id]);
+  const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
 
   const hasMedia = post.media && post.media.length > 0;
   const isCompact = variant === 'compact';
@@ -94,8 +96,8 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const LocationElement = (
      <div
         className={cn(
-            "flex items-center gap-1.5 min-w-0 text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            coordsToUse ? "cursor-pointer group transition-colors" : ""
+            "flex items-center gap-1.5 min-w-0 text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            coordsToUse ? "cursor-pointer group transition-colors hover:text-red-500" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -114,8 +116,8 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         }}
         title={coordsToUse ? "View on Map" : undefined}
      >
-        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0", coordsToUse ? "text-red-400 transition-colors" : "text-red-400")} />
-        <span className={cn("truncate text-xs", coordsToUse ? "decoration-red-400 underline-offset-2" : "")}>
+        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0", coordsToUse ? "text-gray-400 group-hover:text-red-500 transition-colors" : "text-gray-400")} />
+        <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
             {locationToDisplay}
         </span>
      </div>
@@ -133,7 +135,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
-      {/* Header Section: Author Info & Profile Like Button (Moved from Footer) */}
+      {/* Header Section: Author Info, Location & Profile Like Button */}
       {showHeader && (
           <div className="p-3 border-b border-gray-100">
             <PostAuthorInfo 
@@ -168,25 +170,40 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
                     </Button>
                 ) : (
-                    <LikeButton
-                        isLiked={isProfileLiked}
-                        onToggle={() => {
-                            if (currentAccount) {
-                                toggleLikeAccount(post.authorId);
-                            } else {
-                                openModal({ type: 'login' });
-                            }
-                        }}
-                        variant="ghost"
-                        size="icon-sm"
-                        className={cn(
-                            "flex-shrink-0 active:scale-95",
-                            isProfileLiked ? "text-red-600" : "text-gray-400"
-                        )}
-                        iconClassName="w-5 h-5"
-                        aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
-                        title={isProfileLiked ? "Liked" : "Like profile"}
-                    />
+                    <>
+                        <LikeButton
+                            isLiked={isProfileLiked}
+                            onToggle={() => {
+                                if (currentAccount) {
+                                    toggleLikeAccount(post.authorId);
+                                } else {
+                                    openModal({ type: 'login' });
+                                }
+                            }}
+                            variant="ghost"
+                            size="icon-sm"
+                            className={cn(
+                                "flex-shrink-0 active:scale-95",
+                                isProfileLiked ? "text-red-600" : "text-gray-400 hover:text-gray-600"
+                            )}
+                            iconClassName="w-5 h-5"
+                            aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
+                            title={isProfileLiked ? "Liked" : "Like profile"}
+                        />
+                        <PostActionsDropdown 
+                            post={post} 
+                            isArchived={isArchived} 
+                            currentAccount={currentAccount} 
+                            variant="card"
+                            onReport={() => {
+                                if (!currentAccount) {
+                                    openModal({ type: 'login' });
+                                    return;
+                                }
+                                openModal({ type: 'reportItem', data: { item: post } });
+                            }}
+                        />
+                    </>
                 )}
             </PostAuthorInfo>
           </div>
@@ -377,6 +394,89 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
               <span aria-label={`Expires ${formatTimeRemaining(post.expiryDate)}`}>{formatTimeRemaining(post.expiryDate)}</span>
             </div>
           ) : null}
+
+          {/* Inline Action Footer - Only shown when expanded */}
+          {isDescriptionExpanded && (
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 animate-fade-in">
+                {isOwnPost ? (
+                    <>
+                        <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size="sm" className="flex-1 gap-1.5 bg-gray-50 hover:bg-gray-100">
+                            <PencilIcon className="w-4 h-4" /> Edit
+                        </Button>
+                        {isArchived ? (
+                             <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size="sm" className="flex-1 gap-1.5 bg-gray-50 hover:bg-gray-100">
+                                <ArrowUturnLeftIcon className="w-4 h-4" /> Unarchive
+                            </Button>
+                        ) : (
+                            <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size="sm" className="flex-1 gap-1.5 bg-gray-50 hover:bg-gray-100 text-amber-600">
+                                <ArchiveBoxIcon className="w-4 h-4" /> Archive
+                            </Button>
+                        )}
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openModal({ type: 'sharePost', data: post });
+                            }}
+                            variant="overlay-dark"
+                            size="sm"
+                            className="flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500"
+                            aria-label="Share post"
+                            title="Share post"
+                        >
+                            <PaperAirplaneIcon className="w-5 h-5" />
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        {isExpired && !isArchived ? (
+                             <Button 
+                                onClick={(e) => { 
+                                    e.stopPropagation();
+                                    if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                    toggleAvailabilityAlert(post.id);
+                                }}
+                                variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} 
+                                size="sm"
+                                className="flex-1 gap-1.5 text-xs font-semibold"
+                            >
+                                <BellIcon className="w-4 h-4" isFilled={isAvailabilityAlertSet} />
+                                <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
+                            </Button>
+                        ) : (
+                            <Button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                    if (isPurchasable) isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post });
+                                    else if (post.type === PostType.SERVICE) openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
+                                    else openModal({ type: 'contactStore', data: { author: post.author!, post } });
+                                }}
+                                variant={isAddedToBag ? "pill-lightred" : "pill-red"}
+                                size="sm"
+                                className="flex-1 gap-1.5 text-xs font-semibold"
+                            >
+                                {isPurchasable ? <ShoppingBagIcon className="w-4 h-4" isFilled={isAddedToBag} /> : <ChatBubbleBottomCenterTextIcon className="w-4 h-4"/>}
+                                <span className="truncate">{isPurchasable ? (isAddedToBag ? 'In Bag' : 'Add to Bag') : (post.type === PostType.SERVICE ? 'Request' : 'Contact')}</span>
+                            </Button>
+                        )}
+                        
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                openModal({ type: 'sharePost', data: post });
+                            }}
+                            variant="overlay-dark"
+                            size="sm"
+                            className="flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500"
+                            aria-label="Share post"
+                            title="Share post"
+                        >
+                            <PaperAirplaneIcon className="w-5 h-5" />
+                        </Button>
+                    </>
+                )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -75,7 +75,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, si
           </div>
         </div>
         {children && (
-            <div className="flex-shrink-0 self-center">
+            <div className="flex-shrink-0 self-center flex items-center gap-1">
                 {children}
             </div>
         )}
