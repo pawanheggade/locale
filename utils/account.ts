@@ -1,3 +1,4 @@
+
 import { Account, Post } from '../types';
 import { PhoneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from '../components/Icons';
 
@@ -24,7 +25,7 @@ export const generateContactMethods = (
             icon: ChatBubbleBottomCenterTextIcon,
             href: `https://wa.me/${author.messageNumber?.replace(/\D/g, '')}`,
             isVisible: author.contactOptions?.includes('message') && !!author.messageNumber,
-            label: 'Message',
+            label: 'Message via WhatsApp',
             toast: 'Opening messaging app...',
         },
         {
@@ -32,7 +33,7 @@ export const generateContactMethods = (
             icon: PhoneIcon,
             href: `tel:${author.mobile}`,
             isVisible: author.contactOptions?.includes('mobile') && !!author.mobile,
-            label: 'Call',
+            label: 'Call Mobile Number',
             toast: 'Opening phone dialer...',
         },
         {

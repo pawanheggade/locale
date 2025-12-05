@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon, ChevronDownIcon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -14,6 +14,8 @@ import { useNavigation } from '../App';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 import { generateContactMethods } from '../utils/account';
+import { cn } from '../lib/utils';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface AccountViewProps {
   account: Account;
@@ -69,46 +71,50 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   const pinnedPosts = useMemo(() => accountPosts.filter(p => p.isPinned), [accountPosts]);
   
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  useClickOutside(categoryDropdownRef, () => setIsCategoryDropdownOpen(false), isCategoryDropdownOpen);
+
   // --- TAB MANAGEMENT ---
-  const availableTabs = useMemo(() => {
+  const { availableTabs, categoryTabs } = useMemo(() => {
     const tabs = [];
+    const catTabs: string[] = [];
     
-    // Pins Tab: Show for paid tiers if it's their own profile, or if they have pinned posts.
-    if (isPaidTier && (isOwnAccount || pinnedPosts.length > 0)) {
-        tabs.push({ id: 'pins', label: 'Pins' });
-    }
-    
-    // Posts Tab: Show if it's their own profile, or if they have any posts.
+    // Posts Tab
     if (isOwnAccount || accountPosts.length > 0) {
         tabs.push({ id: 'all', label: 'Posts' });
     }
     
-    // Forums Tab: Show if it's their own profile, or if they have forum posts.
+    // Forums Tab
     if (isOwnAccount || userForumPosts.length > 0) {
         tabs.push({ id: 'forums', label: 'Forums' });
     }
 
-    // Sale Tab: Only show if the user has items on sale.
+    // Sale Tab
     if (salePosts.length > 0) {
         tabs.push({ id: 'sale', label: 'Sale' });
     }
 
-    // Catalogs Tab: Show for eligible tiers if it's their own profile, or if they have catalog items.
+    // Catalogs Tab
     if (canHaveCatalog && (isOwnAccount || hasCatalogContent)) {
         tabs.push({ id: 'catalogs', label: 'Catalogs' });
     }
 
-    // Category Tabs: This is derived from posts, so it will only show non-empty tabs.
-    if (isBusinessAccount) {
-        postCategories.forEach(cat => tabs.push({ id: cat, label: cat }));
-    }
-
-    // Archives Tab: Only shown for the profile owner.
+    // Archives Tab
     if (isOwnAccount && accountArchivedPosts.length > 0) {
         tabs.push({ id: 'archives', label: 'Archived' });
     }
 
-    return tabs;
+    // Category Tabs
+    if (isBusinessAccount) {
+        postCategories.forEach(cat => {
+             if (accountPosts.some(p => p.category === cat)) {
+                catTabs.push(cat);
+            }
+        });
+    }
+
+    return { availableTabs: tabs, categoryTabs: catTabs };
   }, [
     isPaidTier,
     isOwnAccount,
@@ -123,16 +129,17 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     accountArchivedPosts.length,
   ]);
 
-  const [activeTab, setActiveTab] = useState<string>(isPaidTier ? 'pins' : 'all');
+  const [activeTab, setActiveTab] = useState<string>('all');
   
   useEffect(() => {
-    const isCurrentTabVisible = availableTabs.some(t => t.id === activeTab);
-    if (!isCurrentTabVisible) {
-        if (availableTabs.length > 0) {
-            setActiveTab(availableTabs[0].id);
-        }
+    const isStandardTab = availableTabs.some(t => t.id === activeTab);
+    const isCategoryTab = categoryTabs.includes(activeTab);
+    
+    if (!isStandardTab && !isCategoryTab) {
+        if (availableTabs.length > 0) setActiveTab(availableTabs[0].id);
+        else if (categoryTabs.length > 0) setActiveTab(categoryTabs[0]);
     }
-  }, [availableTabs, activeTab]);
+  }, [availableTabs, categoryTabs, activeTab]);
 
   const contactMethods = useMemo(() => generateContactMethods(account, currentAccount), [account, currentAccount]);
 
@@ -149,7 +156,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [account.socialLinks]);
 
   const displayedPosts = useMemo(() => {
-    if (activeTab === 'pins') return pinnedPosts;
     if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'archives') return accountArchivedPosts;
@@ -317,110 +323,132 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         </div>
 
         {/* Content Section */}
-        {availableTabs.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200/80 mt-6 overflow-hidden">
-            <div className="border-b border-gray-200">
-                <div className="flex space-x-6 px-4 sm:px-6 overflow-x-auto hide-scrollbar">
-                {availableTabs.map(tab => (
-                    <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === 'tab.id' || activeTab === tab.id}>
-                        {tab.label}
-                    </TabButton>
-                ))}
-                </div>
-            </div>
-
-            <div className="p-4 sm:p-6 min-h-[300px]">
-                {activeTab === 'pins' ? (
-                    <div className="animate-fade-in">
-                        {pinnedPosts.length > 0 ? (
-                            <PostList 
-                                posts={pinnedPosts} 
-                                currentAccount={currentAccount}
-                                variant="compact"
-                            />
-                        ) : (
-                            <EmptyState
-                                icon={<PinIcon />}
-                                title="No Pinned Posts"
-                                description={isOwnAccount ? "Pin your most important posts to feature them here." : "This seller hasn't pinned any posts yet."}
-                                className="bg-gray-50 rounded-xl"
-                            />
-                        )}
+        {(availableTabs.length > 0 || categoryTabs.length > 0) && (
+            <div className="bg-white rounded-xl border border-gray-200/80 mt-6">
+                <div className="border-b border-gray-200 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
+                    <div className="flex space-x-6 overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
+                        {availableTabs.map(tab => (
+                            <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
+                                {tab.label}
+                            </TabButton>
+                        ))}
                     </div>
-                ) : activeTab === 'catalogs' ? (
-                    <div className="space-y-4 animate-fade-in">
-                        {hasCatalogContent ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                {account.catalog!.map((item) => (
-                                    <div 
-                                        key={item.id} 
-                                        onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
-                                        className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
-                                    >
-                                        <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
-                                            {item.type === 'image' ? (
-                                                <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
+                    {categoryTabs.length > 0 && (
+                        <div className="flex-shrink-0 pl-2 ml-2 border-l border-gray-200 py-2 relative" ref={categoryDropdownRef}>
+                            <TabButton 
+                                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                                isActive={categoryTabs.includes(activeTab)}
+                                className="gap-1 pr-1"
+                            >
+                                {categoryTabs.includes(activeTab) ? activeTab : 'Categories'}
+                                <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                            </TabButton>
+                            
+                            {isCategoryDropdownOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
+                                    {categoryTabs.map(cat => (
+                                        <button
+                                            key={cat}
+                                            onClick={() => {
+                                                setActiveTab(cat);
+                                                setIsCategoryDropdownOpen(false);
+                                            }}
+                                            className={cn(
+                                                "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50",
+                                                activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
                                             )}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-4 sm:p-6 min-h-[300px]">
+                    {activeTab === 'catalogs' ? (
+                        <div className="space-y-4 animate-fade-in">
+                            {hasCatalogContent ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {account.catalog!.map((item) => (
+                                        <div 
+                                            key={item.id} 
+                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
+                                            className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
+                                        >
+                                            <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
+                                                {item.type === 'image' ? (
+                                                    <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
+                                                )}
+                                            </div>
+                                            <div className="p-3 border-t border-gray-100 bg-white relative z-10">
+                                                <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                                            </div>
                                         </div>
-                                        <div className="p-3 border-t border-gray-100 bg-white relative z-10">
-                                            <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState
-                                icon={<DocumentIcon />}
-                                title="No Catalog Items"
-                                description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
-                                className="bg-gray-50 rounded-xl"
-                            />
-                        )}
-                    </div>
-                ) : activeTab === 'forums' ? (
-                    <div className="animate-fade-in">
-                        {userForumPosts.length > 0 ? (
-                            <div className="space-y-4">
-                                {userForumPosts.map(post => (
-                                    <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState
-                                icon={<ChatBubbleEllipsisIcon />}
-                                title="No Forum Discussions"
-                                description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
-                                className="bg-gray-50 rounded-xl"
-                            />
-                        )}
-                    </div>
-                ) : (
-                    <div className="animate-fade-in">
-                        {displayedPosts.length > 0 ? (
-                            <PostList 
-                                posts={displayedPosts} 
-                                currentAccount={currentAccount}
-                                isArchived={activeTab === 'archives'}
-                                variant="compact"
-                            />
-                        ) : (
-                        (activeTab === 'all' || activeTab === 'archives') && (
-                            <EmptyState
-                                icon={<ArchiveBoxIcon />}
-                                title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"}
-                                description={isOwnAccount 
-                                    ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.")
-                                    : "This seller hasn't created any posts yet."
-                                }
-                                className="py-20"
-                            />
-                        )
-                        )}
-                    </div>
-                )}
-            </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyState
+                                    icon={<DocumentIcon />}
+                                    title="No Catalog Items"
+                                    description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
+                                    className="bg-gray-50 rounded-xl"
+                                />
+                            )}
+                        </div>
+                    ) : activeTab === 'forums' ? (
+                        <div className="animate-fade-in">
+                            {userForumPosts.length > 0 ? (
+                                <div className="space-y-4">
+                                    {userForumPosts.map(post => (
+                                        <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyState
+                                    icon={<ChatBubbleEllipsisIcon />}
+                                    title="No Forum Discussions"
+                                    description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
+                                    className="bg-gray-50 rounded-xl"
+                                />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="animate-fade-in">
+                            {displayedPosts.length > 0 ? (
+                                <PostList 
+                                    posts={displayedPosts} 
+                                    currentAccount={currentAccount}
+                                    isArchived={activeTab === 'archives'}
+                                    variant="compact"
+                                />
+                            ) : (
+                            (activeTab === 'all' || activeTab === 'archives') ? (
+                                <EmptyState
+                                    icon={<ArchiveBoxIcon />}
+                                    title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"}
+                                    description={isOwnAccount 
+                                        ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.")
+                                        : "This seller hasn't created any posts yet."
+                                    }
+                                    className="py-20"
+                                />
+                            ) : (
+                                <EmptyState
+                                    icon={<ArchiveBoxIcon />}
+                                    title={`No items in ${activeTab}`}
+                                    description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
+                                    className="py-20"
+                                />
+                            )
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         )}
       </div>
