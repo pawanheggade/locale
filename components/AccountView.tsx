@@ -83,8 +83,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         tabs.push({ id: 'all', label: 'Posts' });
     }
     
-    // Forums Tab: Only show if the user has forum posts.
-    if (userForumPosts.length > 0) {
+    // Forums Tab: Show if it's their own profile, or if they have forum posts.
+    if (isOwnAccount || userForumPosts.length > 0) {
         tabs.push({ id: 'forums', label: 'Forums' });
     }
 
@@ -381,11 +381,20 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                     </div>
                 ) : activeTab === 'forums' ? (
                     <div className="animate-fade-in">
-                        <div className="space-y-4">
-                            {userForumPosts.map(post => (
-                                <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
-                            ))}
-                        </div>
+                        {userForumPosts.length > 0 ? (
+                            <div className="space-y-4">
+                                {userForumPosts.map(post => (
+                                    <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
+                                ))}
+                            </div>
+                        ) : (
+                            <EmptyState
+                                icon={<ChatBubbleEllipsisIcon />}
+                                title="No Forum Discussions"
+                                description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
+                                className="bg-gray-50 rounded-xl"
+                            />
+                        )}
                     </div>
                 ) : (
                     <div className="animate-fade-in">
