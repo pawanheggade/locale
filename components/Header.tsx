@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -193,6 +194,8 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
+  const isForumsView = ['forums', 'forumPostDetail', 'createForumPost'].includes(view);
+
   return (
     <header className={cn(
       'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
@@ -250,14 +253,17 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right Section */}
         <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
             <Button 
-                onClick={() => navigateTo(view === 'forums' ? 'all' : 'forums')}
-                variant="overlay-dark"
+                onClick={() => navigateTo(isForumsView ? 'all' : 'forums')}
+                variant="outline"
                 size="icon"
-                className={cn("shrink-0 transition-colors !rounded-xl", view === 'forums' && "text-red-600")}
-                aria-label={view === 'forums' ? "Back to feed" : "Community Forums"}
-                title={view === 'forums' ? "Back to feed" : "Community Forums"}
+                className={cn(
+                    "shrink-0 transition-colors !rounded-xl border-gray-200 bg-transparent hover:bg-gray-100",
+                    isForumsView && "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
+                )}
+                aria-label={isForumsView ? "Back to feed" : "Community Forums"}
+                title={isForumsView ? "Back to feed" : "Community Forums"}
             >
-                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={view === 'forums'} />
+                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={isForumsView} />
             </Button>
 
             <div className="relative">
