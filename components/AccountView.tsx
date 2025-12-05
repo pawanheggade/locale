@@ -350,9 +350,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 title="Categories"
                                 aria-label="Categories"
                             >
-                                {categoryTabs.includes(activeTab) ? <span className="sr-only">Categories: </span> : null}
-                                {categoryTabs.includes(activeTab) ? <span className="font-bold text-sm">{activeTab}</span> : null}
-                                {!categoryTabs.includes(activeTab) ? <HashtagIcon className="w-6 h-6" /> : null}
+                                <HashtagIcon className="w-6 h-6" />
                                 <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
                             </TabButton>
                             
@@ -441,7 +439,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             ) : (
                             (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
                                 <EmptyState
-                                    icon={<ArchiveBoxIcon />}
+                                    icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <Squares2X2Icon />}
                                     title={
                                         activeTab === 'archives' ? "No Archived Posts" :
                                         activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
@@ -459,7 +457,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                 />
                             ) : (
                                 <EmptyState
-                                    icon={<ArchiveBoxIcon />}
+                                    icon={<Squares2X2Icon />}
                                     title={`No items in ${activeTab}`}
                                     description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
                                     className="py-20"
