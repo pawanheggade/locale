@@ -22,7 +22,7 @@ const plans = [
       'Browse and discover local items',
       'Save your favorite posts and sellers',
       'Contact sellers directly',
-      'Cannot create posts',
+      'Discuss in forums',
     ],
   },
   {
@@ -47,7 +47,8 @@ const plans = [
       <span key="verified-f2"><span className="font-bold text-gray-800">"Verified" Badge</span> on posts & profile</span>,
       <span key="verified-f3"><span className="font-bold text-gray-800">Feature posts</span> on profile page</span>,
       'Unlimited listings',
-      'Digital Catalogs (PDF/Images)',
+      'Dedicated "Sale" tab on profile',
+      'Dedicated "Catalogs" tab on profile',
       '15 media uploads per post',
       'Access to profile analytics',
       'Priority support',
@@ -62,11 +63,8 @@ const plans = [
       <span key="bus-f1"><span className="font-bold text-gray-800">High Priority Placement</span> in search & feeds</span>,
       <span key="bus-f2"><span className="font-bold text-gray-800">"Business" Badge</span> on posts & profile</span>,
       'All Verified features, plus:',
-      'Access to profile analytics',
-      'Digital Catalogs (PDF/Images)',
+      'Auto-generated "Categories" tab',
       '25 media uploads per post',
-      'Dedicated business profile page',
-      'Category tabs on profile page',
       '24/7 dedicated support',
     ],
   },
@@ -208,7 +206,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
                 <ul className="mt-6 space-y-3">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3">
-                      <CheckIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${isPro ? 'text-amber-600' : 'text-green-500'}`} />
+                      <CheckIcon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${isPro ? 'text-amber-600' : 'text-gray-900'}`} />
                       <span className="text-sm text-gray-600">{feature}</span>
                     </li>
                   ))}

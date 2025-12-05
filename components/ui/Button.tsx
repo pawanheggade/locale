@@ -86,12 +86,12 @@ const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size
     <button
       onClick={onClick}
       className={cn(
-        'flex-shrink-0 flex items-center justify-center gap-2 font-medium transition-colors border-b-2 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
+        'flex-shrink-0 flex items-center justify-center gap-2 font-medium transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
         textSize,
         padding,
         isActive
-          ? 'border-red-600 text-red-600'
-          : 'border-transparent text-gray-600',
+          ? 'text-red-600'
+          : 'text-gray-600',
         className
       )}
       role="tab"
