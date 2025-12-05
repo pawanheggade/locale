@@ -1,9 +1,11 @@
+
 import { useMemo } from 'react';
 import { DisplayablePost, Account } from '../types';
 import { useFilters } from '../contexts/FiltersContext';
 import { useDebounce } from './useDebounce';
 import { applyFiltersToPosts, sortFilteredPosts } from '../utils/posts';
 import { haversineDistance } from '../utils/geocoding';
+import { usePostLikeCounts } from './usePostLikeCounts';
 
 export const usePostFilters = (
   postsToFilter: DisplayablePost[],
@@ -14,15 +16,9 @@ export const usePostFilters = (
 ) => {
   const { filterState } = useFilters();
   const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
+  const likeCounts = usePostLikeCounts(allAccounts);
 
   const enrichedPosts = useMemo(() => {
-    const likeCounts = new Map<string, number>();
-    allAccounts.forEach(account => {
-      (account.likedPostIds || []).forEach(postId => {
-        likeCounts.set(postId, (likeCounts.get(postId) || 0) + 1);
-      });
-    });
-
     return postsToFilter.map(post => ({
       ...post,
       likeCount: likeCounts.get(post.id) || 0,
@@ -30,7 +26,7 @@ export const usePostFilters = (
         ? haversineDistance(userLocation, (post.coordinates || post.eventCoordinates)!)
         : undefined,
     }));
-  }, [postsToFilter, allAccounts, userLocation]);
+  }, [postsToFilter, likeCounts, userLocation]);
 
   const filteredPosts = useMemo(() => {
     return applyFiltersToPosts(

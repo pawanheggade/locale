@@ -1,3 +1,4 @@
+
 import React, { useState, useReducer } from 'react';
 import { Account } from '../types';
 import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
@@ -6,6 +7,7 @@ import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
 import { FormField } from './FormField';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { Separator } from './ui/Separator';
 
 interface SignInScreenProps {
   accounts: Account[];
@@ -118,11 +120,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         )}
         
         {activeAccounts.length > 0 && (
-            <div className="relative flex items-center">
-                <div className="flex-grow border-t border-gray-900/10" />
-                <span className="flex-shrink mx-4 text-sm text-gray-600">Or use another account</span>
-                <div className="flex-grow border-t border-gray-900/10" />
-            </div>
+            <Separator label="Or use another account" lineClassName="border-gray-900/10" labelClassName="text-sm text-gray-600" />
         )}
 
         <form onSubmit={handleLoginSubmit} className="space-y-4">
@@ -172,11 +170,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
         </form>
 
         <div className="space-y-3">
-            <div className="relative flex items-center">
-                <div className="flex-grow border-t border-gray-900/10" />
-                <span className="flex-shrink mx-4 text-sm text-gray-600">Or social sign in</span>
-                <div className="flex-grow border-t border-gray-900/10" />
-            </div>
+            <Separator label="Or social sign in" lineClassName="border-gray-900/10" labelClassName="text-sm text-gray-600" />
             <div className="grid grid-cols-2 gap-3">
                 <Button type="button" onClick={() => handleSocialClick('google')} disabled={isLoading || !!loadingProvider} variant="outline" className="w-full gap-2">
                     {loadingProvider === 'google' ? <SpinnerIcon className="w-5 h-5" /> : <><GoogleIcon className="w-5 h-5" /> <span>Google</span></>}

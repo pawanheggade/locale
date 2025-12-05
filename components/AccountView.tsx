@@ -375,7 +375,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     {account.catalog!.map((item) => (
                                         <div 
                                             key={item.id} 
-                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, currentAccount, openModal } })}
+                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
                                             className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
                                         >
                                             <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">

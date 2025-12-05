@@ -1,21 +1,32 @@
 
-import React, { useRef, useState } from 'react';
+
+import React, { useRef, useState, useEffect } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { DocumentIcon, ChevronLeftIcon, ChevronRightIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ViewCatalogModalProps {
     catalog: CatalogItem[];
+    accountId: string;
     onClose: () => void;
 }
 
-export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onClose }) => {
+export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, accountId, onClose }) => {
     const modalRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isDownloading, setIsDownloading] = useState(false);
     const activeItem = catalog[selectedIndex];
+    const { incrementCatalogView, incrementCatalogDownload } = useAuth();
+
+    // Track views when the item changes
+    useEffect(() => {
+        if (activeItem) {
+            incrementCatalogView(accountId, activeItem.id);
+        }
+    }, [selectedIndex, activeItem, accountId, incrementCatalogView]);
 
     const isPdf = activeItem?.type === 'pdf';
 
@@ -23,6 +34,8 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, onC
         if (!activeItem) return;
         
         setIsDownloading(true);
+        incrementCatalogDownload(accountId, activeItem.id);
+        
         try {
             // Attempt to fetch the file as a blob to force download
             const response = await fetch(activeItem.url);

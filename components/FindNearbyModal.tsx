@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef } from 'react';
 import { SpinnerIcon, MapPinIcon, CrosshairsIcon } from './Icons';
 import LocationPickerMap from './LocationPickerMap';
@@ -8,6 +7,7 @@ import LocationInput from './LocationInput';
 import { useLocationInput } from '../hooks/useLocationInput';
 import { Button } from './ui/Button';
 import { FormField } from './FormField';
+import { Separator } from './ui/Separator';
 
 interface FindNearbyModalProps {
   onClose: () => void;
@@ -80,11 +80,7 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
               </Button>
             </div>
 
-            <div className="relative flex items-center text-center">
-              <div className="flex-grow border-t border-gray-200/50"></div>
-              <span className="flex-shrink mx-4 text-sm font-medium text-gray-600">OR</span>
-              <div className="flex-grow border-t border-gray-200/50"></div>
-            </div>
+            <Separator label="OR" lineClassName="border-gray-200/50" labelClassName="text-sm font-medium text-gray-600" />
             
             <div className="space-y-4">
               <FormField

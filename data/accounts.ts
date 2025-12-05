@@ -49,13 +49,17 @@ export const mockAccounts: Account[] = [
         id: 'cat-1',
         url: 'https://picsum.photos/seed/catalog1/800/600',
         type: 'image',
-        name: 'Spring Collection 2024'
+        name: 'Spring Collection 2024',
+        views: 120,
+        downloads: 45
       },
       {
         id: 'cat-2',
         url: 'https://picsum.photos/seed/catalog2/800/600',
         type: 'image',
-        name: 'Restoration Guide'
+        name: 'Restoration Guide',
+        views: 85,
+        downloads: 12
       }
     ],
   },
@@ -135,7 +139,9 @@ export const mockAccounts: Account[] = [
           id: 'cat-admin-1',
           url: 'https://picsum.photos/seed/admincat/800/600',
           type: 'image',
-          name: 'Community Guidelines'
+          name: 'Community Guidelines',
+          views: 543,
+          downloads: 120
       }
     ],
   },
@@ -205,7 +211,9 @@ export const mockAccounts: Account[] = [
            id: 'cat-gl-1',
            url: 'https://picsum.photos/seed/veggies/800/1200',
            type: 'image',
-           name: 'Seasonal Produce List'
+           name: 'Seasonal Produce List',
+           views: 89,
+           downloads: 20
       }
     ],
   },
@@ -245,13 +253,17 @@ export const mockAccounts: Account[] = [
            id: 'cat-ab-1',
            url: 'https://picsum.photos/seed/bread/800/600',
            type: 'image',
-           name: 'Sourdough Menu'
+           name: 'Sourdough Menu',
+           views: 34,
+           downloads: 5
       },
       {
            id: 'cat-ab-2',
            url: 'https://picsum.photos/seed/cakes/800/600',
            type: 'image',
-           name: 'Custom Cake Options'
+           name: 'Custom Cake Options',
+           views: 56,
+           downloads: 12
       }
     ],
   },

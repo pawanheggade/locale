@@ -194,7 +194,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
       case 'feedback':
           return <FeedbackModal onClose={closeModal} onSubmit={(c) => { addFeedback(c); closeModal(); }} />;
       case 'viewCatalog':
-          return <ViewCatalogModal catalog={activeModal.data.catalog} onClose={closeModal} />;
+          return <ViewCatalogModal catalog={activeModal.data.catalog} accountId={activeModal.data.accountId} onClose={closeModal} />;
       case 'profileQR':
           return <ProfileQRModal account={activeModal.data} onClose={closeModal} />;
       default:

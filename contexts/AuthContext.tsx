@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -62,6 +63,8 @@ interface AuthContextType {
   addPostToViewHistory: (postId: string) => void;
   addCatalogItems: (files: File[]) => Promise<void>;
   removeCatalogItem: (itemId: string) => Promise<void>;
+  incrementCatalogView: (accountId: string, itemId: string) => void;
+  incrementCatalogDownload: (accountId: string, itemId: string) => void;
   
   savedSearches: SavedSearch[];
   addSavedSearch: (search: SavedSearch) => void;
@@ -531,7 +534,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             try {
                 const url = await fileToDataUrl(file);
                 const type = file.type === 'application/pdf' ? 'pdf' : 'image';
-                newItems.push({ id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, url, type, name: file.name });
+                newItems.push({ id: `cat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, url, type, name: file.name, views: 0, downloads: 0 });
             } catch (error) {
                 console.error(`Failed to process file ${file.name}`, error);
             }
@@ -547,6 +550,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
          const updatedCatalog = (currentAccount.catalog || []).filter(item => item.id !== itemId);
          setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
     }, [currentAccountId, currentAccount, setAccounts]);
+
+    const incrementCatalogView = useCallback((accountId: string, itemId: string) => {
+        setAccounts(prev => prev.map(acc => {
+            if (acc.id === accountId) {
+                const updatedCatalog = (acc.catalog || []).map(item => 
+                    item.id === itemId ? { ...item, views: (item.views || 0) + 1 } : item
+                );
+                return { ...acc, catalog: updatedCatalog };
+            }
+            return acc;
+        }));
+    }, [setAccounts]);
+
+    const incrementCatalogDownload = useCallback((accountId: string, itemId: string) => {
+        setAccounts(prev => prev.map(acc => {
+            if (acc.id === accountId) {
+                const updatedCatalog = (acc.catalog || []).map(item => 
+                    item.id === itemId ? { ...item, downloads: (item.downloads || 0) + 1 } : item
+                );
+                return { ...acc, catalog: updatedCatalog };
+            }
+            return acc;
+        }));
+    }, [setAccounts]);
     
     const toggleSavedSearchAlert = useCallback((searchId: string) => {
         setSavedSearches(prev => prev.map(search => search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search));
@@ -572,7 +599,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const value = useMemo(() => ({
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
         reports, addReport, addForumReport, setReports,
         feedbackList, addFeedback, setFeedbackList,
@@ -582,7 +609,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }), [
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
         reports, addReport, addForumReport, setReports, feedbackList, addFeedback, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent, incrementProfileViews
     ]);

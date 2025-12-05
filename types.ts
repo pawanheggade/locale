@@ -53,6 +53,8 @@ export interface CatalogItem {
   url: string;
   type: 'image' | 'pdf';
   name: string;
+  views?: number;
+  downloads?: number;
 }
 
 export type SocialPlatform = 'website' | 'instagram' | 'twitter' | 'facebook' | 'youtube';
@@ -213,7 +215,7 @@ export type ModalState =
   | { type: 'confirmation', data: ConfirmationModalData }
   | { type: 'upgradeToSeller', data: { tier: Subscription['tier'] } }
   | { type: 'feedback' }
-  | { type: 'viewCatalog', data: { catalog: CatalogItem[] } }
+  | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
   | { type: 'profileQR', data: Account };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
