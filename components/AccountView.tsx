@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
+import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -14,7 +14,7 @@ import { useNavigation } from '../App';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 import { generateContactMethods } from '../utils/account';
-import { cn } from '../lib/utils';
+import { cn, isShareAbortError } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
 
 interface AccountViewProps {
@@ -23,7 +23,6 @@ interface AccountViewProps {
   posts: DisplayablePost[];
   archivedPosts: DisplayablePost[];
   allAccounts: Account[];
-  isGeocoding: boolean;
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -49,7 +48,7 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts, isGeocoding }) => {
+export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts }) => {
   const { openModal } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap } = useNavigation();
@@ -189,16 +188,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                   url: profileUrl,
               });
           } catch (err: any) {
-              const isAbort = 
-                  err.name === 'AbortError' || 
-                  err.code === 20 ||
-                  (typeof err.message === 'string' && (
-                      err.message.toLowerCase().includes('abort') || 
-                      err.message.toLowerCase().includes('cancel') ||
-                      err.message.toLowerCase().includes('canceled')
-                  ));
-              
-              if (!isAbort) {
+              if (!isShareAbortError(err)) {
                   console.error('Error sharing:', err);
               }
           }

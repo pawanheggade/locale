@@ -1,5 +1,7 @@
 import type { FC } from 'react';
 import { CheckBadgeIcon, CheckBadgeIconSolid } from '../components/Icons';
+// FIX: Add import for Subscription type used in getBadgeSvg
+import { Subscription } from '../types';
 
 // A simple utility for conditionally joining class names.
 export function cn(...classes: (string | undefined | null | false)[]) {
@@ -61,6 +63,7 @@ export const TIER_STYLES: Record<string, {
     icon: null,
     description: 'This is a basic seller account.',
   },
+  // FIX: Complete the 'Personal' tier object with missing properties.
   'Personal': { 
     textColor: 'text-gray-900', 
     bgColor: 'bg-gray-900', 
@@ -69,89 +72,92 @@ export const TIER_STYLES: Record<string, {
     iconColor: 'text-gray-900',
     hex: '#111827',
     icon: null,
-    description: 'This is a personal account.',
+    description: 'A personal account for browsing and community interaction.',
   },
 };
 
-export const getBadgeSvg = (tier: string) => {
-    // Uses the centralized HEX codes
-    const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
-    
-    if (tier === 'Organisation') {
-        return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="${styles.hex}" stroke="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" /></svg>`;
-    }
-    
-    // Outline style for others
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${styles.hex}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1 1.043 3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" /></svg>`;
+// FIX: Add and export isShareAbortError function.
+export const isShareAbortError = (err: any): boolean => {
+  return (
+    err.name === 'AbortError' ||
+    err.code === 20 || // DOMException code for AbortError in some browsers
+    (typeof err.message === 'string' &&
+      (err.message.toLowerCase().includes('abort') ||
+        err.message.toLowerCase().includes('cancel') ||
+        err.message.toLowerCase().includes('canceled')))
+  );
 };
 
+// FIX: Add and export getBadgeSvg function.
+export const getBadgeSvg = (tier: Subscription['tier']): string => {
+    const styles = TIER_STYLES[tier];
+    if (!styles || !styles.icon) return '';
 
-export const drawLogoOnCanvas = async (
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  y: number,
-  size: 'default' | 'large' = 'default'
-) => {
-  const isLarge = size === 'large';
-  const fontName = 'Comfortaa';
-  const fontSize = isLarge ? 24 : 20;
-  const font = `bold ${fontSize}px ${fontName}`;
+    const isSolid = tier === 'Organisation';
+    const path = isSolid
+        ? `<path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" />`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />`;
+    
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isSolid ? styles.hex : 'none'}" stroke="${isSolid ? 'none' : styles.hex}" stroke-width="${isSolid ? '0' : '1.5'}">${path}</svg>`;
+    return svg;
+};
 
-  await document.fonts.load(font);
-  ctx.font = font;
-  ctx.fillStyle = '#111827';
-  ctx.textAlign = 'left';
+// FIX: Add and export drawLogoOnCanvas function.
+export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number, y: number, variant: 'default' | 'white' = 'default') => {
+    const textColor = variant === 'white' ? '#FFFFFF' : '#111827';
+    const accentColor = variant === 'white' ? '#FFFFFF' : '#DC2626';
 
-  const lPart = "l";
-  const calePart = "cale";
-  const oMetrics = ctx.measureText('o');
-  const oWidth = oMetrics.width;
-  
-  const totalWidth = ctx.measureText(lPart).width + oWidth + ctx.measureText(calePart).width;
-  const startX = centerX - totalWidth / 2;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-  // Draw 'l'
-  ctx.fillText(lPart, startX, y);
+    const fontSize = 28;
+    // Use a generic font family as a fallback for canvas rendering
+    ctx.font = `bold ${fontSize}px "Comfortaa", sans-serif`;
+    ctx.fillStyle = textColor;
+    
+    const text = "locale";
+    const totalWidth = ctx.measureText(text).width;
+    const startX = x - totalWidth / 2;
+    
+    const l_width = ctx.measureText("l").width;
+    const o_width = ctx.measureText("o").width;
 
-  // Draw 'o'
-  const oX = startX + ctx.measureText(lPart).width;
-  ctx.fillText("o", oX, y);
+    // Draw "l"
+    ctx.fillText("l", startX + l_width / 2, y);
 
-  // Draw 'cale'
-  const caleX = oX + oWidth;
-  ctx.fillText(calePart, caleX, y);
-  
-  const lWidth = ctx.measureText('l').width;
-  
-  const triangleCenterX = startX + lWidth + (oWidth / 2) + 1;
-  const triangleSize = isLarge ? 15 : 11;
-  const triangleTopY = y + (isLarge ? 4 : 6);
+    // Draw "o"
+    const o_x = startX + l_width + o_width / 2;
+    ctx.fillText("o", o_x, y);
 
-  ctx.save();
-  ctx.translate(triangleCenterX - (triangleSize / 2), triangleTopY);
-  
-  const scale = triangleSize / 12;
-  
-  // Draw triangle (red)
-  ctx.beginPath();
-  ctx.moveTo(2, 2);
-  ctx.lineTo(6, 10);
-  ctx.lineTo(10, 2);
-  ctx.closePath();
-  ctx.strokeStyle = '#DC2626';
-  ctx.lineWidth = 1.5 / scale;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.stroke();
+    // Draw "cale"
+    const cale_x = startX + l_width + o_width;
+    ctx.textAlign = 'left';
+    ctx.fillText("cale", cale_x, y);
 
-  // Draw horizontal line (black)
-  ctx.beginPath();
-  ctx.moveTo(1, 7);
-  ctx.lineTo(11, 7);
-  ctx.strokeStyle = '#111827';
-  ctx.lineWidth = 1.5 / scale;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-  
-  ctx.restore();
+    // Draw SVG parts over 'o'
+    const o_center_x = o_x;
+    const o_center_y = y;
+
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // triangle
+    ctx.beginPath();
+    ctx.moveTo(o_center_x - 4, o_center_y - 6);
+    ctx.lineTo(o_center_x, o_center_y + 2);
+    ctx.lineTo(o_center_x + 4, o_center_y - 6);
+    ctx.closePath();
+    ctx.strokeStyle = accentColor;
+    ctx.stroke();
+
+    // line
+    ctx.beginPath();
+    ctx.moveTo(o_center_x - 5.5, o_center_y - 1);
+    ctx.lineTo(o_center_x + 5.5, o_center_y - 1);
+    ctx.strokeStyle = textColor;
+    ctx.stroke();
+
+    ctx.restore();
 };

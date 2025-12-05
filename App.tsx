@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -114,7 +112,6 @@ export const App: React.FC = () => {
   const [isFiltering, setIsFiltering] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isFindingNearby, setIsFindingNearby] = useState(false);
-  const [isGeocoding, setIsGeocoding] = useState(false);
   const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
   const [postToFocusOnMap, setPostToFocusOnMap] = useState<string | null>(null);
   const [locationToFocus, setLocationToFocus] = useState<{ coords: { lat: number; lng: number; }; name: string; } | null>(null);
@@ -409,10 +406,8 @@ export const App: React.FC = () => {
       const account = target as Account;
       let coords = account.coordinates;
       if (!coords && account.address) {
-        setIsGeocoding(true);
         try { coords = await geocodeLocation(account.address); } 
         catch (e) { console.error(e); } 
-        finally { if (isMounted()) setIsGeocoding(false); }
       }
       if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
       else { console.error(`Could not find location for ${account.name}.`); }
@@ -556,7 +551,6 @@ export const App: React.FC = () => {
         handleToggleFeedbackArchive={handleToggleFeedbackArchive}
         handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
         handleBulkFeedbackAction={handleBulkFeedbackAction}
-        isGeocoding={isGeocoding}
         handleCreateForumPost={handleCreateForumPost}
       />
     </ErrorBoundary>
@@ -642,7 +636,7 @@ const ViewManager: React.FC<any> = (props) => {
         view, mainView, gridView, isInitialLoading, isFiltering, userLocation, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
         viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
         requestArchiveAccount, requestSignOut, handleNotificationClick, adminInitialView,
-        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, isGeocoding, handleCreateForumPost
+        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, handleCreateForumPost
     } = props;
     
     // --- Data derived for rendering ---
@@ -681,7 +675,7 @@ const ViewManager: React.FC<any> = (props) => {
         case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
         case 'admin':
             return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
-        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} isGeocoding={isGeocoding} /></Suspense> : null;
+        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
         case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
         case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;

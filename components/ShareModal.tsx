@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Post } from '../types';
 import ModalShell from './ModalShell';
@@ -5,6 +6,7 @@ import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, Sp
 import { generatePostPreviewImage } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { isShareAbortError } from '../lib/utils';
 
 interface ShareModalProps {
   post: Post;
@@ -62,22 +64,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const handleNativeShare = async () => {
     setIsSharing(true);
     
-    const isAbortError = (err: any): boolean => {
-        if (!err) return false;
-        return (
-            err.name === 'AbortError' ||
-            err.code === 20 ||
-            (typeof err.message === 'string' &&
-                (err.message.toLowerCase().includes('abort') ||
-                    err.message.toLowerCase().includes('cancel') ||
-                    err.message.toLowerCase().includes('canceled')))
-        );
-    };
-
     try {
         await navigator.share({ title: post.title, text: shareText, url: shareUrl });
     } catch (error) {
-        if (!isAbortError(error)) {
+        if (!isShareAbortError(error)) {
             console.error('Error sharing:', error);
         }
     } finally {

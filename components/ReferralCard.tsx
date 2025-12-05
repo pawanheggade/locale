@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Account } from '../types';
 import { PaperAirplaneIcon } from './Icons';
 import { Button } from './ui/Button';
+import { isShareAbortError } from '../lib/utils';
 
 interface ReferralCardProps {
     account: Account;
@@ -20,15 +22,7 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
             try {
                 await navigator.share(shareData);
             } catch (err: any) {
-                const isAbort =
-                    err.name === 'AbortError' ||
-                    err.code === 20 ||
-                    (typeof err.message === 'string' &&
-                        (err.message.toLowerCase().includes('abort') ||
-                            err.message.toLowerCase().includes('cancel') ||
-                            err.message.toLowerCase().includes('canceled')));
-
-                if (!isAbort) {
+                if (!isShareAbortError(err)) {
                     console.error('Error sharing:', err);
                 }
             }
@@ -55,8 +49,4 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
             </div>
 
             <p className="mt-4 text-sm text-gray-600">
-                Successful Referrals: <span className="font-bold text-gray-800">{account.referralCount || 0}</span>
-            </p>
-        </div>
-    );
-};
+                Successful Referrals: <span className="font-bold text-gray-800">{account.referral
