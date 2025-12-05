@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
-import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon, ChevronDownIcon } from './Icons';
+import { PhoneIcon, ChatBubbleBottomCenterTextIcon, EnvelopeIcon, MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, PinIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
 import { formatMonthYear, timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -63,12 +63,13 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const userForumPosts = useMemo(() => allForumPosts.filter(post => post.authorId === account.id).sort((a, b) => b.timestamp - a.timestamp), [allForumPosts, account.id]);
   const accountArchivedPosts = useMemo(() => isOwnAccount ? archivedPosts.filter(post => post.authorId === account.id) : [], [archivedPosts, account.id, isOwnAccount]);
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
-  const salePosts = useMemo(() => isBusinessAccount ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isBusinessAccount, accountPosts]);
+  const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
+  
+  const salePosts = useMemo(() => isPaidTier ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isPaidTier, accountPosts]);
   const postCategories = useMemo(() => isBusinessAccount ? Array.from(new Set(accountPosts.map(p => p.category))).sort() : [], [isBusinessAccount, accountPosts]);
   const canHaveCatalog = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   const hasCatalogContent = account.catalog && account.catalog.length > 0;
   
-  const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   const pinnedPosts = useMemo(() => accountPosts.filter(p => p.isPinned), [accountPosts]);
   
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -77,32 +78,32 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
 
   // --- TAB MANAGEMENT ---
   const { availableTabs, categoryTabs } = useMemo(() => {
-    const tabs = [];
+    const tabs: { id: string; label: string; icon: React.ReactNode }[] = [];
     const catTabs: string[] = [];
+    
+    // Sale Tab - Only for paid tiers
+    if (isPaidTier && (isOwnAccount || salePosts.length > 0)) {
+        tabs.push({ id: 'sale', label: 'Sale', icon: <CashIcon className="w-6 h-6" /> });
+    }
     
     // Posts Tab
     if (isOwnAccount || accountPosts.length > 0) {
-        tabs.push({ id: 'all', label: 'Posts' });
+        tabs.push({ id: 'all', label: 'Posts', icon: <Squares2X2Icon className="w-6 h-6" /> });
     }
     
     // Forums Tab
     if (isOwnAccount || userForumPosts.length > 0) {
-        tabs.push({ id: 'forums', label: 'Forums' });
-    }
-
-    // Sale Tab
-    if (salePosts.length > 0) {
-        tabs.push({ id: 'sale', label: 'Sale' });
+        tabs.push({ id: 'forums', label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-6 h-6" /> });
     }
 
     // Catalogs Tab
     if (canHaveCatalog && (isOwnAccount || hasCatalogContent)) {
-        tabs.push({ id: 'catalogs', label: 'Catalogs' });
+        tabs.push({ id: 'catalogs', label: 'Catalogs', icon: <DocumentIcon className="w-6 h-6" /> });
     }
 
     // Archives Tab
     if (isOwnAccount && accountArchivedPosts.length > 0) {
-        tabs.push({ id: 'archives', label: 'Archived' });
+        tabs.push({ id: 'archives', label: 'Archived', icon: <ArchiveBoxIcon className="w-6 h-6" /> });
     }
 
     // Category Tabs
@@ -129,13 +130,13 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
     accountArchivedPosts.length,
   ]);
 
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('');
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
     const isCategoryTab = categoryTabs.includes(activeTab);
     
-    if (!isStandardTab && !isCategoryTab) {
+    if ((!isStandardTab && !isCategoryTab) || !activeTab) {
         if (availableTabs.length > 0) setActiveTab(availableTabs[0].id);
         else if (categoryTabs.length > 0) setActiveTab(categoryTabs[0]);
     }
@@ -156,6 +157,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   }, [account.socialLinks]);
 
   const displayedPosts = useMemo(() => {
+    if (!activeTab) return [];
     if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'archives') return accountArchivedPosts;
@@ -326,21 +328,31 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
         {(availableTabs.length > 0 || categoryTabs.length > 0) && (
             <div className="bg-white rounded-xl border border-gray-200/80 mt-6">
                 <div className="border-b border-gray-200 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
-                    <div className="flex space-x-6 overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
+                    <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
                         {availableTabs.map(tab => (
-                            <TabButton key={tab.id} onClick={() => setActiveTab(tab.id)} isActive={activeTab === tab.id}>
-                                {tab.label}
+                            <TabButton
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                isActive={activeTab === tab.id}
+                                title={tab.label}
+                                className="px-3 sm:px-4"
+                            >
+                                {tab.icon}
                             </TabButton>
                         ))}
                     </div>
                     {categoryTabs.length > 0 && (
-                        <div className="flex-shrink-0 pl-2 ml-2 border-l border-gray-200 py-2 relative" ref={categoryDropdownRef}>
+                        <div className="flex-shrink-0 py-2 relative" ref={categoryDropdownRef}>
                             <TabButton 
                                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
                                 isActive={categoryTabs.includes(activeTab)}
-                                className="gap-1 pr-1"
+                                className="gap-1 px-3"
+                                title="Categories"
+                                aria-label="Categories"
                             >
-                                {categoryTabs.includes(activeTab) ? activeTab : 'Categories'}
+                                {categoryTabs.includes(activeTab) ? <span className="sr-only">Categories: </span> : null}
+                                {categoryTabs.includes(activeTab) ? <span className="font-bold text-sm">{activeTab}</span> : null}
+                                {!categoryTabs.includes(activeTab) ? <HashtagIcon className="w-6 h-6" /> : null}
                                 <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
                             </TabButton>
                             
@@ -375,7 +387,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     {account.catalog!.map((item) => (
                                         <div 
                                             key={item.id} 
-                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog! } })}
+                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, currentAccount, openModal } })}
                                             className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
                                         >
                                             <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
@@ -427,13 +439,21 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     variant="compact"
                                 />
                             ) : (
-                            (activeTab === 'all' || activeTab === 'archives') ? (
+                            (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
                                 <EmptyState
                                     icon={<ArchiveBoxIcon />}
-                                    title={activeTab === 'archives' ? "No Archived Posts" : "No Posts Yet"}
+                                    title={
+                                        activeTab === 'archives' ? "No Archived Posts" :
+                                        activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
+                                    }
                                     description={isOwnAccount 
-                                        ? (activeTab === 'archives' ? "Posts you archive will appear here." : "You haven't created any posts yet.")
-                                        : "This seller hasn't created any posts yet."
+                                        ? (
+                                            activeTab === 'archives' ? "Posts you archive will appear here." :
+                                            activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
+                                          )
+                                        : (
+                                            activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
+                                          )
                                     }
                                     className="py-20"
                                 />

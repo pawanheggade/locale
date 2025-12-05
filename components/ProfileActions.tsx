@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -104,7 +103,7 @@ const ConnectDropdown = ({
                 <ChevronDownIcon className="w-5 h-5 text-gray-500" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-auto min-w-[160px] bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
+                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
                     <div className="py-1">
                         {hasContacts && contacts.map((method) => (
                             <DropdownItem
@@ -175,7 +174,7 @@ const PrimaryContactDropdown = ({
                 <ChevronDownIcon className="w-4 h-4 ml-1 opacity-70" />
             </Button>
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-auto min-w-[160px] bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
+                <div className="absolute top-full left-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
                     <div className="py-1">
                         {methods.map((method) => (
                             <DropdownItem
