@@ -503,7 +503,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           {tags.map(tag => (
                               <div key={tag} className="flex items-center gap-1 bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded">
                                   <span>{tag}</span>
-                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-500 hover:text-gray-900">
+                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-500">
                                       <XMarkIcon className="w-4 h-4" />
                                   </button>
                               </div>

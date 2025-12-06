@@ -355,7 +355,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                                 setIsCategoryDropdownOpen(false);
                                             }}
                                             className={cn(
-                                                "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50",
+                                                "w-full text-left px-4 py-2 text-sm transition-colors",
                                                 activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
                                             )}
                                         >

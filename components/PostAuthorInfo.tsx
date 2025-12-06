@@ -51,7 +51,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestam
                 tabIndex={0}
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleProfileClick(e as any)}
             >
-                <p className={`${nameClasses} font-semibold text-gray-800 truncate flex items-center gap-2 group-hover:text-gray-600 transition-colors leading-tight`}>
+                <p className={`${nameClasses} font-semibold text-gray-800 truncate flex items-center gap-2 transition-colors leading-tight`}>
                     <span className="truncate">{displayName}</span>
                     <SubscriptionBadge tier={author.subscription?.tier} iconOnly={subscriptionBadgeIconOnly} />
                 </p>

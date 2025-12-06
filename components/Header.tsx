@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -258,8 +256,8 @@ export const Header: React.FC<HeaderProps> = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "shrink-0 transition-colors !rounded-xl border-gray-200 bg-transparent hover:bg-gray-100",
-                    isForumsView && "text-red-600 border-red-200 bg-red-50 hover:bg-red-100"
+                    "shrink-0 transition-colors !rounded-xl border-gray-200 bg-transparent",
+                    isForumsView && "text-red-600 border-red-200 bg-red-50"
                 )}
                 aria-label={isForumsView ? "Back to feed" : "Community Forums"}
                 title={isForumsView ? "Back to feed" : "Community Forums"}

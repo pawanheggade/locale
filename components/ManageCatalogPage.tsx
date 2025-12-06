@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, DragEvent } from 'react';
 import { Account, CatalogItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -122,7 +121,7 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Catalog</h1>
           <div className="space-y-6">
             <div
-              className={cn("border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors hover:border-red-300 hover:bg-red-50", isSubmitting && "opacity-50 pointer-events-none")}
+              className={cn("border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors", isSubmitting && "opacity-50 pointer-events-none")}
               onClick={() => !isSubmitting && fileInputRef.current?.click()}
             >
               <input ref={fileInputRef} type="file" className="hidden" multiple accept=".pdf,image/*" onChange={handleFileChange} disabled={isSubmitting} />
@@ -153,14 +152,13 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
                             className={cn(
                                 "flex flex-col gap-2 p-3 bg-white rounded-lg border transition-all select-none",
                                 isDragging ? "opacity-50 border-dashed" : "border-gray-200",
-                                isDragOver ? "border-red-500 ring-2 ring-red-500 ring-opacity-50 z-10 scale-[1.01]" : "",
-                                "hover:shadow-sm"
+                                isDragOver ? "border-red-500 ring-2 ring-red-500 ring-opacity-50 z-10 scale-[1.01]" : ""
                             )}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                     <div className="cursor-grab active:cursor-grabbing flex-shrink-0 p-1" title="Drag to reorder">
-                                        <div className="flex flex-col gap-0.5 opacity-30 hover:opacity-100">
+                                        <div className="flex flex-col gap-0.5 opacity-30">
                                             <div className="w-4 h-0.5 bg-gray-500 rounded"></div>
                                             <div className="w-4 h-0.5 bg-gray-500 rounded"></div>
                                             <div className="w-4 h-0.5 bg-gray-500 rounded"></div>
@@ -202,19 +200,19 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
                                 <div className="flex items-center gap-1 ml-2">
                                     {isEditing ? (
                                         <>
-                                            <Button variant="ghost" size="icon-sm" onClick={handleSaveEdit} className="text-green-600 hover:bg-green-50" title="Save">
+                                            <Button variant="ghost" size="icon-sm" onClick={handleSaveEdit} className="text-green-600" title="Save">
                                                 <CheckIcon className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon-sm" onClick={() => setEditingId(null)} className="text-gray-500 hover:bg-gray-100" title="Cancel">
+                                            <Button variant="ghost" size="icon-sm" onClick={() => setEditingId(null)} className="text-gray-500" title="Cancel">
                                                 <XMarkIcon className="w-4 h-4" />
                                             </Button>
                                         </>
                                     ) : (
                                         <>
-                                            <Button variant="ghost" size="icon-sm" onClick={() => startEditing(item)} disabled={isSubmitting} className="text-gray-500 hover:text-gray-700" title="Edit">
+                                            <Button variant="ghost" size="icon-sm" onClick={() => startEditing(item)} disabled={isSubmitting} className="text-gray-500" title="Edit">
                                                 <PencilIcon className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon-sm" onClick={() => requestRemove(item.id, item.name)} disabled={isSubmitting} className="text-red-600 hover:bg-red-50" title="Remove">
+                                            <Button variant="ghost" size="icon-sm" onClick={() => requestRemove(item.id, item.name)} disabled={isSubmitting} className="text-red-600" title="Remove">
                                                 <TrashIcon className="w-4 h-4" />
                                             </Button>
                                         </>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
@@ -103,7 +102,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            coordsToUse ? "cursor-pointer group transition-colors hover:text-red-500" : ""
+            coordsToUse ? "cursor-pointer group transition-colors" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -122,7 +121,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         }}
         title={coordsToUse ? "View on Map" : undefined}
      >
-        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0", coordsToUse ? "text-gray-400 group-hover:text-red-500 transition-colors" : "text-gray-400")} />
+        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0 text-gray-400", coordsToUse ? "transition-colors" : "")} />
         <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
             {locationToDisplay}
         </span>
@@ -207,7 +206,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             size="icon-sm"
                             className={cn(
                                 "flex-shrink-0 active:scale-95",
-                                isProfileLiked ? "text-red-600" : "text-gray-400 hover:text-gray-600"
+                                isProfileLiked ? "text-red-600" : "text-gray-400"
                             )}
                             iconClassName="w-5 h-5"
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
@@ -301,7 +300,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
                                 isPriceAlertSet
                                     ? "text-red-600"
-                                    : "text-gray-500 hover:text-red-500"
+                                    : "text-gray-500"
                             )}
                             aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
                             title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
@@ -318,7 +317,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                               "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
                               isPostLiked
                                   ? "text-red-600"
-                                  : "text-gray-500 hover:text-red-500"
+                                  : "text-gray-500"
                           )}
                           iconClassName="w-5 h-5"
                           aria-label={isPostLiked ? "Unlike post" : "Like post"}
@@ -335,7 +334,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     {post.description.slice(0, descriptionMaxLength)}...
                     <button 
                         onClick={(e) => { e.stopPropagation(); setIsDescriptionExpanded(true); }}
-                        className="ml-1 font-medium text-red-600 hover:underline focus:outline-none"
+                        className="ml-1 font-medium text-red-600 focus:outline-none"
                         aria-label="Show full description"
                     >
                         details
@@ -399,26 +398,26 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     <>
                         <div className="flex-1 flex items-center gap-2">
                             {isArchived ? (
-                                <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50 hover:bg-gray-100", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Unarchive">
+                                <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Unarchive">
                                     <ArrowUturnLeftIcon className="w-5 h-5" /> {!isCompact && 'Unarchive'}
                                 </Button>
                             ) : (
                                 <>
-                                    <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50 hover:bg-gray-100", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Edit">
+                                    <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Edit">
                                         <PencilIcon className="w-5 h-5" /> {!isCompact && 'Edit'}
                                     </Button>
-                                    <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("text-amber-600 bg-gray-50 hover:bg-gray-100", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Archive">
+                                    <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("text-amber-600 bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Archive">
                                         <ArchiveBoxIcon className="w-5 h-5" /> {!isCompact && 'Archive'}
                                     </Button>
                                 </>
                             )}
                         </div>
                         {isEligibleToPin && !isArchived && (
-                            <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn("bg-gray-50 hover:bg-gray-100", post.isPinned ? "text-red-600" : "text-gray-500")} title={post.isPinned ? 'Unpin' : 'Pin'}>
+                            <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn("bg-gray-50", post.isPinned ? "text-red-600" : "text-gray-500")} title={post.isPinned ? 'Unpin' : 'Pin'}>
                                 <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
                             </Button>
                         )}
-                        <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500" title="Share post">
+                        <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Share post">
                             <PaperAirplaneIcon className="w-5 h-5" />
                         </Button>
                     </>
@@ -447,7 +446,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                             </Button>
                                         )}
                                         {isPurchasable && (
-                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "icon-sm"} className="flex-none bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500" title="Contact seller">
+                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Contact seller">
                                             <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
                                             {!isCompact && <span className="sr-only">Contact</span>}
                                         </Button>
@@ -460,7 +459,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         {/* Secondary actions on the right */}
                         {!isArchived && (
                         <div className="flex-shrink-0 flex items-center gap-1">
-                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500" title="Share post">
+                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 rounded-xl text-gray-500" title="Share post">
                                 <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>
                         </div>

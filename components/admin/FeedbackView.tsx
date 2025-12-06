@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Feedback, Account } from '../../types';
 import { timeSince, formatFullDateTime } from '../../utils/formatters';
@@ -129,7 +128,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                 <Button
                     variant="ghost"
                     className={cn(
-                        "text-sm max-w-md truncate !p-0 !h-auto !justify-start !text-left hover:!underline",
+                        "text-sm max-w-md truncate !p-0 !h-auto !justify-start !text-left",
                         item.isRead ? "text-gray-500 !font-normal" : "font-bold text-gray-900"
                     )}
                     title="Click to view full feedback"

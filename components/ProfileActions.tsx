@@ -60,7 +60,7 @@ const DropdownItem: React.FC<{
             target={target}
             rel={rel}
             onClick={onClick}
-            className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:bg-gray-50 whitespace-nowrap"
+            className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 focus:outline-none focus:bg-gray-50 whitespace-nowrap"
         >
             <span className="text-gray-500 flex-shrink-0">{icon}</span>
             <span className="font-medium">{label}</span>
@@ -96,7 +96,7 @@ const ConnectDropdown = ({
                 size="icon"
                 title="More actions"
                 className={cn(
-                    "rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50",
+                    "rounded-xl border-gray-300 text-gray-700",
                     isOpen ? 'bg-gray-100' : ''
                 )}
             >
@@ -277,7 +277,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             onClick={onOpenAnalytics} 
                             variant="overlay-dark"
                             size="sm"
-                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                            className="bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                         >
                             <ChartBarIcon className="w-5 h-5" />
                             <span>Analytics</span>
@@ -287,7 +287,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                         onClick={onEditAccount} 
                         variant="overlay-dark"
                         size="sm"
-                        className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                        className="bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                     >
                         <PencilIcon className="w-5 h-5" />
                         <span>Edit Profile</span>
@@ -297,7 +297,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             onClick={onOpenCatalog} 
                             variant="overlay-dark" 
                             size="sm"
-                            className="bg-gray-100 hover:bg-gray-200 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                            className="bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                         >
                             <DocumentIcon className="w-5 h-5" />
                             <span>Catalogs</span>

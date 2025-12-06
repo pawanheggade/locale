@@ -134,7 +134,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         aria-expanded={isOpen}
         aria-label="More options"
         title="More options"
-        className={variant === 'modal' ? 'text-gray-500' : 'text-gray-400 hover:text-gray-600'}
+        className={variant === 'modal' ? 'text-gray-500' : 'text-gray-400'}
       >
         <EllipsisVerticalIcon className="w-5 h-5" aria-hidden="true" />
       </Button>

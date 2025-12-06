@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from './Icons';
 import { cn } from '../lib/utils';
@@ -25,7 +24,7 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
           "rounded transition-colors",
           userVote === 'up'
             ? 'text-red-600 bg-red-50'
-            : 'text-gray-400 hover:text-gray-600'
+            : 'text-gray-400'
         )}
         aria-pressed={userVote === 'up'}
         aria-label="Upvote"
@@ -41,7 +40,7 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
           "rounded transition-colors",
           userVote === 'down'
             ? 'text-red-600 bg-red-50'
-            : 'text-gray-400 hover:text-gray-600'
+            : 'text-gray-400'
         )}
         aria-pressed={userVote === 'down'}
         aria-label="Downvote"
