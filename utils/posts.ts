@@ -47,14 +47,14 @@ const getKeywords = (text: string): Set<string> => {
 
 export const findSimilarPosts = (
   targetPost: DisplayablePost,
-  allPosts: DisplayablePost[],
+  candidatePosts: DisplayablePost[],
   limit: number = 3
 ): DisplayablePost[] => {
   const targetKeywords = getKeywords(`${targetPost.title} ${targetPost.description}`);
   const targetTags = new Set(targetPost.tags.map(t => t.toLowerCase()));
 
-  const scoredPosts = allPosts
-    .filter(post => post.id !== targetPost.id && !getPostStatus(post.expiryDate).isExpired) // Exclude self and expired posts
+  const scoredPosts = candidatePosts
+    .filter(post => post.id !== targetPost.id) // Exclude self
     .map(post => {
       let score = 0;
 
@@ -127,6 +127,15 @@ export const applyFiltersToPosts = (
     // Hide posts from pending sellers unless the current user is the author
     if (post.author?.status === 'pending' && post.authorId !== currentAccount?.id) {
       return false;
+    }
+
+    if (filterState.filterShowOnlyLikedPosts) {
+      if (!currentAccount || !currentAccount.likedPostIds || currentAccount.likedPostIds.length === 0) {
+          return false;
+      }
+      if (!currentAccount.likedPostIds.includes(post.id)) {
+          return false;
+      }
     }
 
     if (filterState.filterShowOnlyLikedProfiles) {
@@ -248,7 +257,8 @@ export const generateHistoryBasedRecommendations = (
     ...viewedPosts.map(p => p.id),
   ]);
 
-  // Create a candidate pool of posts that are not pinned and not expired.
+  // Create a candidate pool of posts that are not expired. Pinned posts are filtered out here
+  // to prevent them from being recommended and appearing twice in the feed.
   const candidatePosts = allPosts.filter(p => !p.isPinned && !getPostStatus(p.expiryDate).isExpired);
 
   // Use all liked posts and up to 10 most recent viewed posts as the basis for recommendations
@@ -258,14 +268,13 @@ export const generateHistoryBasedRecommendations = (
 
   // For each post in history, find a few similar posts
   for (const post of historyPosts) {
-    // findSimilarPosts is already in the file and returns DisplayablePost[] with an added score property
     // We pass the filtered candidate pool to findSimilarPosts.
     const similar = findSimilarPosts(post, candidatePosts, 5);
     for (const similarPost of similar) {
       if (!seenPostIds.has(similarPost.id)) {
         const existing = recommendedPosts.get(similarPost.id);
         // If it's a new recommendation, or this one is more relevant (higher score), add/update it.
-        if (!existing || (similarPost.score && existing.score && similarPost.score > existing.score)) {
+        if (!existing || (similarPost.score && (!existing.score || similarPost.score > existing.score))) {
           recommendedPosts.set(similarPost.id, { ...similarPost, score: similarPost.score || 0 });
         }
       }

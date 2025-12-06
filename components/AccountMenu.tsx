@@ -151,7 +151,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                                 <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-700" />} label="Post" />
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-700" />} label="Likes" />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
                             <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
                         </div>

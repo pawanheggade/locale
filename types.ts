@@ -241,6 +241,7 @@ export interface FiltersState {
   isAiSearching: boolean;
   aiSmartFilterResults: Array<{ id: string; reasoning: string }> | null;
   filterShowOnlyLikedProfiles: boolean;
+  filterShowOnlyLikedPosts: boolean;
 }
 
 export type ModalAction = 
@@ -281,6 +282,7 @@ export type FilterAction =
   | { type: 'SET_AI_SEARCHING'; payload: boolean }
   | { type: 'SET_AI_RESULTS'; payload: Array<{ id: string; reasoning: string }> | null }
   | { type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES'; payload: boolean }
+  | { type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS'; payload: boolean }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'SET_FILTERS_FROM_SAVED'; payload: SavedSearchFilters };
 

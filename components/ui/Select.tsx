@@ -2,11 +2,6 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 import { Dropdown, DropdownItem } from './Dropdown';
 
-// FIX: Changed SelectProps to no longer extend SelectHTMLAttributes, as this component
-// renders a custom Dropdown (which uses a <button>), not a native <select>.
-// Inheriting from SelectHTMLAttributes caused type conflicts with the underlying button's props.
-// This new interface defines only the necessary props and allows passthrough of valid button attributes, ensuring type safety.
-// FIX: Omit 'onSelect' to prevent type collision with the custom Dropdown's onSelect prop.
 interface SelectProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange' | 'value' | 'children' | 'onSelect'> {
   value?: string | number | readonly string[] | undefined;
   onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;

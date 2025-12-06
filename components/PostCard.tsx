@@ -38,7 +38,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
   const { openModal } = useUI();
   const { dispatchFilterAction } = useFilters();
-  // FIX: Import and use the `usePosts` hook to get post management functions.
   const { archivePost, unarchivePost, togglePinPost } = usePosts();
   
   const isPostLiked = currentAccount?.likedPostIds?.includes(post.id) ?? false;

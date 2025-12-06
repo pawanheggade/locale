@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -120,6 +119,12 @@ export const Header: React.FC<HeaderProps> = ({
       setIsLikesDropdownOpen(false);
   };
 
+  const handleShowLikedPosts = () => {
+      navigateTo('all');
+      dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: !filterState.filterShowOnlyLikedPosts });
+      setIsLikesDropdownOpen(false);
+  };
+
   const isViewToggleDisabled = view !== 'all';
 
   const sortOptions = [
@@ -237,8 +242,8 @@ export const Header: React.FC<HeaderProps> = ({
                         aria-expanded={isLikesDropdownOpen}
                     >
                         <ChevronDownIcon className="w-5 h-5" />
-                        {filterState.filterShowOnlyLikedProfiles && (
-                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing posts from liked profiles"></span>
+                        {(filterState.filterShowOnlyLikedProfiles || filterState.filterShowOnlyLikedPosts) && (
+                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing liked feed"></span>
                         )}
                     </Button>
                     {isLikesDropdownOpen && (
@@ -248,13 +253,26 @@ export const Header: React.FC<HeaderProps> = ({
                                     onClick={handleShowLikedProfilePosts}
                                     variant="ghost"
                                     className={cn(
-                                        "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap flex items-center",
+                                        "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
                                         filterState.filterShowOnlyLikedProfiles ? "text-red-600 bg-red-50" : "text-gray-600"
                                     )}
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
                                         <HeartIcon className="w-5 h-5" isFilled={filterState.filterShowOnlyLikedProfiles} />
                                         <span>Profiles</span>
+                                    </div>
+                                </Button>
+                                <Button
+                                    onClick={handleShowLikedPosts}
+                                    variant="ghost"
+                                    className={cn(
+                                        "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
+                                        filterState.filterShowOnlyLikedPosts ? "text-red-600 bg-red-50" : "text-gray-600"
+                                    )}
+                                >
+                                    <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
+                                        <HeartIcon className="w-5 h-5" isFilled={filterState.filterShowOnlyLikedPosts} />
+                                        <span>Posts</span>
                                     </div>
                                 </Button>
                             </div>

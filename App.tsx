@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -189,6 +191,13 @@ export const App: React.FC = () => {
       // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState]);
+
+  const navigateToAccount = useCallback((accountId: string) => {
+    const account = accountsById.get(accountId);
+    if (account) {
+      navigateTo('account', { account });
+    }
+  }, [accountsById, navigateTo]);
 
   const openPostDetailsModal = useCallback((post: DisplayablePost) => {
     if (currentAccount) {
@@ -497,9 +506,10 @@ export const App: React.FC = () => {
 
   const navigationContextValue = useMemo(() => ({
       navigateTo,
+      navigateToAccount,
       handleBack,
       showOnMap,
-  }), [navigateTo, handleBack, showOnMap]);
+  }), [navigateTo, navigateToAccount, handleBack, showOnMap]);
 
   // --- Data derived for rendering (Moved from ViewManager) ---
   const viewedPosts = useMemo(() => 

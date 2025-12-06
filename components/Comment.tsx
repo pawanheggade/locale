@@ -22,12 +22,11 @@ interface CommentProps {
 }
 
 export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
-  const { currentAccount, addForumReport } = useAuth();
-  const { accounts: allAccounts } = useAuth();
+  const { currentAccount, addForumReport, accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
-  const { navigateTo } = useNavigation();
+  const { navigateToAccount } = useNavigation();
   const { dispatchFilterAction } = useFilters();
   
   const [isEditing, setIsEditing] = useState(false);
@@ -59,8 +58,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
   };
 
   const onViewAccount = (accountId: string) => {
-    const account = allAccounts.find(a => a.id === accountId);
-    if(account) navigateTo('account', { account });
+    navigateToAccount(accountId);
   };
 
   const onFilterByTag = (tag: string) => {

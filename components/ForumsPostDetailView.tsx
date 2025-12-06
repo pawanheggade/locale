@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -27,7 +28,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
     const { addToast, openModal } = useUI();
     const showConfirmation = useConfirmationModal();
     const { currentAccount, accounts: allAccounts } = useAuth();
-    const { navigateTo } = useNavigation();
+    const { navigateToAccount } = useNavigation();
     const { dispatchFilterAction } = useFilters();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -44,8 +45,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
     }, [postId, post]);
 
     const onViewAccount = (accountId: string) => {
-        const account = allAccounts.find(a => a.id === accountId);
-        if (account) navigateTo('account', { account });
+        navigateToAccount(accountId);
     };
 
     const onReportItem = (item: any) => {

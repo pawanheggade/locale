@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
 import { Button } from './ui/Button';
@@ -41,9 +40,11 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Initialize state as a class property to ensure `this.state` is always available.
-  // This is a more modern syntax and avoids potential issues with `this` context in the constructor.
-  state: ErrorBoundaryState = { hasError: false };
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+    this.handleReset = this.handleReset.bind(this);
+  }
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
@@ -54,11 +55,11 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleReset = () => {
+  handleReset() {
     // A full page reload is a more robust way to recover from unexpected errors
     // than simply trying to re-render. It clears corrupted state and ensures a fresh start.
     window.location.reload();
-  };
+  }
 
   render() {
     if (this.state.hasError) {

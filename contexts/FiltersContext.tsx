@@ -23,6 +23,7 @@ export const initialFiltersState: FiltersState = {
   isAiSearching: false,
   aiSmartFilterResults: null,
   filterShowOnlyLikedProfiles: false,
+  filterShowOnlyLikedPosts: false,
 };
 
 const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState => {
@@ -41,7 +42,18 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
     case 'SET_AI_SEARCH_ENABLED': return { ...state, isAiSearchEnabled: action.payload };
     case 'SET_AI_SEARCHING': return { ...state, isAiSearching: action.payload };
     case 'SET_AI_RESULTS': return { ...state, aiSmartFilterResults: action.payload };
-    case 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES': return { ...state, filterShowOnlyLikedProfiles: action.payload };
+    case 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES':
+      return {
+        ...state,
+        filterShowOnlyLikedProfiles: action.payload,
+        ...(action.payload && { filterShowOnlyLikedPosts: false }),
+      };
+    case 'SET_FILTER_SHOW_ONLY_LIKED_POSTS':
+      return {
+        ...state,
+        filterShowOnlyLikedPosts: action.payload,
+        ...(action.payload && { filterShowOnlyLikedProfiles: false }),
+      };
     case 'SET_FILTERS_FROM_SAVED':
       return {
         ...state,
@@ -163,7 +175,8 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
         filterState.filterShowExpired ||
         filterState.filterLast7Days ||
         filterState.filterDistance > 0 ||
-        filterState.filterShowOnlyLikedProfiles
+        filterState.filterShowOnlyLikedProfiles ||
+        filterState.filterShowOnlyLikedPosts
     );
   }, [filterState]);
 
