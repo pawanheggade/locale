@@ -146,6 +146,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                 >
                     <div className="p-1.5">
                         <div>
+                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
                                 <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-700" />} label="Post" />
                             )}
@@ -153,7 +154,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-700" />} label="Likes" />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
                             <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
-                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
                         </div>
                         <div className="my-1.5 h-px bg-gray-200/50" />
                         <div>

@@ -40,13 +40,10 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Switched from class properties for state and methods to constructor-based
-  // initialization and binding. This improves compatibility with older toolchains that
-  // might not fully support class field syntax, which can lead to parsing errors.
+  // FIX: Reverted to constructor-based state initialization to resolve a TypeScript error where `this.props` was not recognized. This approach is more robust across different build environments.
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
-    this.handleReset = this.handleReset.bind(this);
   }
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
@@ -58,11 +55,11 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleReset() {
+  handleReset = () => {
     // A full page reload is a more robust way to recover from unexpected errors
     // than simply trying to re-render. It clears corrupted state and ensures a fresh start.
     window.location.reload();
-  }
+  };
 
   render() {
     if (this.state.hasError) {

@@ -3,6 +3,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -135,6 +137,19 @@ export const App: React.FC = () => {
     setNotificationSettings(newSettings);
   };
 
+  const pushHistoryState = useCallback(() => {
+    const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
+    setHistory(h => [...h, { 
+        view, 
+        mainView, 
+        viewingPostId, 
+        viewingAccount, 
+        viewingForumPostId,
+        editingAdminPageKey,
+        scrollPosition: currentScrollPosition
+    }]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey]);
+
   const navigateTo = useCallback((
       newView: AppView,
       options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' } = {}
@@ -169,18 +184,7 @@ export const App: React.FC = () => {
           incrementProfileViews(options.account.id);
       }
 
-      // Capture current scroll position before navigating away
-      const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
-
-      setHistory(h => [...h, { 
-          view, 
-          mainView, 
-          viewingPostId, 
-          viewingAccount, 
-          viewingForumPostId,
-          editingAdminPageKey,
-          scrollPosition: currentScrollPosition
-      }]);
+      pushHistoryState();
 
       setView(newView);
       setViewingPostId(options.postId || null);
@@ -190,7 +194,7 @@ export const App: React.FC = () => {
       
       // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews]);
+  }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState]);
 
   const handleNotificationClick = useCallback((notification: Notification) => {
     markAsRead(notification.id);
@@ -366,30 +370,12 @@ export const App: React.FC = () => {
       if (mainView === newMainView) return;
       // When switching main view modes, we don't necessarily want to save scroll position of the previous mode
       // as they are different representations. However, saving state allows 'back' to work.
-      const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
-      setHistory(h => [...h, { 
-          view, 
-          mainView, 
-          viewingPostId, 
-          viewingAccount, 
-          viewingForumPostId,
-          editingAdminPageKey,
-          scrollPosition: currentScrollPosition
-      }]);
+      pushHistoryState();
       setMainView(newMainView);
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey]);
+  }, [mainView, pushHistoryState]);
 
   const showOnMap = useCallback(async (target: string | Account) => {
-    const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
-    setHistory(h => [...h, { 
-        view, 
-        mainView, 
-        viewingPostId, 
-        viewingAccount, 
-        viewingForumPostId,
-        editingAdminPageKey,
-        scrollPosition: currentScrollPosition
-    }]);
+    pushHistoryState();
     
     if (typeof target === 'string') {
       setView('all'); setMainView('map'); setPostToFocusOnMap(target);
@@ -403,7 +389,7 @@ export const App: React.FC = () => {
       if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
       else { console.error(`Could not find location for ${account.name}.`); }
     }
-  }, [isMounted, mainView, view, viewingAccount, viewingForumPostId, viewingPostId, editingAdminPageKey]);
+  }, [isMounted, pushHistoryState]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
       if (isFindingNearby) return;
