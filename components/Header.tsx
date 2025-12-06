@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -54,11 +55,14 @@ export const Header: React.FC<HeaderProps> = ({
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isLikesDropdownOpen, setIsLikesDropdownOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
 
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const likesDropdownRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
+  useClickOutside(likesDropdownRef, () => setIsLikesDropdownOpen(false), isLikesDropdownOpen);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -108,6 +112,12 @@ export const Header: React.FC<HeaderProps> = ({
         handleClearSearch();
     }
     setIsMobileSearchOpen(false);
+  };
+
+  const handleShowLikedProfilePosts = () => {
+      navigateTo('all');
+      dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: !filterState.filterShowOnlyLikedProfiles });
+      setIsLikesDropdownOpen(false);
   };
 
   const isViewToggleDisabled = view !== 'all';
@@ -215,6 +225,41 @@ export const Header: React.FC<HeaderProps> = ({
               </Button>
             )}
             <Logo onClick={handleLogoClick} />
+            {currentAccount && (
+                <div className="relative" ref={likesDropdownRef}>
+                    <Button
+                        variant="overlay-dark"
+                        size="icon-sm"
+                        onClick={() => setIsLikesDropdownOpen(prev => !prev)}
+                        className="!rounded-xl"
+                        aria-label="Liked profiles feed options"
+                        aria-haspopup="true"
+                        aria-expanded={isLikesDropdownOpen}
+                    >
+                        <ChevronDownIcon className="w-5 h-5" />
+                        {filterState.filterShowOnlyLikedProfiles && (
+                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing posts from liked profiles"></span>
+                        )}
+                    </Button>
+                    {isLikesDropdownOpen && (
+                        <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+                            <div className="p-1">
+                                <Button
+                                    onClick={handleShowLikedProfilePosts}
+                                    variant="ghost"
+                                    className={cn(
+                                        "w-full justify-between px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                        filterState.filterShowOnlyLikedProfiles ? "text-red-600 bg-red-50" : "text-gray-600"
+                                    )}
+                                >
+                                    <span className="flex-grow">Posts from Liked Profiles</span>
+                                    {filterState.filterShowOnlyLikedProfiles && <CheckIcon className="w-4 h-4 ml-3" />}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
         
         {/* Center Section */}

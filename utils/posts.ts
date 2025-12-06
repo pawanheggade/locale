@@ -129,6 +129,15 @@ export const applyFiltersToPosts = (
       return false;
     }
 
+    if (filterState.filterShowOnlyLikedProfiles) {
+      if (!currentAccount || !currentAccount.likedAccountIds || currentAccount.likedAccountIds.length === 0) {
+          return false;
+      }
+      if (!currentAccount.likedAccountIds.includes(post.authorId)) {
+          return false;
+      }
+    }
+
     if (filterState.filterType !== 'all' && post.type !== filterState.filterType) return false;
     if (filterState.filterCategory !== 'all' && post.category !== filterState.filterCategory) return false;
     
@@ -239,6 +248,9 @@ export const generateHistoryBasedRecommendations = (
     ...viewedPosts.map(p => p.id),
   ]);
 
+  // Create a candidate pool of posts that are not pinned and not expired.
+  const candidatePosts = allPosts.filter(p => !p.isPinned && !getPostStatus(p.expiryDate).isExpired);
+
   // Use all liked posts and up to 10 most recent viewed posts as the basis for recommendations
   const historyPosts = [...likedPosts, ...viewedPosts.slice(0, 10)]; 
 
@@ -247,7 +259,8 @@ export const generateHistoryBasedRecommendations = (
   // For each post in history, find a few similar posts
   for (const post of historyPosts) {
     // findSimilarPosts is already in the file and returns DisplayablePost[] with an added score property
-    const similar = findSimilarPosts(post, allPosts, 5);
+    // We pass the filtered candidate pool to findSimilarPosts.
+    const similar = findSimilarPosts(post, candidatePosts, 5);
     for (const similarPost of similar) {
       if (!seenPostIds.has(similarPost.id)) {
         const existing = recommendedPosts.get(similarPost.id);
