@@ -70,7 +70,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
 );
 Button.displayName = 'Button';
 
-interface TabButtonProps {
+interface TabButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
   onClick: () => void;
   isActive: boolean;
   children: React.ReactNode;
@@ -78,7 +78,7 @@ interface TabButtonProps {
   className?: string;
 }
 
-const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size = 'default', className }) => {
+const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size = 'default', className, ...props }) => {
   const textSize = size === 'sm' ? 'text-sm' : 'text-sm sm:text-base';
   const padding = size === 'sm' ? 'py-2 px-1' : 'py-3 px-1';
   
@@ -96,6 +96,7 @@ const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size
       )}
       role="tab"
       aria-selected={isActive}
+      {...props}
     >
       {children}
     </button>

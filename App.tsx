@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -16,7 +17,6 @@ import { usePullToRefresh } from './hooks/usePullToRefresh';
 import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AppModals } from './components/AppModals';
-import { PostDetailView } from './components/PostDetailView';
 import { ForumsPostDetailView } from './components/ForumsPostDetailView';
 import { GuestPrompt } from './components/GuestPrompt';
 import { CreatePostPage } from './components/CreatePostPage';
@@ -175,10 +175,6 @@ export const App: React.FC = () => {
           }
       }
 
-      if (newView === 'postDetail' && options.postId && currentAccount) {
-        addPostToViewHistory(options.postId);
-      }
-
       if (newView === 'account' && options.account) {
           incrementProfileViews(options.account.id);
       }
@@ -204,13 +200,13 @@ export const App: React.FC = () => {
       
       // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, addPostToViewHistory, incrementProfileViews]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews]);
 
   const handleNotificationClick = useCallback((notification: Notification) => {
     markAsRead(notification.id);
     
     if (notification.postId) {
-        navigateTo('postDetail', { postId: notification.postId });
+        navigateTo('all');
     } else if (notification.relatedAccountId) {
         const account = accountsById.get(notification.relatedAccountId);
         if (account) navigateTo('account', { account });
@@ -588,7 +584,7 @@ export const App: React.FC = () => {
           )}
         </main>
         <OfflineIndicator />
-        {!currentAccount && (view === 'all' || view === 'postDetail' || view === 'account') && (
+        {!currentAccount && (view === 'all' || view === 'account') && (
           <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />
         )}
         <AppModals
@@ -669,20 +665,19 @@ const ViewManager: React.FC<any> = (props) => {
     switch (view) {
         case 'all':
             if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-down"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
-            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={props.isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={onPostFocusComplete} onViewPostDetails={(post) => navigateTo('postDetail', { postId: post.id })} locationToFocus={locationToFocus} onLocationFocusComplete={onLocationFocusComplete} /></Suspense>;
+            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={props.isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={onPostFocusComplete} onViewPostDetails={(post) => openModal({ type: 'viewPost', data: post })} locationToFocus={locationToFocus} onLocationFocusComplete={onLocationFocusComplete} /></Suspense>;
             return null;
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
-        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => navigateTo('postDetail', { postId: post.id })} /></Suspense> : null;
+        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => openModal({ type: 'viewPost', data: post })} /></Suspense> : null;
         case 'admin':
             return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
         case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
-        case 'postDetail': return viewingPost ? <PostDetailView post={viewingPost} onBack={handleBack} currentAccount={currentAccount} /> : null;
         case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
         case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
         case 'createPost':
             if (currentAccount?.subscription.tier === 'Personal') { return null; }
-            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
-        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={(id) => navigateTo('postDetail', { postId: id })} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
+            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={handleBack} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
+        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={handleBack} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
         case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
         case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
         case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
@@ -705,7 +700,12 @@ const ViewManager: React.FC<any> = (props) => {
                 onNotificationClick={handleNotificationClick}
                 onDeleteAlert={deletePriceAlert}
                 onDeleteAvailabilityAlert={deleteAvailabilityAlert}
-                onViewPost={(postId) => navigateTo('postDetail', { postId })}
+                onViewPost={(postId) => {
+                    const post = findPostById(postId);
+                    if (post) {
+                        openModal({ type: 'viewPost', data: post });
+                    }
+                }}
             /> : null;
         case 'editAdminPage':
             return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;

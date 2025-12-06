@@ -33,6 +33,7 @@ import { ProfileQRModal } from './ProfileQRModal';
 import ModalShell from './ModalShell';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { Logo } from './Logo';
+import { PostCard } from './PostCard';
 
 // Only keeping props that are still managed by App.tsx (location specific state)
 interface AppModalsProps {
@@ -83,7 +84,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
         }
     };
 
-    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'viewMedia', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR']);
+    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'viewMedia', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
     if (!currentAccount && !publicModals.has(activeModal.type)) {
         return null;
     }
@@ -197,6 +198,24 @@ export const AppModals: React.FC<AppModalsProps> = ({
           return <ViewCatalogModal catalog={activeModal.data.catalog} accountId={activeModal.data.accountId} onClose={closeModal} />;
       case 'profileQR':
           return <ProfileQRModal account={activeModal.data} onClose={closeModal} />;
+      case 'viewPost':
+          return (
+            <ModalShell
+                panelRef={modalRef}
+                onClose={closeModal}
+                title=""
+                panelClassName="w-full max-w-md bg-transparent border-0 shadow-none"
+                titleId="view-post-title"
+            >
+                <PostCard
+                    post={activeModal.data}
+                    currentAccount={currentAccount}
+                    index={0}
+                    enableEntryAnimation={false}
+                    isInitiallyExpanded={true}
+                />
+            </ModalShell>
+          );
       default:
         return null;
     }

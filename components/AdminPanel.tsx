@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -18,6 +19,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useForum } from '../contexts/ForumContext';
 import { useNavigation } from '../App';
+import { useUI } from '../contexts/UIContext';
 
 interface AdminPanelProps {
   initialView?: AdminView;
@@ -49,6 +51,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
   } = useForum();
   
   const { navigateTo } = useNavigation();
+  const { openModal } = useUI();
 
   const [view, setView] = useState<AdminView>(initialView || 'accounts');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -91,7 +94,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
         if (action === 'delete') { /* delete logic handled in context */ }
         setReports(prev => prev.filter(r => r.id !== report.id));
     },
-    onViewPost: (post: DisplayablePost) => navigateTo('postDetail', { postId: post.id }),
+    onViewPost: (post: DisplayablePost) => openModal({ type: 'viewPost', data: post }),
     onEditPost: (postId: string) => navigateTo('editPost', { postId }),
     onDeletePost: deletePostPermanently,
     termsContent,

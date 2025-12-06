@@ -49,4 +49,8 @@ export const ReferralCard: React.FC<ReferralCardProps> = ({ account }) => {
             </div>
 
             <p className="mt-4 text-sm text-gray-600">
-                Successful Referrals: <span className="font-bold text-gray-800">{account.referral
+                Successful Referrals: <span className="font-bold text-gray-800">{account.referralCount || 0}</span>
+            </p>
+        </div>
+    );
+};

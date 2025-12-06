@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon } from './Icons';
@@ -30,9 +31,10 @@ interface PostCardProps {
   variant?: 'default' | 'compact';
   hideExpiry?: boolean;
   enableEntryAnimation?: boolean;
+  isInitiallyExpanded?: boolean;
 }
 
-const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
+const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false }) => {
   const { navigateTo, showOnMap } = useNavigation();
   const { toggleLikePost, toggleLikeAccount, bag } = useAuth();
   const { togglePinPost, archivePost, unarchivePost } = usePosts();
@@ -51,7 +53,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   
   const [isInView, setIsInView] = useState(!enableEntryAnimation);
   const [hasAnimated, setHasAnimated] = useState(!enableEntryAnimation);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(isInitiallyExpanded);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +95,11 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
 
   const showHeader = !hideAuthorInfo && post.author && !isCompact;
 
+  const handleExpandToggle = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsDescriptionExpanded(prev => !prev);
+  };
+
   const LocationElement = (
      <div
         className={cn(
@@ -131,7 +138,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
-      onClick={() => navigateTo('postDetail', { postId: post.id })}
+      onClick={() => handleExpandToggle()}
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
@@ -249,10 +256,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             )}
           >
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigateTo('postDetail', { postId: post.id });
-              }}
+              onClick={(e) => handleExpandToggle(e)}
               className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 transition-colors"
             >
               {post.title}

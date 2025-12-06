@@ -23,7 +23,7 @@ interface CreatePostPageProps {
   onBack: () => void;
   onSubmitPost: (post: Omit<Post, 'id' | 'isLiked' | 'authorId'>) => Post;
   onUpdatePost?: (post: Post) => Promise<Post>;
-  onNavigateToPost: (postId: string) => void;
+  onNavigateToPost: () => void;
   editingPost?: Post | null;
   currentAccount: Account;
   categories: PostCategory[];
@@ -296,12 +296,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     };
     
     if (isEditing && onUpdatePost && editingPost) {
-        const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        onNavigateToPost(updatedPost.id);
+        await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
+        onNavigateToPost();
     } else if (onSubmitPost) {
-        const newPost = onSubmitPost(postData);
+        onSubmitPost(postData);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        onNavigateToPost(newPost.id);
+        onNavigateToPost();
     }
   };
 
@@ -335,8 +335,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                           <p className="text-sm text-amber-800 mb-4">Before you can post, please set your payment and delivery options. This helps buyers know how they can purchase from you.</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <SellerOptionsForm
-                                  initialState={sellerOptions}
-                                  onChange={setSellerOptions}
+                                  paymentMethods={sellerOptions.paymentMethods}
+                                  deliveryOptions={sellerOptions.deliveryOptions}
+                                  contactOptions={sellerOptions.contactOptions}
+                                  onPaymentChange={(methods) => setSellerOptions(prev => ({...prev, paymentMethods: methods}))}
+                                  onDeliveryChange={(options) => setSellerOptions(prev => ({...prev, deliveryOptions: options}))}
+                                  onContactChange={(options) => setSellerOptions(prev => ({...prev, contactOptions: options}))}
                                   isSeller={true}
                                   error={errors.sellerOptions}
                               />
@@ -391,75 +395,50 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                       <Input 
                                           type="number" 
                                           value={price} 
-                                          onChange={e => setField('price', e.target.value)} 
-                                          placeholder="0.00" 
-                                          min="0" 
-                                          step="0.01"
+                                          onChange={e => setField('price', e.target.value)}
+                                          placeholder="e.g. 500"
+                                          max={MAX_PRICE}
                                       />
                                   </FormField>
-                                  <FormField id="price-unit" label="Unit">
-                                      <Select 
-                                          value={priceUnit} 
-                                          onChange={(e) => setField('priceUnit', e.target.value)} 
-                                      >
+                                  <FormField id="post-price-unit" label="Unit">
+                                      <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
                                           {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
                                       </Select>
                                   </FormField>
                               </div>
                           ) : (
                               <FormField id="post-price" label="Price" error={errors.price}>
-                                  <Input 
-                                      type="number" 
-                                      value={price} 
-                                      onChange={e => setField('price', e.target.value)} 
-                                      required 
-                                      placeholder="0.00" 
-                                      min="0" 
-                                      step="0.01" 
-                                  />
+                                  <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
                               </FormField>
                           )}
                       </div>
-                      {type !== PostType.SERVICE && (
-                        <div>
-                            <div className="relative flex items-start pt-2">
-                                <div className="flex h-6 items-center">
-                                <input id="on-sale" type="checkbox" checked={isOnSale} onChange={(e) => setField('isOnSale', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
-                                </div>
-                                <div className="ml-3 text-sm leading-6">
-                                <Label htmlFor="on-sale">Put this item on sale</Label>
-                                </div>
-                            </div>
-                            {isOnSale && (
-                                <div className="mt-1 animate-fade-in-down">
-                                     <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice}>
-                                        <Input type="number" value={salePrice} onChange={e => setField('salePrice', e.target.value)} required placeholder="0.00" min="0" step="0.01" />
-                                    </FormField>
-                                </div>
-                            )}
-                        </div>
+                      {type === PostType.PRODUCT && (
+                          <div>
+                              <div className="flex items-center mb-1">
+                                  <input
+                                      id="is-on-sale"
+                                      type="checkbox"
+                                      checked={isOnSale}
+                                      onChange={e => setField('isOnSale', e.target.checked)}
+                                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                  />
+                                  <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-700">
+                                      Put item on sale
+                                  </label>
+                              </div>
+                              {isOnSale && (
+                                  <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice} className="animate-fade-in-down">
+                                      <Input type="number" value={salePrice} onChange={e => setField('salePrice', e.target.value)} required max={MAX_PRICE} />
+                                  </FormField>
+                              )}
+                          </div>
                       )}
                   </div>
 
-                  {type !== PostType.EVENT && (
-                      <FormField id="post-location" label="Location" error={errors.location || locationInput.error}>
-                          <LocationInput
-                              value={locationInput.location}
-                              onValueChange={locationInput.setLocation}
-                              onSuggestionSelect={locationInput.selectSuggestion}
-                              onVerify={locationInput.verify}
-                              onOpenMapPicker={() => setShowMapPicker(true)}
-                              suggestions={locationInput.suggestions}
-                              status={locationInput.status}
-                          />
-                      </FormField>
-                  )}
-                  
-                  {type === PostType.EVENT && (
-                      <div className="p-4 bg-gray-50 border rounded-xl space-y-4 animate-fade-in-down">
-                          <h3 className="font-semibold text-gray-800">Event Details</h3>
-                          <FormField id="event-location" label="Venue / Event Location" error={errors.eventLocation || eventLocationInput.error}>
-                              <LocationInput
+                  {type === PostType.EVENT ? (
+                      <div className="space-y-4 pt-4 border-t">
+                          <FormField id="event-location" label="Event Location" error={errors.eventLocation || eventLocationInput.error}>
+                              <LocationInput 
                                   value={eventLocationInput.location}
                                   onValueChange={eventLocationInput.setLocation}
                                   onSuggestionSelect={eventLocationInput.selectSuggestion}
@@ -467,80 +446,98 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   onOpenMapPicker={() => setShowMapPicker(true)}
                                   suggestions={eventLocationInput.suggestions}
                                   status={eventLocationInput.status}
+                                  placeholder="e.g., Address or Venue Name"
                               />
                           </FormField>
-                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                               <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
-                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setField('eventStartDate', e.target.value)} />
-                               </FormField>
-                               <FormField id="event-end-date" label="End Date & Time (Optional)">
-                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setField('eventEndDate', e.target.value)} />
-                               </FormField>
-                           </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
+                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setField('eventStartDate', e.target.value)} required />
+                              </FormField>
+                              <FormField id="event-end-date" label="End Date & Time (Optional)">
+                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setField('eventEndDate', e.target.value)} min={eventStartDate} />
+                              </FormField>
+                          </div>
                       </div>
-                  )}
-                  
-                   <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Label htmlFor="post-tags">Tags</Label>
-                            <Button type="button" size="xs" variant="outline" onClick={handleSuggestTags} isLoading={isSuggestingTags}>
-                                AI Suggest
-                            </Button>
-                        </div>
-                      <div className="flex flex-wrap gap-2 p-2 mt-1 border rounded-md min-h-[40px] bg-gray-50">
-                          {tags.map(tag => (
-                              <div key={tag} className="flex items-center gap-1 bg-gray-100 text-gray-800 text-sm font-medium px-2 py-1 rounded-full border border-gray-200">
-                                  <span>{tag}</span>
-                                  <Button 
-                                    type="button" 
-                                    onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} 
-                                    variant="ghost" 
-                                    size="icon-xs"
-                                    className="text-gray-500 hover:text-gray-700 rounded-full"
-                                  >
-                                    <XMarkIcon className="w-3 h-3"/>
-                                  </Button>
-                              </div>
-                          ))}
-                      </div>
-                      <Input id="post-tags" value={tagInput} onChange={e => setField('tagInput', e.target.value)} onKeyDown={handleTagInputKeyDown} placeholder="Type a tag and press Enter..." className="mt-2" />
-                  </div>
-                  
-                   {type !== PostType.EVENT && (
-                      <div className="pt-4 border-t">
-                          <div className="relative flex items-start">
-                            <div className="flex h-6 items-center">
-                              <input id="has-expiry" type="checkbox" checked={hasExpiry} onChange={(e) => setField('hasExpiry', e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-600"/>
-                            </div>
-                            <div className="ml-3 text-sm leading-6">
-                              <Label htmlFor="has-expiry">Set an expiry date for this listing</Label>
-                            </div>
+                  ) : (
+                      <div className="space-y-4 pt-4 border-t">
+                          <FormField id="post-location" label="Item Location" error={errors.location || locationInput.error}>
+                              <LocationInput 
+                                  value={locationInput.location}
+                                  onValueChange={locationInput.setLocation}
+                                  onSuggestionSelect={locationInput.selectSuggestion}
+                                  onVerify={locationInput.verify}
+                                  onOpenMapPicker={() => setShowMapPicker(true)}
+                                  suggestions={locationInput.suggestions}
+                                  status={locationInput.status}
+                                  placeholder="e.g., City, Neighborhood"
+                              />
+                          </FormField>
+                          <div className="flex items-center">
+                              <input
+                                  id="has-expiry"
+                                  type="checkbox"
+                                  checked={hasExpiry}
+                                  onChange={e => setField('hasExpiry', e.target.checked)}
+                                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                              />
+                              <label htmlFor="has-expiry" className="ml-2 block text-sm font-medium text-gray-700">
+                                  Set an expiry date
+                              </label>
                           </div>
                           {hasExpiry && (
-                              <div className="mt-2 animate-fade-in-down">
-                                   <FormField id="expiry-date" label="" error={errors.expiryDate}>
-                                    <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} />
-                                  </FormField>
-                              </div>
+                              <FormField id="post-expiry-date" label="Expiry Date" error={errors.expiryDate} className="animate-fade-in-down">
+                                  <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} required min={toDateTimeLocal(Date.now())} />
+                              </FormField>
                           )}
                       </div>
-                   )}
+                  )}
+
+                  <div className="pt-4 border-t">
+                      <div className="flex items-center gap-2 mb-1">
+                          <Label htmlFor="post-tags">Tags</Label>
+                          <Button type="button" size="xs" variant="outline" onClick={handleSuggestTags} isLoading={isSuggestingTags}>
+                              AI Suggest
+                          </Button>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md">
+                          {tags.map(tag => (
+                              <div key={tag} className="flex items-center gap-1 bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded">
+                                  <span>{tag}</span>
+                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-500 hover:text-gray-900">
+                                      <XMarkIcon className="w-4 h-4" />
+                                  </button>
+                              </div>
+                          ))}
+                          <input
+                              id="post-tags"
+                              type="text"
+                              value={tagInput}
+                              onChange={e => setField('tagInput', e.target.value)}
+                              onKeyDown={handleTagInputKeyDown}
+                              onBlur={() => dispatch({ type: 'ADD_TAG' })}
+                              placeholder={tags.length === 0 ? "Add tags (e.g., vintage, handmade)" : "Add more..."}
+                              className="flex-grow bg-transparent focus:outline-none"
+                          />
+                      </div>
+                  </div>
               </form>
           </div>
-          )}
+        )}
       </div>
-      <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-          <div className="bg-white border-t border-gray-100">
-              <div className="max-w-2xl mx-auto px-4 sm:px-6">
-                  <div className="py-3 flex items-center gap-3">
-                      <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
-                      <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
-                          {isEditing ? 'Save Changes' : 'Publish'}
-                      </Button>
+      {!showMapPicker && (
+          <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
+              <div className="bg-white border-t border-gray-100">
+                  <div className="max-w-2xl mx-auto px-4 sm:px-6">
+                      <div className="py-3 flex items-center gap-3">
+                          <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
+                          <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
+                              {isEditing ? 'Save Changes' : 'Publish Post'}
+                          </Button>
+                      </div>
                   </div>
               </div>
           </div>
-      </div>
+      )}
     </div>
   );
 };

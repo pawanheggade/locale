@@ -216,10 +216,11 @@ export type ModalState =
   | { type: 'upgradeToSeller', data: { tier: Subscription['tier'] } }
   | { type: 'feedback' }
   | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
-  | { type: 'profileQR', data: Account };
+  | { type: 'profileQR', data: Account }
+  | { type: 'viewPost', data: DisplayablePost };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'postDetail' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'settings' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
 
 
 // --- Context API Action Types ---
