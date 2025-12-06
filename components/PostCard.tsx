@@ -101,8 +101,8 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const LocationElement = (
      <div
         className={cn(
-            "flex items-center gap-1.5 min-w-0 text-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            coordsToUse ? "cursor-pointer group transition-colors" : ""
+            "flex items-center gap-1.5 min-w-0 text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -121,7 +121,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         }}
         title={coordsToUse ? "View on Map" : undefined}
      >
-        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0 text-gray-400", coordsToUse ? "transition-colors" : "")} />
+        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0")} />
         <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
             {locationToDisplay}
         </span>

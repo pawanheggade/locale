@@ -275,9 +275,9 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                               tabIndex={0}
                               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
                               onClick={() => showOnMap(account)}
-                              className="flex items-center gap-1.5 cursor-pointer text-red-400 transition-colors group min-w-0"
+                              className="flex items-center gap-1.5 cursor-pointer text-red-400 group min-w-0"
                           >
-                              <MapPinIcon className="w-4 h-4 text-red-400 transition-colors shrink-0" />
+                              <MapPinIcon className="w-4 h-4 shrink-0" />
                               <span className="">{account.address}</span>
                           </div>
                       </div>
