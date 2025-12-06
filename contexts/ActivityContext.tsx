@@ -1,18 +1,19 @@
 
 
-
 import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';
 import { useUI } from './UIContext';
 import { STORAGE_KEYS } from '../lib/constants';
+import { formatCurrency } from '../utils/formatters';
 
 interface ActivityContextType {
   notifications: Notification[];
   priceAlerts: PriceAlert[];
   availabilityAlerts: AvailabilityAlert[];
   unreadCount: number;
+  totalActivityCount: number;
   
   addNotification: (notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
   markAsRead: (notificationId: string) => void;
@@ -26,6 +27,7 @@ interface ActivityContextType {
   deleteAvailabilityAlert: (postId: string) => void;
   toggleAvailabilityAlert: (postId: string) => void;
   checkAvailabilityAlerts: (post: Post) => void;
+  checkPriceAlerts: (updatedPost: Post, originalPost: Post) => void;
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
@@ -53,6 +55,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const priceAlerts = userData.priceAlerts;
   const availabilityAlerts = userData.availabilityAlerts;
   const unreadCount = notifications.filter(n => !n.isRead).length;
+  const totalActivityCount = unreadCount;
 
   const updateUserData = useCallback((updates: Partial<typeof userData>) => {
     if (!currentUserId) return;
@@ -156,9 +159,61 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [availabilityAlerts, deleteAvailabilityAlert, setAvailabilityAlert]);
 
+  const checkPriceAlerts = useCallback((updatedPost: Post, originalPost: Post) => {
+    const newPrice = updatedPost.salePrice ?? updatedPost.price;
+    if (newPrice === undefined) return;
+
+    setAllActivityData(prev => {
+        const nextState = { ...prev };
+        let hasChanges = false;
+        
+        Object.keys(nextState).forEach(userId => {
+            const userActivity = nextState[userId];
+            const matchingAlerts = userActivity.priceAlerts.filter(a => a.postId === updatedPost.id);
+            
+            if (matchingAlerts.length > 0) {
+                const triggeredAlerts: PriceAlert[] = [];
+                
+                matchingAlerts.forEach(alert => {
+                    // Alert triggers if the new price is at or below the target price
+                    if (newPrice <= alert.targetPrice) {
+                        triggeredAlerts.push(alert);
+                    }
+                });
+
+                if (triggeredAlerts.length > 0) {
+                    // Remove triggered alerts
+                    const remainingAlerts = userActivity.priceAlerts.filter(a => !triggeredAlerts.some(triggered => triggered.id === a.id));
+
+                    const newNotifications: Notification[] = triggeredAlerts.map(alert => {
+                        const originalPriceFormatted = formatCurrency(originalPost.salePrice ?? originalPost.price);
+                        const newPriceFormatted = formatCurrency(newPrice);
+                        return {
+                            id: `notif-price-${Date.now()}-${alert.id}`,
+                            recipientId: userId,
+                            message: `Price drop for "${updatedPost.title}"! It's now ${newPriceFormatted}, down from ${originalPriceFormatted}.`,
+                            timestamp: Date.now(),
+                            isRead: false,
+                            type: 'price_drop',
+                            postId: updatedPost.id,
+                        };
+                    });
+
+                    nextState[userId] = {
+                        ...userActivity,
+                        priceAlerts: remainingAlerts,
+                        notifications: [...newNotifications, ...userActivity.notifications],
+                    };
+                    hasChanges = true;
+                }
+            }
+        });
+
+        return hasChanges ? nextState : prev;
+    });
+  }, [setAllActivityData]);
+
   const checkAvailabilityAlerts = useCallback((post: Post) => {
-    // Only checking globally to see if any user needs an alert
-    // This is a simulated backend check
     setAllActivityData(prev => {
       const nextState = { ...prev };
       let hasChanges = false;
@@ -168,7 +223,6 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const alertIndex = userActivity.availabilityAlerts.findIndex(a => a.postId === post.id);
         
         if (alertIndex > -1) {
-          // Remove alert and add notification
           const newAlerts = [...userActivity.availabilityAlerts];
           newAlerts.splice(alertIndex, 1);
           
@@ -178,7 +232,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             message: `Good news! "${post.title}" is available again.`,
             timestamp: Date.now(),
             isRead: false,
-            type: 'search_alert',
+            type: 'availability_alert',
             postId: post.id
           };
 
@@ -200,6 +254,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     priceAlerts,
     availabilityAlerts,
     unreadCount,
+    totalActivityCount,
     addNotification,
     markAsRead,
     markAllAsRead,
@@ -209,13 +264,15 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAvailabilityAlert,
     deleteAvailabilityAlert,
     toggleAvailabilityAlert,
-    checkAvailabilityAlerts
+    checkAvailabilityAlerts,
+    checkPriceAlerts
   }), [
-    notifications, priceAlerts, availabilityAlerts, unreadCount,
+    notifications, priceAlerts, availabilityAlerts, unreadCount, totalActivityCount,
     addNotification, markAsRead, markAllAsRead, clearAllNotifications,
     setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert,
     toggleAvailabilityAlert,
-    checkAvailabilityAlerts
+    checkAvailabilityAlerts,
+    checkPriceAlerts
   ]);
 
   return (

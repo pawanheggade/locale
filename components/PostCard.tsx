@@ -128,6 +128,20 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      </div>
   );
 
+  const ExpiryElement = post.type === PostType.EVENT && post.eventStartDate ? (
+     <div className={cn("flex items-center gap-2", isCompact ? 'text-xs' : 'text-sm', 'text-gray-600')}>
+        <ClockIcon className="w-4 h-4 shrink-0" />
+        <span>{formatFullDate(post.eventStartDate)}</span>
+     </div>
+  ) : !hideExpiry && post.expiryDate ? (
+    <div className={cn("flex items-center gap-2", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-600')}>
+      <ClockIcon className="w-4 h-4 shrink-0" />
+      <span title={formatFullDateTime(post.expiryDate)}>
+        {isExpired ? 'Expired' : `Expires on ${formatFullDate(post.expiryDate)}`}
+      </span>
+    </div>
+  ) : null;
+
   return (
     <Card
       ref={cardRef}
@@ -268,29 +282,48 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
               />
               
               {/* Explicit check to allow rendering for non-authors on valid items */}
-              {!isOwnPost && isPurchasable && !isExpired && (
-                  <Button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (!currentAccount) {
-                            openModal({ type: 'login' });
-                            return;
-                        }
-                        openModal({ type: 'setPriceAlert', data: post });
-                    }}
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                        "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
-                        isPriceAlertSet 
-                            ? "text-red-600 bg-red-50 hover:bg-red-100" 
-                            : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                    )}
-                    aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
-                    title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
-                  >
-                    <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
-                  </Button>
+              {!isOwnPost && !isExpired && !isArchived && (
+                  <div className="flex items-center gap-1">
+                      {isPurchasable && (
+                          <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!currentAccount) {
+                                    openModal({ type: 'login' });
+                                    return;
+                                }
+                                openModal({ type: 'setPriceAlert', data: post });
+                            }}
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                                "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
+                                isPriceAlertSet 
+                                    ? "text-red-600 bg-red-50 hover:bg-red-100" 
+                                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                            )}
+                            aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
+                            title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
+                          >
+                            <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
+                          </Button>
+                      )}
+                      <LikeButton
+                          isLiked={isPostLiked}
+                          onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                              "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
+                              isPostLiked 
+                                  ? "text-red-600 bg-red-50 hover:bg-red-100" 
+                                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                          )}
+                          iconClassName="w-5 h-5"
+                          aria-label={isPostLiked ? "Unlike post" : "Like post"}
+                          title={isPostLiked ? "Unlike post" : "Like post"}
+                      />
+                  </div>
               )}
           </div>
 
@@ -352,25 +385,11 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             </div>
           )}
 
-          {/* Location in Body (Fallback if header hidden or compact mode) */}
-          {!showHeader && (
-              <div className={cn("flex items-center gap-1.5 mt-2 min-w-0", isCompact ? 'text-xs' : 'text-sm')}>
-                 {LocationElement}
-              </div>
-          )}
-          
-          {/* Expiry / Event Date */}
-          {post.type === PostType.EVENT && post.eventStartDate ? (
-             <div className={cn("flex items-center gap-2 mt-2", isCompact ? 'text-xs' : 'text-sm', 'text-gray-600')}>
-                <ClockIcon className="w-4 h-4" />
-                <span>{formatFullDate(post.eventStartDate)}</span>
-             </div>
-          ) : !hideExpiry && post.expiryDate ? (
-            <div className={cn("flex items-center gap-2 mt-2", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-600')}>
-              <ClockIcon className="w-4 h-4" />
-              <span aria-label={`Expires ${formatTimeRemaining(post.expiryDate)}`}>{formatTimeRemaining(post.expiryDate)}</span>
-            </div>
-          ) : null}
+          {/* Location & Expiry/Date Info */}
+          <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-1 mt-2">
+            {!showHeader && LocationElement}
+            {ExpiryElement}
+          </div>
 
           {/* Inline Action Footer - Only shown when expanded */}
           {isDescriptionExpanded && (
@@ -416,9 +435,9 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 ) : (
                                     <>
                                         {isPurchasable ? (
-                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'In Bag' : 'Add to Bag'}>
+                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
                                                 <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
-                                                {!isCompact && <span className="truncate">{isAddedToBag ? 'In Bag' : 'Add to Bag'}</span>}
+                                                {!isCompact && <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>}
                                             </Button>
                                         ) : (
                                             <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
@@ -440,14 +459,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         {/* Secondary actions on the right */}
                         {!isArchived && (
                         <div className="flex-shrink-0 flex items-center gap-1">
-                             <LikeButton
-                                isLiked={isPostLiked}
-                                onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
-                                variant="overlay-dark"
-                                size="icon-sm"
-                                className={cn("bg-gray-50 hover:bg-gray-100 rounded-xl", isPostLiked ? "text-red-600" : "text-gray-500")}
-                                title={isPostLiked ? "Unlike post" : "Like post"}
-                            />
                             <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500" title="Share post">
                                 <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>

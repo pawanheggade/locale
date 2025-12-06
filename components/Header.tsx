@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit } = useFilters();
   const { currentAccount, bag } = useAuth();
-  const { unreadCount } = useActivity();
+  const { totalActivityCount } = useActivity();
   const { openModal } = useUI();
   const { navigateTo } = useNavigation();
 
@@ -270,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
                  {currentAccount ? (
                     <AccountMenu
                         currentAccount={currentAccount}
-                        unreadNotificationsCount={unreadCount}
+                        activityCount={totalActivityCount}
                         onOpenCreateModal={() => navigateTo('createPost')}
                         onViewChange={(v) => navigateTo(v)}
                         currentView={view}

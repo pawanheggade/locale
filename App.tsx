@@ -206,14 +206,19 @@ export const App: React.FC = () => {
     markAsRead(notification.id);
     
     if (notification.postId) {
-        navigateTo('all');
+        const post = findPostById(notification.postId);
+        if (post) {
+            openModal({ type: 'viewPost', data: post });
+        } else {
+            addToast("The related post is no longer available.", "error");
+        }
     } else if (notification.relatedAccountId) {
         const account = accountsById.get(notification.relatedAccountId);
         if (account) navigateTo('account', { account });
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
-  }, [markAsRead, navigateTo, accountsById]);
+  }, [markAsRead, navigateTo, accountsById, findPostById, openModal, addToast]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -611,7 +616,7 @@ const ViewManager: React.FC<any> = (props) => {
         reports, setReports, feedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
     } = useAuth();
     const { 
-        notifications, priceAlerts, availabilityAlerts, markAsRead, deletePriceAlert, deleteAvailabilityAlert, addNotification 
+        notifications, markAsRead
     } = useActivity();
     const { 
         posts: allDisplayablePosts, archivedPosts, categories, 
@@ -692,20 +697,9 @@ const ViewManager: React.FC<any> = (props) => {
         case 'activity':
             return currentAccount ? <ActivityPage
                 notifications={notifications}
-                alerts={priceAlerts}
-                availabilityAlerts={availabilityAlerts}
-                posts={allDisplayablePosts as Post[]}
                 onDismiss={(id) => markAsRead(id)}
                 onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
                 onNotificationClick={handleNotificationClick}
-                onDeleteAlert={deletePriceAlert}
-                onDeleteAvailabilityAlert={deleteAvailabilityAlert}
-                onViewPost={(postId) => {
-                    const post = findPostById(postId);
-                    if (post) {
-                        openModal({ type: 'viewPost', data: post });
-                    }
-                }}
             /> : null;
         case 'editAdminPage':
             return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;

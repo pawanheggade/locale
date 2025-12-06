@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
@@ -9,7 +10,7 @@ import { cn } from '../lib/utils';
 
 interface AccountMenuProps {
     currentAccount: Account;
-    unreadNotificationsCount: number;
+    activityCount: number;
     onOpenCreateModal?: () => void;
     onViewChange: (view: AppView) => void;
     currentView: AppView;
@@ -48,7 +49,7 @@ const MenuItem: React.FC<{
 
 export const AccountMenu: React.FC<AccountMenuProps> = ({
     currentAccount,
-    unreadNotificationsCount,
+    activityCount,
     onOpenCreateModal,
     onViewChange,
     currentView,
@@ -128,9 +129,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                     <XMarkIcon className={`absolute w-6 h-6 transition-all duration-300 ease-in-out ${isAccountMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`} />
                     <PlusIcon className={`absolute w-6 h-6 transition-all duration-300 ease-in-out ${isAccountMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`} />
                 </div>
-                {unreadNotificationsCount > 0 && !isAccountMenuOpen && (
-                    <span className="absolute top-1 right-1 block h-3 w-3 rounded-full bg-white border-2 border-red-600" title={`${unreadNotificationsCount} unread notifications`}>
-                        <span className="sr-only">{unreadNotificationsCount} unread notifications</span>
+                {activityCount > 0 && !isAccountMenuOpen && (
+                    <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in" title={`${activityCount} new activities`}>
+                        {activityCount > 9 ? '9+' : activityCount}
                     </span>
                 )}
             </Button>
@@ -151,7 +152,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('likes'))} icon={<HeartIcon className="w-5 h-5 text-gray-700" />} label="Likes" />
-                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={unreadNotificationsCount} />
+                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
                             <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
                             <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
                         </div>

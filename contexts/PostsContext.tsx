@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Post, PostCategory, DisplayablePost } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -46,7 +47,7 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
     const { accountsById } = useAuth();
-    const { checkAvailabilityAlerts } = useActivity();
+    const { checkAvailabilityAlerts, checkPriceAlerts } = useActivity();
     
     // Use LargePersistentState for posts (images/content)
     const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(STORAGE_KEYS.POSTS, initialPosts);
@@ -127,6 +128,11 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const updatePost = useCallback(async (updatedPost: Post): Promise<Post> => {
         let updated: Post | undefined;
         const isArchived = rawArchivedPosts.some(p => p.id === updatedPost.id);
+        
+        const originalPost = isArchived 
+            ? rawArchivedPosts.find(p => p.id === updatedPost.id)
+            : rawPosts.find(p => p.id === updatedPost.id);
+            
         if (isArchived) {
             setRawArchivedPosts(prev => prev.map(p => {
                 if (p.id === updatedPost.id) {
@@ -146,10 +152,17 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         if (!updated) throw new Error("Post not found for update");
 
+        const originalEffectivePrice = originalPost?.salePrice ?? originalPost?.price;
+        const newEffectivePrice = updated.salePrice ?? updated.price;
+
+        if (originalPost && originalEffectivePrice !== undefined && newEffectivePrice !== undefined && newEffectivePrice < originalEffectivePrice) {
+            checkPriceAlerts(updated, originalPost);
+        }
+
         checkAvailabilityAlerts(updated);
 
         return updated;
-    }, [rawArchivedPosts, setRawArchivedPosts, setRawPosts, checkAvailabilityAlerts]);
+    }, [rawArchivedPosts, rawPosts, setRawArchivedPosts, setRawPosts, checkAvailabilityAlerts, checkPriceAlerts]);
     
     const archivePost = useCallback((postId: string) => {
         showConfirmation({

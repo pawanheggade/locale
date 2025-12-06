@@ -161,7 +161,7 @@ export interface Notification {
   message: string;
   timestamp: number;
   isRead: boolean;
-  type: 'expiry' | 'account_approved' | 'account_rejected' | 'account_pending' | 'liked_seller_active' | 'new_report' | 'referral_bonus' | 'report_update' | 'content_removed' | 'forum_reply' | 'search_alert';
+  type: 'expiry' | 'account_approved' | 'account_rejected' | 'account_pending' | 'liked_seller_active' | 'new_report' | 'referral_bonus' | 'report_update' | 'content_removed' | 'forum_reply' | 'search_alert' | 'price_drop' | 'availability_alert';
   postId?: string;
   relatedAccountId?: string;
   forumPostId?: string;
