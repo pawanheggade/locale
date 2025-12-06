@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -22,7 +23,6 @@ import { CreatePostPage } from './components/CreatePostPage';
 import { useDebounce } from './hooks/useDebounce';
 import { cn } from './lib/utils';
 import { SubscriptionPage } from './components/SubscriptionPage';
-import { generateHistoryBasedRecommendations } from './utils/posts';
 import { geocodeLocation, reverseGeocode, haversineDistance } from './utils/geocoding';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { SettingsPage } from './components/SettingsPage';
@@ -502,40 +502,21 @@ export const App: React.FC = () => {
   }), [navigateTo, handleBack, showOnMap]);
 
   // --- Data derived for rendering (Moved from ViewManager) ---
-  const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
-
   const viewedPosts = useMemo(() => 
     viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p),
     [viewedPostIds, allDisplayablePosts]
   );
-
-  useEffect(() => {
-      if (isInitialLoading) return;
-      if (!currentAccount) { setRecommendedPostIds([]); return; }
-      const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
-      const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
-      setRecommendedPostIds(newRecs.map(p => p.id));
-  }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPosts]);
-
-  const recommendations = useMemo(() => {
-      if (recommendedPostIds.length === 0) return [];
-      const postMap = new Map(allDisplayablePosts.map(p => [p.id, p]));
-      return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
-  }, [recommendedPostIds, allDisplayablePosts]);
   
   const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount, accounts);
-  const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
-  const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
-  const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);
-  const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(postsForMainList, isInitialLoading);
-  const displayPosts = filterState.searchQuery ? postsForMainList : paginatedPosts;
+  const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sortedAndFilteredPosts, isInitialLoading);
+  const displayPosts = filterState.searchQuery ? sortedAndFilteredPosts : paginatedPosts;
   const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
   const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
 
   const renderCurrentView = () => {
     switch (view) {
         case 'all':
-            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-down"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
+            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8"><PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
             if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={openPostDetailsModal} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
             return null;
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
