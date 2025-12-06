@@ -221,7 +221,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         )}
         {post.isLocaleChoice && isSearchResult && <LocaleChoiceBadge className="top-3 left-3" />}
         <div className="absolute top-3 right-3 flex items-center gap-2">
-            {isEligibleToPin ? (
+            {isEligibleToPin && (
                 <Button
                     onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }}
                     variant="overlay"
@@ -234,18 +234,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 >
                     <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
                 </Button>
-            ) : !isOwnPost && (
-              <LikeButton
-                isLiked={isPostLiked}
-                onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
-                variant="overlay"
-                size="icon-sm"
-                className={cn(
-                    isPostLiked ? "text-red-600" : "text-white"
-                )}
-                iconClassName="w-5 h-5"
-                title={isPostLiked ? "Unlike post" : "Like post"}
-              />
             )}
         </div>
       </div>
@@ -428,51 +416,99 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     </>
                 ) : (
                     <>
-                        {isExpired && !isArchived ? (
-                             <Button 
-                                onClick={(e) => { 
-                                    e.stopPropagation();
-                                    if (!currentAccount) { openModal({ type: 'login' }); return; }
-                                    toggleAvailabilityAlert(post.id);
-                                }}
-                                variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} 
-                                size="sm"
-                                className="flex-1 gap-1.5 text-xs font-semibold"
-                            >
-                                <BellIcon className="w-4 h-4" isFilled={isAvailabilityAlertSet} />
-                                <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
-                            </Button>
-                        ) : (
-                            <Button 
+                      {!isArchived && (
+                        <>
+                            {isExpired ? (
+                                <Button 
+                                    onClick={(e) => { 
+                                        e.stopPropagation();
+                                        if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                        toggleAvailabilityAlert(post.id);
+                                    }}
+                                    variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} 
+                                    size="sm"
+                                    className="flex-1 gap-1.5 text-xs font-semibold"
+                                >
+                                    <BellIcon className="w-4 h-4" isFilled={isAvailabilityAlertSet} />
+                                    <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
+                                </Button>
+                            ) : (
+                                <>
+                                    {isPurchasable ? (
+                                        <Button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                                isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post });
+                                            }}
+                                            variant={isAddedToBag ? "pill-lightred" : "pill-red"}
+                                            size="sm"
+                                            className="flex-1 gap-1.5 text-xs font-semibold"
+                                        >
+                                            <ShoppingBagIcon className="w-4 h-4" isFilled={isAddedToBag} />
+                                            <span className="truncate">{isAddedToBag ? 'In Bag' : 'Add to Bag'}</span>
+                                        </Button>
+                                    ) : (
+                                        <Button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                                const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined;
+                                                openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } });
+                                            }}
+                                            variant="pill-red"
+                                            size="sm"
+                                            className="flex-1 gap-1.5 text-xs font-semibold"
+                                        >
+                                            <ChatBubbleBottomCenterTextIcon className="w-4 h-4"/>
+                                            <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
+                                        </Button>
+                                    )}
+                                    <LikeButton
+                                        isLiked={isPostLiked}
+                                        onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                                        variant="overlay-dark"
+                                        size="sm"
+                                        className={cn(
+                                            "flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl",
+                                            isPostLiked ? "text-red-600" : "text-gray-500"
+                                        )}
+                                        iconClassName="w-5 h-5"
+                                        title={isPostLiked ? "Unlike post" : "Like post"}
+                                    />
+                                    {isPurchasable && (
+                                      <Button
+                                          onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                              openModal({ type: 'contactStore', data: { author: post.author!, post } });
+                                          }}
+                                          variant="overlay-dark"
+                                          size="sm"
+                                          className="flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500"
+                                          aria-label="Contact seller"
+                                          title="Contact seller"
+                                      >
+                                          <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
+                                      </Button>
+                                    )}
+                                </>
+                            )}
+                            <Button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (!currentAccount) { openModal({ type: 'login' }); return; }
-                                    if (isPurchasable) isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post });
-                                    else if (post.type === PostType.SERVICE) openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage: `Hi, I'm interested in your service: "${post.title}".` } });
-                                    else openModal({ type: 'contactStore', data: { author: post.author!, post } });
+                                    openModal({ type: 'sharePost', data: post });
                                 }}
-                                variant={isAddedToBag ? "pill-lightred" : "pill-red"}
+                                variant="overlay-dark"
                                 size="sm"
-                                className="flex-1 gap-1.5 text-xs font-semibold"
+                                className="flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500"
+                                aria-label="Share post"
+                                title="Share post"
                             >
-                                {isPurchasable ? <ShoppingBagIcon className="w-4 h-4" isFilled={isAddedToBag} /> : <ChatBubbleBottomCenterTextIcon className="w-4 h-4"/>}
-                                <span className="truncate">{isPurchasable ? (isAddedToBag ? 'In Bag' : 'Add to Bag') : (post.type === PostType.SERVICE ? 'Request' : 'Contact')}</span>
+                                <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>
-                        )}
-                        
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                openModal({ type: 'sharePost', data: post });
-                            }}
-                            variant="overlay-dark"
-                            size="sm"
-                            className="flex-none w-10 bg-gray-50 hover:bg-gray-100 rounded-xl text-gray-500"
-                            aria-label="Share post"
-                            title="Share post"
-                        >
-                            <PaperAirplaneIcon className="w-5 h-5" />
-                        </Button>
+                        </>
+                      )}
                     </>
                 )}
             </div>
