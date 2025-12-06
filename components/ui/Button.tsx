@@ -52,7 +52,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
     return (
       <Comp
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95',
           !hasCustomFocus && 'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
           buttonVariants.variant[variant],
           buttonVariants.size[size],
@@ -86,7 +86,7 @@ const TabButton: React.FC<TabButtonProps> = ({ onClick, isActive, children, size
     <button
       onClick={onClick}
       className={cn(
-        'flex-shrink-0 flex items-center justify-center gap-2 font-medium transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
+        'flex-shrink-0 flex items-center justify-center gap-2 font-medium whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
         textSize,
         padding,
         isActive

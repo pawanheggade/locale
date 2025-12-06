@@ -121,7 +121,7 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Catalog</h1>
           <div className="space-y-6">
             <div
-              className={cn("border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors", isSubmitting && "opacity-50 pointer-events-none")}
+              className={cn("border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer", isSubmitting && "opacity-50 pointer-events-none")}
               onClick={() => !isSubmitting && fileInputRef.current?.click()}
             >
               <input ref={fileInputRef} type="file" className="hidden" multiple accept=".pdf,image/*" onChange={handleFileChange} disabled={isSubmitting} />
@@ -150,7 +150,7 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
                             onDrop={(e) => handleDrop(e, index)}
                             onDragEnd={handleDragEnd}
                             className={cn(
-                                "flex flex-col gap-2 p-3 bg-white rounded-lg border transition-all select-none",
+                                "flex flex-col gap-2 p-3 bg-white rounded-lg border select-none",
                                 isDragging ? "opacity-50 border-dashed" : "border-gray-200",
                                 isDragOver ? "border-red-500 ring-2 ring-red-500 ring-opacity-50 z-10 scale-[1.01]" : ""
                             )}

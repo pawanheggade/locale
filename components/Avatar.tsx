@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Subscription } from '../types';
 import { UserCircleIconSolid } from './Icons';
@@ -42,7 +41,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Avatar', size = 'md'
   }
   
   const baseClasses = cn(
-    'rounded-full object-cover flex-shrink-0 bg-gray-200 transition-opacity duration-300',
+    'rounded-full object-cover flex-shrink-0 bg-gray-200',
     sizeClasses[size],
     ringClass,
     className

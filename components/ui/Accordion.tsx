@@ -79,7 +79,7 @@ export const AccordionTrigger = React.forwardRef<
       onClick={() => value && toggleItem(value)}
       aria-expanded={isOpen}
       data-state={isOpen ? 'open' : 'closed'}
-      className={cn('flex flex-1 items-center justify-between py-4 font-medium transition-all w-full [&[data-state=open]>svg]:rotate-180', className)}
+      className={cn('flex flex-1 items-center justify-between py-4 font-medium w-full [&[data-state=open]>svg]:rotate-180', className)}
       {...props}
     >
       {children}

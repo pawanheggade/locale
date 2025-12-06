@@ -21,7 +21,7 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
         variant="ghost"
         size="icon-sm"
         className={cn(
-          "rounded transition-colors",
+          "rounded",
           userVote === 'up'
             ? 'text-red-600 bg-red-50'
             : 'text-gray-400'
@@ -37,7 +37,7 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
         variant="ghost"
         size="icon-sm"
         className={cn(
-          "rounded transition-colors",
+          "rounded",
           userVote === 'down'
             ? 'text-red-600 bg-red-50'
             : 'text-gray-400'

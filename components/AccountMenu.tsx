@@ -32,7 +32,7 @@ const MenuItem: React.FC<{
   badgeCount?: number;
   animateBadge?: boolean;
 }> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
-    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right transition-colors">
+    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right">
       <div className="w-full flex items-center justify-end gap-2 p-2">
         <span className="text-sm font-bold text-gray-700 whitespace-nowrap">{label}</span>
         <div className="relative w-5 h-5 flex items-center justify-center">

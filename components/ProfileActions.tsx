@@ -60,7 +60,7 @@ const DropdownItem: React.FC<{
             target={target}
             rel={rel}
             onClick={onClick}
-            className="w-full text-left flex items-center gap-3 px-4 py-2.5 transition-colors text-sm text-gray-600 focus:outline-none focus:bg-gray-50 whitespace-nowrap"
+            className="w-full text-left flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 focus:outline-none focus:bg-gray-50 whitespace-nowrap"
         >
             <span className="text-gray-500 flex-shrink-0">{icon}</span>
             <span className="font-medium">{label}</span>

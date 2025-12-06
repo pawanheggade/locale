@@ -29,7 +29,7 @@ interface AccountViewProps {
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
     <div
         onClick={onClick}
-        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer transition-colors border"
+        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer border"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
@@ -221,7 +221,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       src={account.avatarUrl} 
                       alt={account.name} 
                       tier={account.subscription.tier} 
-                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer transition-opacity"
+                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer"
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
                   <div className="mb-1">
@@ -259,12 +259,12 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                            {(account.googleMapsUrl || account.appleMapsUrl) && (
                               <div className="flex items-center gap-1.5 shrink-0">
                                   {account.googleMapsUrl && (
-                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1 -m-1 rounded-full" title="Google Maps">
+                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full" title="Google Maps">
                                           <GoogleIcon className="w-4 h-4" />
                                       </a>
                                   )}
                                   {account.appleMapsUrl && (
-                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 transition-colors p-1 -m-1 rounded-full" title="Apple Maps">
+                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full" title="Apple Maps">
                                           <AppleIcon className="w-4 h-4" />
                                       </a>
                                   )}
@@ -355,7 +355,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                                 setIsCategoryDropdownOpen(false);
                                             }}
                                             className={cn(
-                                                "w-full text-left px-4 py-2 text-sm transition-colors",
+                                                "w-full text-left px-4 py-2 text-sm",
                                                 activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
                                             )}
                                         >
@@ -383,7 +383,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                                 {item.type === 'image' ? (
                                                     <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <DocumentIcon className="w-12 h-12 text-red-500 opacity-80 transition-opacity" />
+                                                    <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
                                                 )}
                                             </div>
                                             <div className="p-3 border-t border-gray-100 bg-white relative z-10">

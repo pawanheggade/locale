@@ -86,7 +86,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
                       role="button"
                       tabIndex={0}
                       aria-label={`View profile of ${account.name}`}
-                      className="bg-white rounded-xl border border-gray-200/80 p-4 flex flex-col items-center gap-3 cursor-pointer hover:border-red-200 transition-all active:scale-95"
+                      className="bg-white rounded-xl border border-gray-200/80 p-4 flex flex-col items-center gap-3 cursor-pointer active:scale-95"
                     >
                       <Avatar src={account.avatarUrl} alt={account.name} size="xl" tier={account.subscription.tier} />
                       <div className="text-center w-full">

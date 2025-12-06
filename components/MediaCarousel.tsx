@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Media } from '../types';
 import { useCarousel } from '../hooks/useCarousel';
@@ -234,7 +233,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
                             {media.map((_, index) => (
                                 <div
                                     key={index}
-                                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    className={`w-2 h-2 rounded-full ${
                                         index === currentIndex ? 'bg-white scale-125' : 'bg-white/50'
                                     }`}
                                     aria-hidden="true"

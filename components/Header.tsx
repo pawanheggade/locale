@@ -149,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
             variant="overlay-dark"
             size="icon"
             className={cn(
-                "transition-colors !rounded-xl",
+                "!rounded-xl",
                 isAnyFilterActive && "text-red-600"
             )}
             aria-label={isAnyFilterActive ? "Filters active. Open sort and filter options." : "Open sort and filter options"}
@@ -256,7 +256,7 @@ export const Header: React.FC<HeaderProps> = ({
                 variant="outline"
                 size="icon"
                 className={cn(
-                    "shrink-0 transition-colors !rounded-xl border-gray-200 bg-transparent",
+                    "shrink-0 !rounded-xl border-gray-200 bg-transparent",
                     isForumsView && "text-red-600 border-red-200 bg-red-50"
                 )}
                 aria-label={isForumsView ? "Back to feed" : "Community Forums"}

@@ -107,7 +107,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={cn('relative', wrapperClassName)} ref={wrapperRef}>
         <div className={cn(
-            "relative flex items-center w-full h-10 bg-gray-100 border border-gray-200/80 rounded-xl transition-all duration-200",
+            "relative flex items-center w-full h-10 bg-gray-100 border border-gray-200/80 rounded-xl",
             "focus-within:bg-white focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50"
         )}>
             <div className="pl-4 flex items-center pointer-events-none">
@@ -167,7 +167,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       handleSuggestionClick(search);
                       onSearchSubmit(search);
                   }}
-                  className={`flex items-center justify-between text-sm text-gray-600 cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between text-sm text-gray-600 cursor-pointer ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >
@@ -201,7 +201,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     handleSuggestionClick(suggestion)
                     onSearchSubmit(suggestion);
                   }}
-                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer transition-colors ${
+                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >
@@ -239,7 +239,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     handleSuggestionClick(suggestion)
                     onSearchSubmit(suggestion);
                   }}
-                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer transition-colors ${
+                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
                     index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
                   }`}
                 >

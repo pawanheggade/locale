@@ -146,7 +146,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     <Card
       ref={cardRef}
       className={cn(
-        'group cursor-pointer transition-all duration-300',
+        'group cursor-pointer',
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
       style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
@@ -250,13 +250,13 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           <h3
             id={`post-title-${post.id}`}
             className={cn(
-              'font-bold text-gray-800 transition-colors line-clamp-2 leading-tight',
+              'font-bold text-gray-800 line-clamp-2 leading-tight',
               isCompact ? 'text-base' : 'text-lg'
             )}
           >
             <button
               onClick={(e) => handleExpandToggle(e)}
-              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2 transition-colors"
+              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2"
             >
               {post.title}
             </button>
@@ -297,7 +297,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             variant="ghost"
                             size="icon"
                             className={cn(
-                                "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
+                                "h-8 w-8 p-0 rounded-full flex items-center justify-center",
                                 isPriceAlertSet
                                     ? "text-red-600"
                                     : "text-gray-500"
@@ -314,7 +314,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                           variant="ghost"
                           size="icon"
                           className={cn(
-                              "h-8 w-8 p-0 rounded-full flex items-center justify-center transition-colors",
+                              "h-8 w-8 p-0 rounded-full flex items-center justify-center",
                               isPostLiked
                                   ? "text-red-600"
                                   : "text-gray-500"

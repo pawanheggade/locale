@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,7 +22,7 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
     return (
         <div 
             onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} 
-            className="bg-white rounded-xl border border-gray-200/80 p-4 flex gap-4 cursor-pointer transition-shadow"
+            className="bg-white rounded-xl border border-gray-200/80 p-4 flex gap-4 cursor-pointer"
         >
             <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
             <div className="flex-1 min-w-0">
