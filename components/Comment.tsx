@@ -11,7 +11,7 @@ import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleEllipsisIcon } from './Icons
 import { CommentForm } from './CommentForm';
 import { Avatar } from './Avatar';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { PostAuthorInfo } from './PostAuthorInfo';
 

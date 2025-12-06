@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -31,6 +32,7 @@ import { ActivityPage } from './components/ActivityPage';
 import { useConfirmationModal } from './hooks/useConfirmationModal';
 import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
+import { NavigationContext, useNavigation } from './contexts/NavigationContext';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./components/MapView').then(module => ({ default: module.MapView })));
@@ -57,20 +59,6 @@ interface HistoryItem {
 }
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
-
-// --- Navigation Context ---
-interface NavigationContextType {
-  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' }) => void;
-  handleBack: () => void;
-  showOnMap: (target: string | Account) => void;
-}
-
-const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
-export const useNavigation = () => {
-    const context = useContext(NavigationContext);
-    if (!context) throw new Error('useNavigation must be used within a NavigationProvider');
-    return context;
-};
 
 
 export const App: React.FC = () => {

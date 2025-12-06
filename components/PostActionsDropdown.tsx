@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
@@ -6,7 +5,7 @@ import { usePosts } from '../contexts/PostsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;

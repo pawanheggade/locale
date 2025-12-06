@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -10,7 +11,7 @@ import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { cn } from '../lib/utils';
 

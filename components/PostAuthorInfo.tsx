@@ -3,7 +3,7 @@ import { Account } from '../types';
 import { timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface PostAuthorInfoProps {
   author: Account;

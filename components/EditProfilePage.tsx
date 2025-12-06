@@ -10,7 +10,6 @@ interface EditProfilePageProps {
 }
 
 export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account, onBack }) => {
-  // FIX: Destructure 'accounts' from useAuth and alias it to 'allAccounts'
   const { accounts: allAccounts, updateAccountDetails } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);

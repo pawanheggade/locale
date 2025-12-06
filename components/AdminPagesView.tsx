@@ -1,10 +1,8 @@
-
-
 import React, { useMemo } from 'react';
 import { sanitizeHtml } from '../utils/security';
 import { Button } from './ui/Button';
 import { PencilIcon } from './Icons';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface AdminPagesViewProps {
   termsContent: string;

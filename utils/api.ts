@@ -1,4 +1,3 @@
-
 /**
  * A utility to retry an async function with exponential backoff.
  */
@@ -35,7 +34,7 @@ export const withRetry = async <T>(apiCall: () => Promise<T>, maxRetries = 3, in
 export const handleApiError = (error: unknown, context: string): Error => {
     console.error(`Error during ${context}:`, error);
 
-    if (!navigator.onLine) {
+    if (typeof window !== 'undefined' && !window.navigator.onLine) {
         return new Error("Network error. Please check your internet connection and try again.");
     }
 

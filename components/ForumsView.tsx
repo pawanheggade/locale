@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +10,7 @@ import { ChatBubbleEllipsisIcon, PencilIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { CategoryBadge } from './Badges';
 import { EmptyState } from './EmptyState';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 
 const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (cat: string) => void }> = ({ post, onCategoryClick }) => {

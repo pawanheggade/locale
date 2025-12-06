@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
@@ -13,7 +14,7 @@ import { Card, CardContent } from './ui/Card';
 import { cn } from '../lib/utils';
 import { LikeButton } from './LikeButton';
 import { Button } from './ui/Button';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';

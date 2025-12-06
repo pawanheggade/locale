@@ -1,4 +1,3 @@
-
 import React, { useState, useReducer, useEffect } from 'react';
 import { ForumPost } from '../types';
 import { useForum } from '../contexts/ForumContext';
@@ -37,45 +36,62 @@ function reducer(state: State, action: Action): State {
 }
 
 export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack, onSubmit }) => {
-    const [state, dispatch] = useReducer(reducer, initialState);
-    const { title, content, category, error } = state;
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    
     const { categories } = useForum();
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (categories.length > 0 && !category) {
+        if (categories.length > 0) {
             dispatch({ type: 'SET_FIELD', field: 'category', payload: categories[0] });
         }
-    }, [categories, category]);
-    
+    }, [categories]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const { title, content, category } = state;
+
         if (!title.trim() || !content.trim() || !category) {
-            dispatch({ type: 'SET_ERROR', payload: 'All fields are required.'});
+            dispatch({ type: 'SET_ERROR', payload: 'All fields are required.' });
             return;
         }
+
         setIsSubmitting(true);
         onSubmit({ title, content, category });
     };
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
+            <div className="flex-1 overflow-y-auto animate-fade-in-down p-4 sm:p-6 lg:p-8">
                 <div className="max-w-2xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Create Discussion</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Start a Discussion</h1>
                     <form id="create-forum-post-form" onSubmit={handleSubmit} className="space-y-6">
-                        <FormField id="post-title" label="Title" error={error && !title.trim() ? 'Title is required' : undefined}>
-                            <Input value={title} onChange={e => dispatch({ type: 'SET_FIELD', field: 'title', payload: e.target.value })} required autoFocus />
+                        <FormField id="forum-post-title" label="Title" error={state.error && !state.title.trim() ? "Title is required" : ""}>
+                            <Input
+                                value={state.title}
+                                onChange={e => dispatch({ type: 'SET_FIELD', field: 'title', payload: e.target.value })}
+                                required
+                                maxLength={150}
+                                autoFocus
+                            />
                         </FormField>
-                        <FormField id="post-category" label="Category">
-                            {/* FIX: Removed 'required' prop as it's not supported by the custom Select component. */}
-                            <Select value={category} onChange={e => dispatch({ type: 'SET_FIELD', field: 'category', payload: e.target.value })}>
-                                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+
+                        <FormField id="forum-post-category" label="Category">
+                            <Select
+                                value={state.category}
+                                onChange={e => dispatch({ type: 'SET_FIELD', field: 'category', payload: e.target.value })}
+                            >
+                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
                             </Select>
                         </FormField>
-                        <FormField id="post-content" label="Content" error={error && !content.trim() ? 'Content is required' : undefined}>
-                            <Textarea value={content} onChange={e => dispatch({ type: 'SET_FIELD', field: 'content', payload: e.target.value })} required rows={10} />
+
+                        <FormField id="forum-post-content" label="Content" error={state.error && !state.content.trim() ? "Content is required" : ""}>
+                            <Textarea
+                                value={state.content}
+                                onChange={e => dispatch({ type: 'SET_FIELD', field: 'content', payload: e.target.value })}
+                                required
+                                rows={10}
+                                placeholder="Share your thoughts, ask a question, or start a discussion..."
+                            />
                         </FormField>
                     </form>
                 </div>
@@ -86,7 +102,7 @@ export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack
                         <div className="py-3 flex items-center gap-3">
                             <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
                             <Button type="submit" form="create-forum-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
-                                Publish
+                                Post
                             </Button>
                         </div>
                     </div>

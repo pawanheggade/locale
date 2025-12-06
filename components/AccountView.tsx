@@ -10,7 +10,7 @@ import { PostList } from './PostList';
 import { ReferralCard } from './ReferralCard';
 import { EmptyState } from './EmptyState';
 import { useForum } from '../contexts/ForumContext';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 import { generateContactMethods } from '../utils/account';

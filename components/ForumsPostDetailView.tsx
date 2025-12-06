@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,7 +13,7 @@ import { Comment as CommentComponent } from './Comment';
 import { CommentForm } from './CommentForm';
 import { CategoryBadge } from './Badges';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
 

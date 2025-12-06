@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
@@ -6,7 +5,7 @@ import { TabButton } from './ui/Button';
 import { HeartIcon } from './Icons';
 import { Avatar } from './Avatar';
 import { EmptyState } from './EmptyState';
-import { useNavigation } from '../App';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface LikesViewProps {
   likedPosts: DisplayablePost[];
