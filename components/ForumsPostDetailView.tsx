@@ -44,10 +44,6 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
         }
     }, [postId, post]);
 
-    const onViewAccount = (accountId: string) => {
-        navigateToAccount(accountId);
-    };
-
     const onReportItem = (item: any) => {
         if (!currentAccount) { openModal({ type: 'login' }); return; }
         openModal({ type: 'reportItem', data: { item } });
@@ -127,7 +123,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                             className="text-[10px] h-auto min-h-0"
                         />
                         <span>&bull;</span>
-                        <span>Posted by <button onClick={() => onViewAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{post.author?.name || 'Unknown'}</button></span>
+                        <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{post.author?.name || 'Unknown'}</button></span>
                         <span>{timeSince(post.timestamp)}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{post.title}</h1>
@@ -148,7 +144,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                     ) : (
                         <>
                             <div className="mt-4 prose max-w-none text-gray-800 break-words">
-                                <p>{renderWithMentions(post.content, allAccounts, onViewAccount, onFilterByTag)}</p>
+                                <p>{renderWithMentions(post.content, allAccounts, navigateToAccount, onFilterByTag)}</p>
                             </div>
                              <div className="mt-3 flex items-center gap-2">
                                 <Button 

@@ -57,10 +57,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
     });
   };
 
-  const onViewAccount = (accountId: string) => {
-    navigateToAccount(accountId);
-  };
-
   const onFilterByTag = (tag: string) => {
     dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
   };
@@ -104,7 +100,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
             </div>
           ) : (
             <>
-                <p>{renderWithMentions(comment.content, allAccounts, onViewAccount, onFilterByTag)}</p>
+                <p>{renderWithMentions(comment.content, allAccounts, navigateToAccount, onFilterByTag)}</p>
                 <div className="not-prose flex items-center gap-2 mt-2">
                     <VoteButtons score={comment.score} userVote={userVote} onVote={(vote) => toggleVote('comment', comment.id, vote)} orientation="horizontal" />
                     <Button variant="ghost" size="sm" onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} className="gap-1 text-gray-500">
