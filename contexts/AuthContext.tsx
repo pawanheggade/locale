@@ -1,5 +1,4 @@
 
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';

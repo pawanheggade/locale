@@ -1,17 +1,19 @@
 
-
 import React, { useState, useMemo } from 'react';
-import { Notification } from '../types';
+import { Account, DisplayablePost, Notification } from '../types';
 import { timeSince } from '../utils/formatters';
-import { BellIcon, XMarkIcon, CheckIcon } from './Icons';
+import { BellIcon, XMarkIcon, CheckIcon, ClockIcon } from './Icons';
 import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
+import { PostList } from './PostList';
 
 interface ActivityPageProps {
   notifications: Notification[];
   onDismiss: (notificationId: string) => void;
   onDismissAll: () => void;
   onNotificationClick: (notification: Notification) => void;
+  viewedPosts: DisplayablePost[];
+  currentAccount: Account;
 }
 
 export const ActivityPage: React.FC<ActivityPageProps> = ({
@@ -19,8 +21,10 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
   onDismiss,
   onDismissAll,
   onNotificationClick,
+  viewedPosts,
+  currentAccount,
 }) => {
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history'>('notifications');
 
   // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
@@ -81,6 +85,9 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                         </span>
                     )}
                 </TabButton>
+                <TabButton onClick={() => setActiveTab('history')} isActive={activeTab === 'history'}>
+                    History
+                </TabButton>
             </div>
         </div>
         <div className="py-6 space-y-4">
@@ -109,7 +116,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                         {renderNotificationList(generalNotifications)}
                     </div>
                 )
-            ) : (
+            ) : activeTab === 'alerts' ? (
                 alertNotifications.length === 0 ? (
                     <EmptyState
                         icon={<BellIcon />}
@@ -119,6 +126,21 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                     />
                 ) : (
                     renderNotificationList(alertNotifications)
+                )
+            ) : (
+                 viewedPosts.length === 0 ? (
+                    <EmptyState
+                        icon={<ClockIcon />}
+                        title="No Viewing History"
+                        description="Posts you view will appear here."
+                        className="py-8"
+                    />
+                ) : (
+                    <PostList
+                        posts={viewedPosts}
+                        currentAccount={currentAccount}
+                        variant="compact"
+                    />
                 )
             )}
         </div>

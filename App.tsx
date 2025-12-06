@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -196,13 +190,20 @@ export const App: React.FC = () => {
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState]);
 
+  const openPostDetailsModal = useCallback((post: DisplayablePost) => {
+    if (currentAccount) {
+        addPostToViewHistory(post.id);
+    }
+    openModal({ type: 'viewPost', data: post });
+  }, [currentAccount, addPostToViewHistory, openModal]);
+
   const handleNotificationClick = useCallback((notification: Notification) => {
     markAsRead(notification.id);
     
     if (notification.postId) {
         const post = findPostById(notification.postId);
         if (post) {
-            openModal({ type: 'viewPost', data: post });
+            openPostDetailsModal(post);
         } else {
             addToast("The related post is no longer available.", "error");
         }
@@ -212,7 +213,7 @@ export const App: React.FC = () => {
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
-  }, [markAsRead, navigateTo, accountsById, findPostById, openModal, addToast]);
+  }, [markAsRead, navigateTo, accountsById, findPostById, openPostDetailsModal, addToast]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
@@ -503,14 +504,18 @@ export const App: React.FC = () => {
   // --- Data derived for rendering (Moved from ViewManager) ---
   const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
 
+  const viewedPosts = useMemo(() => 
+    viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p),
+    [viewedPostIds, allDisplayablePosts]
+  );
+
   useEffect(() => {
       if (isInitialLoading) return;
       if (!currentAccount) { setRecommendedPostIds([]); return; }
       const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
-      const viewedPosts = viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p);
       const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
       setRecommendedPostIds(newRecs.map(p => p.id));
-  }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPostIds]);
+  }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPosts]);
 
   const recommendations = useMemo(() => {
       if (recommendedPostIds.length === 0) return [];
@@ -531,10 +536,10 @@ export const App: React.FC = () => {
     switch (view) {
         case 'all':
             if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-down"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
-            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={(post) => openModal({ type: 'viewPost', data: post })} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
+            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={openPostDetailsModal} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
             return null;
         case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
-        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => openModal({ type: 'viewPost', data: post })} /></Suspense> : null;
+        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={openPostDetailsModal} /></Suspense> : null;
         case 'admin':
             return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
         case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
@@ -561,6 +566,8 @@ export const App: React.FC = () => {
                 onDismiss={(id) => markAsRead(id)}
                 onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
                 onNotificationClick={handleNotificationClick}
+                viewedPosts={viewedPosts}
+                currentAccount={currentAccount}
             /> : null;
         case 'editAdminPage':
             return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;
