@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -248,12 +248,14 @@ export const Header: React.FC<HeaderProps> = ({
                                     onClick={handleShowLikedProfilePosts}
                                     variant="ghost"
                                     className={cn(
-                                        "w-full justify-between px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                        "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap flex items-center",
                                         filterState.filterShowOnlyLikedProfiles ? "text-red-600 bg-red-50" : "text-gray-600"
                                     )}
                                 >
-                                    <span className="flex-grow">Posts from Liked Profiles</span>
-                                    {filterState.filterShowOnlyLikedProfiles && <CheckIcon className="w-4 h-4 ml-3" />}
+                                    <div className="flex items-center gap-2">
+                                        <HeartIcon className="w-5 h-5" isFilled={filterState.filterShowOnlyLikedProfiles} />
+                                        <span>Profiles</span>
+                                    </div>
                                 </Button>
                             </div>
                         </div>
