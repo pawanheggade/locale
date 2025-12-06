@@ -34,12 +34,14 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
 
   const profileUrl = `${window.location.origin}/?account=${account.id}`;
   const encodedUrl = encodeURIComponent(profileUrl);
-  // Using QuickChart as it handles CORS headers better for canvas drawing than other public APIs
-  const qrCodeApiUrl = `https://quickchart.io/qr?text=${encodedUrl}&size=400&margin=2&ecLevel=H&format=png`;
 
   // Determine border color class for the UI (not canvas)
   const styles = TIER_STYLES[account.subscription.tier] || TIER_STYLES.Personal;
   const borderColorClass = styles.borderColor;
+  const qrColor = styles.hex.substring(1); // Remove '#' for URL parameter
+
+  // Using QuickChart as it handles CORS headers better for canvas drawing than other public APIs
+  const qrCodeApiUrl = `https://quickchart.io/qr?text=${encodedUrl}&size=400&margin=2&ecLevel=H&format=png&dark=${qrColor}`;
 
   const generateQrCardBlob = async (): Promise<Blob> => {
     const canvas = document.createElement('canvas');
