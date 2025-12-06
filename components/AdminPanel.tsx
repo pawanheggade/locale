@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';

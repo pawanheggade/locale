@@ -1,6 +1,5 @@
 import type { FC } from 'react';
 import { CheckBadgeIcon, CheckBadgeIconSolid } from '../components/Icons';
-// FIX: Add import for Subscription type used in getBadgeSvg
 import { Subscription } from '../types';
 
 // A simple utility for conditionally joining class names.
@@ -63,7 +62,6 @@ export const TIER_STYLES: Record<string, {
     icon: null,
     description: 'This is a basic seller account.',
   },
-  // FIX: Complete the 'Personal' tier object with missing properties.
   'Personal': { 
     textColor: 'text-gray-900', 
     bgColor: 'bg-gray-900', 
@@ -76,7 +74,6 @@ export const TIER_STYLES: Record<string, {
   },
 };
 
-// FIX: Add and export isShareAbortError function.
 export const isShareAbortError = (err: any): boolean => {
   return (
     err.name === 'AbortError' ||
@@ -88,7 +85,6 @@ export const isShareAbortError = (err: any): boolean => {
   );
 };
 
-// FIX: Add and export getBadgeSvg function.
 export const getBadgeSvg = (tier: Subscription['tier']): string => {
     const styles = TIER_STYLES[tier];
     if (!styles || !styles.icon) return '';
@@ -102,7 +98,6 @@ export const getBadgeSvg = (tier: Subscription['tier']): string => {
     return svg;
 };
 
-// FIX: Add and export drawLogoOnCanvas function.
 export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number, y: number, variant: 'default' | 'white' = 'default') => {
     const textColor = variant === 'white' ? '#FFFFFF' : '#111827';
     const accentColor = variant === 'white' ? '#FFFFFF' : '#DC2626';

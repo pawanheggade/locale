@@ -206,19 +206,14 @@ export const App: React.FC = () => {
     markAsRead(notification.id);
     
     if (notification.postId) {
-        const post = findPostById(notification.postId);
-        if (post) {
-            openModal({ type: 'viewPost', data: post });
-        } else {
-            navigateTo('all');
-        }
+        navigateTo('all');
     } else if (notification.relatedAccountId) {
         const account = accountsById.get(notification.relatedAccountId);
         if (account) navigateTo('account', { account });
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
-  }, [markAsRead, navigateTo, accountsById, findPostById, openModal]);
+  }, [markAsRead, navigateTo, accountsById]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;

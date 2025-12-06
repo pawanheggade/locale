@@ -1,14 +1,10 @@
-
-
-
-
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useForum } from '../contexts/ForumContext';
 import { useUI } from '../contexts/UIContext';
 import { VoteButtons } from './VoteButtons';
-import { timeSince, renderWithMentions } from '../utils/formatters';
+import { renderWithMentions } from '../utils/formatters';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
 import { FlagIcon, PencilIcon, TrashIcon, ChatBubbleEllipsisIcon } from './Icons';
@@ -76,24 +72,24 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
       openModal({ type: 'reportItem', data: { item } });
   }
 
+  if (!comment.author) {
+      return null;
+  }
+
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center mt-1">
-        <button onClick={() => onViewAccount(comment.authorId)} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full">
-            <Avatar src={comment.author?.avatarUrl} alt={comment.author?.name} size="sm" tier={comment.author?.subscription.tier} />
-        </button>
+        <Avatar src={comment.author?.avatarUrl} alt={comment.author?.name} size="sm" tier={comment.author?.subscription.tier} />
         <div className="w-px bg-gray-200 flex-grow my-2"></div>
       </div>
       <div className="flex-1">
-        {comment.author && (
-            <PostAuthorInfo 
-                author={comment.author}
-                timestamp={comment.timestamp}
-                isEdited={false}
-                showAvatar={false}
-                size="small"
-            />
-        )}
+        <PostAuthorInfo
+            author={comment.author}
+            timestamp={comment.timestamp}
+            isEdited={false}
+            showAvatar={false}
+            size="small"
+        />
         <div className="mt-1 prose prose-sm max-w-none text-gray-600">
           {isEditing ? (
             <div className="space-y-2">

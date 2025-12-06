@@ -14,8 +14,9 @@ import { useNavigation } from '../App';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 import { generateContactMethods } from '../utils/account';
-import { cn, isShareAbortError } from '../lib/utils';
+import { cn } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { isShareAbortError } from '../lib/utils';
 
 interface AccountViewProps {
   account: Account;

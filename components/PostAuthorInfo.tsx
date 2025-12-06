@@ -7,8 +7,8 @@ import { useNavigation } from '../App';
 
 interface PostAuthorInfoProps {
   author: Account;
-  timestamp?: number;
-  isEdited?: boolean;
+  timestamp: number;
+  isEdited: boolean;
   size?: 'small' | 'medium';
   showAvatar?: boolean;
   children?: React.ReactNode;
@@ -57,11 +57,11 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestam
                 </p>
                 <p className={`${metaClasses} text-gray-600 truncate leading-tight`}>
                     <span>@{author.username}</span>
-                    {timestamp && (
-                        <>
-                        <span className="mx-1">&bull;</span>
-                        <span title={new Date(timestamp).toLocaleString()}>{isEdited ? 'updated ' : ''}{timeSince(timestamp)}</span>
-                        </>
+                    <span className="mx-1">&bull;</span>
+                    {isEdited ? (
+                         <span title={new Date(timestamp).toLocaleString()}>updated {timeSince(timestamp)}</span>
+                    ) : (
+                         <span title={new Date(timestamp).toLocaleString()}>{timeSince(timestamp)}</span>
                     )}
                 </p>
             </div>
