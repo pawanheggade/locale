@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
 import { Header } from './components/Header';
@@ -512,38 +514,81 @@ export const App: React.FC = () => {
       showOnMap,
   }), [navigateTo, handleBack, showOnMap]);
 
-  const viewManagerContent = (
-    <ErrorBoundary>
-      <ViewManager
-        view={view}
-        mainView={mainView}
-        gridView={gridView}
-        isInitialLoading={isInitialLoading}
-        isFiltering={isFiltering}
-        userLocation={userLocation}
-        postToFocusOnMap={postToFocusOnMap}
-        onPostFocusComplete={() => setPostToFocusOnMap(null)}
-        locationToFocus={locationToFocus}
-        onLocationFocusComplete={() => setLocationToFocus(null)}
-        viewingAccount={viewingAccount}
-        viewingPostId={viewingPostId}
-        viewingForumPostId={viewingForumPostId}
-        editingAdminPageKey={editingAdminPageKey}
-        nearbyPostsResult={nearbyPostsResult}
-        notificationSettings={notificationSettings}
-        onUpdateNotificationSettings={handleUpdateNotificationSettings}
-        requestArchiveAccount={requestArchiveAccount}
-        requestSignOut={requestSignOut}
-        handleNotificationClick={handleNotificationClick}
-        adminInitialView={adminInitialView}
-        handleDeleteFeedback={handleDeleteFeedback}
-        handleToggleFeedbackArchive={handleToggleFeedbackArchive}
-        handleMarkFeedbackAsRead={handleMarkFeedbackAsRead}
-        handleBulkFeedbackAction={handleBulkFeedbackAction}
-        handleCreateForumPost={handleCreateForumPost}
-      />
-    </ErrorBoundary>
-  );
+  // --- Data derived for rendering (Moved from ViewManager) ---
+  const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
+
+  useEffect(() => {
+      if (isInitialLoading) return;
+      if (!currentAccount) { setRecommendedPostIds([]); return; }
+      const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
+      const viewedPosts = viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p);
+      const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
+      setRecommendedPostIds(newRecs.map(p => p.id));
+  }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPostIds]);
+
+  const recommendations = useMemo(() => {
+      if (recommendedPostIds.length === 0) return [];
+      const postMap = new Map(allDisplayablePosts.map(p => [p.id, p]));
+      return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
+  }, [recommendedPostIds, allDisplayablePosts]);
+  
+  const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount, accounts);
+  const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
+  const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
+  const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);
+  const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(postsForMainList, isInitialLoading);
+  const displayPosts = filterState.searchQuery ? postsForMainList : paginatedPosts;
+  const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
+  const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
+
+  const renderCurrentView = () => {
+    switch (view) {
+        case 'all':
+            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-down"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
+            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={(post) => openModal({ type: 'viewPost', data: post })} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
+            return null;
+        case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
+        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => openModal({ type: 'viewPost', data: post })} /></Suspense> : null;
+        case 'admin':
+            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
+        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
+        case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
+        case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
+        case 'createPost':
+            if (currentAccount?.subscription.tier === 'Personal') { return null; }
+            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={handleBack} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
+        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={handleBack} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
+        case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
+        case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
+        case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
+        case 'settings':
+            return currentAccount ? <SettingsPage
+                settings={notificationSettings}
+                onSettingsChange={handleUpdateNotificationSettings}
+                currentAccount={currentAccount}
+                onArchiveAccount={requestArchiveAccount}
+                onSignOut={requestSignOut}
+            /> : null;
+        case 'activity':
+            return currentAccount ? <ActivityPage
+                notifications={notifications}
+                onDismiss={(id) => markAsRead(id)}
+                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
+                onNotificationClick={handleNotificationClick}
+            /> : null;
+        case 'editAdminPage':
+            return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;
+        case 'editProfile':
+            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><EditProfilePage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
+        case 'manageCatalog':
+            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><ManageCatalogPage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
+        case 'createForumPost':
+            return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage onBack={handleBack} onSubmit={handleCreateForumPost} /></Suspense>;
+        default: return null;
+    }
+  };
+
+  const viewContent = <ErrorBoundary>{renderCurrentView()}</ErrorBoundary>;
 
   return (
     <NavigationContext.Provider value={navigationContextValue}>
@@ -569,11 +614,11 @@ export const App: React.FC = () => {
             <>
               <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
               <div style={{ transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` }} className={!isPulling ? 'transition-transform duration-300' : ''}>
-                {viewManagerContent}
+                {viewContent}
               </div>
             </>
           ) : (
-            viewManagerContent
+            viewContent
           )}
         </main>
         <OfflineIndicator />
@@ -593,110 +638,4 @@ export const App: React.FC = () => {
       </div>
     </NavigationContext.Provider>
   );
-};
-
-// --- View Manager Component ---
-// Encapsulates the logic for rendering the current view.
-const ViewManager: React.FC<any> = (props) => {
-    const { 
-        currentAccount, accounts, likedPostIds, viewedPostIds,
-        deleteAccount, updateAccountRole, toggleAccountStatus, approveAccount, rejectAccount, updateSubscription, updateAccountDetails,
-        reports, setReports, feedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent
-    } = useAuth();
-    const { 
-        notifications, markAsRead
-    } = useActivity();
-    const { 
-        posts: allDisplayablePosts, archivedPosts, categories, 
-        createPost: createPostInContext, updatePost: updatePostInContext, deletePostPermanently,
-        addCategory, updateCategory, deleteCategory, findPostById,
-        priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit
-    } = usePosts();
-    const { 
-        posts: forumPosts, getPostWithComments, 
-        categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory 
-    } = useForum();
-    const { openModal } = useUI();
-    const { filterState, isAnyFilterActive } = useFilters();
-    const { navigateTo, handleBack } = useNavigation();
-    
-    // Props passed down from App
-    const {
-        view, mainView, gridView, isInitialLoading, isFiltering, userLocation, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
-        viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey, nearbyPostsResult, notificationSettings, onUpdateNotificationSettings,
-        requestArchiveAccount, requestSignOut, handleNotificationClick, adminInitialView,
-        handleDeleteFeedback, handleToggleFeedbackArchive, handleMarkFeedbackAsRead, handleBulkFeedbackAction, handleCreateForumPost
-    } = props;
-    
-    // --- Data derived for rendering ---
-    const [recommendedPostIds, setRecommendedPostIds] = useState<string[]>([]);
-
-    useEffect(() => {
-        if (isInitialLoading) return;
-        if (!currentAccount) { setRecommendedPostIds([]); return; }
-        const likedPosts = allDisplayablePosts.filter(p => likedPostIds.has(p.id));
-        const viewedPosts = viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p);
-        const newRecs = generateHistoryBasedRecommendations(likedPosts, viewedPosts, allDisplayablePosts);
-        setRecommendedPostIds(newRecs.map(p => p.id));
-    }, [currentAccount?.id, isInitialLoading, allDisplayablePosts, likedPostIds, viewedPostIds]);
-
-    const recommendations = useMemo(() => {
-        if (recommendedPostIds.length === 0) return [];
-        const postMap = new Map(allDisplayablePosts.map(p => [p.id, p]));
-        return recommendedPostIds.map(id => postMap.get(id)).filter((p): p is DisplayablePost => !!p);
-    }, [recommendedPostIds, allDisplayablePosts]);
-    
-    const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount, accounts);
-    const showRecommendations = !isAnyFilterActive && recommendations.length > 0 && view === 'all' && mainView === 'grid';
-    const recommendationIdsSet = useMemo(() => new Set(recommendedPostIds), [recommendedPostIds]);
-    const postsForMainList = useMemo(() => showRecommendations ? sortedAndFilteredPosts.filter(p => !recommendationIdsSet.has(p.id)) : sortedAndFilteredPosts, [sortedAndFilteredPosts, showRecommendations, recommendationIdsSet]);
-    const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(postsForMainList, isInitialLoading);
-    const displayPosts = filterState.searchQuery ? postsForMainList : paginatedPosts;
-    const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
-    const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
-    
-    switch (view) {
-        case 'all':
-            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8">{showRecommendations && <div className="mb-8 animate-fade-in-down"><PostList posts={recommendations} currentAccount={currentAccount} isLoading={false} variant={gridView} enableEntryAnimation={true} /></div>}<PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
-            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={props.isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={onPostFocusComplete} onViewPostDetails={(post) => openModal({ type: 'viewPost', data: post })} locationToFocus={locationToFocus} onLocationFocusComplete={onLocationFocusComplete} /></Suspense>;
-            return null;
-        case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
-        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={(post) => openModal({ type: 'viewPost', data: post })} /></Suspense> : null;
-        case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
-        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
-        case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
-        case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
-        case 'createPost':
-            if (currentAccount?.subscription.tier === 'Personal') { return null; }
-            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={handleBack} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
-        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={handleBack} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
-        case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
-        case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
-        case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
-        case 'settings':
-            return currentAccount ? <SettingsPage
-                settings={notificationSettings}
-                onSettingsChange={onUpdateNotificationSettings}
-                currentAccount={currentAccount}
-                onArchiveAccount={requestArchiveAccount}
-                onSignOut={requestSignOut}
-            /> : null;
-        case 'activity':
-            return currentAccount ? <ActivityPage
-                notifications={notifications}
-                onDismiss={(id) => markAsRead(id)}
-                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
-                onNotificationClick={handleNotificationClick}
-            /> : null;
-        case 'editAdminPage':
-            return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;
-        case 'editProfile':
-            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><EditProfilePage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
-        case 'manageCatalog':
-            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><ManageCatalogPage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
-        case 'createForumPost':
-            return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage onBack={handleBack} onSubmit={handleCreateForumPost} /></Suspense>;
-        default: return null;
-    }
 };

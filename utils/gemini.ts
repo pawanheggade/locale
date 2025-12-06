@@ -5,12 +5,6 @@ import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Post } from '../types';
 import { handleApiError, withRetry } from './api';
 
-// This is a placeholder check. In a real environment, the API key would be
-// securely managed and loaded, and this check might not be necessary.
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set.");
-}
-
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**

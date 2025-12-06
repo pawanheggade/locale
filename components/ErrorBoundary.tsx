@@ -40,17 +40,13 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  public state: ErrorBoundaryState = {
-    hasError: false
-  };
-
-  // Explicitly declare props to fix TS error "Property 'props' does not exist on type 'ErrorBoundary'"
-  // This ensures props are recognized even if Component inheritance inference fails in strict environments.
-  public props: ErrorBoundaryProps;
-
+  // FIX: Switched from class properties for state and methods to constructor-based
+  // initialization and binding. This improves compatibility with older toolchains that
+  // might not fully support class field syntax, which can lead to parsing errors.
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.props = props;
+    this.state = { hasError: false };
+    this.handleReset = this.handleReset.bind(this);
   }
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
@@ -62,7 +58,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleReset = () => {
+  handleReset() {
     // A full page reload is a more robust way to recover from unexpected errors
     // than simply trying to re-render. It clears corrupted state and ensures a fresh start.
     window.location.reload();
