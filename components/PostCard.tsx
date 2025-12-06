@@ -34,11 +34,12 @@ interface PostCardProps {
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false }) => {
   const { navigateTo, showOnMap } = useNavigation();
-  const { toggleLikePost, toggleLikeAccount, bag } = useAuth();
-  const { togglePinPost, archivePost, unarchivePost } = usePosts();
+  const { toggleLikePost, toggleLikeAccount, bag, addPostToViewHistory } = useAuth();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
   const { openModal } = useUI();
   const { dispatchFilterAction } = useFilters();
+  // FIX: Import and use the `usePosts` hook to get post management functions.
+  const { archivePost, unarchivePost, togglePinPost } = usePosts();
   
   const isPostLiked = currentAccount?.likedPostIds?.includes(post.id) ?? false;
   const isProfileLiked = currentAccount?.likedAccountIds?.includes(post.authorId) ?? false;
@@ -333,7 +334,13 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 <>
                     {post.description.slice(0, descriptionMaxLength)}...
                     <button 
-                        onClick={(e) => { e.stopPropagation(); setIsDescriptionExpanded(true); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentAccount) {
+                                addPostToViewHistory(post.id);
+                            }
+                            setIsDescriptionExpanded(true);
+                        }}
                         className="ml-1 font-medium text-red-600 focus:outline-none"
                         aria-label="Show full description"
                     >
