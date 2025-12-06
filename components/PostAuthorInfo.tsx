@@ -1,15 +1,14 @@
-
 import React from 'react';
-import { Account, DisplayablePost } from '../types';
+import { Account } from '../types';
 import { timeSince } from '../utils/formatters';
-import { wasPostEdited } from '../utils/posts';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
 import { useNavigation } from '../App';
 
 interface PostAuthorInfoProps {
   author: Account;
-  post: DisplayablePost;
+  timestamp?: number;
+  isEdited?: boolean;
   size?: 'small' | 'medium';
   showAvatar?: boolean;
   children?: React.ReactNode;
@@ -17,13 +16,12 @@ interface PostAuthorInfoProps {
   location?: React.ReactNode;
 }
 
-export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location }) => {
+export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestamp, isEdited, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location }) => {
   const { navigateTo } = useNavigation();
   const nameClasses = size === 'small' ? 'text-sm' : 'text-base';
   const metaClasses = size === 'small' ? 'text-xs' : 'text-sm';
   const wrapperPadding = size === 'small' ? 'p-1 -ml-1' : 'p-2 -ml-2';
   
-  const wasUpdated = wasPostEdited(post);
   const displayName = author.businessName || author.name;
   
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -59,10 +57,10 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, post, si
                 </p>
                 <p className={`${metaClasses} text-gray-600 truncate leading-tight`}>
                     <span>@{author.username}</span>
-                    {wasUpdated && (
+                    {timestamp && (
                         <>
                         <span className="mx-1">&bull;</span>
-                        <span title={new Date(post.lastUpdated).toLocaleString()}>updated {timeSince(post.lastUpdated)}</span>
+                        <span title={new Date(timestamp).toLocaleString()}>{isEdited ? 'updated ' : ''}{timeSince(timestamp)}</span>
                         </>
                     )}
                 </p>

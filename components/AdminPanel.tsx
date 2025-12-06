@@ -114,7 +114,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
     onDeleteFeedback,
     onToggleFeedbackArchive,
     onMarkFeedbackAsRead,
-    // FIX: Pass the onBulkFeedbackAction prop as onBulkAction, which is what FeedbackView expects.
     onBulkAction: onBulkFeedbackAction,
   };
 

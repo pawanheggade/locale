@@ -14,6 +14,7 @@ import { CategoryBadge } from './Badges';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { useNavigation } from '../App';
 import { useFilters } from '../contexts/FiltersContext';
+import { isShareAbortError } from '../lib/utils';
 
 interface ForumPostDetailViewProps {
   postId: string;
@@ -99,15 +100,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             try {
                 await navigator.share(shareData);
             } catch (err: any) {
-                const isAbort =
-                    err.name === 'AbortError' ||
-                    err.code === 20 ||
-                    (typeof err.message === 'string' &&
-                        (err.message.toLowerCase().includes('abort') ||
-                            err.message.toLowerCase().includes('cancel') ||
-                            err.message.toLowerCase().includes('canceled')));
-
-                if (!isAbort) {
+                if (!isShareAbortError(err)) {
                     console.error('Error sharing:', err);
                 }
             }

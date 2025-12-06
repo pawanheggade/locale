@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,6 +17,7 @@ import { Avatar } from './Avatar';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { useNavigation } from '../App';
 import { useFilters } from '../contexts/FiltersContext';
+import { PostAuthorInfo } from './PostAuthorInfo';
 
 interface CommentProps {
   comment: DisplayableForumComment;
@@ -77,14 +79,21 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
   return (
     <div className="flex gap-4">
       <div className="flex flex-col items-center mt-1">
-        <Avatar src={comment.author?.avatarUrl} alt={comment.author?.name} size="sm" tier={comment.author?.subscription.tier} />
+        <button onClick={() => onViewAccount(comment.authorId)} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-full">
+            <Avatar src={comment.author?.avatarUrl} alt={comment.author?.name} size="sm" tier={comment.author?.subscription.tier} />
+        </button>
         <div className="w-px bg-gray-200 flex-grow my-2"></div>
       </div>
       <div className="flex-1">
-        <div className="flex items-baseline gap-2 text-sm">
-          <button onClick={() => onViewAccount(comment.authorId)} className="font-semibold text-gray-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">{comment.author?.name || 'Unknown User'}</button>
-          <span className="text-gray-500 text-xs">{timeSince(comment.timestamp)}</span>
-        </div>
+        {comment.author && (
+            <PostAuthorInfo 
+                author={comment.author}
+                timestamp={comment.timestamp}
+                isEdited={false}
+                showAvatar={false}
+                size="small"
+            />
+        )}
         <div className="mt-1 prose prose-sm max-w-none text-gray-600">
           {isEditing ? (
             <div className="space-y-2">

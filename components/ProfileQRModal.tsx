@@ -1,11 +1,10 @@
-
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { PaperAirplaneIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { SubscriptionBadge } from './SubscriptionBadge';
-import { TIER_STYLES, getBadgeSvg, drawLogoOnCanvas } from '../lib/utils';
+import { TIER_STYLES, getBadgeSvg, drawLogoOnCanvas, isShareAbortError } from '../lib/utils';
 import { Logo } from './Logo';
 
 interface ProfileQRModalProps {
@@ -169,14 +168,7 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
             });
         }
     } catch (err: any) {
-        const isAbort =
-            err.name === 'AbortError' ||
-            err.code === 20 ||
-            (typeof err.message === 'string' &&
-                (err.message.toLowerCase().includes('abort') ||
-                    err.message.toLowerCase().includes('cancel') ||
-                    err.message.toLowerCase().includes('canceled')));
-        if (!isAbort) {
+        if (!isShareAbortError(err)) {
             console.error('Error sharing profile:', err);
         }
     } finally {
