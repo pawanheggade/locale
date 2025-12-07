@@ -1,4 +1,5 @@
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -89,6 +90,15 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const toggleIdInArray = (array: string[] | undefined, id: string): string[] => {
+    const currentArray = array || [];
+    if (currentArray.includes(id)) {
+        return currentArray.filter(i => i !== id);
+    } else {
+        return [...currentArray, id];
+    }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { openModal } = useUI();
@@ -289,10 +299,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
         const targetAccount = accounts.find(a => a.id === accountIdToLike);
         if (!loggedInAccount || !targetAccount) return;
+
         const wasLiked = (loggedInAccount.likedAccountIds || []).includes(accountIdToLike);
+
         setAccounts(prev => prev.map(acc => {
             if (acc.id === loggedInAccount.id) {
-                return { ...acc, likedAccountIds: wasLiked ? (acc.likedAccountIds || []).filter(id => id !== accountIdToLike) : [...(acc.likedAccountIds || []), accountIdToLike] };
+                return { ...acc, likedAccountIds: toggleIdInArray(acc.likedAccountIds, accountIdToLike) };
             }
             if (acc.id === accountIdToLike) {
                 return { ...acc, likeCount: wasLiked ? Math.max(0, (acc.likeCount || 0) - 1) : (acc.likeCount || 0) + 1 };
@@ -304,13 +316,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
         if (!loggedInAccount) return { wasLiked: false };
+
         const wasLiked = (loggedInAccount.likedPostIds || []).includes(postId);
+
         setAccounts(prev => prev.map(acc => {
             if (acc.id === loggedInAccount.id) {
-                const newLikes = wasLiked
-                    ? (acc.likedPostIds || []).filter(id => id !== postId)
-                    : [...(acc.likedPostIds || []), postId];
-                return { ...acc, likedPostIds: newLikes };
+                return { ...acc, likedPostIds: toggleIdInArray(acc.likedPostIds, postId) };
             }
             return acc;
         }));
@@ -598,19 +609,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const value = useMemo(() => ({
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
+        addPostToViewHistory,
+        addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
         reports, addReport, addForumReport, setReports,
         feedbackList, addFeedback, setFeedbackList,
-        termsContent, setTermsContent,
-        privacyContent, setPrivacyContent,
+        termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews
     }), [
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
-        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag, addPostToViewHistory, addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
+        addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
+        addPostToViewHistory,
+        addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
-        reports, addReport, addForumReport, setReports, feedbackList, addFeedback, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent, incrementProfileViews
+        reports, addReport, addForumReport, setReports,
+        feedbackList, addFeedback, setFeedbackList,
+        termsContent, setTermsContent, privacyContent, setPrivacyContent,
+        incrementProfileViews
     ]);
 
     return (
