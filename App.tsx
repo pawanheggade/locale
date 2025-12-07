@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -77,6 +78,7 @@ export const App: React.FC = () => {
     priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
+  // FIX: Renamed the alias for `updateCategory` from `addForumCategory` to `updateForumCategory` to resolve a variable redeclaration error.
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
   const { activeModal, openModal, closeModal, addToast } = useUI();
   const showConfirmation = useConfirmationModal();
@@ -334,17 +336,25 @@ export const App: React.FC = () => {
       setMainView('grid');
     }
   
-    if (view === 'all' && history.length === 0) {
-      // If already on the home feed with no history, scroll to top and refresh. Filters are cleared above.
-      if (mainContentRef.current) {
-        mainContentRef.current.scrollTop = 0;
-      }
-      handleRefresh(); // Trigger a refresh
-    } else {
-      // Otherwise, navigate to the home feed (this will handle history)
-      navigateTo('all');
+    // This is a hard reset to the home screen.
+    // Clear history so the back button doesn't show.
+    setHistory([]);
+
+    // Manually reset view state instead of using navigateTo, which manages history.
+    setView('all');
+    setViewingPostId(null);
+    setViewingAccount(null);
+    setViewingForumPostId(null);
+    setEditingAdminPageKey(null);
+
+    // Scroll to top
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
     }
-  }, [navigateTo, onClearFilters, mainView, view, handleRefresh, history]);
+    
+    // Refresh content
+    handleRefresh();
+  }, [onClearFilters, mainView, handleRefresh]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
       pushHistoryState();
@@ -701,7 +711,7 @@ export const App: React.FC = () => {
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
-          onBack={history.length > 0 ? handleBack : undefined}
+          onBack={view !== 'all' && history.length > 0 ? handleBack : undefined}
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}

@@ -40,12 +40,8 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: In some TypeScript configurations, class field initializers can cause issues with type inference for inherited properties like `props`.
-  // Switching to a constructor for state initialization is a more traditional and robust way to ensure all properties are correctly typed.
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
+  // FIX: Switched to a class field initializer for state to resolve TypeScript errors where `state` and `props` were not being recognized on the component instance.
+  state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
