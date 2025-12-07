@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -78,7 +79,6 @@ export const App: React.FC = () => {
     priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
-  // FIX: Renamed the alias for `updateCategory` from `addForumCategory` to `updateForumCategory` to resolve a variable redeclaration error.
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
   const { activeModal, openModal, closeModal, addToast } = useUI();
   const showConfirmation = useConfirmationModal();
