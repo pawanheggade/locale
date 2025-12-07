@@ -115,13 +115,28 @@ export const Header: React.FC<HeaderProps> = ({
     setIsMobileSearchOpen(false);
   };
 
+  const handleForumsClick = () => {
+      navigateTo('forums');
+      setIsLikesDropdownOpen(false);
+  };
+
   const handleShowLikedProfilePosts = () => {
+      if (!currentAccount) {
+          openModal({ type: 'login' });
+          setIsLikesDropdownOpen(false);
+          return;
+      }
       navigateTo('all');
       dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: !filterState.filterShowOnlyLikedProfiles });
       setIsLikesDropdownOpen(false);
   };
 
   const handleShowLikedPosts = () => {
+      if (!currentAccount) {
+          openModal({ type: 'login' });
+          setIsLikesDropdownOpen(false);
+          return;
+      }
       navigateTo('all');
       dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: !filterState.filterShowOnlyLikedPosts });
       setIsLikesDropdownOpen(false);
@@ -232,56 +247,68 @@ export const Header: React.FC<HeaderProps> = ({
               </Button>
             )}
             <Logo onClick={handleLogoClick} />
-            {currentAccount && (
-                <div className="relative" ref={likesDropdownRef}>
-                    <Button
-                        variant="overlay-dark"
-                        size="icon-sm"
-                        onClick={() => setIsLikesDropdownOpen(prev => !prev)}
-                        className="!rounded-xl"
-                        aria-label="Liked profiles feed options"
-                        aria-haspopup="true"
-                        aria-expanded={isLikesDropdownOpen}
-                    >
-                        <ChevronDownIcon className="w-5 h-5" />
-                        {(filterState.filterShowOnlyLikedProfiles || filterState.filterShowOnlyLikedPosts) && (
-                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing liked feed"></span>
-                        )}
-                    </Button>
-                    {isLikesDropdownOpen && (
-                        <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
-                            <div className="p-1">
-                                <Button
-                                    onClick={handleShowLikedProfilePosts}
-                                    variant="ghost"
-                                    className={cn(
-                                        "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
-                                        filterState.filterShowOnlyLikedProfiles ? "text-red-600 bg-red-50" : "text-gray-600"
-                                    )}
-                                >
-                                    <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
-                                        <HeartIcon className="w-5 h-5" isFilled={filterState.filterShowOnlyLikedProfiles} />
-                                        <span>Profiles</span>
-                                    </div>
-                                </Button>
-                                <Button
-                                    onClick={handleShowLikedPosts}
-                                    variant="ghost"
-                                    className={cn(
-                                        "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
-                                        filterState.filterShowOnlyLikedPosts ? "text-red-600 bg-red-50" : "text-gray-600"
-                                    )}
-                                >
-                                    <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
-                                        <HeartIcon className="w-5 h-5" isFilled={filterState.filterShowOnlyLikedPosts} />
-                                        <span>Posts</span>
-                                    </div>
-                                </Button>
-                            </div>
-                        </div>
+            <div className="relative" ref={likesDropdownRef}>
+                <Button
+                    variant="overlay-dark"
+                    size="icon-sm"
+                    onClick={() => setIsLikesDropdownOpen(prev => !prev)}
+                    className="!rounded-xl"
+                    aria-label="More options"
+                    aria-haspopup="true"
+                    aria-expanded={isLikesDropdownOpen}
+                >
+                    <ChevronDownIcon className="w-5 h-5" />
+                    {currentAccount && (filterState.filterShowOnlyLikedProfiles || filterState.filterShowOnlyLikedPosts) && (
+                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing liked feed"></span>
                     )}
-                </div>
-            )}
+                </Button>
+                {isLikesDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+                        <div className="p-1">
+                            <Button
+                                onClick={handleForumsClick}
+                                variant="ghost"
+                                className={cn(
+                                    "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
+                                    isForumsView ? "text-red-600 bg-red-50" : "text-gray-600"
+                                )}
+                            >
+                                <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
+                                    <ChatBubbleEllipsisIcon className="w-5 h-5" isFilled={isForumsView} />
+                                    <span>Forums</span>
+                                </div>
+                            </Button>
+                            <div className="my-1 h-px bg-gray-100" />
+                            <Button
+                                onClick={handleShowLikedProfilePosts}
+                                variant="ghost"
+                                className={cn(
+                                    "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
+                                    currentAccount && filterState.filterShowOnlyLikedProfiles ? "text-red-600 bg-red-50" : "text-gray-600"
+                                )}
+                            >
+                                <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
+                                    <HeartIcon className="w-5 h-5" isFilled={!!(currentAccount && filterState.filterShowOnlyLikedProfiles)} />
+                                    <span>Profiles</span>
+                                </div>
+                            </Button>
+                            <Button
+                                onClick={handleShowLikedPosts}
+                                variant="ghost"
+                                className={cn(
+                                    "w-full h-auto rounded-lg text-sm font-semibold whitespace-nowrap p-0",
+                                    currentAccount && filterState.filterShowOnlyLikedPosts ? "text-red-600 bg-red-50" : "text-gray-600"
+                                )}
+                            >
+                                <div className="flex w-full items-center justify-start gap-2 px-3 py-2">
+                                    <HeartIcon className="w-5 h-5" isFilled={!!(currentAccount && filterState.filterShowOnlyLikedPosts)} />
+                                    <span>Posts</span>
+                                </div>
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
         
         {/* Center Section */}
@@ -318,20 +345,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
-            <Button 
-                onClick={() => navigateTo(isForumsView ? 'all' : 'forums')}
-                variant="outline"
-                size="icon"
-                className={cn(
-                    "shrink-0 !rounded-xl border-gray-200 bg-transparent",
-                    isForumsView && "text-red-600 border-red-200 bg-red-50"
-                )}
-                aria-label={isForumsView ? "Back to feed" : "Community Forums"}
-                title={isForumsView ? "Back to feed" : "Community Forums"}
-            >
-                <ChatBubbleEllipsisIcon className="w-6 h-6" isFilled={isForumsView} />
-            </Button>
-
             <div className="relative">
                  {currentAccount ? (
                     <AccountMenu

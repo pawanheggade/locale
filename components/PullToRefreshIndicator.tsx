@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { ArrowDownIcon, SpinnerIcon } from './Icons';
 
@@ -6,6 +7,7 @@ interface PullToRefreshIndicatorProps {
   pullPosition: number;
   isRefreshing: boolean;
   pullThreshold: number;
+  isPulling: boolean;
 }
 
 const PULL_ICON_SIZE = 40;
@@ -16,6 +18,7 @@ const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
   pullPosition,
   isRefreshing,
   pullThreshold,
+  isPulling,
 }) => {
   const pullProgress = Math.min(pullPosition / pullThreshold, 1);
   const strokeDashoffset = CIRCLE_CIRCUMFERENCE * (1 - pullProgress);
@@ -27,7 +30,7 @@ const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
       aria-hidden="true"
       style={{
         transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)`,
-        transition: isRefreshing ? 'transform 0.3s ease-in-out' : 'none',
+        transition: !isPulling ? 'transform 0.3s ease-in-out' : 'none',
       }}
     >
       <div

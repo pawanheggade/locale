@@ -40,11 +40,11 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Refactored the class component to use modern syntax. Initializing state as a class
-  // property and converting `handleReset` to an arrow function resolves all reported TypeScript
-  // errors by correctly defining `state` on the instance and ensuring `this` is bound correctly
-  // for the event handler. This removes the need for a constructor.
-  state: ErrorBoundaryState = { hasError: false };
+  // FIX: Using a constructor to initialize state ensures `this.props` is correctly set up.
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.

@@ -710,11 +710,18 @@ export const App: React.FC = () => {
           )}
           {...touchHandlers}
         >
-          {pullPosition > 0 && <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />}
-          <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
-            <ErrorBoundary>
-              {isInitialLoading ? <LoadingFallback /> : renderMainContent()}
-            </ErrorBoundary>
+          {pullPosition > 0 && <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} isPulling={isPulling} />}
+          <div
+            style={{
+              transform: `translateY(${pullPosition}px)`,
+              transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
+            }}
+          >
+            <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+              <ErrorBoundary>
+                {isInitialLoading ? <LoadingFallback /> : renderMainContent()}
+              </ErrorBoundary>
+            </div>
           </div>
         </main>
         
