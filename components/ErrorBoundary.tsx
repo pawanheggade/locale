@@ -40,7 +40,8 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: The class property syntax for state initialization was not correctly initializing `this.props`, leading to a type error. Reverting to a standard constructor ensures the component is properly initialized.
+  // FIX: In some TypeScript configurations, class field initializers can cause issues with type inference for inherited properties like `props`.
+  // Switching to a constructor for state initialization is a more traditional and robust way to ensure all properties are correctly typed.
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };

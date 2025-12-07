@@ -54,6 +54,8 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
         filterShowOnlyLikedPosts: action.payload,
         ...(action.payload && { filterShowOnlyLikedProfiles: false }),
       };
+    case 'SET_ALL_FILTERS':
+        return action.payload;
     case 'SET_FILTERS_FROM_SAVED':
       return {
         ...state,

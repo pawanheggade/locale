@@ -1,7 +1,7 @@
 
 
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
-import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab } from './types';
+import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
 import { PostList } from './components/PostList';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -53,6 +53,7 @@ interface HistoryItem {
     viewingForumPostId: string | null;
     editingAdminPageKey: 'terms' | 'privacy' | null;
     scrollPosition: number;
+    filters: FiltersState;
 }
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
@@ -142,9 +143,10 @@ export const App: React.FC = () => {
         viewingAccount, 
         viewingForumPostId,
         editingAdminPageKey,
-        scrollPosition: currentScrollPosition
+        scrollPosition: currentScrollPosition,
+        filters: filterState,
     }]);
-  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, filterState]);
 
   const navigateTo = useCallback((
       newView: AppView,
@@ -301,6 +303,9 @@ export const App: React.FC = () => {
   const handleBack = useCallback(() => {
     const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;
     if (lastHistoryItem) {
+      if(lastHistoryItem.filters) {
+          dispatchFilterAction({ type: 'SET_ALL_FILTERS', payload: lastHistoryItem.filters });
+      }
       setView(lastHistoryItem.view);
       setMainView(lastHistoryItem.mainView);
       setViewingPostId(lastHistoryItem.viewingPostId);
@@ -321,7 +326,7 @@ export const App: React.FC = () => {
         navigateTo('all');
       }
     }
-  }, [history, navigateTo, view]);
+  }, [history, navigateTo, view, dispatchFilterAction]);
 
   const handleGoHome = useCallback(() => {
     onClearFilters();
@@ -329,8 +334,8 @@ export const App: React.FC = () => {
       setMainView('grid');
     }
   
-    if (view === 'all') {
-      // If already on the home feed, scroll to top and refresh. Filters are cleared above.
+    if (view === 'all' && history.length === 0) {
+      // If already on the home feed with no history, scroll to top and refresh. Filters are cleared above.
       if (mainContentRef.current) {
         mainContentRef.current.scrollTop = 0;
       }
@@ -339,7 +344,7 @@ export const App: React.FC = () => {
       // Otherwise, navigate to the home feed (this will handle history)
       navigateTo('all');
     }
-  }, [navigateTo, onClearFilters, mainView, view, handleRefresh]);
+  }, [navigateTo, onClearFilters, mainView, view, handleRefresh, history]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
       pushHistoryState();
@@ -457,7 +462,8 @@ export const App: React.FC = () => {
     navigateToAccount,
     handleBack,
     showOnMap,
-  }), [navigateTo, navigateToAccount, handleBack, showOnMap]);
+    saveHistoryState: pushHistoryState,
+  }), [navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState]);
   
   const createPost = (postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>): Post => {
       if(!currentAccount) throw new Error("No current account");
@@ -695,7 +701,7 @@ export const App: React.FC = () => {
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
-          onBack={history.length > 0 && view !== 'all' ? handleBack : undefined}
+          onBack={history.length > 0 ? handleBack : undefined}
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}

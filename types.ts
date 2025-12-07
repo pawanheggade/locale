@@ -285,6 +285,7 @@ export type FilterAction =
   | { type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES'; payload: boolean }
   | { type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS'; payload: boolean }
   | { type: 'CLEAR_FILTERS' }
+  | { type: 'SET_ALL_FILTERS'; payload: FiltersState }
   | { type: 'SET_FILTERS_FROM_SAVED'; payload: SavedSearchFilters };
 
 // --- Forum Types ---

@@ -9,6 +9,7 @@ interface NavigationContextType {
   navigateToAccount: (accountId: string) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
+  saveHistoryState: () => void;
 }
 
 export const NavigationContext = createContext<NavigationContextType | undefined>(undefined);

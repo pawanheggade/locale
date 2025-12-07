@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -51,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal } = useUI();
-  const { navigateTo } = useNavigation();
+  const { navigateTo, saveHistoryState } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
@@ -140,6 +141,8 @@ export const Header: React.FC<HeaderProps> = ({
           openModal({ type: 'login' });
           return;
       }
+      
+      saveHistoryState();
 
       if (filterState.filterShowOnlyLikedProfiles) {
           // If this filter is active, clicking it just turns it off.
@@ -161,6 +164,8 @@ export const Header: React.FC<HeaderProps> = ({
           openModal({ type: 'login' });
           return;
       }
+      
+      saveHistoryState();
 
       if (filterState.filterShowOnlyLikedPosts) {
           // If this filter is active, clicking it just turns it off.
@@ -267,7 +272,7 @@ export const Header: React.FC<HeaderProps> = ({
     )}>
       {/* Main Header */}
       <div className={cn(
-          'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
+          'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_minmax(0,42rem)_1fr] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
           isScrolled ? 'h-14' : 'h-16'
       )}>
         
@@ -355,7 +360,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Desktop Search Bar & Filter */}
-            <div className="hidden sm:flex items-center w-full max-w-xl">
+            <div className="hidden sm:flex items-center w-full">
                 <SearchBar 
                     searchQuery={filterState.searchQuery}
                     onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
