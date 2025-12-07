@@ -1,11 +1,12 @@
 
-import React, { useState, useMemo } from 'react';
-import { Account, DisplayablePost, Notification } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
 import { timeSince } from '../utils/formatters';
 import { BellIcon, XMarkIcon, CheckIcon, ClockIcon } from './Icons';
 import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
+import { SettingsPage } from './SettingsPage';
 
 interface ActivityPageProps {
   notifications: Notification[];
@@ -14,6 +15,11 @@ interface ActivityPageProps {
   onNotificationClick: (notification: Notification) => void;
   viewedPosts: DisplayablePost[];
   currentAccount: Account;
+  settings: NotificationSettings;
+  onSettingsChange: (newSettings: NotificationSettings) => void;
+  onArchiveAccount: () => void;
+  onSignOut: () => void;
+  initialTab?: 'notifications' | 'alerts' | 'history' | 'settings';
 }
 
 export const ActivityPage: React.FC<ActivityPageProps> = ({
@@ -23,8 +29,19 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
   onNotificationClick,
   viewedPosts,
   currentAccount,
+  settings,
+  onSettingsChange,
+  onArchiveAccount,
+  onSignOut,
+  initialTab = 'notifications',
 }) => {
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+        setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
@@ -88,6 +105,9 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                 <TabButton onClick={() => setActiveTab('history')} isActive={activeTab === 'history'}>
                     History
                 </TabButton>
+                <TabButton onClick={() => setActiveTab('settings')} isActive={activeTab === 'settings'}>
+                    Settings
+                </TabButton>
             </div>
         </div>
         <div className="py-6 space-y-4">
@@ -127,7 +147,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                 ) : (
                     renderNotificationList(alertNotifications)
                 )
-            ) : (
+            ) : activeTab === 'history' ? (
                  viewedPosts.length === 0 ? (
                     <EmptyState
                         icon={<ClockIcon />}
@@ -142,6 +162,16 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                         variant="compact"
                     />
                 )
+            ) : (
+                <div className="-m-4 sm:-m-6 lg:-m-8">
+                    <SettingsPage
+                        settings={settings}
+                        onSettingsChange={onSettingsChange}
+                        onArchiveAccount={onArchiveAccount}
+                        onSignOut={onSignOut}
+                        currentAccount={currentAccount}
+                    />
+                </div>
             )}
         </div>
     </div>

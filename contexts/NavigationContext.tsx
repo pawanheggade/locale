@@ -1,11 +1,11 @@
 
 
 import { createContext, useContext } from 'react';
-import { AppView, Account } from '../types';
+import { AppView, Account, ActivityTab } from '../types';
 
 // --- Navigation Context ---
 interface NavigationContextType {
-  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' }) => void;
+  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab }) => void;
   navigateToAccount: (accountId: string) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;

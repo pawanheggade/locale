@@ -1,10 +1,7 @@
 
 
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
-import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback } from './types';
+import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab } from './types';
 import { Header } from './components/Header';
 import { PostList } from './components/PostList';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -28,7 +25,6 @@ import { cn } from './lib/utils';
 import { SubscriptionPage } from './components/SubscriptionPage';
 import { geocodeLocation, reverseGeocode, haversineDistance } from './utils/geocoding';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { SettingsPage } from './components/SettingsPage';
 import { ActivityPage } from './components/ActivityPage';
 import { useConfirmationModal } from './hooks/useConfirmationModal';
 import { useIsMounted } from './hooks/useIsMounted';
@@ -60,7 +56,6 @@ interface HistoryItem {
 }
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
-
 
 export const App: React.FC = () => {
   const { 
@@ -108,6 +103,7 @@ export const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [nearbyPostsResult, setNearbyPostsResult] = useState<{ posts: DisplayablePost[], locationName: string | null } | null>(null);
   const [recentSearches, setRecentSearches] = usePersistentState<string[]>('localeAppRecentSearches', []);
+  const [activityInitialTab, setActivityInitialTab] = useState<ActivityTab>('notifications');
   
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollTopRef = useRef(0);
@@ -116,6 +112,9 @@ export const App: React.FC = () => {
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const [notificationSettings, setNotificationSettings] = usePersistentState<NotificationSettings>(NOTIFICATION_SETTINGS_KEY, { expiryAlertsEnabled: true, expiryThresholdDays: 3 });
+
+  // This hook must be called at the top level.
+  const viewedPosts = useMemo(() => viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p), [viewedPostIds, findPostById]);
 
   useEffect(() => {
     setIsInitialLoading(false); 
@@ -149,7 +148,7 @@ export const App: React.FC = () => {
 
   const navigateTo = useCallback((
       newView: AppView,
-      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy' } = {}
+      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab } = {}
   ) => {
       const isSameView = view === newView;
       const isSamePost = viewingPostId === (options.postId || null);
@@ -179,6 +178,12 @@ export const App: React.FC = () => {
 
       if (newView === 'account' && options.account) {
           incrementProfileViews(options.account.id);
+      }
+      
+      if (newView === 'activity' && options.activityTab) {
+          setActivityInitialTab(options.activityTab);
+      } else {
+          setActivityInitialTab('notifications'); // Reset to default for any other navigation.
       }
 
       pushHistoryState();
@@ -279,347 +284,459 @@ export const App: React.FC = () => {
             confirmText: 'Delete',
             confirmClassName: 'bg-red-600 text-white',
           });
-      } else {
-          setFeedbackList(prev => {
-              return prev.map(f => {
-                  if (ids.includes(f.id)) {
-                      if (action === 'markRead') return { ...f, isRead: true };
-                      if (action === 'archive') return { ...f, isArchived: true };
-                      if (action === 'unarchive') return { ...f, isArchived: false };
-                  }
-                  return f;
-              });
-          });
+          return;
       }
-  };
-
-  const handleClearRecentSearchesConfirm = useCallback(() => {
-      if (recentSearches.length === 0) return;
-      showConfirmation({
-        title: 'Clear Recent Searches',
-        message: 'Are you sure you want to clear your search history?',
-        onConfirm: () => {
-            setRecentSearches([]);
-        },
-        confirmText: 'Clear History',
-        confirmClassName: 'bg-red-600 text-white',
-      });
-  }, [recentSearches.length, showConfirmation, setRecentSearches]);
-
-  const handleAiSearchSubmitWithHistory = useCallback((query: string) => {
-    handleSearchSubmit(query);
-    handleAiSearchSubmit(query);
-  }, [handleAiSearchSubmit, handleSearchSubmit]);
-
-  const performSignOut = useCallback(() => {
-    signOut();
-    setView('all');
-    setMainView('grid');
-    setViewingAccount(null);
-    setViewingPostId(null);
-    setViewingForumPostId(null);
-    setEditingAdminPageKey(null);
-    setHistory([]);
-    if (mainContentRef.current) {
-        mainContentRef.current.scrollTop = 0;
-    }
-  }, [signOut]);
-
-  const requestSignOut = useCallback(() => {
-    showConfirmation({
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out?',
-      onConfirm: performSignOut,
-      confirmText: 'Sign Out',
-      confirmClassName: 'bg-red-600 text-white',
-    });
-  }, [showConfirmation, performSignOut]);
-
-  const archiveAndSignOut = () => {
-    if (currentAccount) {
-        toggleAccountStatus(currentAccount.id);
-        performSignOut();
-    }
-  };
-
-  const requestArchiveAccount = () => {
-    showConfirmation({
-      title: 'Archive Account',
-      message: 'Are you sure you want to archive your account? You will be signed out and your posts will be hidden. You can reactivate by signing in again.',
-      onConfirm: archiveAndSignOut,
-      confirmText: 'Archive & Sign Out',
-      confirmClassName: 'bg-amber-600 text-white',
-    });
+      setFeedbackList(prev => prev.map(f => {
+          if (ids.includes(f.id)) {
+              switch (action) {
+                  case 'markRead': return { ...f, isRead: true };
+                  case 'archive': return { ...f, isRead: true, isArchived: true };
+                  case 'unarchive': return { ...f, isArchived: false };
+              }
+          }
+          return f;
+      }));
   };
 
   const handleBack = useCallback(() => {
-      if (view === 'all' && isAnyFilterActive) {
-          onClearFilters();
-          return;
-      }
-      if (history.length > 0) {
-          const previousState = history[history.length - 1];
-          setHistory(h => h.slice(0, -1));
+    const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;
+    if (lastHistoryItem) {
+      setView(lastHistoryItem.view);
+      setMainView(lastHistoryItem.mainView);
+      setViewingPostId(lastHistoryItem.viewingPostId);
+      setViewingAccount(lastHistoryItem.viewingAccount);
+      setViewingForumPostId(lastHistoryItem.viewingForumPostId);
+      setEditingAdminPageKey(lastHistoryItem.editingAdminPageKey);
+      setHistory(h => h.slice(0, -1));
 
-          setView(previousState.view);
-          setMainView(previousState.mainView);
-          setViewingPostId(previousState.viewingPostId);
-          setViewingAccount(previousState.viewingAccount);
-          setViewingForumPostId(previousState.viewingForumPostId);
-          setEditingAdminPageKey(previousState.editingAdminPageKey);
-          
-          // Restore scroll position after render
-          requestAnimationFrame(() => {
-              if (mainContentRef.current) {
-                  mainContentRef.current.scrollTop = previousState.scrollPosition;
-              }
-          });
+      // Restore scroll position after a short delay to allow content to render
+      setTimeout(() => {
+        if (mainContentRef.current) {
+            mainContentRef.current.scrollTop = lastHistoryItem.scrollPosition;
+        }
+      }, 50);
+    } else {
+      // Default back action if history is empty
+      if (view !== 'all') {
+        navigateTo('all');
       }
-  }, [history, view, isAnyFilterActive, onClearFilters]);
+    }
+  }, [history, navigateTo, view]);
+
+  const handleGoHome = useCallback(() => {
+    onClearFilters();
+    if (mainView === 'map') {
+      setMainView('grid');
+    }
+  
+    if (view === 'all') {
+      // If already on the home feed, just scroll to top. Filters are cleared above.
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = 0;
+      }
+    } else {
+      // Otherwise, navigate to the home feed (this will handle history)
+      navigateTo('all');
+    }
+  }, [navigateTo, onClearFilters, mainView, view]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
-      if (mainView === newMainView) return;
-      // When switching main view modes, we don't necessarily want to save scroll position of the previous mode
-      // as they are different representations. However, saving state allows 'back' to work.
       pushHistoryState();
       setMainView(newMainView);
-  }, [mainView, pushHistoryState]);
+  }, [pushHistoryState]);
 
-  const showOnMap = useCallback(async (target: string | Account) => {
-    pushHistoryState();
-    
-    if (typeof target === 'string') {
-      setView('all'); setMainView('map'); setPostToFocusOnMap(target);
-    } else {
-      const account = target as Account;
-      let coords = account.coordinates;
-      if (!coords && account.address) {
-        try { coords = await geocodeLocation(account.address); } 
-        catch (e) { console.error(e); } 
+  const showOnMap = useCallback((target: string | Account) => {
+    const isPostId = typeof target === 'string';
+    const post = isPostId ? findPostById(target) : null;
+    const account = !isPostId ? target as Account : null;
+
+    if (post) {
+      if (!post.coordinates && !(post.type === PostType.EVENT && post.eventCoordinates)) {
+        addToast("This post does not have a location.", "error");
+        return;
       }
-      if (coords) { setLocationToFocus({ coords, name: account.name }); setView('all'); setMainView('map'); } 
-      else { console.error(`Could not find location for ${account.name}.`); }
+      setPostToFocusOnMap(post.id);
+    } else if (account) {
+      if (!account.coordinates) {
+        addToast("This user's location is not available.", "error");
+        return;
+      }
+      setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
-  }, [isMounted, pushHistoryState]);
+    
+    pushHistoryState();
+    setMainView('map');
+  }, [findPostById, addToast, pushHistoryState]);
 
-  const handleFindNearby = useCallback(async (coords: { lat: number; lng: number }) => {
-      if (isFindingNearby) return;
-      setIsFindingNearby(true);
-      try {
-          const locationName = await reverseGeocode(coords.lat, coords.lng);
-          const nearby = allDisplayablePosts.map(post => {
-            const postCoords = post.type === PostType.EVENT ? post.eventCoordinates : post.coordinates;
-            if (!postCoords) return null;
-            const distance = haversineDistance(coords, postCoords);
-            return { ...post, distance };
-          }).filter((p): p is DisplayablePost & { distance: number } => p !== null && p.distance <= 50)
-            .sort((a,b) => a.distance - b.distance);
+  const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
+    setIsFindingNearby(true);
+    closeModal();
+    const locationName = await reverseGeocode(coords.lat, coords.lng);
+    const nearby = allDisplayablePosts.filter(post => {
+        const postCoords = post.coordinates || post.eventCoordinates;
+        if (!postCoords) return false;
+        const distance = haversineDistance(coords, postCoords);
+        return distance <= 50; // 50km radius
+    }).map(post => ({...post, distance: haversineDistance(coords, post.coordinates || post.eventCoordinates!)}));
+    
+    nearby.sort((a, b) => a.distance! - b.distance!);
 
-          setNearbyPostsResult({ posts: nearby, locationName });
-          closeModal();
-          navigateTo('nearbyPosts');
-      } catch (error) {
-          console.error('Failed to find nearby posts', error);
-      } finally {
-          if (isMounted()) setIsFindingNearby(false);
-      }
-  }, [isFindingNearby, allDisplayablePosts, closeModal, navigateTo, isMounted]);
-
-  const handleEnableLocation = useCallback(async () => {
+    setNearbyPostsResult({ posts: nearby, locationName });
+    setIsFindingNearby(false);
+    navigateTo('nearbyPosts');
+  }, [allDisplayablePosts, closeModal, navigateTo]);
+  
+  const handleEnableLocation = async () => {
       if (!navigator.geolocation) {
-          addToast("Geolocation is not supported by your browser.", 'error');
+          addToast("Geolocation is not supported by your browser.", "error");
           return;
       }
+      try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
+          setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+          });
+      } catch (error: any) {
+          if (error.code === error.PERMISSION_DENIED) {
+               addToast("Location access denied. Please enable it in your browser settings.", "error");
+          } else {
+               addToast("Could not get your location.", "error");
+          }
+          throw error;
+      }
+  };
 
-      return new Promise<void>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-              (position) => {
-                  const coords = {
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude
-                  };
-                  setUserLocation(coords);
-                  addToast("Location enabled successfully.", 'success');
-                  resolve();
-              },
-              (error) => {
-                  let message = "Could not get your location.";
-                  switch (error.code) {
-                      case error.PERMISSION_DENIED:
-                          message = "Location access denied. Please enable it in your browser settings.";
-                          break;
-                      case error.POSITION_UNAVAILABLE:
-                          message = "Location information is unavailable.";
-                          break;
-                      case error.TIMEOUT:
-                          message = "The request to get user location timed out.";
-                          break;
-                  }
-                  addToast(message, 'error');
-                  reject(error);
-              }
-          );
-      });
-  }, [addToast]);
-  
-  // Optimized Scroll Handler using requestAnimationFrame
-  const handleScroll = useCallback(() => {
-    if (!mainContentRef.current) return;
-    
-    if (rafRef.current) {
-        return;
-    }
-
-    rafRef.current = requestAnimationFrame(() => {
-        if (!mainContentRef.current) return;
-        const { scrollTop } = mainContentRef.current;
-        const currentScrollTop = Math.max(0, scrollTop);
-        const scrollDelta = currentScrollTop - lastScrollTopRef.current;
-        
-        if (Math.abs(scrollDelta) > 4) {
-            if (scrollDelta > 0 && currentScrollTop > 60) { 
-                setIsHeaderVisible(prev => !prev ? prev : false); // Only update if changing
-            } else if (scrollDelta < 0) { 
-                setIsHeaderVisible(prev => prev ? prev : true); 
-            }
-        }
-        
-        lastScrollTopRef.current = currentScrollTop;
-        setIsScrolled(prev => {
-            const isNowScrolled = currentScrollTop > 10;
-            return prev === isNowScrolled ? prev : isNowScrolled;
-        });
-        
-        rafRef.current = null;
+  const handleArchiveAccount = useCallback(() => {
+    if (!currentAccount) return;
+    showConfirmation({
+        title: 'Archive Account',
+        message: 'Are you sure you want to archive your account? You can reactivate it by signing in again.',
+        onConfirm: () => {
+            toggleAccountStatus(currentAccount.id, false);
+            signOut();
+        },
+        confirmText: 'Archive',
+        confirmClassName: 'bg-amber-600 text-white',
     });
+  }, [currentAccount, toggleAccountStatus, signOut, showConfirmation]);
+
+  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
+  const debouncedFilters = useDebounce(filterState, 200);
+
+  useEffect(() => {
+      const t = setTimeout(() => setIsFiltering(false), 300);
+      return () => clearTimeout(t);
+  }, [debouncedFilters]);
+
+  const handleScroll = useCallback(() => {
+      const currentScrollTop = mainContentRef.current?.scrollTop ?? 0;
+      setIsScrolled(currentScrollTop > 0);
+
+      // Simple check to avoid running on every scroll event
+      if (Math.abs(currentScrollTop - lastScrollTopRef.current) <= 10) return;
+      
+      if (currentScrollTop > lastScrollTopRef.current && currentScrollTop > 80) { // Scrolling down
+          setIsHeaderVisible(false);
+      } else { // Scrolling up
+          setIsHeaderVisible(true);
+      }
+      lastScrollTopRef.current = currentScrollTop;
   }, []);
 
-  const handleCreateForumPost = useCallback(async (postData: any) => {
-    const newPost = createForumPost(postData);
-    if (newPost) {
-        // Navigate to the new post, but modify history so "back" goes to the forum list, not the create page.
-        setHistory(h => h.slice(0, -1)); // remove the 'createForumPost' view from history
-        navigateTo('forumPostDetail', { forumPostId: newPost.id });
-    } else {
-        handleBack(); // Fallback if creation fails
-    }
-  }, [createForumPost, navigateTo, handleBack, setHistory]);
+  const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(allDisplayablePosts, isInitialLoading);
+  const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, userLocation, currentAccount, accounts);
+
+  const postsToShow = (viewingAccount ? allDisplayablePosts.filter(p => p.authorId === viewingAccount.id) : filteredAndSortedPosts);
 
   const navigationContextValue = useMemo(() => ({
-      navigateTo,
-      navigateToAccount,
-      handleBack,
-      showOnMap,
+    navigateTo,
+    navigateToAccount,
+    handleBack,
+    showOnMap,
   }), [navigateTo, navigateToAccount, handleBack, showOnMap]);
-
-  // --- Data derived for rendering (Moved from ViewManager) ---
-  const viewedPosts = useMemo(() => 
-    viewedPostIds.map(id => allDisplayablePosts.find(p => p.id === id)).filter((p): p is DisplayablePost => !!p),
-    [viewedPostIds, allDisplayablePosts]
-  );
   
-  const sortedAndFilteredPosts = usePostFilters(allDisplayablePosts, allDisplayablePosts, userLocation, currentAccount, accounts);
-  const { displayedItems: paginatedPosts, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sortedAndFilteredPosts, isInitialLoading);
-  const displayPosts = filterState.searchQuery ? sortedAndFilteredPosts : paginatedPosts;
-  const likedPosts = useMemo(() => allDisplayablePosts.filter(p => likedPostIds.has(p.id)), [allDisplayablePosts, likedPostIds]);
-  const viewingPost = useMemo(() => viewingPostId ? findPostById(viewingPostId) : null, [viewingPostId, findPostById]);
+  const createPost = (postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>): Post => {
+      if(!currentAccount) throw new Error("No current account");
+      const newPost = createPostInContext(postData, currentAccount.id);
+      addToast('Post created successfully!', 'success');
+      return newPost;
+  };
+  
+  const updatePost = async (updatedPost: Post): Promise<Post> => {
+      const result = await updatePostInContext(updatedPost);
+      addToast('Post updated successfully!', 'success');
+      return result;
+  };
 
-  const renderCurrentView = () => {
+  const renderMainContent = () => {
     switch (view) {
-        case 'all':
-            if (mainView === 'grid') return <div className="p-4 sm:p-6 lg:p-8"><PostList posts={displayPosts} currentAccount={currentAccount} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} isLoading={isInitialLoading} isFiltering={isFiltering} variant={gridView} enableEntryAnimation={true} /></div>;
-            if (mainView === 'map') return <Suspense fallback={<LoadingFallback/>}><MapView posts={displayPosts.filter(p => p.coordinates || p.eventCoordinates)} userLocation={userLocation} isLoading={isInitialLoading} onFindNearby={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} postToFocusOnMap={postToFocusOnMap} onPostFocusComplete={() => setPostToFocusOnMap(null)} onViewPostDetails={openPostDetailsModal} locationToFocus={locationToFocus} onLocationFocusComplete={() => setLocationToFocus(null)} /></Suspense>;
-            return null;
-        case 'likes': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} /></Suspense> : null;
-        case 'bag': return currentAccount ? <Suspense fallback={<LoadingFallback/>}><BagView allAccounts={accounts} onViewDetails={openPostDetailsModal} /></Suspense> : null;
-        case 'admin':
-            return currentAccount?.role === 'admin' ? <Suspense fallback={<LoadingFallback/>}><AdminPanel initialView={adminInitialView} feedbackList={feedbackList} onDeleteFeedback={handleDeleteFeedback} onToggleFeedbackArchive={handleToggleFeedbackArchive} onMarkFeedbackAsRead={handleMarkFeedbackAsRead} onBulkFeedbackAction={handleBulkFeedbackAction} /></Suspense> : null;
-        case 'account': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountView account={viewingAccount} currentAccount={currentAccount} posts={allDisplayablePosts} archivedPosts={archivedPosts} allAccounts={accounts} /></Suspense> : null;
-        case 'forums': return <Suspense fallback={<LoadingFallback/>}><ForumsView /></Suspense>;
-        case 'forumPostDetail': return viewingForumPostId ? <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} /> : null;
-        case 'createPost':
-            if (currentAccount?.subscription.tier === 'Personal') { return null; }
-            return currentAccount ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onNavigateToPost={handleBack} currentAccount={currentAccount} categories={categories} onUpdateCurrentAccountDetails={(data) => updateAccountDetails({ ...currentAccount, ...data })} /> : null;
-        case 'editPost': return currentAccount && viewingPost ? <CreatePostPage onBack={handleBack} onSubmitPost={(d) => createPostInContext(d, currentAccount!.id)} onUpdatePost={updatePostInContext} onNavigateToPost={handleBack} editingPost={viewingPost} currentAccount={currentAccount} categories={categories} /> : null;
-        case 'nearbyPosts': return nearbyPostsResult && currentAccount ? <Suspense fallback={<LoadingFallback/>}><NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} /></Suspense> : null;
-        case 'accountAnalytics': return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><AccountAnalyticsView account={viewingAccount} accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)} allCategories={categories} allAccounts={accounts} /></Suspense> : null;
-        case 'subscription': return currentAccount ? <SubscriptionPage currentAccount={currentAccount} onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)} openModal={openModal} /> : null;
-        case 'settings':
-            return currentAccount ? <SettingsPage
-                settings={notificationSettings}
-                onSettingsChange={handleUpdateNotificationSettings}
-                currentAccount={currentAccount}
-                onArchiveAccount={requestArchiveAccount}
-                onSignOut={requestSignOut}
-            /> : null;
-        case 'activity':
-            return currentAccount ? <ActivityPage
-                notifications={notifications}
-                onDismiss={(id) => markAsRead(id)}
-                onDismissAll={() => notifications.forEach(n => markAsRead(n.id))}
+      case 'all':
+        return mainView === 'grid' ? (
+          <PostList
+            posts={postsToShow}
+            currentAccount={currentAccount}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            isFiltering={isFiltering}
+            variant={gridView}
+            enableEntryAnimation={true}
+          />
+        ) : (
+          <Suspense fallback={<LoadingFallback />}>
+            <MapView 
+              posts={postsToShow} 
+              userLocation={userLocation} 
+              isLoading={isInitialLoading}
+              onFindNearby={() => openModal({ type: 'findNearby' })}
+              isFindingNearby={isFindingNearby}
+              postToFocusOnMap={postToFocusOnMap}
+              onPostFocusComplete={() => setPostToFocusOnMap(null)}
+              onViewPostDetails={openPostDetailsModal}
+              locationToFocus={locationToFocus}
+              onLocationFocusComplete={() => setLocationToFocus(null)}
+            />
+          </Suspense>
+        );
+      case 'likes':
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        const likedPosts = allDisplayablePosts.filter(post => likedPostIds.has(post.id));
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} />
+            </Suspense>
+        );
+      case 'bag':
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <BagView onViewDetails={openPostDetailsModal} allAccounts={accounts} />
+            </Suspense>
+        );
+      case 'admin':
+        if (currentAccount?.role !== 'admin') return <div className="p-8 text-center text-red-600">Access Denied.</div>;
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <AdminPanel 
+                    initialView={adminInitialView} 
+                    feedbackList={feedbackList}
+                    onDeleteFeedback={handleDeleteFeedback}
+                    onToggleFeedbackArchive={handleToggleFeedbackArchive}
+                    onMarkFeedbackAsRead={handleMarkFeedbackAsRead}
+                    onBulkFeedbackAction={handleBulkFeedbackAction}
+                />
+            </Suspense>
+        );
+      case 'account':
+        if (!viewingAccount) return <div className="p-8 text-center">Account not found.</div>;
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <AccountView
+                    account={viewingAccount}
+                    currentAccount={currentAccount}
+                    posts={allDisplayablePosts}
+                    archivedPosts={archivedPosts}
+                    allAccounts={accounts}
+                />
+            </Suspense>
+        );
+      case 'nearbyPosts':
+        if (!nearbyPostsResult) return <div className="p-8 text-center">No nearby results available.</div>;
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} />
+            </Suspense>
+        );
+       case 'forums':
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <ForumsView />
+            </Suspense>
+        );
+       case 'forumPostDetail':
+        if (!viewingForumPostId) return null;
+        return <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} />;
+      case 'createPost':
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        return (
+            <CreatePostPage 
+                onBack={handleBack} 
+                onSubmitPost={createPost}
+                onNavigateToPost={() => navigateTo('all')} 
+                currentAccount={currentAccount} 
+                categories={categories}
+                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount, ...details })}
+            />
+        );
+      case 'editPost':
+          if (!viewingPostId) return null;
+          const postToEdit = findPostById(viewingPostId);
+          if (!postToEdit) return <div className="p-8 text-center">Post not found.</div>;
+          if (!currentAccount || (currentAccount.id !== postToEdit.authorId && currentAccount.role !== 'admin')) return <div className="p-8 text-center">You don't have permission to edit this post.</div>;
+          return (
+              <CreatePostPage 
+                  onBack={handleBack}
+                  onSubmitPost={createPost}
+                  onUpdatePost={updatePost}
+                  onNavigateToPost={() => {
+                      openPostDetailsModal(postToEdit);
+                      handleBack();
+                  }}
+                  editingPost={postToEdit}
+                  currentAccount={currentAccount}
+                  categories={categories}
+              />
+          );
+      case 'subscription':
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        return (
+            <SubscriptionPage 
+                currentAccount={currentAccount} 
+                onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)}
+                openModal={openModal}
+            />
+        );
+      case 'activity':
+        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
+        const markAllAsRead = () => {
+            notifications.forEach(n => {
+                if (!n.isRead) markAsRead(n.id);
+            });
+        };
+        return (
+            <ActivityPage
+                notifications={notifications.filter(n => n.recipientId === currentAccount.id)}
+                onDismiss={markAsRead}
+                onDismissAll={markAllAsRead}
                 onNotificationClick={handleNotificationClick}
                 viewedPosts={viewedPosts}
                 currentAccount={currentAccount}
-            /> : null;
-        case 'editAdminPage':
-            return editingAdminPageKey ? <Suspense fallback={<LoadingFallback/>}><EditPageView pageKey={editingAdminPageKey} initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent} onSave={editingAdminPageKey === 'terms' ? setTermsContent : setPrivacyContent} onBack={handleBack} /></Suspense> : null;
-        case 'editProfile':
-            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><EditProfilePage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
-        case 'manageCatalog':
-            return viewingAccount ? <Suspense fallback={<LoadingFallback/>}><ManageCatalogPage account={viewingAccount} onBack={handleBack} /></Suspense> : null;
-        case 'createForumPost':
-            return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage onBack={handleBack} onSubmit={handleCreateForumPost} /></Suspense>;
-        default: return null;
+                settings={notificationSettings}
+                onSettingsChange={handleUpdateNotificationSettings}
+                onArchiveAccount={handleArchiveAccount}
+                onSignOut={signOut}
+                initialTab={activityInitialTab}
+            />
+        );
+      case 'accountAnalytics':
+        if (!currentAccount || !viewingAccount || viewingAccount.id !== currentAccount.id) return <div className="p-8 text-center">Access denied.</div>;
+        return (
+            <Suspense fallback={<LoadingFallback />}>
+                <AccountAnalyticsView 
+                    account={viewingAccount}
+                    accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)}
+                    allCategories={categories}
+                    allAccounts={accounts}
+                />
+            </Suspense>
+        );
+       case 'editAdminPage':
+         if (!editingAdminPageKey) return null;
+         return (
+             <Suspense fallback={<LoadingFallback />}>
+                 <EditPageView
+                     pageKey={editingAdminPageKey}
+                     initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent}
+                     onSave={(content) => {
+                         if (editingAdminPageKey === 'terms') setTermsContent(content);
+                         else setPrivacyContent(content);
+                     }}
+                     onBack={handleBack}
+                 />
+             </Suspense>
+         );
+       case 'editProfile':
+           if (!currentAccount) return null;
+           return (
+               <Suspense fallback={<LoadingFallback />}>
+                   <EditProfilePage account={currentAccount} onBack={handleBack} />
+               </Suspense>
+           );
+       case 'manageCatalog':
+           if (!currentAccount) return null;
+            return (
+                <Suspense fallback={<LoadingFallback />}>
+                    <ManageCatalogPage account={currentAccount} onBack={handleBack} />
+                </Suspense>
+            );
+       case 'createForumPost':
+            if (!currentAccount) return null;
+            return (
+                <Suspense fallback={<LoadingFallback />}>
+                    <CreateForumPostPage 
+                        onBack={handleBack} 
+                        onSubmit={(postData) => {
+                            const newPost = createForumPost(postData);
+                            if (newPost) {
+                                navigateTo('forumPostDetail', { forumPostId: newPost.id });
+                            }
+                        }}
+                    />
+                </Suspense>
+            );
+      default: return null;
     }
   };
 
-  const viewContent = <ErrorBoundary>{renderCurrentView()}</ErrorBoundary>;
-
   return (
     <NavigationContext.Provider value={navigationContextValue}>
-      <div className="flex flex-col h-screen" {...touchHandlers}>
-        <Header 
+      <div className="h-screen flex flex-col">
+        <Header
           recentSearches={recentSearches}
-          onRemoveRecentSearch={(q) => setRecentSearches(p => p.filter(s => s !== q))}
-          onClearRecentSearches={handleClearRecentSearchesConfirm}
-          onGoHome={() => { setView('all'); setMainView('grid'); setHistory([]); onClearFilters(); handleRefresh(); if (mainContentRef.current) mainContentRef.current.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onRemoveRecentSearch={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
+          onClearRecentSearches={() => setRecentSearches([])}
+          onGoHome={handleGoHome}
           onRefresh={handleRefresh}
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
-          onBack={(view === 'all' && isAnyFilterActive) || history.length > 0 ? handleBack : undefined}
+          onBack={history.length > 0 ? handleBack : undefined}
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}
           gridView={gridView}
           onGridViewChange={setGridView}
         />
-        <main ref={mainContentRef} onScroll={handleScroll} className={cn("relative flex-1 overflow-y-auto bg-gray-50 pt-16", isInitialLoading && "overflow-hidden", isPulling && "overflow-hidden")}>
-          {view === 'all' && mainView === 'grid' ? (
-            <>
-              <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />
-              <div style={{ transform: `translateY(${isRefreshing ? pullThreshold : pullPosition}px)` }} className={!isPulling ? 'transition-transform duration-300' : ''}>
-                {viewContent}
-              </div>
-            </>
-          ) : (
-            viewContent
+        <main
+          ref={mainContentRef}
+          onScroll={handleScroll}
+          className={cn(
+            'flex-1 overflow-y-auto pt-16',
+            (mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view)) && 'pt-0'
           )}
+          {...touchHandlers}
+        >
+          {pullPosition > 0 && <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} />}
+          <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            <ErrorBoundary>
+              {isInitialLoading ? <LoadingFallback /> : renderMainContent()}
+            </ErrorBoundary>
+          </div>
         </main>
-        <OfflineIndicator />
-        {!currentAccount && (view === 'all' || view === 'account') && (
-          <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />
-        )}
-        <AppModals
-            activeModal={activeModal}
-            closeModal={closeModal}
-            openModal={openModal}
-            isFindingNearby={isFindingNearby}
-            handleFindNearby={handleFindNearby}
-            userLocation={userLocation}
-            onSignOut={requestSignOut}
-            onEnableLocation={handleEnableLocation}
+        
+        <AppModals 
+          activeModal={activeModal} 
+          closeModal={closeModal}
+          openModal={openModal}
+          isFindingNearby={isFindingNearby}
+          handleFindNearby={handleFindNearby}
+          userLocation={userLocation}
+          onSignOut={signOut}
+          onEnableLocation={handleEnableLocation}
         />
+        
+        <OfflineIndicator />
+        
+        {!currentAccount && view === 'all' && (
+          <GuestPrompt 
+              onSignIn={() => openModal({ type: 'login' })}
+              onCreateAccount={() => openModal({ type: 'createAccount' })}
+          />
+        )}
       </div>
     </NavigationContext.Provider>
   );

@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -346,7 +348,6 @@ export const Header: React.FC<HeaderProps> = ({
                         gridView={gridView}
                         onGridViewChange={onGridViewChange}
                         bagCount={bag.length}
-                        onOpenSettingsModal={() => navigateTo('settings')}
                         onOpenSubscriptionPage={() => navigateTo('subscription')}
                     />
                 ) : (

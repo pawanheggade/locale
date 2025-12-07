@@ -217,13 +217,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             isArchived={isArchived} 
                             currentAccount={currentAccount} 
                             variant="card"
-                            onReport={() => {
-                                if (!currentAccount) {
-                                    openModal({ type: 'login' });
-                                    return;
-                                }
-                                openModal({ type: 'reportItem', data: { item: post } });
-                            }}
                         />
                     </>
                 )}

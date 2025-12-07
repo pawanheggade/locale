@@ -73,6 +73,7 @@ interface AuthContextType {
 
   // Admin & Global Data
   reports: Report[];
+  reportItem: (item: Post | ForumPost | ForumComment) => void;
   addReport: (postId: string, reason: string) => void;
   addForumReport: (item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => void;
   setReports: React.Dispatch<React.SetStateAction<Report[]>>; 
@@ -152,6 +153,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openModal({ type: 'confirmation', data });
     }, [openModal]);
     
+    const reportItem = useCallback((item: Post | ForumPost | ForumComment) => {
+        if (!currentAccount) {
+            openModal({ type: 'login' });
+            return;
+        }
+        openModal({ type: 'reportItem', data: { item } });
+    }, [currentAccount, openModal]);
+
     const addReport = useCallback((postId: string, reason: string) => {
         if (!currentAccount) return;
         const newReport: Report = { 
@@ -275,25 +284,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updateAccountDetails = useCallback((updatedAccount: Account) => {
         setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
     }, [setAccounts]);
+    
+    const updateAccountInList = useCallback((accountId: string, updater: (account: Account) => Account) => {
+        setAccounts(prev => prev.map(acc => acc.id === accountId ? updater(acc) : acc));
+    }, [setAccounts]);
 
     const upgradeToSeller = useCallback(async (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                const updatedAccount = { ...acc, ...sellerData, status: 'pending' as const };
-                let subscription: Subscription;
+        updateAccountInList(accountId, acc => {
+            const updatedAccount = { ...acc, ...sellerData, status: 'pending' as const };
+            let subscription: Subscription;
 
-                if (newTier === 'Verified' || newTier === 'Business') {
-                    const trialEndDate = Date.now() + 14 * 24 * 60 * 60 * 1000;
-                    subscription = { tier: newTier, renewalDate: trialEndDate, isTrial: true, trialEndDate };
-                } else { 
-                    subscription = { tier: 'Basic', renewalDate: null, isTrial: false, trialEndDate: null };
-                }
-                
-                return { ...updatedAccount, subscription };
+            if (newTier === 'Verified' || newTier === 'Business') {
+                const trialEndDate = Date.now() + 14 * 24 * 60 * 60 * 1000;
+                subscription = { tier: newTier, renewalDate: trialEndDate, isTrial: true, trialEndDate };
+            } else { 
+                subscription = { tier: 'Basic', renewalDate: null, isTrial: false, trialEndDate: null };
             }
-            return acc;
-        }));
-    }, [setAccounts]);
+            
+            return { ...updatedAccount, subscription };
+        });
+    }, [updateAccountInList]);
       
     const toggleLikeAccount = useCallback((accountIdToLike: string) => {
         const loggedInAccount = accounts.find(a => a.id === currentAccountId);
@@ -314,51 +324,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [accounts, currentAccountId, setAccounts]);
 
     const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
-        const loggedInAccount = accounts.find(a => a.id === currentAccountId);
-        if (!loggedInAccount) return { wasLiked: false };
-
-        const wasLiked = (loggedInAccount.likedPostIds || []).includes(postId);
-
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === loggedInAccount.id) {
-                return { ...acc, likedPostIds: toggleIdInArray(acc.likedPostIds, postId) };
-            }
-            return acc;
-        }));
+        if (!currentAccount) return { wasLiked: false };
+        const wasLiked = (currentAccount.likedPostIds || []).includes(postId);
+        updateAccountInList(currentAccount.id, acc => ({ ...acc, likedPostIds: toggleIdInArray(acc.likedPostIds, postId) }));
         return { wasLiked: !wasLiked };
-    }, [accounts, currentAccountId, setAccounts]);
+    }, [currentAccount, updateAccountInList]);
 
     const updateSubscription = useCallback((accountId: string, tier: Subscription['tier']) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                const newSubscription: Subscription = {
-                    tier: tier,
-                    isTrial: false,
-                    trialEndDate: null,
-                    renewalDate: tier === 'Personal' || tier === 'Basic' ? null : Date.now() + APPROX_MONTH_MS,
-                };
-                return { ...acc, subscription: newSubscription };
-            }
-            return acc;
-        }));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => {
+            const newSubscription: Subscription = {
+                tier: tier,
+                isTrial: false,
+                trialEndDate: null,
+                renewalDate: tier === 'Personal' || tier === 'Basic' ? null : Date.now() + APPROX_MONTH_MS,
+            };
+            return { ...acc, subscription: newSubscription };
+        });
+    }, [updateAccountInList]);
 
     const toggleAccountStatus = useCallback((accountId: string, byAdmin: boolean = false) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                const newStatus = acc.status === 'active' ? 'archived' : 'active';
-                
-                const updates: Partial<Account> = { status: newStatus };
-                if (newStatus === 'archived') {
-                    updates.archivedByAdmin = byAdmin;
-                } else {
-                    updates.archivedByAdmin = false; 
-                }
-                return { ...acc, ...updates };
-            }
-            return acc;
-        }));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => {
+            const newStatus = acc.status === 'active' ? 'archived' : 'active';
+            const updates: Partial<Account> = { status: newStatus };
+            if (newStatus === 'archived') updates.archivedByAdmin = byAdmin;
+            else updates.archivedByAdmin = false; 
+            return { ...acc, ...updates };
+        });
+    }, [updateAccountInList]);
 
     const deleteAccount = useCallback((accountId: string) => {
         showConfirmation({
@@ -375,26 +367,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setAccounts, currentAccountId, signOut, showConfirmation]);
 
     const updateAccountRole = useCallback((accountId: string, role: 'account' | 'admin') => {
-        setAccounts(prev => prev.map(acc => acc.id === accountId ? { ...acc, role } : acc));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => ({ ...acc, role }));
+    }, [updateAccountInList]);
 
     const approveAccount = useCallback((accountId: string) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId && acc.status === 'pending') {
-                return { ...acc, status: 'active' };
-            }
-            return acc;
-        }));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => ({ ...acc, status: 'active' }));
+    }, [updateAccountInList]);
 
     const rejectAccount = useCallback((accountId: string) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId && acc.status === 'pending') {
-                return { ...acc, status: 'rejected' };
-            }
-            return acc;
-        }));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => ({ ...acc, status: 'rejected' }));
+    }, [updateAccountInList]);
 
     const addToBag = useCallback((postId: string, quantity: number) => {
         if (!currentAccountId) return;
@@ -538,7 +520,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [currentAccountId, currentUserData.viewedPostIds, updateCurrentUserSpecificData]);
 
     const addCatalogItems = useCallback(async (files: File[]) => {
-        if (!currentAccountId || !currentAccount) return;
+        if (!currentAccountId) return;
         const newItems: CatalogItem[] = [];
         for (const file of files) {
             try {
@@ -550,40 +532,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
         }
         if (newItems.length > 0) {
-            const updatedCatalog = [...(currentAccount.catalog || []), ...newItems];
-            setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
+            updateAccountInList(currentAccountId, acc => ({ ...acc, catalog: [...(acc.catalog || []), ...newItems] }));
         }
-    }, [currentAccountId, currentAccount, setAccounts]);
+    }, [currentAccountId, updateAccountInList]);
 
     const removeCatalogItem = useCallback(async (itemId: string) => {
-         if (!currentAccountId || !currentAccount) return;
-         const updatedCatalog = (currentAccount.catalog || []).filter(item => item.id !== itemId);
-         setAccounts(prev => prev.map(acc => acc.id === currentAccountId ? { ...acc, catalog: updatedCatalog } : acc));
-    }, [currentAccountId, currentAccount, setAccounts]);
+        if (!currentAccountId) return;
+        updateAccountInList(currentAccountId, acc => ({ ...acc, catalog: (acc.catalog || []).filter(item => item.id !== itemId) }));
+    }, [currentAccountId, updateAccountInList]);
 
     const incrementCatalogView = useCallback((accountId: string, itemId: string) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                const updatedCatalog = (acc.catalog || []).map(item => 
-                    item.id === itemId ? { ...item, views: (item.views || 0) + 1 } : item
-                );
-                return { ...acc, catalog: updatedCatalog };
-            }
-            return acc;
+        updateAccountInList(accountId, acc => ({
+            ...acc,
+            catalog: (acc.catalog || []).map(item => 
+                item.id === itemId ? { ...item, views: (item.views || 0) + 1 } : item
+            )
         }));
-    }, [setAccounts]);
+    }, [updateAccountInList]);
 
     const incrementCatalogDownload = useCallback((accountId: string, itemId: string) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                const updatedCatalog = (acc.catalog || []).map(item => 
-                    item.id === itemId ? { ...item, downloads: (item.downloads || 0) + 1 } : item
-                );
-                return { ...acc, catalog: updatedCatalog };
-            }
-            return acc;
+        updateAccountInList(accountId, acc => ({
+            ...acc,
+            catalog: (acc.catalog || []).map(item => 
+                item.id === itemId ? { ...item, downloads: (item.downloads || 0) + 1 } : item
+            )
         }));
-    }, [setAccounts]);
+    }, [updateAccountInList]);
     
     const toggleSavedSearchAlert = useCallback((searchId: string) => {
         setSavedSearches(prev => prev.map(search => search.id === searchId ? { ...search, enableAlerts: !search.enableAlerts } : search));
@@ -598,13 +572,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [setSavedSearches]);
 
     const incrementProfileViews = useCallback((accountId: string) => {
-        setAccounts(prev => prev.map(acc => {
-            if (acc.id === accountId) {
-                return { ...acc, profileViews: (acc.profileViews || 0) + 1 };
-            }
-            return acc;
-        }));
-    }, [setAccounts]);
+        updateAccountInList(accountId, acc => ({ ...acc, profileViews: (acc.profileViews || 0) + 1 }));
+    }, [updateAccountInList]);
 
     const value = useMemo(() => ({
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
@@ -613,7 +582,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addPostToViewHistory,
         addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
-        reports, addReport, addForumReport, setReports,
+        reports, reportItem, addReport, addForumReport, setReports,
         feedbackList, addFeedback, setFeedbackList,
         termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews
@@ -624,7 +593,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addPostToViewHistory,
         addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
-        reports, addReport, addForumReport, setReports,
+        reports, reportItem, addReport, addForumReport, setReports,
         feedbackList, addFeedback, setFeedbackList,
         termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews

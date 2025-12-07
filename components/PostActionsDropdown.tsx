@@ -6,6 +6,7 @@ import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { useNavigation } from '../contexts/NavigationContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;
@@ -13,7 +14,6 @@ interface PostActionsDropdownProps {
   currentAccount: Account | null;
   variant: 'card' | 'modal';
   wrapperClassName?: string;
-  onReport?: () => void;
 }
 
 const DropdownMenuItem: React.FC<{
@@ -41,7 +41,6 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   currentAccount,
   variant,
   wrapperClassName = '',
-  onReport,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -49,6 +48,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const isMounted = useIsMounted();
   const { deletePostPermanently } = usePosts();
   const { navigateTo } = useNavigation();
+  const { reportItem } = useAuth();
 
   useClickOutside(menuRef, () => {
       if (isMounted()) setIsOpen(false);
@@ -66,13 +66,13 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const menuItems: React.ReactNode[] = [];
 
   // Report item
-  if (onReport && !isOwnPost) {
+  if (!isOwnPost) {
     menuItems.push(
       <DropdownMenuItem
         key="report"
         onClick={(e) => {
           e.stopPropagation();
-          onReport();
+          reportItem(post);
           setIsOpen(false);
         }}
         icon={<FlagIcon className="w-5 h-5 text-gray-500" />}

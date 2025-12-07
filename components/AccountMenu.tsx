@@ -20,7 +20,6 @@ interface AccountMenuProps {
     onMainViewChange: (view: 'grid' | 'map') => void;
     gridView: 'default' | 'compact';
     onGridViewChange: (view: 'default' | 'compact') => void;
-    onOpenSettingsModal: () => void;
     bagCount: number;
     onOpenSubscriptionPage: () => void;
 }
@@ -59,7 +58,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     onMainViewChange,
     gridView,
     onGridViewChange,
-    onOpenSettingsModal,
     bagCount,
     onOpenSubscriptionPage,
 }) => {
@@ -152,7 +150,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
-                            <MenuItem onClick={() => handleMenuAction(onOpenSettingsModal)} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
                         </div>
                         <div className="my-1.5 h-px bg-gray-200/50" />
                         <div>

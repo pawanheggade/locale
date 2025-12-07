@@ -27,7 +27,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast, openModal } = useUI();
     const showConfirmation = useConfirmationModal();
-    const { currentAccount, accounts: allAccounts } = useAuth();
+    const { currentAccount, accounts: allAccounts, reportItem } = useAuth();
     const { navigateToAccount } = useNavigation();
     const { dispatchFilterAction } = useFilters();
     
@@ -43,11 +43,6 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             setIsEditingPost(false);
         }
     }, [postId, post]);
-
-    const onReportItem = (item: any) => {
-        if (!currentAccount) { openModal({ type: 'login' }); return; }
-        openModal({ type: 'reportItem', data: { item } });
-    };
     
     const onFilterByTag = (tag: string) => {
         dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
@@ -180,7 +175,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                                 )}
                                 {!canEditPost && (
                                     <Button 
-                                        onClick={() => onReportItem(post)} 
+                                        onClick={() => reportItem(post)} 
                                         variant="ghost"
                                         size="icon-sm"
                                         className="text-gray-400"

@@ -63,16 +63,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
 
             <SettingsSection title="Account">
                 <SettingsRow
-                    onClick={onArchiveAccount}
-                    title="Archive Account"
-                    description="Temporarily deactivate your account. You can reactivate it later."
-                    variant="warning"
-                />
-                <SettingsRow
                     onClick={onSignOut}
                     title="Sign Out"
                     description="End your session on this device."
                     variant="destructive"
+                />
+                <SettingsRow
+                    onClick={onArchiveAccount}
+                    title="Archive Account"
+                    description="Temporarily deactivate your account. You can reactivate it later."
+                    variant="warning"
                 />
             </SettingsSection>
             

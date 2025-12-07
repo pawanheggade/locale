@@ -22,7 +22,7 @@ interface CommentProps {
 }
 
 export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
-  const { currentAccount, addForumReport, accounts: allAccounts } = useAuth();
+  const { currentAccount, reportItem, accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
@@ -61,11 +61,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
     dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
   };
   
-  const onReportItem = (item: any) => {
-      if (!currentAccount) { openModal({ type: 'login' }); return; }
-      openModal({ type: 'reportItem', data: { item } });
-  }
-
   if (!comment.author) {
       return null;
   }
@@ -113,7 +108,7 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
                          </>
                     )}
                     {!canEditOrDelete && (
-                        <Button variant="ghost" size="icon-sm" onClick={() => onReportItem(comment)} className="text-gray-400" title="Report"><FlagIcon className="w-4 h-4"/></Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => reportItem(comment)} className="text-gray-400" title="Report"><FlagIcon className="w-4 h-4"/></Button>
                     )}
                 </div>
             </>
