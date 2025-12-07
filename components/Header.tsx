@@ -1,12 +1,11 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, Squares2X2Icon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -115,34 +114,67 @@ export const Header: React.FC<HeaderProps> = ({
     setIsMobileSearchOpen(false);
   };
 
+  const isForumsView = ['forums', 'forumPostDetail', 'createForumPost'].includes(view);
+
   const handleForumsClick = () => {
-      navigateTo('forums');
       setIsLikesDropdownOpen(false);
+      if (isForumsView) {
+          // If we are on forums, clicking the button goes back to the main feed.
+          navigateTo('all');
+      } else {
+          // If we are on another page (e.g. main feed with a filter),
+          // we turn off the other filters and go to the forums.
+          if (filterState.filterShowOnlyLikedProfiles) {
+              dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: false });
+          }
+          if (filterState.filterShowOnlyLikedPosts) {
+              dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: false });
+          }
+          navigateTo('forums');
+      }
   };
 
   const handleShowLikedProfilePosts = () => {
+      setIsLikesDropdownOpen(false);
       if (!currentAccount) {
           openModal({ type: 'login' });
-          setIsLikesDropdownOpen(false);
           return;
       }
-      navigateTo('all');
-      dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: !filterState.filterShowOnlyLikedProfiles });
-      setIsLikesDropdownOpen(false);
+
+      if (filterState.filterShowOnlyLikedProfiles) {
+          // If this filter is active, clicking it just turns it off.
+          dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: false });
+      } else {
+          // If this filter is not active, we turn it on.
+          // This also means we need to get off the forums view if we are on it.
+          if (isForumsView) {
+              navigateTo('all');
+          }
+          // The reducer will handle turning off the other 'liked posts' filter.
+          dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_PROFILES', payload: true });
+      }
   };
 
   const handleShowLikedPosts = () => {
+      setIsLikesDropdownOpen(false);
       if (!currentAccount) {
           openModal({ type: 'login' });
-          setIsLikesDropdownOpen(false);
           return;
       }
-      navigateTo('all');
-      dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: !filterState.filterShowOnlyLikedPosts });
-      setIsLikesDropdownOpen(false);
-  };
 
-  const isViewToggleDisabled = view !== 'all';
+      if (filterState.filterShowOnlyLikedPosts) {
+          // If this filter is active, clicking it just turns it off.
+          dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: false });
+      } else {
+          // If this filter is not active, we turn it on.
+          // This also means we need to get off the forums view if we are on it.
+          if (isForumsView) {
+              navigateTo('all');
+          }
+          // The reducer will handle turning off the other 'liked profiles' filter.
+          dispatchFilterAction({ type: 'SET_FILTER_SHOW_ONLY_LIKED_POSTS', payload: true });
+      }
+  };
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
@@ -177,7 +209,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Button 
             id="filter-dropdown-trigger"
             onClick={() => setIsFilterDropdownOpen(prev => !prev)}
-            disabled={isViewToggleDisabled}
+            disabled={view !== 'all'}
             variant="overlay-dark"
             size="icon"
             className={cn(
@@ -225,7 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
-  const isForumsView = ['forums', 'forumPostDetail', 'createForumPost'].includes(view);
+  const isLikesDropdownActive = isForumsView || filterState.filterShowOnlyLikedProfiles || filterState.filterShowOnlyLikedPosts;
 
   return (
     <header className={cn(
@@ -235,7 +267,7 @@ export const Header: React.FC<HeaderProps> = ({
     )}>
       {/* Main Header */}
       <div className={cn(
-          'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center sm:justify-start gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
+          'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
           isScrolled ? 'h-14' : 'h-16'
       )}>
         
@@ -247,20 +279,20 @@ export const Header: React.FC<HeaderProps> = ({
               </Button>
             )}
             <Logo onClick={handleLogoClick} />
-            <div className="relative" ref={likesDropdownRef}>
+             <div className="relative" ref={likesDropdownRef}>
                 <Button
                     variant="overlay-dark"
                     size="icon-sm"
                     onClick={() => setIsLikesDropdownOpen(prev => !prev)}
-                    className="!rounded-xl"
+                    className={cn(
+                        "!rounded-xl",
+                        isLikesDropdownActive && "bg-red-50 text-red-600"
+                    )}
                     aria-label="More options"
                     aria-haspopup="true"
                     aria-expanded={isLikesDropdownOpen}
                 >
                     <ChevronDownIcon className="w-5 h-5" />
-                    {currentAccount && (filterState.filterShowOnlyLikedProfiles || filterState.filterShowOnlyLikedPosts) && (
-                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" title="Viewing liked feed"></span>
-                    )}
                 </Button>
                 {isLikesDropdownOpen && (
                     <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
@@ -312,7 +344,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         
         {/* Center Section */}
-        <div className="flex flex-1 justify-center min-w-0 col-start-2">
+        <div className="flex justify-center min-w-0 col-start-2">
             {/* Mobile Mini Search Bar */}
             <div 
                 className="sm:hidden flex items-center justify-center bg-gray-100 border border-gray-200/80 rounded-xl h-10 px-4 w-full"
@@ -345,6 +377,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
+            {view === 'all' && (
+                <Button
+                    onClick={() => onMainViewChange(mainView === 'grid' ? 'map' : 'grid')}
+                    variant="overlay-dark"
+                    size="icon"
+                    className="!rounded-xl"
+                    aria-label={mainView === 'grid' ? 'Switch to Map View' : 'Switch to Grid View'}
+                    title={mainView === 'grid' ? 'Map View' : 'Grid View'}
+                >
+                    {mainView === 'grid' ? <MapPinIcon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
+                </Button>
+            )}
             <div className="relative">
                  {currentAccount ? (
                     <AccountMenu
@@ -356,8 +400,6 @@ export const Header: React.FC<HeaderProps> = ({
                         handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
                         onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}
                         onOpenActivityPage={() => navigateTo('activity')}
-                        mainView={mainView}
-                        onMainViewChange={onMainViewChange}
                         gridView={gridView}
                         onGridViewChange={onGridViewChange}
                         bagCount={bag.length}

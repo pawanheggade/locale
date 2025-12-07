@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
@@ -16,8 +17,6 @@ interface AccountMenuProps {
     handleAccountViewToggle: () => void;
     onEditProfile: () => void;
     onOpenActivityPage: () => void;
-    mainView: 'grid' | 'map';
-    onMainViewChange: (view: 'grid' | 'map') => void;
     gridView: 'default' | 'compact';
     onGridViewChange: (view: 'default' | 'compact') => void;
     bagCount: number;
@@ -54,8 +53,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     handleAccountViewToggle,
     onEditProfile,
     onOpenActivityPage,
-    mainView,
-    onMainViewChange,
     gridView,
     onGridViewChange,
     bagCount,
@@ -94,10 +91,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     const handleMenuAction = (action: () => void) => {
         action();
         closeMenu();
-    };
-
-    const handleViewToggle = () => {
-      onMainViewChange(mainView === 'grid' ? 'map' : 'grid');
     };
 
     const handleGridViewToggle = () => {
@@ -153,11 +146,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         </div>
                         <div className="my-1.5 h-px bg-gray-200/50" />
                         <div>
-                            <MenuItem
-                                onClick={() => handleMenuAction(handleViewToggle)}
-                                icon={mainView === 'grid' ? <MapPinIcon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
-                                label={mainView === 'grid' ? 'Map' : 'Grid'}
-                            />
                             <MenuItem
                                 onClick={() => handleMenuAction(handleGridViewToggle)}
                                 icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}

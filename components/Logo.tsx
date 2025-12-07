@@ -33,7 +33,7 @@ export const Logo: React.FC<LogoProps> = ({ className, onClick }) => {
             viewBox="0 0 12 12" 
             fill="none" 
             xmlns="http://www.w3.org/2000/svg" 
-            className="absolute top-[75%] w-[0.6em] h-[0.6em]"
+            className="absolute top-[75%] w-[0.6em] h-[0.6em] pointer-events-none"
         >
           <path d="M2 2L6 10L10 2H2Z" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M1 7H11" stroke="#111827" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

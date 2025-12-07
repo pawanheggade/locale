@@ -330,15 +330,16 @@ export const App: React.FC = () => {
     }
   
     if (view === 'all') {
-      // If already on the home feed, just scroll to top. Filters are cleared above.
+      // If already on the home feed, scroll to top and refresh. Filters are cleared above.
       if (mainContentRef.current) {
         mainContentRef.current.scrollTop = 0;
       }
+      handleRefresh(); // Trigger a refresh
     } else {
       // Otherwise, navigate to the home feed (this will handle history)
       navigateTo('all');
     }
-  }, [navigateTo, onClearFilters, mainView, view]);
+  }, [navigateTo, onClearFilters, mainView, view, handleRefresh]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
       pushHistoryState();
@@ -694,7 +695,7 @@ export const App: React.FC = () => {
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
-          onBack={history.length > 0 ? handleBack : undefined}
+          onBack={history.length > 0 && view !== 'all' ? handleBack : undefined}
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}
