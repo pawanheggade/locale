@@ -283,7 +283,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         type,
         category,
         price: price ? parseFloat(price) : undefined,
-        priceUnit: type === PostType.SERVICE ? priceUnit : undefined,
+        priceUnit: (type === PostType.SERVICE || type === PostType.PRODUCT) ? priceUnit : undefined,
         salePrice: isOnSale ? parseFloat(salePrice) : undefined,
         media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })),
         tags: tags.map(t => t.trim()).filter(Boolean),
@@ -387,32 +387,18 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                       </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                      <div>
-                          {type === PostType.SERVICE ? (
-                              <div className="grid grid-cols-2 gap-2">
-                                  <FormField id="post-price" label="Price (Optional)" error={errors.price}>
-                                      <Input 
-                                          type="number" 
-                                          value={price} 
-                                          onChange={e => setField('price', e.target.value)}
-                                          placeholder="e.g. 500"
-                                          max={MAX_PRICE}
-                                      />
-                                  </FormField>
-                                  <FormField id="post-price-unit" label="Unit">
-                                      <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
-                                          {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
-                                      </Select>
-                                  </FormField>
-                              </div>
-                          ) : (
+                  {type === PostType.PRODUCT ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                          <div className="grid grid-cols-2 gap-2">
                               <FormField id="post-price" label="Price" error={errors.price}>
                                   <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
                               </FormField>
-                          )}
-                      </div>
-                      {type === PostType.PRODUCT && (
+                              <FormField id="post-price-unit" label="Unit (Optional)">
+                                  <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
+                                      {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                                  </Select>
+                              </FormField>
+                          </div>
                           <div>
                               <div className="flex items-center mb-1">
                                   <input
@@ -432,8 +418,29 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                                   </FormField>
                               )}
                           </div>
-                      )}
-                  </div>
+                      </div>
+                  ) : type === PostType.SERVICE ? (
+                      <div className="grid grid-cols-2 gap-2">
+                          <FormField id="post-price" label="Price (Optional)" error={errors.price}>
+                              <Input 
+                                  type="number" 
+                                  value={price} 
+                                  onChange={e => setField('price', e.target.value)}
+                                  placeholder="e.g. 500"
+                                  max={MAX_PRICE}
+                              />
+                          </FormField>
+                          <FormField id="post-price-unit" label="Unit">
+                              <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
+                                  {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                              </Select>
+                          </FormField>
+                      </div>
+                  ) : ( // EVENT
+                      <FormField id="post-price" label="Price" error={errors.price}>
+                          <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
+                      </FormField>
+                  )}
 
                   {type === PostType.EVENT ? (
                       <div className="space-y-4 pt-4 border-t">
