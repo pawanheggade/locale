@@ -401,7 +401,10 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
+  // Identify views that handle their own scrolling or are full-screen overlays (no parent padding)
   const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
+  // Account view also needs full width for the header image
+  const isFullWidthView = view === 'account';
 
   return (
     <NavigationContext.Provider value={navigationContextValue}>
@@ -440,7 +443,15 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn('relative z-0', (mainView === 'map' || isEditorView) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            {/* 
+                We remove the default padding for map, editors, AND account view. 
+                Account view manages its own layout (full width header, padded content).
+            */}
+            <div className={cn(
+              'relative z-0 w-full', 
+              (mainView === 'map' || isEditorView) && 'h-full',
+              !(mainView === 'map' || isEditorView || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
+            )}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
                   {isInitialLoading ? <LoadingFallback /> : <ViewRenderer {...viewRendererProps} />}

@@ -1,18 +1,12 @@
-import * as React from 'react';
-import { useRef } from 'react';
-import { Notification, Account, Post, DisplayablePost, ForumPost, ForumComment } from '../types';
-
-// Context Imports
+import React, { useRef } from 'react';
+import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useForum } from '../contexts/ForumContext';
-import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { useActivity } from '../contexts/ActivityContext';
-
-// Modal Imports
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { ConfirmationModal } from './ConfirmationModal';
-import { MediaViewerModal } from './MediaViewerModal';
 import { FindNearbyModal } from './FindNearbyModal';
 import { ShareModal } from './ShareModal';
 import ReportItemModal from './ReportItemModal';
@@ -31,29 +25,23 @@ import { SignInScreen } from './SignInScreen';
 import { ViewCatalogModal } from './ViewCatalogModal';
 import { ProfileQRModal } from './ProfileQRModal';
 import ModalShell from './ModalShell';
-import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 
-// Only keeping props that are still managed by App.tsx (location specific state)
 interface AppModalsProps {
-    activeModal: any; // Simplified type, or import ModalState
+    activeModal: ModalState | null;
     closeModal: () => void;
-    openModal: (modalState: any) => void;
-    
-    // Location State (Managed in App.tsx due to map coordination)
+    openModal: (modalState: ModalState) => void;
     isFindingNearby: boolean;
     handleFindNearby: (coords: { lat: number, lng: number }) => Promise<void>;
     userLocation: { lat: number; lng: number } | null;
-    
-    // Session mgmt override if needed, otherwise handled locally
     onSignOut: () => void;
     onEnableLocation: () => Promise<void>;
 }
 
 export const AppModals: React.FC<AppModalsProps> = ({ 
     activeModal, closeModal, openModal, 
-    isFindingNearby, handleFindNearby, userLocation, onSignOut, onEnableLocation
+    isFindingNearby, handleFindNearby, userLocation, onEnableLocation
 }) => {
     const { 
         currentAccount, accounts, bag, 
@@ -63,19 +51,18 @@ export const AppModals: React.FC<AppModalsProps> = ({
         addFeedback, termsContent, privacyContent,
     } = useAuth();
     
-    const { findPostById } = usePosts();
     const { 
       priceAlerts, setPriceAlert, deletePriceAlert 
     } = useActivity();
-
-    const { addPost: createForumPost } = useForum();
-    const { dispatchFilterAction } = useFilters();
+    const { dispatchFilterAction, filterState } = useFilters();
     const showConfirmation = useConfirmationModal();
 
     const modalRef = useRef<HTMLDivElement>(null);
 
-    if (!activeModal) return null;
-    
+    if (!activeModal) {
+        return null;
+    }
+
     const handleLoadSearch = (searchId: string) => {
         const search = savedSearches.find(s => s.id === searchId);
         if (search) {
@@ -84,8 +71,15 @@ export const AppModals: React.FC<AppModalsProps> = ({
         }
     };
 
-    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'viewMedia', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
+    const handleSaveSearch = (name: string) => {
+        const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags } = filterState;
+        const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags };
+        addSavedSearch({ id: `saved-${Date.now()}`, name, filters: filtersToSave });
+    };
+
+    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
     if (!currentAccount && !publicModals.has(activeModal.type)) {
+        openModal({ type: 'login' });
         return null;
     }
 
@@ -124,8 +118,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
                 </div>
             </ModalShell>
         );
-      case 'viewMedia':
-        return <MediaViewerModal media={activeModal.data.media} startIndex={activeModal.data.startIndex} onClose={closeModal} />;
       case 'findNearby':
         return <FindNearbyModal onClose={closeModal} onSearch={handleFindNearby} isSearching={isFindingNearby} />;
       case 'sharePost':
@@ -147,7 +139,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
       case 'filterPanel':
         return <FilterPanel isOpen={true} onClose={closeModal} isLocationAvailable={!!userLocation} onOpenFindNearbyModal={() => openModal({ type: 'findNearby' })} isFindingNearby={isFindingNearby} savedSearchesCount={savedSearches.length} currentAccount={currentAccount} onEnableLocation={onEnableLocation} />;
       case 'saveSearch':
-        return <SaveSearchModal onSave={(name) => { addSavedSearch({ id: `saved-${Date.now()}`, name, filters: {} as any }); }} onClose={closeModal} />;
+        return <SaveSearchModal onSave={handleSaveSearch} onClose={closeModal} />;
       case 'viewSavedSearches':
         return <SavedSearchesModal savedSearches={savedSearches} onLoad={handleLoadSearch} onDelete={deleteSavedSearch} onClose={closeModal} />;
       case 'setPriceAlert':
@@ -175,7 +167,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
       case 'contactStore':
         return <ContactSellerModal author={activeModal.data.author} post={activeModal.data.post} currentAccount={currentAccount!} onClose={closeModal} prefilledMessage={activeModal.data.prefilledMessage} />;
       case 'createAccount':
-        return <AccountModal mode="create" allAccounts={accounts} onClose={closeModal} onCreate={async (d, s, r) => { await createAccount(d, s, r); }} isSellerSignup={activeModal.data?.isSeller} />;
+        return <AccountModal mode="create" allAccounts={accounts} onClose={closeModal} onCreate={async (d, s, r) => { await createAccount(d as any, s, r); }} isSellerSignup={activeModal.data?.isSeller} />;
       case 'forgotPassword':
         return <ForgotPasswordModal onClose={closeModal} />;
       case 'termsOfService':

@@ -17,11 +17,12 @@ import { useForum } from '../contexts/ForumContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 
-interface AdminPanelProps {
-  initialView?: AdminView;
-}
+// FIX: Remove props interface.
+interface AdminPanelProps {}
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ initialView }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = () => {
+  // FIX: Get initialView from context.
+  const { navigateTo, adminInitialView: initialView } = useNavigation();
   // Data from Contexts
   const { 
       accounts, currentAccount, deleteAccount, updateAccountRole, toggleAccountStatus, 
@@ -39,7 +40,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ initialView }) => {
       addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory 
   } = useForum();
   
-  const { navigateTo } = useNavigation();
   const { openModal } = useUI();
 
   const [view, setView] = useState<AdminView>(initialView || 'accounts');

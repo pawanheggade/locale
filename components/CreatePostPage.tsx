@@ -23,10 +23,8 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
 
 
-// FIX: Update props to only accept editingPostId
-interface CreatePostPageProps {
-  editingPostId?: string | null;
-}
+// FIX: Update props to remove direct dependencies
+interface CreatePostPageProps {}
 
 const TITLE_MAX_LENGTH = 100;
 const DESCRIPTION_MAX_LENGTH = 500;
@@ -86,9 +84,9 @@ function formReducer(state: FormState, action: Action): FormState {
 }
 
 
-export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId }) => {
-  // FIX: Use context hooks
-  const { handleBack: onBack, navigateTo } = useNavigation();
+export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
+  // FIX: Use context hooks for navigation and data
+  const { handleBack: onBack, navigateTo, viewingPostId: editingPostId } = useNavigation();
   const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
   const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
   

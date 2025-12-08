@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -31,7 +30,6 @@ const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
         className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer border"
         role="button"
         tabIndex={0}
-        // FIX: Add explicit type to event handler to prevent parsing issues.
         onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
         <div className="flex flex-col items-center text-center text-gray-600 w-12">
@@ -48,18 +46,13 @@ const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
     </div>
 );
 
-// FIX: Remove props and use context
-interface AccountViewProps {}
-
-export const AccountView: React.FC<AccountViewProps> = () => {
+export const AccountView: React.FC = () => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
-  // FIX: Get viewingAccount from NavigationContext instead of props.
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
   const { currentAccount, toggleLikeAccount } = useAuth();
   const { posts, archivedPosts } = usePosts();
   
-  // FIX: Add a guard clause in case the account is not available from the context.
   if (!account) {
     return <div className="p-8 text-center">Account not found.</div>;
   }
@@ -75,7 +68,15 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   
   const salePosts = useMemo(() => isPaidTier ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isPaidTier, accountPosts]);
-  const postCategories = useMemo(() => isBusinessAccount ? Array.from(new Set(accountPosts.map(p => p.category))).sort() : [], [isBusinessAccount, accountPosts]);
+  
+  const postCategories = useMemo<string[]>(() => {
+      if (isBusinessAccount) {
+          const categories = new Set<string>(accountPosts.map(p => p.category));
+          return Array.from(categories).sort();
+      }
+      return [];
+  }, [isBusinessAccount, accountPosts]);
+
   const canHaveCatalog = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   const hasCatalogContent = account.catalog && account.catalog.length > 0;
   
@@ -117,7 +118,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
 
     // Category Tabs
     if (isBusinessAccount) {
-        postCategories.forEach(cat => {
+        postCategories.forEach((cat: string) => {
              if (accountPosts.some(p => p.category === cat)) {
                 catTabs.push(cat);
             }
@@ -143,7 +144,6 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
-    // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue.
     const isCategoryTab = categoryTabs.some(c => c === activeTab);
     
     if ((!isStandardTab && !isCategoryTab) || !activeTab) {
@@ -209,7 +209,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   };
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen animate-fade-in">
+    <div className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
       {/* Banner Section */}
       <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
         {account.bannerUrl ? (
@@ -219,117 +219,131 @@ export const AccountView: React.FC<AccountViewProps> = () => {
         )}
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Profile Header Card */}
-        <div className="relative bg-white rounded-xl p-4 sm:p-6 mt-6 border border-gray-200/80">
-          
-          <div className="flex flex-col sm:flex-row items-start sm:items-end sm:justify-between">
-              
-              <div className="flex items-end gap-4">
-                  <Avatar 
-                      src={account.avatarUrl} 
-                      alt={account.name} 
-                      tier={account.subscription.tier} 
-                      className="w-24 h-24 sm:w-28 sm:h-28 border-4 border-white cursor-pointer"
-                      onClick={() => openModal({ type: 'profileQR', data: account })}
-                  />
-                  <div className="mb-1">
-                      <div className="flex items-center gap-3 flex-wrap">
-                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight -mb-1">{account.name}</h1>
-                          {isOwnAccount && (
-                              <Button
-                                  onClick={() => navigateTo('subscription')}
-                                  variant="ghost"
-                                  size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2 mb-1"
-                              >
-                                  Subscription
-                              </Button>
-                          )}
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
-                        <SubscriptionBadge tier={account.subscription.tier} />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
-                        <div className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4" /><span>Joined {formatMonthYear(account.joinDate)}</span></div>
-                        {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4" /><span>Tax ID: {account.taxInfo}</span></div>)}
-                      </div>
-                  </div>
-              </div>
-              
-          </div>
-          
-          <div className="mt-4">
-              {account.description && (
-                  <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">{account.description}</p>
-              )}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
-                  {account.address && (
-                      <div className="flex items-center gap-3 min-w-0">
-                           {(account.googleMapsUrl || account.appleMapsUrl) && (
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                  {account.googleMapsUrl && (
-                                      <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full" title="Google Maps">
-                                          <GoogleIcon className="w-4 h-4" />
-                                      </a>
-                                  )}
-                                  {account.appleMapsUrl && (
-                                      <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full" title="Apple Maps">
-                                          <AppleIcon className="w-4 h-4" />
-                                      </a>
-                                  )}
-                              </div>
-                          )}
-                          <div
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
-                              onClick={() => showOnMap(account)}
-                              className="flex items-center gap-1.5 cursor-pointer text-red-400 group min-w-0"
-                          >
-                              <MapPinIcon className="w-4 h-4 shrink-0" />
-                              <span className="">{account.address}</span>
+      {/* Profile Header Section - Full Width */}
+      <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+            
+            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-16 mb-4">
+                 {/* Avatar */}
+                 <div className="shrink-0 relative">
+                    <Avatar 
+                        src={account.avatarUrl} 
+                        alt={account.name} 
+                        tier={account.subscription.tier} 
+                        className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-white cursor-pointer bg-white rounded-full shadow-sm"
+                        onClick={() => openModal({ type: 'profileQR', data: account })}
+                    />
+                 </div>
+
+                 {/* Name and Info */}
+                 <div className="flex-1 pt-2 sm:pt-0 sm:pb-1 mt-1 sm:mt-0 min-w-0 w-full">
+                      <div className="flex flex-col items-start">
+                          <div className="flex items-center gap-3 flex-wrap">
+                              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
+                              {isOwnAccount && (
+                                  <Button
+                                      onClick={() => navigateTo('subscription')}
+                                      variant="ghost"
+                                      size="xs"
+                                      className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2"
+                                  >
+                                      Subscription
+                                  </Button>
+                              )}
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                            <SubscriptionBadge tier={account.subscription.tier} />
                           </div>
                       </div>
-                  )}
-              </div>
-          </div>
-          
-          <div className="mt-6 relative z-20">
-             <ProfileActions
-                  account={account}
-                  isOwnAccount={isOwnAccount}
-                  canHaveCatalog={canHaveCatalog}
-                  onEditAccount={() => navigateTo('editProfile', { account })}
-                  onOpenCatalog={() => navigateTo('manageCatalog', { account })}
-                  onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
-                  socialLinks={sortedSocialLinks}
-                  onShare={handleShareProfile}
-                  contactMethods={contactMethods}
-                  onContactAction={handleContactAction}
-                  isLiked={isLiked}
-                  onToggleLike={() => {
-                      if (currentAccount) {
-                          toggleLikeAccount(account.id);
-                      } else {
-                          openModal({ type: 'login' });
-                      }
-                  }}
-              />
-          </div>
-          
-          {isOwnAccount && account.subscription.tier !== 'Personal' && (
-              <div className="mt-6 border-t border-gray-100 pt-6">
-                  <ReferralCard account={account} />
-              </div>
-          )}
-        </div>
+                 </div>
+            </div>
 
-        {/* Content Section */}
+            {/* Meta Info Row */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 mb-4">
+                <div className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4 text-gray-400" /><span>Joined {formatMonthYear(account.joinDate)}</span></div>
+                {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4 text-gray-400" /><span>Tax ID: {account.taxInfo}</span></div>)}
+            </div>
+
+            {/* Description & Location */}
+            <div className="space-y-4">
+                {account.description && (
+                    <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-3xl">{account.description}</p>
+                )}
+                
+                {account.address && (
+                    <div className="flex items-center gap-3">
+                         {(account.googleMapsUrl || account.appleMapsUrl) && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {account.googleMapsUrl && (
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                        <GoogleIcon className="w-4 h-4" />
+                                    </a>
+                                )}
+                                {account.appleMapsUrl && (
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                        <AppleIcon className="w-4 h-4" />
+                                    </a>
+                                )}
+                            </div>
+                        )}
+                        <div
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                            onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation(); 
+                                showOnMap(account); 
+                            }}
+                            className={cn(
+                                "flex items-center gap-1.5 group min-w-0 transition-colors",
+                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                            )}
+                            title={account.coordinates ? "Show on map" : "No map location available"}
+                        >
+                            <MapPinIcon className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{account.address}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+            
+            <div className="mt-6">
+                <ProfileActions
+                    account={account}
+                    isOwnAccount={isOwnAccount}
+                    canHaveCatalog={canHaveCatalog}
+                    onEditAccount={() => navigateTo('editProfile', { account })}
+                    onOpenCatalog={() => navigateTo('manageCatalog', { account })}
+                    onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
+                    socialLinks={sortedSocialLinks}
+                    onShare={handleShareProfile}
+                    contactMethods={contactMethods}
+                    onContactAction={handleContactAction}
+                    isLiked={isLiked}
+                    onToggleLike={() => {
+                        if (currentAccount) {
+                            toggleLikeAccount(account.id);
+                        } else {
+                            openModal({ type: 'login' });
+                        }
+                    }}
+                />
+            </div>
+            
+            {isOwnAccount && account.subscription.tier !== 'Personal' && (
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                    <ReferralCard account={account} />
+                </div>
+            )}
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         {(availableTabs.length > 0 || categoryTabs.length > 0) && (
-            <div className="bg-white rounded-xl border border-gray-200/80 mt-6">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
                 <div className="border-b border-gray-200 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
                     <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
                         {availableTabs.map(tab => (
@@ -348,7 +362,6 @@ export const AccountView: React.FC<AccountViewProps> = () => {
                         <div className="flex-shrink-0 py-2 relative" ref={categoryDropdownRef}>
                             <TabButton 
                                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                                // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue.
                                 isActive={categoryTabs.some(c => c === activeTab)}
                                 className="gap-1 px-3"
                                 title="Categories"

@@ -13,21 +13,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Update props interface
-interface ActivityPageProps {
-  initialTab?: 'notifications' | 'alerts' | 'history' | 'settings';
-}
+// FIX: Update props interface to remove props
+interface ActivityPageProps {}
 
-export const ActivityPage: React.FC<ActivityPageProps> = ({
-  initialTab = 'notifications',
-}) => {
+export const ActivityPage: React.FC<ActivityPageProps> = () => {
   // FIX: Get data from contexts
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll, settings, onSettingsChange } = useActivity();
   const { currentAccount, viewedPostIds, toggleAccountStatus, signOut: onSignOut } = useAuth();
   const { findPostById } = usePosts();
-  const { navigateTo } = useNavigation();
+  const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab || 'notifications');
   const { gridView, isTabletOrDesktop } = useUI();
 
   useEffect(() => {
@@ -44,7 +40,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
     onDismiss(notification.id);
     if (notification.postId) {
         const post = findPostById(notification.postId);
-        if (post) navigateTo('all'); // Navigate home to show post in modal
+        if (post) navigateTo('all', { postId: notification.postId });
     } else if (notification.relatedAccountId) {
         const account = { id: notification.relatedAccountId } as Account;
         if (account) navigateTo('account', { account });

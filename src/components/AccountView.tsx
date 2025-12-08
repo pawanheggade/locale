@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -47,9 +46,7 @@ const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
     </div>
 );
 
-interface AccountViewProps {}
-
-export const AccountView: React.FC<AccountViewProps> = () => {
+export const AccountView: React.FC = () => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
@@ -72,7 +69,6 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   
   const salePosts = useMemo(() => isPaidTier ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isPaidTier, accountPosts]);
   
-  // FIX: Explicitly type the set and array conversion to solve type inference issues
   const postCategories = useMemo<string[]>(() => {
       if (isBusinessAccount) {
           const categories = new Set<string>(accountPosts.map(p => p.category));
@@ -213,7 +209,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   };
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen animate-fade-in">
+    <div className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
       {/* Banner Section */}
       <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
         {account.bannerUrl ? (

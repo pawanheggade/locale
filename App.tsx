@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -10,10 +10,9 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './AppModals';
+import { AppModals } from './components/AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
-// FIX: Import haversineDistance function.
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { useIsMounted } from './hooks/useIsMounted';
@@ -39,7 +38,6 @@ const PROTECTED_VIEWS: AppView[] = [
 
 export const App: React.FC = () => {
   const { currentAccount, accountsById, signOut, addPostToViewHistory, incrementProfileViews } = useAuth();
-  // FIX: Destructure 'posts' instead of 'allDisplayablePosts' to match the context provider.
   const { posts, findPostById, refreshPosts } = usePosts();
   
   const { activeModal, openModal, closeModal, addToast } = useUI();
@@ -92,13 +90,11 @@ export const App: React.FC = () => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
 
-    // Update recent searches: add to front, remove duplicates, limit length
     setRecentSearches(prev => 
         [trimmedQuery, ...prev.filter(s => s.toLowerCase() !== trimmedQuery.toLowerCase())]
-        .slice(0, 7) // Keep up to 7 recent searches
+        .slice(0, 7)
     );
     
-    // Update filter state
     dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: trimmedQuery });
   };
 
@@ -139,14 +135,12 @@ export const App: React.FC = () => {
       }
 
       if (newView === 'accountAnalytics') {
-          // Analytics can only be viewed by the logged-in owner of the account
           if (!currentAccount || !options.account || options.account.id !== currentAccount.id) {
-              // This case shouldn't happen with the UI, so we can just block navigation
               return; 
           }
           const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(currentAccount.subscription.tier);
           if (!isPaidTier) {
-              navigateTo('subscription'); // Redirect to upgrade
+              navigateTo('subscription');
               return;
           }
       }
@@ -158,7 +152,7 @@ export const App: React.FC = () => {
       if (newView === 'activity' && options.activityTab) {
           setActivityInitialTab(options.activityTab);
       } else {
-          setActivityInitialTab('notifications'); // Reset to default for any other navigation.
+          setActivityInitialTab('notifications');
       }
 
       pushHistoryState();
@@ -169,7 +163,6 @@ export const App: React.FC = () => {
       setViewingForumPostId(options.forumPostId || null);
       setEditingAdminPageKey(options.pageKey || null);
       
-      // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState, openModal]);
 
@@ -207,14 +200,12 @@ export const App: React.FC = () => {
       setEditingAdminPageKey(lastHistoryItem.editingAdminPageKey);
       setHistory(h => h.slice(0, -1));
 
-      // Restore scroll position after a short delay to allow content to render
       setTimeout(() => {
         if (mainContentRef.current) {
             mainContentRef.current.scrollTop = lastHistoryItem.scrollPosition;
         }
       }, 50);
     } else {
-      // Default back action if history is empty
       if (view !== 'all') {
         navigateTo('all');
       }
@@ -237,28 +228,22 @@ export const App: React.FC = () => {
       setMainView('grid');
     }
   
-    // This is a hard reset to the home screen.
-    // Clear history so the back button doesn't show.
     setHistory([]);
 
-    // Manually reset view state instead of using navigateTo, which manages history.
     setView('all');
     setViewingPostId(null);
     setViewingAccount(null);
     setViewingForumPostId(null);
     setEditingAdminPageKey(null);
 
-    // Scroll to top
     if (mainContentRef.current) {
       mainContentRef.current.scrollTop = 0;
     }
     
-    // Refresh content
     handleRefresh();
   }, [onClearFilters, mainView, handleRefresh]);
 
   useEffect(() => {
-    // If the user signs out while on a protected page, navigate them to the home feed.
     if (!currentAccount && PROTECTED_VIEWS.includes(view)) {
       handleGoHome();
     }
@@ -288,22 +273,31 @@ export const App: React.FC = () => {
       setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
     
+    // Save state BEFORE clearing current view data
     pushHistoryState();
+
+    // Critical: Clean up any conflicting view state to force the app back to the main view
+    setViewingAccount(null);
+    setViewingForumPostId(null);
+    setEditingAdminPageKey(null);
+    setNearbyPostsResult(null);
+    setIsFindingNearby(false);
+
+    // Switch to map view
+    setView('all');
     setMainView('map');
+
   }, [findPostById, addToast, pushHistoryState]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);
     closeModal();
     const locationName = await reverseGeocode(coords.lat, coords.lng);
-    // FIX: Use 'posts' instead of 'allDisplayablePosts'.
     const nearby = posts.filter(post => {
         const postCoords = post.coordinates || post.eventCoordinates;
         if (!postCoords) return false;
-        // FIX: Use imported `haversineDistance` function.
         const distance = haversineDistance(coords, postCoords);
-        return distance <= 50; // 50km radius
-    // FIX: Use imported `haversineDistance` function.
+        return distance <= 50; 
     }).map(post => ({...post, distance: haversineDistance(coords, post.coordinates || post.eventCoordinates!)}));
     
     nearby.sort((a, b) => a.distance! - b.distance!);
@@ -311,7 +305,6 @@ export const App: React.FC = () => {
     setNearbyPostsResult({ posts: nearby, locationName });
     setIsFindingNearby(false);
     navigateTo('nearbyPosts');
-  // FIX: Update dependency array.
   }, [posts, closeModal, navigateTo]);
   
   const handleEnableLocation = async () => {
@@ -358,11 +351,9 @@ export const App: React.FC = () => {
 
       setIsScrolled(currentScrollTop > 0);
 
-      // Scrolling down and past the header threshold
       if (currentScrollTop > lastScrollTop && currentScrollTop > 80) {
         setIsHeaderVisible(false);
       } 
-      // Scrolling up
       else if (currentScrollTop < lastScrollTop) {
         setIsHeaderVisible(true);
       }
@@ -371,7 +362,6 @@ export const App: React.FC = () => {
     });
   }, []);
 
-  // Cleanup raf on component unmount
   useEffect(() => {
     return () => {
       if (rafRef.current) {
@@ -380,7 +370,6 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  // FIX: Provide all required state to the NavigationContext, including view-specific data.
   const navigationContextValue = useMemo(() => ({
     navigateTo,
     navigateToAccount,
@@ -408,18 +397,14 @@ export const App: React.FC = () => {
     onLocationFocusComplete,
   ]);
   
-  const openPostDetailsModal = useCallback((post: DisplayablePost) => {
-    if (currentAccount) {
-        addPostToViewHistory(post.id);
-    }
-    openModal({ type: 'viewPost', data: post });
-  }, [currentAccount, addPostToViewHistory, openModal]);
-
   const viewRendererProps = {
     view, mainView, isInitialLoading,
   };
 
+  // Identify views that handle their own scrolling or are full-screen overlays (no parent padding)
   const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
+  // Account view also needs full width for the header image
+  const isFullWidthView = view === 'account';
 
   return (
     <NavigationContext.Provider value={navigationContextValue}>
@@ -447,7 +432,6 @@ export const App: React.FC = () => {
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
               : 'overflow-y-auto pt-16', // default
-            // special case for editors
             isEditorView && 'pt-0 overflow-hidden'
           )}
           {...touchHandlers}
@@ -459,7 +443,15 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn('relative z-0', (mainView === 'map' || isEditorView) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            {/* 
+                We remove the default padding for map, editors, AND account view. 
+                Account view manages its own layout (full width header, padded content).
+            */}
+            <div className={cn(
+              'relative z-0 w-full', 
+              (mainView === 'map' || isEditorView) && 'h-full',
+              !(mainView === 'map' || isEditorView || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
+            )}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
                   {isInitialLoading ? <LoadingFallback /> : <ViewRenderer {...viewRendererProps} />}
