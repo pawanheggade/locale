@@ -26,8 +26,6 @@ interface HeaderProps {
   view: AppView;
   mainView: 'grid' | 'map';
   onMainViewChange: (view: 'grid' | 'map') => void;
-  isMobileSearchOpen: boolean;
-  setIsMobileSearchOpen: (isOpen: boolean) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,8 +41,6 @@ export const Header: React.FC<HeaderProps> = ({
   view,
   mainView,
   onMainViewChange,
-  isMobileSearchOpen,
-  setIsMobileSearchOpen,
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
   const { currentAccount, bag } = useAuth();
@@ -54,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const navDropdownRef = useRef<HTMLDivElement>(null);
@@ -82,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
       };
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
-  }, [isMobileSearchOpen, setIsMobileSearchOpen]);
+  }, [isMobileSearchOpen]);
   
   const handleSortChange = (sortOption: string) => {
     dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });

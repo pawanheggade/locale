@@ -6,9 +6,7 @@
 
 
 
-
-
-import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
 import { PostList } from './components/PostList';
@@ -116,7 +114,6 @@ export const App: React.FC = () => {
   const [recentSearches, setRecentSearches] = usePersistentState<string[]>(STORAGE_KEYS.RECENT_SEARCHES, []);
   const [activityInitialTab, setActivityInitialTab] = useState<ActivityTab>('notifications');
   
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollTopRef = useRef(0);
   const rafRef = useRef<number | null>(null);
@@ -729,15 +726,12 @@ export const App: React.FC = () => {
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}
-          isMobileSearchOpen={isMobileSearchOpen}
-          setIsMobileSearchOpen={setIsMobileSearchOpen}
         />
         <main
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1 overflow-y-auto',
-            isMobileSearchOpen ? 'pt-28' : 'pt-16',
+            'flex-1 overflow-y-auto pt-16',
             (mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view)) && 'pt-0'
           )}
           {...touchHandlers}
