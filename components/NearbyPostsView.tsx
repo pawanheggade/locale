@@ -4,20 +4,30 @@ import { PostList } from './PostList';
 import { MapPinIcon } from './Icons';
 import { EmptyState } from './EmptyState';
 import { useAuth } from '../contexts/AuthContext';
+// FIX: Import useNavigation hook to access context.
+import { useNavigation } from '../contexts/NavigationContext';
 
-interface NearbyPostsViewProps {
-  result: {
-    posts: DisplayablePost[];
-    locationName: string | null;
-  };
-}
+// FIX: Remove props interface.
+interface NearbyPostsViewProps {}
 
-export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
-  result,
-}) => {
-  const { posts, locationName } = result;
+export const NearbyPostsView: React.FC<NearbyPostsViewProps> = () => {
+  // FIX: Get result from context.
+  const { nearbyPostsResult: result } = useNavigation();
   const { currentAccount } = useAuth();
   
+  if (!result) {
+    return (
+        <EmptyState
+            icon={<MapPinIcon />}
+            title="No Results"
+            description="Perform a 'Find Nearby' search to see results here."
+            className="py-20"
+        />
+    );
+  }
+  
+  const { posts, locationName } = result;
+
   if (!currentAccount) {
     return <div className="p-8 text-center">You must be logged in to view nearby posts.</div>;
   }

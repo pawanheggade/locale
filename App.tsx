@@ -277,7 +277,7 @@ export const App: React.FC = () => {
     // Only navigate if we are not already on the map view.
     if (view !== 'all' || mainView !== 'map') {
         pushHistoryState();
-        setView('all'); // This is the key fix.
+        setView('all');
         setMainView('map');
     }
   }, [findPostById, addToast, pushHistoryState, view, mainView]);
@@ -370,13 +370,33 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // FIX: Provide all required state to the NavigationContext, including view-specific data.
   const navigationContextValue = useMemo(() => ({
     navigateTo,
     navigateToAccount,
     handleBack,
     showOnMap,
     saveHistoryState: pushHistoryState,
-  }), [navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState]);
+    viewingAccount,
+    viewingPostId,
+    viewingForumPostId,
+    editingAdminPageKey,
+    activityInitialTab,
+    adminInitialView,
+    nearbyPostsResult,
+    userLocation,
+    isFindingNearby,
+    postToFocusOnMap,
+    onPostFocusComplete,
+    locationToFocus,
+    onLocationFocusComplete,
+  }), [
+    navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState,
+    viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey,
+    activityInitialTab, adminInitialView, nearbyPostsResult, userLocation,
+    isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus,
+    onLocationFocusComplete,
+  ]);
   
   const openPostDetailsModal = useCallback((post: DisplayablePost) => {
     if (currentAccount) {
@@ -386,12 +406,7 @@ export const App: React.FC = () => {
   }, [currentAccount, addPostToViewHistory, openModal]);
 
   const viewRendererProps = {
-    view, mainView, isInitialLoading, userLocation, isFindingNearby,
-    postToFocusOnMap, onPostFocusComplete,
-    openPostDetailsModal, locationToFocus, onLocationFocusComplete,
-    adminInitialView, nearbyPostsResult, viewingAccount,
-    viewingPostId, viewingForumPostId, editingAdminPageKey,
-    activityInitialTab,
+    view, mainView, isInitialLoading,
   };
 
   return (

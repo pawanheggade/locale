@@ -5,17 +5,19 @@ import { AccountForm } from './AccountForm';
 import { Button } from './ui/Button';
 import { useNavigation } from '../contexts/NavigationContext';
 
-interface EditProfilePageProps {
-  account: Account;
-}
+// FIX: Remove props interface.
+interface EditProfilePageProps {}
 
-export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account }) => {
+export const EditProfilePage: React.FC<EditProfilePageProps> = () => {
+  // FIX: Get account from context.
+  const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts, updateAccountDetails } = useAuth();
   const { handleBack } = useNavigation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   const handleSubmit = async (formData: Partial<Account>) => {
+    if (!account) return;
     setIsSubmitting(true);
     try {
       updateAccountDetails({ ...account, ...formData });

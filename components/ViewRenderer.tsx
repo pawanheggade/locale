@@ -25,12 +25,11 @@ interface ViewRendererProps {
   view: AppView;
   mainView: 'grid' | 'map';
   isInitialLoading: boolean;
-  openPostDetailsModal: (post: DisplayablePost) => void;
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
   const { 
-      view, mainView, isInitialLoading
+      view, mainView
   } = props;
     
   switch (view) {

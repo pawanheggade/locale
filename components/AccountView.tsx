@@ -19,17 +19,19 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import { isShareAbortError } from '../lib/utils';
 import { usePosts } from '../contexts/PostsContext';
 
-interface AccountViewProps {
-  account: Account;
+interface ForumPostRowProps {
+    post: DisplayableForumPost;
+    onClick: () => void;
 }
 
-const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
+const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
     <div
         onClick={onClick}
         className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer border"
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
+        // FIX: Add explicit type to event handler to prevent parsing issues.
+        onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
         <div className="flex flex-col items-center text-center text-gray-600 w-12">
             <div className="font-bold text-lg text-gray-800">{post.score}</div>
@@ -45,14 +47,22 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-// FIX: Refactor component to use contexts and only accept `account` prop.
-export const AccountView: React.FC<AccountViewProps> = ({ account }) => {
+// FIX: Remove props and use context
+interface AccountViewProps {}
+
+export const AccountView: React.FC<AccountViewProps> = () => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
-  const { navigateTo, showOnMap } = useNavigation();
+  // FIX: Get viewingAccount from NavigationContext instead of props.
+  const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
   const { currentAccount, toggleLikeAccount } = useAuth();
   const { posts, archivedPosts } = usePosts();
   
+  // FIX: Add a guard clause in case the account is not available from the context.
+  if (!account) {
+    return <div className="p-8 text-center">Account not found.</div>;
+  }
+
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
   const isLiked = currentAccount?.likedAccountIds?.includes(account.id) ?? false;
 
@@ -132,7 +142,8 @@ export const AccountView: React.FC<AccountViewProps> = ({ account }) => {
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
-    const isCategoryTab = categoryTabs.includes(activeTab);
+    // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue.
+    const isCategoryTab = categoryTabs.some(c => c === activeTab);
     
     if ((!isStandardTab && !isCategoryTab) || !activeTab) {
         if (availableTabs.length > 0) setActiveTab(availableTabs[0].id);
@@ -273,7 +284,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account }) => {
                           <div
                               role="button"
                               tabIndex={0}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                              onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
                               onClick={() => showOnMap(account)}
                               className="flex items-center gap-1.5 cursor-pointer text-red-400 group min-w-0"
                           >

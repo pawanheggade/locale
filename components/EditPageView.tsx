@@ -4,11 +4,12 @@ import { Textarea } from './ui/Textarea';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
-interface EditPageViewProps {
-  pageKey: 'terms' | 'privacy';
-}
+// FIX: Remove props interface.
+interface EditPageViewProps {}
 
-export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey }) => {
+export const EditPageView: React.FC<EditPageViewProps> = () => {
+  // FIX: Get pageKey from context.
+  const { editingAdminPageKey: pageKey } = useNavigation();
   const { termsContent, setTermsContent, privacyContent, setPrivacyContent } = useAuth();
   const { handleBack } = useNavigation();
 
@@ -29,6 +30,11 @@ export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey }) => {
   };
 
   const title = pageKey === 'terms' ? 'Edit Terms of Service' : 'Edit Privacy Policy';
+  
+  // FIX: Add guard clause for when pageKey is not available.
+  if (!pageKey) {
+    return <div className="p-8 text-center">Page not found.</div>;
+  }
 
   return (
     <div className="flex flex-col h-full">

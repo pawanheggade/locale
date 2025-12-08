@@ -25,17 +25,6 @@ interface MapState {
   zoom: number;
 }
 
-const MapSkeleton: React.FC = () => {
-    return (
-        <div className="h-full w-full bg-gray-300 flex items-center justify-center animate-pulse">
-            <div className="relative flex items-center justify-center">
-                <MapPinIcon className="w-16 h-16 text-gray-400" />
-                <div className="absolute w-24 h-24 border-4 border-gray-400 rounded-full animate-ping"></div>
-            </div>
-        </div>
-    );
-};
-
 const createMarkerIcon = (post: DisplayablePost) => {
     const tier = post.author?.subscription?.tier || 'Personal';
     const styles = TIER_STYLES[tier] || TIER_STYLES.Personal;
@@ -235,43 +224,13 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
                   alt: `Marker for ${post.title}`,
               });
               
-              const hasImage = post.media && post.media.length > 0 && post.media[0].type === 'image';
-              
-              const popupContent = `
-                <div class="w-56 overflow-hidden">
-                  ${ hasImage ? `<img src="${post.media[0].url}" alt="" class="w-full h-24 object-cover bg-gray-200">` : `<div class="w-full h-24 bg-gray-200 flex items-center justify-center text-gray-600 text-sm">No Image</div>` }
-                  <div class="p-3">
-                    <h3 class="font-bold text-base text-gray-800 truncate" title="${post.title}">${post.title}</h3>
-                    <div class="flex justify-between items-center mt-2">
-                        <p class="text-lg font-extrabold text-gray-900">${formatCurrency(post.price)}</p>
-                        <button class="view-details-btn text-center button-pill-red text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">
-                            Details
-                        </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-              
-              marker.bindPopup(popupContent, { offset: L.point(0, -25) });
-              
-              marker.on('popupopen', (e: any) => {
-                  if (isMounted()) setSelectedPostId(post.id);
-                  const popupEl = e.popup.getElement();
-                  if (!popupEl) return;
-
-                  const btn = popupEl.querySelector('.view-details-btn');
-                  const clickHandler = (event: MouseEvent) => {
-                      L.DomEvent.stopPropagation(event);
-                      onViewPostDetails(post);
-                  };
-
-                  if (btn) {
-                      L.DomEvent.on(btn, 'click', clickHandler);
-                      e.popup.on('remove', () => L.DomEvent.off(btn, 'click', clickHandler));
-                  }
+              marker.on('click', (e: any) => {
+                L.DomEvent.stopPropagation(e);
+                if (isMounted()) {
+                    setSelectedPostId(post.id);
+                }
+                onViewPostDetails(post);
               });
-        
-              marker.on('popupclose', () => { if (isMounted()) setSelectedPostId(null); });
               
               markersRef.current[post.id] = marker;
               markersToAdd.push(marker);
@@ -349,16 +308,20 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     if (!postToFocusOnMap || !map || !clusterGroup) return;
 
     const markerToFocus = markersRef.current[postToFocusOnMap];
+    const postToView = posts.find(p => p.id === postToFocusOnMap);
     
-    if (markerToFocus) {
+    if (markerToFocus && postToView) {
       clusterGroup.zoomToShowLayer(markerToFocus, () => {
-        markerToFocus.openPopup();
+        if (isMounted()) {
+            setSelectedPostId(postToView.id);
+        }
+        onViewPostDetails(postToView);
       });
     }
     
     onPostFocusComplete();
     
-  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef]);
+  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted, onViewPostDetails]);
   
   useEffect(() => {
     const map = mapInstanceRef.current;

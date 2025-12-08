@@ -372,7 +372,6 @@ export const App: React.FC = () => {
     handleBack,
     showOnMap,
     saveHistoryState: pushHistoryState,
-    // FIX: Pass all view-specific state through the context provider to solve prop-drilling and type issues.
     viewingAccount,
     viewingPostId,
     viewingForumPostId,
@@ -402,7 +401,7 @@ export const App: React.FC = () => {
   }, [currentAccount, addPostToViewHistory, openModal]);
 
   const viewRendererProps = {
-    view, mainView, isInitialLoading, openPostDetailsModal
+    view, mainView, isInitialLoading,
   };
 
   return (

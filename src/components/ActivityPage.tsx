@@ -14,20 +14,16 @@ import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
 // FIX: Update props interface
-interface ActivityPageProps {
-  initialTab?: 'notifications' | 'alerts' | 'history' | 'settings';
-}
+interface ActivityPageProps {}
 
-export const ActivityPage: React.FC<ActivityPageProps> = ({
-  initialTab = 'notifications',
-}) => {
+export const ActivityPage: React.FC<ActivityPageProps> = () => {
   // FIX: Get data from contexts
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll, settings, onSettingsChange } = useActivity();
   const { currentAccount, viewedPostIds, toggleAccountStatus, signOut: onSignOut } = useAuth();
   const { findPostById } = usePosts();
-  const { navigateTo } = useNavigation();
+  const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab || 'notifications');
   const { gridView, isTabletOrDesktop } = useUI();
 
   useEffect(() => {

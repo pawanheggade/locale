@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
+import { useNavigation } from '../contexts/NavigationContext';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./MapView').then(module => ({ default: module.MapView })));

@@ -8,11 +8,12 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { Input } from './ui/Input';
 import { useNavigation } from '../contexts/NavigationContext';
 
-interface ManageCatalogPageProps {
-  account: Account;
-}
+// FIX: Remove props interface.
+interface ManageCatalogPageProps {}
 
-export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account }) => {
+export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
+  // FIX: Get account from context.
+  const { viewingAccount: account } = useNavigation();
   const { addCatalogItems, updateAccountDetails } = useAuth();
   const { handleBack } = useNavigation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +29,10 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account })
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragItem = useRef<number | null>(null);
 
+  // FIX: Add guard clause for when account is not available.
+  if (!account) {
+    return <div className="p-8 text-center">Account not found.</div>;
+  }
   const catalog = account.catalog || [];
 
   const updateCatalog = (newCatalog: CatalogItem[]) => {

@@ -7,18 +7,22 @@ import { PostPerformanceTable } from './PostPerformanceTable';
 import { usePostLikeCounts } from '../hooks/usePostLikeCounts';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
+// FIX: Import useNavigation hook.
+import { useNavigation } from '../contexts/NavigationContext';
 
-interface AccountAnalyticsViewProps {
-  account: Account;
-}
+// FIX: Remove props interface.
+interface AccountAnalyticsViewProps {}
 
-export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ account }) => {
+export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = () => {
+  // FIX: Get account from context.
+  const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts } = useAuth();
   const { posts: allPosts, categories: allCategories } = usePosts();
   
   const accountPosts = useMemo(() => {
+    if (!account) return [];
     return allPosts.filter(post => post.authorId === account.id);
-  }, [allPosts, account.id]);
+  }, [allPosts, account]);
   
   const likeCounts = usePostLikeCounts(allAccounts);
 
@@ -39,14 +43,19 @@ export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ acco
   const { totalCatalogViews, totalCatalogDownloads } = useMemo(() => {
       let views = 0;
       let downloads = 0;
-      if (account.catalog) {
+      if (account?.catalog) {
           account.catalog.forEach(item => {
               views += item.views || 0;
               downloads += item.downloads || 0;
           });
       }
       return { totalCatalogViews: views, totalCatalogDownloads: downloads };
-  }, [account.catalog]);
+  }, [account?.catalog]);
+
+  // FIX: Add guard clause for when account is not available.
+  if (!account) {
+    return <div className="p-8 text-center">Account not found or analytics not available.</div>;
+  }
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">

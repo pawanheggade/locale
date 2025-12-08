@@ -15,23 +15,23 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
 
-interface ForumPostDetailViewProps {
-  postId: string;
-}
+// FIX: Remove postId from props, it will be fetched from context.
+interface ForumPostDetailViewProps {}
 
-export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId }) => {
+export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
+    // FIX: Get viewingForumPostId from NavigationContext.
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
     const { currentAccount, accounts: allAccounts, reportItem } = useAuth();
-    const { navigateTo, handleBack, navigateToAccount } = useNavigation();
+    const { navigateTo, handleBack, navigateToAccount, viewingForumPostId: postId } = useNavigation();
     const { dispatchFilterAction } = useFilters();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editedPostContent, setEditedPostContent] = useState('');
     
-    const post = getPostWithComments(postId);
+    const post = getPostWithComments(postId!);
 
     useEffect(() => {
         if (post) {
