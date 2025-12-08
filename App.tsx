@@ -75,6 +75,8 @@ export const App: React.FC = () => {
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
+  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
+
   useEffect(() => {
     setIsInitialLoading(false); 
   }, []);
@@ -274,13 +276,9 @@ export const App: React.FC = () => {
       setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
     
-    // Only navigate if we are not already on the map view.
-    if (view !== 'all' || mainView !== 'map') {
-        pushHistoryState();
-        setView('all');
-        setMainView('map');
-    }
-  }, [findPostById, addToast, pushHistoryState, view, mainView]);
+    pushHistoryState();
+    setMainView('map');
+  }, [findPostById, addToast, pushHistoryState]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);
@@ -430,8 +428,12 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1 overflow-y-auto pt-16',
-            (mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view)) && 'pt-0'
+            'flex-1',
+            (mainView === 'map' && view === 'all')
+              ? 'overflow-hidden pt-16' // map is below header, no scroll
+              : 'overflow-y-auto pt-16', // default
+            // special case for editors
+            isEditorView && 'pt-0 overflow-hidden'
           )}
           {...touchHandlers}
         >
@@ -442,7 +444,7 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            <div className={cn('relative z-0', (mainView === 'map' || isEditorView) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
                   {isInitialLoading ? <LoadingFallback /> : <ViewRenderer {...viewRendererProps} />}
