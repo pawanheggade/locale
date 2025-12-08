@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -139,7 +140,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
             <ChevronDownIcon className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </Button>
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl z-10 p-2 animate-zoom-in origin-top-right">
+            <div className="absolute right-0 mt-2 w-auto bg-white border border-gray-100 rounded-xl z-10 p-2 animate-zoom-in origin-top-right">
               {navItems.map(item => (
                 <Button
                   key={item.id}

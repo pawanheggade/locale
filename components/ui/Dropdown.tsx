@@ -106,7 +106,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           <ul
             ref={listRef}
             id={listboxId}
-            className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto animate-fade-in-up"
+            className="absolute z-10 w-max min-w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto animate-fade-in-up"
             role="listbox"
             tabIndex={-1}
           >
@@ -117,7 +117,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                 onClick={() => handleSelect(item.value)}
                 onKeyDown={(e) => handleItemKeyDown(e, item.value)}
                 className={cn(
-                  'px-4 py-2 text-sm text-gray-700 cursor-pointer',
+                  'px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap',
                   index === activeIndex && 'bg-gray-100',
                   item.value === selectedValue && 'font-semibold bg-red-50 text-red-700'
                 )}

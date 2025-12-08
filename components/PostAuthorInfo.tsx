@@ -1,25 +1,23 @@
+
 import React from 'react';
 import { Account } from '../types';
-import { timeSince } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
 import { useNavigation } from '../contexts/NavigationContext';
 
 interface PostAuthorInfoProps {
   author: Account;
-  timestamp: number;
-  isEdited: boolean;
   size?: 'small' | 'medium';
   showAvatar?: boolean;
   children?: React.ReactNode;
   subscriptionBadgeIconOnly?: boolean;
   location?: React.ReactNode;
+  variant?: 'default' | 'overlay';
 }
 
-export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestamp, isEdited, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location }) => {
+export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location, variant = 'default' }) => {
   const { navigateTo } = useNavigation();
   const nameClasses = size === 'small' ? 'text-sm' : 'text-base';
-  const metaClasses = size === 'small' ? 'text-xs' : 'text-sm';
   const wrapperPadding = size === 'small' ? 'p-1 -ml-1' : 'p-2 -ml-2';
   
   const displayName = author.businessName || author.name;
@@ -28,6 +26,10 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestam
       e.stopPropagation();
       navigateTo('account', { account: author });
   };
+  
+  const isOverlay = variant === 'overlay';
+  const usernameColor = isOverlay ? 'text-white' : 'text-gray-800';
+
 
   return (
     <div className="flex items-center justify-between gap-3">
@@ -51,18 +53,9 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, timestam
                 tabIndex={0}
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleProfileClick(e as any)}
             >
-                <p className={`${nameClasses} font-semibold text-gray-800 truncate flex items-center gap-2 leading-tight`}>
-                    <span className="truncate">{displayName}</span>
+                <p className={`${nameClasses} font-semibold ${usernameColor} leading-tight flex items-center gap-1.5`}>
+                    <span className="truncate">@{author.username}</span>
                     <SubscriptionBadge tier={author.subscription?.tier} iconOnly={subscriptionBadgeIconOnly} />
-                </p>
-                <p className={`${metaClasses} text-gray-600 truncate leading-tight`}>
-                    <span>@{author.username}</span>
-                    {isEdited && (
-                        <>
-                            <span className="mx-1">&bull;</span>
-                            <span title={new Date(timestamp).toLocaleString()}>updated</span>
-                        </>
-                    )}
                 </p>
             </div>
             {location && (

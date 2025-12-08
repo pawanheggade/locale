@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
-import { getPostStatus, isAccountEligibleToPin, isPostPurchasable, wasPostEdited } from '../utils/posts';
+import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { useAuth } from '../contexts/AuthContext';
@@ -91,17 +92,18 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   // Only show detailed metadata (Category, Tags) if expanded or if description is short enough to show fully
   const showDetails = !shouldTruncate || isDescriptionExpanded;
 
-  const showHeader = !hideAuthorInfo && post.author && !isCompact;
+  const showHeader = !hideAuthorInfo && post.author;
 
   const handleExpandToggle = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setIsDescriptionExpanded(prev => !prev);
   };
 
-  const LocationElement = (
+  const LocationElement = ({ isOverlay = false }: { isOverlay?: boolean }) => (
      <div
         className={cn(
-            "flex items-center gap-1.5 min-w-0 text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            isOverlay ? 'text-white/80' : 'text-red-400',
             coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {
@@ -155,14 +157,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       aria-labelledby={`post-title-${post.id}`}
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
-      {showHeader && (
+      {showHeader && !isCompact && (
           <div className="p-3 border-b border-gray-100">
             <PostAuthorInfo 
                 author={post.author!} 
-                timestamp={post.lastUpdated}
-                isEdited={wasPostEdited(post)}
                 subscriptionBadgeIconOnly={true}
-                location={LocationElement}
+                location={<LocationElement />}
             >
                 {isOwnPost ? (
                     !isArchived && (
@@ -234,6 +234,60 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             aspectRatio={isCompact ? 'aspect-square' : 'aspect-[4/3]'}
           />
         )}
+        
+        {showHeader && isCompact && (
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/60 to-transparent">
+            <PostAuthorInfo 
+                author={post.author!}
+                subscriptionBadgeIconOnly={true}
+                variant="overlay"
+            >
+                {isOwnPost ? (
+                    !isArchived && (
+                        <Button
+                          onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }}
+                          variant="overlay"
+                          size="icon-sm"
+                          className="flex-shrink-0 text-white/80 active:scale-95"
+                          aria-label="Edit post"
+                          title="Edit post"
+                        >
+                            <PencilIcon className="w-5 h-5" />
+                        </Button>
+                    )
+                ) : (
+                    <>
+                        <LikeButton
+                            isLiked={isProfileLiked}
+                            onToggle={() => {
+                                if (currentAccount) {
+                                    toggleLikeAccount(post.authorId);
+                                } else {
+                                    openModal({ type: 'login' });
+                                }
+                            }}
+                            variant="overlay"
+                            size="icon-sm"
+                            className={cn(
+                                "flex-shrink-0 active:scale-95",
+                                isProfileLiked ? "text-red-400" : "text-white/80"
+                            )}
+                            iconClassName="w-5 h-5"
+                            aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
+                            title={isProfileLiked ? "Liked" : "Like profile"}
+                        />
+                        <PostActionsDropdown 
+                            post={post} 
+                            isArchived={isArchived} 
+                            currentAccount={currentAccount} 
+                            variant="overlay"
+                        />
+                    </>
+                )}
+            </PostAuthorInfo>
+          </div>
+        )}
+
         {post.isLocaleChoice && isSearchResult && <LocaleChoiceBadge className="top-3 left-3" />}
       </div>
       
@@ -386,7 +440,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
 
           {/* Location & Expiry/Date Info */}
           <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-1 mt-2">
-            {!showHeader && LocationElement}
+            {!showHeader && !isCompact && <LocationElement />}
             {ExpiryElement}
           </div>
 

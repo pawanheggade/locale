@@ -21,7 +21,8 @@ interface CommentProps {
   replyingToId: string | null;
 }
 
-export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
+// FIX: Renamed component to `CommentComponent` to match its recursive usage.
+const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
   const { currentAccount, reportItem, accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
   const { openModal } = useUI();
@@ -74,8 +75,6 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
       <div className="flex-1">
         <PostAuthorInfo
             author={comment.author}
-            timestamp={comment.timestamp}
-            isEdited={false}
             showAvatar={false}
             size="small"
         />
@@ -128,10 +127,14 @@ export const Comment: React.FC<CommentProps> = ({ comment, onSetReplyTarget, rep
         )}
         <div className="mt-6 space-y-6">
           {comment.replies.map(reply => (
-            <Comment key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
+            // FIX: The component recursively called `CommentComponent` which was not defined. It has been renamed to `CommentComponent` to fix this.
+            <CommentComponent key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
           ))}
         </div>
       </div>
     </div>
   );
 };
+
+// FIX: Exporting a memoized version as `Comment` to align with project patterns.
+export const Comment = React.memo(CommentComponent);

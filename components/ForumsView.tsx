@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,7 +29,7 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 text-xs">
                     <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
-                    <span className="font-semibold text-gray-600">{post.author?.name || 'Unknown User'}</span>
+                    <span className="font-semibold text-gray-600">@{post.author?.username || 'unknown'}</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 mt-1 break-words">{post.title}</h3>
                 <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">

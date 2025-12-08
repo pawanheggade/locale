@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -224,21 +225,23 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                       onClick={() => openModal({ type: 'profileQR', data: account })}
                   />
                   <div className="mb-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                          <SubscriptionBadge tier={account.subscription.tier} />
+                      <div className="flex items-center gap-3 flex-wrap">
+                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight -mb-1">{account.name}</h1>
                           {isOwnAccount && (
                               <Button
                                   onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2 mb-1"
                               >
                                   Subscription
                               </Button>
                           )}
                       </div>
-                      <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                        <SubscriptionBadge tier={account.subscription.tier} />
+                      </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
                         <div className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4" /><span>Joined {formatMonthYear(account.joinDate)}</span></div>
                         {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4" /><span>Tax ID: {account.taxInfo}</span></div>)}
@@ -345,7 +348,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             </TabButton>
                             
                             {isCategoryDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
+                                <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
                                     {categoryTabs.map(cat => (
                                         <button
                                             key={cat}
@@ -354,7 +357,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                                 setIsCategoryDropdownOpen(false);
                                             }}
                                             className={cn(
-                                                "w-full text-left px-4 py-2 text-sm",
+                                                "w-full text-left px-4 py-2 text-sm whitespace-nowrap",
                                                 activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
                                             )}
                                         >

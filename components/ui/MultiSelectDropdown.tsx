@@ -69,7 +69,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 animate-fade-in-up">
+        <div className="absolute z-10 w-max min-w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 animate-fade-in-up">
           <div className="p-2 border-b">
             <div className="relative">
                 <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -88,7 +88,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <li
                 key={item.value}
                 onClick={() => handleToggleItem(item.value)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap"
                 role="option"
                 aria-selected={selectedValues.includes(item.value)}
               >
@@ -99,7 +99,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                   className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
                   tabIndex={-1}
                 />
-                <span className="ml-3 truncate">{item.label}</span>
+                <span className="ml-3">{item.label}</span>
               </li>
             ))}
           </ul>

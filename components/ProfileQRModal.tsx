@@ -1,3 +1,4 @@
+
 import React, { useRef, useMemo, useState } from 'react';
 import { Account } from '../types';
 import ModalShell from './ModalShell';
@@ -93,32 +94,45 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
     ctx.fillStyle = '#111827'; // gray-900
     ctx.fillText(account.name, cardWidth / 2, textY + 16);
     
+    // Username and Badge
+    ctx.font = '500 14px sans-serif';
+    ctx.fillStyle = '#6b7280'; // gray-500
+    const usernameText = `@${account.username}`;
+    const usernameWidth = ctx.measureText(usernameText).width;
+    const usernameY = textY + 40;
+
     // Draw Badge on Canvas if applicable
-    if (account.subscription.tier !== 'Personal' && account.subscription.tier !== 'Basic') {
-        const nameWidth = ctx.measureText(account.name).width;
+    if (['Verified', 'Business', 'Organisation'].includes(account.subscription.tier)) {
         const badgeSvg = getBadgeSvg(account.subscription.tier);
         const badgeImg = new Image();
         badgeImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(badgeSvg);
         
         await new Promise((resolve) => {
             badgeImg.onload = resolve;
-            badgeImg.onerror = resolve; 
+            badgeImg.onerror = (e) => { console.error("Badge image failed to load for canvas"); resolve(e); };
         });
 
-        const badgeSize = 24;
-        const badgeX = (cardWidth / 2) + (nameWidth / 2) + 6;
-        const badgeY = (textY + 16) - (badgeSize / 2) - 7; 
+        const badgeSize = 16;
+        const gap = 4;
+        const totalContentWidth = usernameWidth + badgeSize + gap;
+        const startX = (cardWidth - totalContentWidth) / 2;
+
+        // Draw username text first
+        ctx.textAlign = 'left';
+        ctx.fillText(usernameText, startX, usernameY);
         
-        ctx.drawImage(badgeImg, badgeX, badgeY, badgeSize, badgeSize);
+        // Draw badge after username
+        const badgeY = usernameY - (badgeSize / 2) - 1; // vertical alignment
+        ctx.drawImage(badgeImg, startX + usernameWidth + gap, badgeY, badgeSize, badgeSize);
+
+        ctx.textAlign = 'center'; // Reset for other elements
+    } else {
+        // Just draw username if no badge
+        ctx.fillText(usernameText, cardWidth / 2, usernameY);
     }
-    
-    // Username
-    ctx.font = '500 14px sans-serif';
-    ctx.fillStyle = '#6b7280'; // gray-500
-    ctx.fillText(`@${account.username}`, cardWidth / 2, textY + 40);
 
     // 5. Locale Logo
-    const logoY = textY + 94;
+    const logoY = textY + 84;
     await drawLogoOnCanvas(ctx, cardWidth / 2, logoY, 'default');
 
     return new Promise((resolve, reject) => {
@@ -189,13 +203,13 @@ export const ProfileQRModal: React.FC<ProfileQRModalProps> = ({ account, onClose
       <div className="p-6 flex flex-col items-center text-center">
         <div className={`p-6 bg-white rounded-3xl border-4 ${borderColorClass} inline-block shadow-md flex flex-col items-center gap-4`}>
             <img src={qrCodeApiUrl} alt={`QR code for ${account.name}`} className="w-56 h-56 rounded-md" />
-            <div>
-                <div className="flex items-center justify-center gap-2">
-                    <h3 className="text-xl font-bold text-gray-800">{account.name}</h3>
-                    <SubscriptionBadge tier={account.subscription.tier} iconOnly />
-                </div>
-                <p className="text-sm text-gray-600">@{account.username}</p>
-            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800">{account.name}</h3>
+              <div className="flex items-center justify-center gap-1.5 mt-1">
+                  <p className="text-sm text-gray-600">@{account.username}</p>
+                  <SubscriptionBadge tier={account.subscription.tier} iconOnly />
+              </div>
+          </div>
             <Logo />
         </div>
         <div className="mt-6 w-full space-y-3">
