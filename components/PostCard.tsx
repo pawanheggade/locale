@@ -241,6 +241,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 author={post.author!}
                 subscriptionBadgeIconOnly={true}
                 variant="overlay"
+                location={<LocationElement isOverlay={true} />}
             >
                 {isOwnPost ? (
                     !isArchived && (
