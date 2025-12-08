@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Report, DisplayablePost, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment } from '../../types';
 import { timeSince } from '../../utils/formatters';
@@ -9,7 +8,7 @@ import { EmptyState } from '../EmptyState';
 import { FlagIcon } from '../Icons';
 
 interface ReportWithData extends Report {
-    type: 'Marketplace Post' | 'Forum Post' | 'Forum Comment';
+    type: 'Markets Post' | 'Forum Post' | 'Forum Comment';
     content: string; // Title or comment content
     onView: () => void;
 }
@@ -32,7 +31,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ reports, allPosts, for
                 const post = allPosts.find(p => p.id === report.postId);
                 return {
                     ...report,
-                    type: 'Marketplace Post',
+                    type: 'Markets Post',
                     content: post?.title || 'Deleted Post',
                     onView: () => post && onViewPost(post),
                 };
@@ -67,7 +66,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ reports, allPosts, for
             }
             return {
                 ...report,
-                type: 'Marketplace Post', // fallback
+                type: 'Markets Post', // fallback
                 content: 'Unknown Content',
                 onView: () => {},
             };

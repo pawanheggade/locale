@@ -1,6 +1,7 @@
 
 
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -174,7 +175,7 @@ export interface Report {
   reporterId: string;
   reason: string;
   timestamp: number;
-  postId?: string; // For marketplace posts
+  postId?: string; // For markets posts
   forumPostId?: string;
   forumCommentId?: string;
 }
@@ -218,10 +219,11 @@ export type ModalState =
   | { type: 'feedback' }
   | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
   | { type: 'profileQR', data: Account }
+  // FIX: Added 'viewPost' to the ModalState union type to support viewing post details in a modal.
   | { type: 'viewPost', data: DisplayablePost };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'postDetail';
 export type ActivityTab = 'notifications' | 'alerts' | 'history' | 'settings';
 
 

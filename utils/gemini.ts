@@ -1,6 +1,7 @@
 
 
 
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Post } from '../types';
 import { handleApiError, withRetry } from './api';
@@ -51,7 +52,7 @@ export const performAiSearch = async (query: string, posts: Post[]): Promise<Arr
   }));
 
   const prompt = `
-    You are an intelligent search assistant for an online marketplace app called "Locale".
+    You are an intelligent search assistant for an online markets app called "Locale".
     Analyze the account's search query and the provided list of posts.
     The account's query is: "${query}"
 
@@ -88,7 +89,7 @@ export const generateSearchSuggestions = async (query: string): Promise<string[]
   if (query.trim().length < 2) return [];
 
   const prompt = `
-    You are a search suggestion assistant for a hyperlocal marketplace app called "Locale".
+    You are a search suggestion assistant for a hyperlocal markets app called "Locale".
     Based on the user's current search query, generate 5 relevant and concise search query suggestions.
     User's current query: "${query}"
     Return a JSON array of strings.
@@ -107,7 +108,7 @@ export const generateSearchSuggestions = async (query: string): Promise<string[]
 
 export const suggestTagsForPost = async (title: string, description: string): Promise<string[]> => {
   const prompt = `
-    You are an expert in categorizing items on a marketplace called 'Locale'.
+    You are an expert in categorizing items on markets called 'Locale'.
     Based on the title and description below, suggest 5 to 7 relevant, concise (1-2 words), lowercase tags.
     Title: "${title}"
     Description: "${description}"
@@ -125,7 +126,7 @@ export const suggestTagsForPost = async (title: string, description: string): Pr
 
 export const suggestCategoriesForPost = async (title: string, description: string, existingCategories: string[]): Promise<string[]> => {
   const prompt = `
-    You are an expert in categorizing items on a marketplace.
+    You are an expert in categorizing items on markets.
     Based on the title and description, suggest up to 3 relevant categories.
     Prefer existing categories: ${JSON.stringify(existingCategories)}.
     If none fit, suggest broad new ones.

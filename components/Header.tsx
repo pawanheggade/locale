@@ -126,13 +126,13 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const navItems = [
-    { view: 'all' as AppView, label: 'Marketplace', icon: <Squares2X2Icon className="w-5 h-5" /> },
+    { view: 'all' as AppView, label: 'Markets', icon: <Squares2X2Icon className="w-5 h-5" /> },
     { view: 'forums' as AppView, label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-5 h-5" /> },
     { view: 'likes' as AppView, label: 'Likes', icon: <HeartIcon className="w-5 h-5" /> },
   ];
 
   const currentNavItem = navItems.find(item => item.view === view);
-  const currentNavLabel = currentNavItem?.label || 'Marketplace';
+  const currentNavLabel = currentNavItem?.label || 'Markets';
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },

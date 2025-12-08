@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PostCategory } from '../../types';
 import { Button, TabButton } from '../ui/Button';
@@ -26,20 +25,20 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
     forumCategories, onAddForumCategory, onUpdateForumCategory, onDeleteForumCategory,
     priceUnits, onAddPriceUnit, onUpdatePriceUnit, onDeletePriceUnit
 }) => {
-    const [activeTab, setActiveTab] = useState<'marketplace' | 'forums' | 'units'>('marketplace');
+    const [activeTab, setActiveTab] = useState<'markets' | 'forums' | 'units'>('markets');
 
     return (
         <div>
             <div className="mb-4 border-b border-gray-200">
                 <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist">
-                    <TabButton onClick={() => setActiveTab('marketplace')} isActive={activeTab === 'marketplace'}>Marketplace</TabButton>
+                    <TabButton onClick={() => setActiveTab('markets')} isActive={activeTab === 'markets'}>Markets</TabButton>
                     <TabButton onClick={() => setActiveTab('forums')} isActive={activeTab === 'forums'}>Forums</TabButton>
                     <TabButton onClick={() => setActiveTab('units')} isActive={activeTab === 'units'}>Units</TabButton>
                 </nav>
             </div>
-            {activeTab === 'marketplace' ? (
+            {activeTab === 'markets' ? (
                 <CategoryManager
-                    title="Marketplace"
+                    title="Markets"
                     categories={categories}
                     onAdd={onAddCategory}
                     onUpdate={onUpdateCategory}

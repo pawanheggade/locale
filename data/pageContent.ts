@@ -4,7 +4,7 @@ const staticDate = new Date('2024-07-26').toLocaleDateString(undefined, { year: 
 export const initialTermsContent = `
 <p class="text-sm text-gray-500">Last updated: ${staticDate}</p>
 <h2>1. Introduction</h2>
-<p>Welcome to Locale ("we," "our," or "us"). These Terms of Service govern your use of our hyperlocal marketplace application and any related services provided by us. By accessing or using our service, you agree to be bound by these terms.</p>
+<p>Welcome to Locale ("we," "our," or "us"). These Terms of Service govern your use of our hyperlocal markets application and any related services provided by us. By accessing or using our service, you agree to be bound by these terms.</p>
 <h2>2. Use of Our Service</h2>
 <p>You must be at least 18 years old to use our service. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete.</p>
 <h2>3. User Content</h2>
@@ -34,7 +34,7 @@ export const initialTermsContent = `
 export const initialPrivacyContent = `
 <p class="text-sm text-gray-500">Last updated: ${staticDate}</p>
 <h2>1. Introduction</h2>
-<p>Your privacy is important to us. This Privacy Policy explains how Locale ("we," "our," or "us") collects, uses, discloses, and safeguards your information when you use our hyperlocal marketplace application.</p>
+<p>Your privacy is important to us. This Privacy Policy explains how Locale ("we," "our," or "us") collects, uses, discloses, and safeguards your information when you use our hyperlocal markets application.</p>
 <h2>2. Information We Collect</h2>
 <p>We may collect information about you in a variety of ways. The information we may collect on the App includes:</p>
 <ul>
