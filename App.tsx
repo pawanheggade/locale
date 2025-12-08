@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -9,7 +11,6 @@ import { useFilters } from './contexts/FiltersContext';
 import { useAuth } from './contexts/AuthContext';
 import { usePosts } from './contexts/PostsContext';
 import { useForum } from './contexts/ForumContext';
-import { useActivity } from './contexts/ActivityContext';
 import { usePostFilters } from './hooks/usePostFilters';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
@@ -30,6 +31,8 @@ import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
 import { NavigationContext, useNavigation } from './contexts/NavigationContext';
 import { STORAGE_KEYS } from './lib/constants';
+// FIX: `useActivity` was not imported, causing a reference error.
+import { useActivity } from './contexts/ActivityContext';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./components/MapView').then(module => ({ default: module.MapView })));
@@ -58,6 +61,11 @@ interface HistoryItem {
 
 const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
 
+const PROTECTED_VIEWS: AppView[] = [
+  'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
+];
+
 export const App: React.FC = () => {
   const { 
     currentAccount, accounts, accountsById, signOut, 
@@ -77,7 +85,6 @@ export const App: React.FC = () => {
     priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
-  // FIX: Renamed `updateCategory` destructuring to `updateForumCategory` to avoid redeclaration.
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
   const { activeModal, openModal, closeModal, addToast, gridView, isTabletOrDesktop } = useUI();
   const showConfirmation = useConfirmationModal();
@@ -153,12 +160,7 @@ export const App: React.FC = () => {
       newView: AppView,
       options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab } = {}
   ) => {
-      const protectedViews: AppView[] = [
-        'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-        'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
-      ];
-
-      if (!currentAccount && protectedViews.includes(newView)) {
+      if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
           openModal({ type: 'login' });
           return;
       }
@@ -375,6 +377,13 @@ export const App: React.FC = () => {
     handleRefresh();
   }, [onClearFilters, mainView, handleRefresh]);
 
+  useEffect(() => {
+    // If the user signs out while on a protected page, navigate them to the home feed.
+    if (!currentAccount && PROTECTED_VIEWS.includes(view)) {
+      handleGoHome();
+    }
+  }, [currentAccount, view, handleGoHome]);
+
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
       pushHistoryState();
       setMainView(newMainView);
@@ -538,16 +547,18 @@ export const App: React.FC = () => {
           </Suspense>
         );
       case 'likes':
+        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view your likes.</div>;
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <LikesView 
                     likedPosts={allDisplayablePosts.filter(post => likedPostIds.has(post.id))} 
                     allPosts={allDisplayablePosts}
-                    currentAccount={currentAccount!} 
+                    currentAccount={currentAccount} 
                 />
             </Suspense>
         );
       case 'bag':
+        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view your bag.</div>;
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <BagView onViewDetails={openPostDetailsModal} allAccounts={accounts} />
@@ -581,12 +592,13 @@ export const App: React.FC = () => {
             </Suspense>
         );
       case 'nearbyPosts':
+        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view nearby posts.</div>;
         if (!nearbyPostsResult) return <div className="p-8 text-center">No nearby results available.</div>;
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <NearbyPostsView
                     result={nearbyPostsResult}
-                    currentAccount={currentAccount!}
+                    currentAccount={currentAccount}
                 />
             </Suspense>
         );
@@ -600,14 +612,15 @@ export const App: React.FC = () => {
         if (!viewingForumPostId) return null;
         return <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} />;
       case 'createPost':
+        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to create a post.</div>;
         return (
             <CreatePostPage 
                 onBack={handleBack} 
                 onSubmitPost={createPost}
                 onNavigateToPost={() => navigateTo('all')} 
-                currentAccount={currentAccount!} 
+                currentAccount={currentAccount} 
                 categories={categories}
-                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount!, ...details })}
+                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount, ...details })}
             />
         );
       case 'editPost':
@@ -630,22 +643,24 @@ export const App: React.FC = () => {
               />
           );
       case 'subscription':
+        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to manage your subscription.</div>;
         return (
             <SubscriptionPage 
-                currentAccount={currentAccount!} 
-                onUpdateSubscription={(tier) => updateSubscription(currentAccount!.id, tier)}
+                currentAccount={currentAccount} 
+                onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)}
                 openModal={openModal}
             />
         );
       case 'activity':
+        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to view your activity.</div>;
         return (
             <ActivityPage
-                notifications={notifications.filter(n => n.recipientId === currentAccount!.id)}
+                notifications={notifications.filter(n => n.recipientId === currentAccount.id)}
                 onDismiss={markAsRead}
                 onDismissAll={markAllAsRead}
                 onNotificationClick={handleNotificationClick}
                 viewedPosts={viewedPosts}
-                currentAccount={currentAccount!}
+                currentAccount={currentAccount}
                 settings={notificationSettings}
                 onSettingsChange={handleUpdateNotificationSettings}
                 onArchiveAccount={handleArchiveAccount}

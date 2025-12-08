@@ -4,6 +4,7 @@ import { useUI } from '../contexts/UIContext';
 import { SettingsSection } from './SettingsSection';
 import { SettingsRow } from './SettingsRow';
 import { Switch } from './ui/Switch';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 interface SettingsPageProps {
   settings: NotificationSettings;
@@ -15,8 +16,19 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onArchiveAccount, onSignOut, currentAccount }) => {
   const { openModal } = useUI();
+  const showConfirmation = useConfirmationModal();
 
   const isSeller = currentAccount.subscription.tier !== 'Personal';
+  
+  const handleSignOutClick = () => {
+    showConfirmation({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out?',
+      onConfirm: onSignOut,
+      confirmText: 'Sign Out',
+      confirmClassName: 'bg-red-600 text-white',
+    });
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
@@ -63,7 +75,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
 
             <SettingsSection title="Account">
                 <SettingsRow
-                    onClick={onSignOut}
+                    onClick={handleSignOutClick}
                     title="Sign Out"
                     description="End your session on this device."
                     variant="destructive"

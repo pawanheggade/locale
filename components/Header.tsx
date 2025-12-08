@@ -129,9 +129,6 @@ export const Header: React.FC<HeaderProps> = ({
   };
   
   const handleMobileSearchCancel = () => {
-    if (filterState.searchQuery) {
-        handleClearSearch();
-    }
     setIsMobileSearchOpen(false);
   };
 
@@ -388,7 +385,17 @@ export const Header: React.FC<HeaderProps> = ({
       
       {isMobileSearchOpen && (
           <div className="fixed inset-0 bg-white z-[2001] p-4 sm:hidden animate-fade-in flex flex-col" role="dialog" aria-modal="true">
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
+                <Button
+                    type="button"
+                    onClick={handleMobileSearchCancel}
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-500 rounded-xl -ml-2 shrink-0"
+                    aria-label="Go back"
+                >
+                    <ChevronLeftIcon className="w-6 h-6" />
+                </Button>
                 <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -401,10 +408,11 @@ export const Header: React.FC<HeaderProps> = ({
                       onClearRecentSearches={onClearRecentSearches}
                       onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                       isAiSearching={filterState.isAiSearching}
-                      onCancelSearch={handleMobileSearchCancel}
+                      onCancelSearch={filterState.searchQuery ? handleClearSearch : undefined}
                       autoFocus
                       aiButton={renderAiButton()}
                       filterButton={renderFilterButton()}
+                      hideSearchIcon
                 />
             </div>
           </div>
