@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // Generic base Icon component to reduce boilerplate
@@ -209,6 +208,22 @@ export const Squares2X2Icon = createIcon(
     <rect x="3" y="13" width="8" height="8" rx="1.5" />
     <rect x="13" y="13" width="8" height="8" rx="1.5" />
   </>
+);
+
+export const LogoIcon: React.FC<IconProps> = ({ className, title, ...props }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      className={className}
+      {...props}
+    >
+      {title && <title>{title}</title>}
+      <path d="M4 4L12 20L20 4H4Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M2 14H22" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
 );
 
 export const UserCircleIconSolid = createIcon(<path fill="currentColor" stroke="none" fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" clipRule="evenodd" />);

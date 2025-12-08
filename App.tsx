@@ -1,11 +1,4 @@
 
-
-
-
-
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -345,6 +338,16 @@ export const App: React.FC = () => {
       }
     }
   }, [history, navigateTo, view, dispatchFilterAction]);
+
+  const showBackButton = (view !== 'all' && history.length > 0) || (view === 'all' && isAnyFilterActive);
+
+  const backAction = useCallback(() => {
+    if (view === 'all' && isAnyFilterActive) {
+        onClearFilters();
+    } else {
+        handleBack();
+    }
+  }, [view, isAnyFilterActive, onClearFilters, handleBack]);
 
   const handleGoHome = useCallback(() => {
     onClearFilters();
@@ -722,7 +725,7 @@ export const App: React.FC = () => {
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
-          onBack={view !== 'all' && history.length > 0 ? handleBack : undefined}
+          onBack={showBackButton ? backAction : undefined}
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}
