@@ -79,7 +79,8 @@ export const performAiSearch = async (query: string, posts: Post[]): Promise<Arr
   };
 
   const result = await generateJsonContent<Array<{id: string, reasoning: string}>>(
-      prompt, schema, "AI search", "gemini-3-pro-preview", 0.1
+      // FIX: Use gemini-2.5-flash for better performance on this task as complex reasoning is not required.
+      prompt, schema, "AI search", "gemini-2.5-flash", 0.1
   );
   
   return result || [];

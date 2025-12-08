@@ -75,8 +75,6 @@ export const App: React.FC = () => {
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
-
   useEffect(() => {
     setIsInitialLoading(false); 
   }, []);
@@ -89,6 +87,20 @@ export const App: React.FC = () => {
       }
     }
   }, [accountsById, viewingAccount]);
+
+  const handleSearchSubmit = (query: string) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    // Update recent searches: add to front, remove duplicates, limit length
+    setRecentSearches(prev => 
+        [trimmedQuery, ...prev.filter(s => s.toLowerCase() !== trimmedQuery.toLowerCase())]
+        .slice(0, 7) // Keep up to 7 recent searches
+    );
+    
+    // Update filter state
+    dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: trimmedQuery });
+  };
 
   const pushHistoryState = useCallback(() => {
     const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
@@ -407,10 +419,13 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
+  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
+
   return (
     <NavigationContext.Provider value={navigationContextValue}>
       <div className="h-screen flex flex-col">
         <Header
+          onSearchSubmit={handleSearchSubmit}
           recentSearches={recentSearches}
           onRemoveRecentSearch={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
           onClearRecentSearches={() => setRecentSearches([])}

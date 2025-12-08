@@ -301,11 +301,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId })
     
     if (isEditing && onUpdatePost && editingPost) {
         const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        navigateTo('all'); // Navigate home after edit
+        // FIX: Pass postId to navigateTo for a better UX after editing.
+        navigateTo('all', { postId: updatedPost.id }); // Navigate home after edit
     } else if (onSubmitPost && currentAccount) {
         const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        navigateTo('all'); // Navigate home after create
+        // FIX: Pass postId to navigateTo for a better UX after creating a post.
+        navigateTo('all', { postId: newPost.id }); // Navigate home after create
     }
   };
 

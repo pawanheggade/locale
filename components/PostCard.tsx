@@ -120,7 +120,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         }}
         role={coordsToUse ? "button" : undefined}
         tabIndex={coordsToUse ? 0 : undefined}
-        onKeyDown={(e) => {
+        onKeyDown={(e: React.KeyboardEvent) => {
             if ((e.key === 'Enter' || e.key === ' ') && coordsToUse) {
                 e.preventDefault();
                 e.stopPropagation();

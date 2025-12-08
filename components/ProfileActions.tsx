@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -283,15 +284,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             <span>Analytics</span>
                         </Button>
                     )}
-                    <Button 
-                        onClick={onEditAccount} 
-                        variant="overlay-dark"
-                        size="sm"
-                        className="bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                    >
-                        <PencilIcon className="w-5 h-5" />
-                        <span>Edit Profile</span>
-                    </Button>
                     {canHaveCatalog && (
                         <Button 
                             onClick={onOpenCatalog} 
@@ -303,6 +295,15 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             <span>Catalogs</span>
                         </Button>
                     )}
+                    <Button 
+                        onClick={onEditAccount} 
+                        variant="overlay-dark"
+                        size="sm"
+                        className="bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                        <span>Edit Profile</span>
+                    </Button>
                 </div>
             )}
         </div>

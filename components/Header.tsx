@@ -14,6 +14,7 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import { cn } from '../lib/utils';
 
 interface HeaderProps {
+  onSearchSubmit: (query: string) => void;
   recentSearches: string[];
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
@@ -29,6 +30,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  onSearchSubmit,
   recentSearches,
   onRemoveRecentSearch,
   onClearRecentSearches,
@@ -107,14 +109,15 @@ export const Header: React.FC<HeaderProps> = ({
     setIsFilterDropdownOpen(false);
   };
 
-  const handleSearchSubmit = (query: string) => {
-    dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: query });
+  const handleFormSubmit = (query: string) => {
+    onSearchSubmit(query);
     setIsMobileSearchOpen(false);
   };
 
   const handleAiSearchSubmitWithHistory = (query: string) => {
-      handleSearchSubmit(query);
+      onSearchSubmit(query);
       handleAiSearchSubmit(query);
+      setIsMobileSearchOpen(false);
   };
 
   const handleLogoClick = () => {
@@ -295,7 +298,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
-                      onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
+                      onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
                       placeholder={placeholder}
                       wrapperClassName="w-full"
                       suggestions={[]}
@@ -389,7 +392,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
-                      onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleSearchSubmit}
+                      onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
                       placeholder={placeholder}
                       wrapperClassName="w-full"
                       suggestions={[]}

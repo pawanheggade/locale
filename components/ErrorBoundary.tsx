@@ -62,6 +62,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       return <ErrorFallback onReset={this.handleReset} />;
     }
 
+    // FIX: Destructuring `this.props` was causing a tooling-specific error. Directly returning `this.props.children` resolves it.
     return this.props.children;
   }
 }
