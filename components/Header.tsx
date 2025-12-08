@@ -317,33 +317,38 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Section */}
           <div className="flex items-center gap-2 shrink-0 col-start-3 justify-self-end">
               {/* MOBILE MAP/GRID TOGGLE */}
-              {view === 'all' && (
-                <div className="sm:hidden">
-                    {mainView === 'map' ? (
-                        <Button
-                            onClick={() => onMainViewChange('grid')}
-                            variant="overlay-dark"
-                            size="icon"
-                            className="!rounded-xl"
-                            aria-label="Grid View"
-                            title="Grid View"
-                        >
-                            <Squares2X2Icon className="w-6 h-6" />
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={() => onMainViewChange('map')}
-                            variant="overlay-dark"
-                            size="icon"
-                            className="!rounded-xl"
-                            aria-label="Map View"
-                            title="Map View"
-                        >
-                            <MapPinIcon className="w-6 h-6" />
-                        </Button>
-                    )}
-                </div>
-              )}
+              <div className="sm:hidden">
+                  {view === 'all' && mainView === 'map' ? (
+                      <Button
+                          onClick={() => onMainViewChange('grid')}
+                          variant="overlay-dark"
+                          size="icon"
+                          className="!rounded-xl"
+                          aria-label="Grid View"
+                          title="Grid View"
+                      >
+                          <Squares2X2Icon className="w-6 h-6" />
+                      </Button>
+                  ) : (
+                      <Button
+                          onClick={() => {
+                              if (view !== 'all') {
+                                  onClearFilters();
+                                  navigateTo('all');
+                              }
+                              onMainViewChange('map');
+                          }}
+                          variant="overlay-dark"
+                          size="icon"
+                          className="!rounded-xl"
+                          aria-label="Map View"
+                          title="Map View"
+                      >
+                          <MapPinIcon className="w-6 h-6" />
+                      </Button>
+                  )}
+              </div>
+              
               {showViewSelector && (
                   <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
                        <Button
