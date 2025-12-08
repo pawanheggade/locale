@@ -310,13 +310,12 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
         if (isMounted()) {
             setSelectedPostId(postToView.id);
         }
-        onViewPostDetails(postToView);
       });
     }
     
     onPostFocusComplete();
     
-  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted, onViewPostDetails]);
+  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted]);
   
   useEffect(() => {
     const map = mapInstanceRef.current;

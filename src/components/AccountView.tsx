@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -347,7 +348,8 @@ export const AccountView: React.FC<AccountViewProps> = () => {
                         <div className="flex-shrink-0 py-2 relative" ref={categoryDropdownRef}>
                             <TabButton 
                                 onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                                isActive={categoryTabs.includes(activeTab)}
+                                // FIX: Use .some() instead of .includes() to prevent potential type inference issues, matching the pattern used elsewhere in the component.
+                                isActive={categoryTabs.some(c => c === activeTab)}
                                 className="gap-1 px-3"
                                 title="Categories"
                                 aria-label="Categories"
