@@ -41,7 +41,6 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
         <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-gray-800 truncate">{post.title}</h4>
             <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                <span>{timeSince(post.timestamp)}</span>
                 <span className="flex items-center gap-1.5"><ChatBubbleEllipsisIcon className="w-3 h-3" /> {post.commentCount}</span>
                 <span className="font-medium px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{post.category}</span>
             </div>

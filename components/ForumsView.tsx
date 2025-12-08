@@ -29,8 +29,6 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
                 <div className="flex items-center gap-2 text-xs">
                     <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
                     <span className="font-semibold text-gray-600">{post.author?.name || 'Unknown User'}</span>
-                    <span className="text-gray-500">&bull;</span>
-                    <span className="text-gray-500">{timeSince(post.timestamp)}</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 mt-1 break-words">{post.title}</h3>
                 <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
