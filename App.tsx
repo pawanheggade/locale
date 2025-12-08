@@ -532,8 +532,8 @@ export const App: React.FC = () => {
             <Suspense fallback={<LoadingFallback />}>
                 <LikesView 
                     likedPosts={likedPosts} 
+                    allPosts={allDisplayablePosts}
                     currentAccount={currentAccount} 
-                    allAccounts={accounts} 
                     gridView={gridView}
                     isTabletOrDesktop={isTabletOrDesktop}
                 />

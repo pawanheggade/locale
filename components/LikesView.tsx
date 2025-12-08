@@ -1,36 +1,33 @@
 
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { TabButton } from './ui/Button';
 import { HeartIcon } from './Icons';
-import { Avatar } from './Avatar';
 import { EmptyState } from './EmptyState';
-import { useNavigation } from '../contexts/NavigationContext';
 
 interface LikesViewProps {
   likedPosts: DisplayablePost[];
+  allPosts: DisplayablePost[];
   currentAccount: Account;
-  allAccounts: Account[];
   gridView: 'default' | 'compact';
   isTabletOrDesktop: boolean;
 }
 
 type LikedTab = 'posts' | 'profiles';
 
-export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount, allAccounts, gridView, isTabletOrDesktop }) => {
+export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, currentAccount, gridView, isTabletOrDesktop }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
-  const { navigateTo } = useNavigation();
 
-  const likedAccounts = useMemo(() => {
-      const likedIds = new Set(currentAccount?.likedAccountIds || []);
-      return allAccounts.filter(acc => likedIds.has(acc.id));
-  }, [currentAccount, allAccounts]);
-
-  const onViewAccount = (account: Account) => {
-      navigateTo('account', { account });
-  };
+  const postsFromLikedProfiles = useMemo(() => {
+    const likedAccountIds = new Set(currentAccount?.likedAccountIds || []);
+    if (likedAccountIds.size === 0) return [];
+    
+    return allPosts
+        .filter(post => likedAccountIds.has(post.authorId))
+        .sort((a, b) => b.lastUpdated - a.lastUpdated);
+  }, [currentAccount, allPosts]);
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
@@ -67,40 +64,19 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
 
         {activeTab === 'profiles' && (
           <div>
-            {likedAccounts.length === 0 ? (
+            {postsFromLikedProfiles.length === 0 ? (
               <EmptyState
                 icon={<HeartIcon />}
-                title="No Liked Profiles Yet"
-                description="Show your support for local sellers by liking their profiles."
+                title="No Posts from Liked Profiles"
+                description="Posts from sellers you like will appear here. Like some profiles to get started!"
                 className="py-20"
               />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
-                {likedAccounts.map((account) => {
-                  return (
-                    <div
-                      key={account.id}
-                      onClick={() => onViewAccount(account)}
-                      onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              onViewAccount(account);
-                          }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`View profile of ${account.name}`}
-                      className="bg-white rounded-xl border border-gray-200/80 p-4 flex flex-col items-center gap-3 cursor-pointer active:scale-95"
-                    >
-                      <Avatar src={account.avatarUrl} alt={account.name} size="xl" tier={account.subscription.tier} />
-                      <div className="text-center w-full">
-                        <h3 className="font-bold text-gray-900 text-sm truncate">{account.name}</h3>
-                        <p className="text-xs text-gray-500 truncate">@{account.username}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <PostList
+                posts={postsFromLikedProfiles}
+                currentAccount={currentAccount}
+                variant={isTabletOrDesktop ? gridView : 'default'}
+              />
             )}
           </div>
         )}

@@ -55,9 +55,11 @@ export const Header: React.FC<HeaderProps> = ({
   const { navigateTo, saveHistoryState } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+  const navDropdownRef = useRef<HTMLDivElement>(null);
 
   const showViewSelector = useMemo(() => {
     if (!isTabletOrDesktop) {
@@ -66,8 +68,14 @@ export const Header: React.FC<HeaderProps> = ({
     const viewsWithGrid = ['all', 'likes', 'account', 'forums', 'nearbyPosts', 'activity'];
     return viewsWithGrid.includes(view);
   }, [view, isTabletOrDesktop]);
+  
+  const showNavDropdown = useMemo(() => {
+      const viewsWithNav = ['all', 'forums', 'likes'];
+      return viewsWithNav.includes(view);
+  }, [view]);
 
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
+  useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
   useEffect(() => {
       const handleResize = () => {
@@ -117,16 +125,14 @@ export const Header: React.FC<HeaderProps> = ({
     setIsMobileSearchOpen(false);
   };
 
-  const isForumsView = ['forums', 'forumPostDetail', 'createForumPost'].includes(view);
+  const navItems = [
+    { view: 'all' as AppView, label: 'Marketplace', icon: <Squares2X2Icon className="w-5 h-5" /> },
+    { view: 'forums' as AppView, label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-5 h-5" /> },
+    { view: 'likes' as AppView, label: 'Likes', icon: <HeartIcon className="w-5 h-5" /> },
+  ];
 
-  const handleForumsClick = () => {
-      if (isForumsView) {
-          // If we are on forums, clicking the button goes back to the main feed.
-          navigateTo('all');
-      } else {
-          navigateTo('forums');
-      }
-  };
+  const currentNavItem = navItems.find(item => item.view === view);
+  const currentNavLabel = currentNavItem?.label || 'Marketplace';
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
@@ -229,18 +235,40 @@ export const Header: React.FC<HeaderProps> = ({
               </Button>
             )}
             <Logo onClick={handleLogoClick} />
-            <Button
-                onClick={handleForumsClick}
-                variant="overlay-dark"
-                size="sm"
-                className={cn(
-                    "flex items-center gap-2 !rounded-xl px-3",
-                    isForumsView && "bg-red-50 text-red-600"
-                )}
-            >
-                <ChatBubbleEllipsisIcon className="w-5 h-5" isFilled={isForumsView} />
-                <span className="font-semibold hidden sm:inline">Forums</span>
-            </Button>
+            {showNavDropdown && (
+                <div className="relative" ref={navDropdownRef}>
+                    <Button
+                        onClick={() => setIsNavDropdownOpen(prev => !prev)}
+                        variant="overlay-dark"
+                        size="icon-sm"
+                        className="!rounded-xl"
+                        aria-label="Open navigation menu"
+                    >
+                        <ChevronDownIcon className={cn("w-5 h-5 transition-transform", isNavDropdownOpen && "rotate-180")} />
+                    </Button>
+                    {isNavDropdownOpen && (
+                         <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 p-1 animate-zoom-in">
+                             {navItems.map(item => (
+                                <li key={item.view} className="list-none">
+                                    <Button
+                                        onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                            view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {React.cloneElement(item.icon, { isFilled: view === item.view })}
+                                            {item.label}
+                                        </div>
+                                    </Button>
+                                </li>
+                             ))}
+                         </div>
+                    )}
+                </div>
+            )}
         </div>
         
         {/* Center Section */}
