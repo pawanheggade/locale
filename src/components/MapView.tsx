@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { DisplayablePost, PostType, Subscription } from '../types';
 import { formatCurrency, formatCompactCurrency } from '../utils/formatters';
 import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
@@ -9,13 +9,11 @@ import { STORAGE_KEYS } from '../lib/constants';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
-// FIX: Import useNavigation hook to access context.
 import { useNavigation } from '../contexts/NavigationContext';
 
 // Declare Leaflet global object
 declare var L: any;
 
-// FIX: Remove props interface.
 interface MapViewProps {}
 
 // Define a type for the saved map state
@@ -67,7 +65,6 @@ const createMarkerIcon = (post: DisplayablePost) => {
 
 
 const MapViewComponent: React.FC<MapViewProps> = () => {
-  // FIX: Get state from context.
   const {
     userLocation,
     isFindingNearby,
@@ -76,7 +73,6 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     locationToFocus,
     onLocationFocusComplete,
   } = useNavigation();
-
   const mapRef = useRef<HTMLDivElement>(null);
   const clusterGroupRef = useRef<any>(null);
   const userLocationMarkerRef = useRef<any>(null);
@@ -106,9 +102,9 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
 
   const mapInstanceRef = useMap(mapRef, { ...initialMapState, zoomControl: false });
   
-  const onViewPostDetails = (post: DisplayablePost) => {
+  const onViewPostDetails = useCallback((post: DisplayablePost) => {
     openModal({ type: 'viewPost', data: post });
-  };
+  }, [openModal]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -195,7 +191,6 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
 
     const postsWithCoords = posts.filter(post => post.coordinates || (post.type === PostType.EVENT && post.eventCoordinates));
     
-    // FIX: Explicitly type the Set to avoid type inference issues.
     const newPostIds = new Set<string>(postsWithCoords.map(p => p.id));
     const currentPostIds = displayedMarkerIdsRef.current;
     const markersToAdd: any[] = [];
@@ -315,13 +310,12 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
         if (isMounted()) {
             setSelectedPostId(postToView.id);
         }
-        onViewPostDetails(postToView);
       });
     }
     
     onPostFocusComplete();
     
-  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted, onViewPostDetails]);
+  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted]);
   
   useEffect(() => {
     const map = mapInstanceRef.current;

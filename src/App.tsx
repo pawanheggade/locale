@@ -88,6 +88,20 @@ export const App: React.FC = () => {
     }
   }, [accountsById, viewingAccount]);
 
+  const handleSearchSubmit = (query: string) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    // Update recent searches: add to front, remove duplicates, limit length
+    setRecentSearches(prev => 
+        [trimmedQuery, ...prev.filter(s => s.toLowerCase() !== trimmedQuery.toLowerCase())]
+        .slice(0, 7) // Keep up to 7 recent searches
+    );
+    
+    // Update filter state
+    dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: trimmedQuery });
+  };
+
   const pushHistoryState = useCallback(() => {
     const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
     setHistory(h => [...h, { 
@@ -274,9 +288,19 @@ export const App: React.FC = () => {
       setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
     
+    // Save current state before navigating
     pushHistoryState();
+
+    // Directly set the view to map view
+    setView('all');
     setMainView('map');
-  }, [findPostById, addToast, pushHistoryState]);
+
+    // Clear any context-specific data that shouldn't persist
+    if(viewingAccount) setViewingAccount(null);
+    if(viewingForumPostId) setViewingForumPostId(null);
+    if(editingAdminPageKey) setEditingAdminPageKey(null);
+
+  }, [findPostById, addToast, pushHistoryState, viewingAccount, viewingForumPostId, editingAdminPageKey]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);
@@ -366,6 +390,7 @@ export const App: React.FC = () => {
     };
   }, []);
 
+  // FIX: Provide all required state to the NavigationContext, including view-specific data.
   const navigationContextValue = useMemo(() => ({
     navigateTo,
     navigateToAccount,
@@ -404,10 +429,13 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
+  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
+
   return (
     <NavigationContext.Provider value={navigationContextValue}>
       <div className="h-screen flex flex-col">
         <Header
+          onSearchSubmit={handleSearchSubmit}
           recentSearches={recentSearches}
           onRemoveRecentSearch={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
           onClearRecentSearches={() => setRecentSearches([])}
@@ -425,8 +453,12 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1 overflow-y-auto pt-16',
-            (mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view)) && 'pt-0'
+            'flex-1',
+            (mainView === 'map' && view === 'all')
+              ? 'overflow-hidden pt-16' // map is below header, no scroll
+              : 'overflow-y-auto pt-16', // default
+            // special case for editors
+            isEditorView && 'pt-0 overflow-hidden'
           )}
           {...touchHandlers}
         >
@@ -437,7 +469,7 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            <div className={cn('relative z-0', (mainView === 'map' || isEditorView) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
                   {isInitialLoading ? <LoadingFallback /> : <ViewRenderer {...viewRendererProps} />}
