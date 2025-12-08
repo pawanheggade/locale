@@ -258,7 +258,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
                                         )}
                                     >
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 w-full">
                                             {React.cloneElement(item.icon, { isFilled: view === item.view })}
                                             {item.label}
                                         </div>
