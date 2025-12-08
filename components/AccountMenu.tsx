@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
@@ -18,8 +17,6 @@ interface AccountMenuProps {
     handleAccountViewToggle: () => void;
     onEditProfile: () => void;
     onOpenActivityPage: () => void;
-    gridView: 'default' | 'compact';
-    onGridViewChange: (view: 'default' | 'compact') => void;
     bagCount: number;
     onOpenSubscriptionPage: () => void;
 }
@@ -54,8 +51,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     handleAccountViewToggle,
     onEditProfile,
     onOpenActivityPage,
-    gridView,
-    onGridViewChange,
     bagCount,
     onOpenSubscriptionPage,
 }) => {
@@ -64,18 +59,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     const accountMenuRef = useRef<HTMLDivElement>(null);
     const isMounted = useIsMounted();
     const animateBadge = useBadgeAnimation(bagCount);
-
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-    useEffect(() => {
-        const handleResize = () => {
-            if (isMounted()) {
-                setWindowWidth(window.innerWidth);
-            }
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [isMounted]);
-    const isDesktop = windowWidth >= 1024;
 
     const closeMenu = useCallback(() => {
         setIsClosing(true);
@@ -104,10 +87,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     const handleMenuAction = (action: () => void) => {
         action();
         closeMenu();
-    };
-
-    const handleGridViewToggle = () => {
-      onGridViewChange(gridView === 'default' ? 'compact' : 'default');
     };
 
     const iconClass = "w-5 h-5";
@@ -156,16 +135,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
-                        </div>
-                        <div className="my-1.5 h-px bg-gray-200/50" />
-                        <div>
-                            {isDesktop && (
-                                <MenuItem
-                                    onClick={() => handleMenuAction(handleGridViewToggle)}
-                                    icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
-                                    label={gridView === 'default' ? 'Compact' : 'Default'}
-                                />
-                            )}
                         </div>
 
                         {currentAccount.role === 'admin' && (

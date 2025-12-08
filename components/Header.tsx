@@ -1,12 +1,11 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, Squares2X2Icon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, Squares2X2Icon, Squares3X3Icon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -70,6 +69,8 @@ export const Header: React.FC<HeaderProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+  
+  const isDesktop = windowWidth >= 1024;
 
   useEffect(() => {
       if (windowWidth >= 640 && isMobileSearchOpen) {
@@ -383,16 +384,30 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right Section */}
         <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
             {view === 'all' && (
-                <Button
-                    onClick={() => onMainViewChange(mainView === 'grid' ? 'map' : 'grid')}
-                    variant="overlay-dark"
-                    size="icon"
-                    className="!rounded-xl"
-                    aria-label={mainView === 'grid' ? 'Switch to Map View' : 'Switch to Grid View'}
-                    title={mainView === 'grid' ? 'Map View' : 'Grid View'}
-                >
-                    {mainView === 'grid' ? <MapPinIcon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
-                </Button>
+                <div className="flex items-center gap-1">
+                    {isDesktop && mainView === 'grid' && (
+                        <Button
+                            onClick={() => onGridViewChange(gridView === 'default' ? 'compact' : 'default')}
+                            variant="overlay-dark"
+                            size="icon"
+                            className="!rounded-xl"
+                            aria-label={gridView === 'default' ? 'Switch to Compact View' : 'Switch to Default View'}
+                            title={gridView === 'default' ? 'Compact View' : 'Default View'}
+                        >
+                            {gridView === 'default' ? <Squares3X3Icon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
+                        </Button>
+                    )}
+                    <Button
+                        onClick={() => onMainViewChange(mainView === 'grid' ? 'map' : 'grid')}
+                        variant="overlay-dark"
+                        size="icon"
+                        className="!rounded-xl"
+                        aria-label={mainView === 'grid' ? 'Switch to Map View' : 'Switch to Grid View'}
+                        title={mainView === 'grid' ? 'Map View' : 'Grid View'}
+                    >
+                        {mainView === 'grid' ? <MapPinIcon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
+                    </Button>
+                </div>
             )}
             <div className="relative">
                  {currentAccount ? (
@@ -405,8 +420,6 @@ export const Header: React.FC<HeaderProps> = ({
                         handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
                         onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}
                         onOpenActivityPage={() => navigateTo('activity')}
-                        gridView={gridView}
-                        onGridViewChange={onGridViewChange}
                         bagCount={bag.length}
                         onOpenSubscriptionPage={() => navigateTo('subscription')}
                     />
