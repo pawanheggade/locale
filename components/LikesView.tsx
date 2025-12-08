@@ -37,10 +37,10 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
       <div className="mb-6 border-b border-gray-200">
         <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist" aria-label="Likes content">
           <TabButton onClick={() => setActiveTab('posts')} isActive={activeTab === 'posts'}>
-            Posts <span className={activeTab === 'posts' ? "text-red-600 font-normal" : "text-gray-400 font-normal"}>({likedPosts.length})</span>
+            Posts
           </TabButton>
           <TabButton onClick={() => setActiveTab('profiles')} isActive={activeTab === 'profiles'}>
-            Profiles <span className={activeTab === 'profiles' ? "text-red-600 font-normal" : "text-gray-400 font-normal"}>({likedAccounts.length})</span>
+            Profiles
           </TabButton>
         </nav>
       </div>

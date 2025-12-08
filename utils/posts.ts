@@ -1,5 +1,6 @@
 
 
+
 import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -127,24 +128,6 @@ export const applyFiltersToPosts = (
     // Hide posts from pending sellers unless the current user is the author
     if (post.author?.status === 'pending' && post.authorId !== currentAccount?.id) {
       return false;
-    }
-
-    if (filterState.filterShowOnlyLikedPosts) {
-      if (!currentAccount || !currentAccount.likedPostIds || currentAccount.likedPostIds.length === 0) {
-          return false;
-      }
-      if (!currentAccount.likedPostIds.includes(post.id)) {
-          return false;
-      }
-    }
-
-    if (filterState.filterShowOnlyLikedProfiles) {
-      if (!currentAccount || !currentAccount.likedAccountIds || currentAccount.likedAccountIds.length === 0) {
-          return false;
-      }
-      if (!currentAccount.likedAccountIds.includes(post.authorId)) {
-          return false;
-      }
     }
 
     if (filterState.filterType !== 'all' && post.type !== filterState.filterType) return false;
