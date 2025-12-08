@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -39,8 +41,9 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
                     <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
                     <span className="font-semibold text-gray-600 truncate">@{post.author?.username || 'unknown'}</span>
                 </div>
-                <h3 className="text-sm font-bold text-gray-800 break-words line-clamp-3 flex-grow min-h-[60px]">{post.title}</h3>
-                <div className="mt-auto pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                <h3 className="text-sm font-bold text-gray-800 break-words line-clamp-3">{post.title}</h3>
+                <div className="flex-grow" />
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
                     <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} orientation="horizontal" />
                     <span className="flex items-center gap-1"><ChatBubbleEllipsisIcon className="w-3 h-3" /> {post.commentCount}</span>
                 </div>
