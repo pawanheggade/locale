@@ -179,6 +179,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 variant="default"
                 subscriptionBadgeIconOnly={true}
                 location={<LocationElement />}
+                hideName={true}
               >
                   <PostActionsDropdown 
                       post={post} 
@@ -226,6 +227,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}
                 location={<LocationElement />}
+                hideName={true}
             >
                 {isOwnPost ? (
                     !isArchived && (

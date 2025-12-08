@@ -12,14 +12,13 @@ interface PostAuthorInfoProps {
   subscriptionBadgeIconOnly?: boolean;
   location?: React.ReactNode;
   variant?: 'default' | 'overlay';
-  hideName?: boolean;
 }
 
-export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location, variant = 'default', hideName = false }) => {
+export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = 'small', showAvatar = true, children, subscriptionBadgeIconOnly = false, location, variant = 'default' }) => {
   const { navigateTo } = useNavigation();
   const wrapperPadding = size === 'small' ? 'p-1 -ml-1' : 'p-2 -ml-2';
   
-  const displayName = hideName ? `@${author.username}` : (author.businessName || author.name);
+  const displayName = author.businessName || author.name;
   
   const handleProfileClick = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -57,11 +56,9 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = '
                     </span>
                     <SubscriptionBadge tier={author.subscription?.tier} iconOnly={subscriptionBadgeIconOnly} className="w-3.5 h-3.5" />
                 </div>
-                {!hideName && (
-                    <p className={`text-xs ${subTextColor} truncate mt-0.5 font-medium`}>
-                        @{author.username}
-                    </p>
-                )}
+                <p className={`text-xs ${subTextColor} truncate mt-0.5 font-medium`}>
+                    @{author.username}
+                </p>
             </div>
             {location && (
                 <div className="mt-1 animate-fade-in">

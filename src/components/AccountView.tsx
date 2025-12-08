@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
+import { DisplayableForumPost, SocialPlatform } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
-import { formatMonthYear, timeSince } from '../utils/formatters';
+import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
 import { Button, TabButton } from './ui/Button';
@@ -14,9 +14,8 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfileActions } from './ProfileActions';
 import { generateContactMethods } from '../utils/account';
-import { cn } from '../lib/utils';
+import { cn, isShareAbortError } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
-import { isShareAbortError } from '../lib/utils';
 import { usePosts } from '../contexts/PostsContext';
 
 interface ForumPostRowProps {
@@ -237,25 +236,23 @@ export const AccountView: React.FC = () => {
 
                  {/* Name and Info */}
                  <div className="flex-1 pt-1 sm:pt-[calc(4rem+4px)] min-w-0 w-full">
-                      <div className="flex flex-col items-start gap-1">
-                          <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                      <div className="flex flex-col items-start gap-0.5">
+                          {isOwnAccount && (
+                              <Button
+                                  onClick={() => navigateTo('subscription')}
+                                  variant="ghost"
+                                  size="xs"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2 mb-1.5"
+                              >
+                                  Subscription
+                              </Button>
+                          )}
+                          <div className="flex items-center flex-wrap gap-x-2">
                               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                              {isOwnAccount && (
-                                  <Button
-                                      onClick={() => navigateTo('subscription')}
-                                      variant="ghost"
-                                      size="xs"
-                                      className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2"
-                                  >
-                                      Subscription
-                                  </Button>
-                              )}
+                              <SubscriptionBadge tier={account.subscription.tier} />
                           </div>
                           
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <p className="font-medium text-sm">@{account.username}</p>
-                            <SubscriptionBadge tier={account.subscription.tier} />
-                          </div>
+                          <p className="font-medium text-gray-600">@{account.username}</p>
 
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
                               <div className="flex items-center gap-1.5">

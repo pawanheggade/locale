@@ -10,7 +10,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './components/AppModals';
+import { AppModals } from './AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -443,6 +443,10 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
+            {/* 
+                We remove the default padding for map, editors, AND account view. 
+                Account view manages its own layout (full width header, padded content).
+            */}
             <div className={cn(
               'relative z-0 w-full', 
               (mainView === 'map' || isEditorView) && 'h-full',
