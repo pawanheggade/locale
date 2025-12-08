@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,13 +13,39 @@ import { CategoryBadge } from './Badges';
 import { EmptyState } from './EmptyState';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
+import { cn } from '../lib/utils';
 
-const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (cat: string) => void }> = ({ post, onCategoryClick }) => {
+interface ForumPostCardProps {
+    post: DisplayableForumPost;
+    onCategoryClick: (cat: string) => void;
+    variant: 'default' | 'compact';
+}
+
+const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, variant }) => {
     const { currentAccount } = useAuth();
     const { toggleVote } = useForum();
     const { navigateTo } = useNavigation();
     
     const userVote = currentAccount ? (post.upvotes.includes(currentAccount.id) ? 'up' : post.downvotes.includes(currentAccount.id) ? 'down' : null) : null;
+    
+    if (variant === 'compact') {
+        return (
+            <div
+                onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} 
+                className="bg-white rounded-xl border border-gray-200/80 p-3 flex flex-col gap-2 cursor-pointer h-full"
+            >
+                <div className="flex items-center gap-2 text-xs">
+                    <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
+                    <span className="font-semibold text-gray-600 truncate">@{post.author?.username || 'unknown'}</span>
+                </div>
+                <h3 className="text-sm font-bold text-gray-800 break-words line-clamp-3 flex-grow min-h-[60px]">{post.title}</h3>
+                <div className="mt-auto pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                    <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} orientation="horizontal" />
+                    <span className="flex items-center gap-1"><ChatBubbleEllipsisIcon className="w-3 h-3" /> {post.commentCount}</span>
+                </div>
+            </div>
+        );
+    }
     
     return (
         <div 
@@ -47,12 +74,19 @@ const ForumPostCard: React.FC<{ post: DisplayableForumPost, onCategoryClick: (ca
 
 type SortOption = 'latest' | 'top';
 
-export const ForumsView: React.FC = () => {
+interface ForumsViewProps {
+    gridView: 'default' | 'compact';
+    isTabletOrDesktop: boolean;
+}
+
+export const ForumsView: React.FC<ForumsViewProps> = ({ gridView, isTabletOrDesktop }) => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
     const { openModal } = useUI();
     const { currentAccount } = useAuth();
     const { navigateTo } = useNavigation();
     const [sortOption, setSortOption] = useState<SortOption>('latest');
+
+    const variant = isTabletOrDesktop ? gridView : 'default';
 
     const displayPosts = useMemo(() => {
         const filtered = activeCategory === 'All' 
@@ -115,21 +149,25 @@ export const ForumsView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="space-y-4">
-                {displayPosts.length > 0 ? (
-                    displayPosts.map(post => <ForumPostCard key={post.id} post={post} onCategoryClick={setActiveCategory} />)
-                ) : (
-                    <EmptyState
-                        icon={<ChatBubbleEllipsisIcon />}
-                        title="No Discussions Yet"
-                        description={activeCategory === 'All'
-                            ? "Be the first to start a conversation!"
-                            : `Be the first to start a discussion in the "${activeCategory}" category.`
-                        }
-                        className="py-20"
-                    />
-                )}
-            </div>
+            {displayPosts.length > 0 ? (
+                <div className={cn(
+                    variant === 'compact' 
+                        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' 
+                        : 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
+                )}>
+                    {displayPosts.map(post => <ForumPostCard key={post.id} post={post} onCategoryClick={setActiveCategory} variant={variant} />)}
+                </div>
+            ) : (
+                <EmptyState
+                    icon={<ChatBubbleEllipsisIcon />}
+                    title="No Discussions Yet"
+                    description={activeCategory === 'All'
+                        ? "Be the first to start a conversation!"
+                        : `Be the first to start a discussion in the "${activeCategory}" category.`
+                    }
+                    className="py-20"
+                />
+            )}
         </div>
     );
 };

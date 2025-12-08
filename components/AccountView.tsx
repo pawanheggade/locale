@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -429,7 +430,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     posts={displayedPosts} 
                                     currentAccount={currentAccount}
                                     isArchived={activeTab === 'archives'}
-                                    variant={isTabletOrDesktop ? gridView : "default"}
+                                    variant={isTabletOrDesktop ? gridView : 'default'}
                                 />
                             ) : (
                             (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (

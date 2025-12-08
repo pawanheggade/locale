@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Account } from '../types';
 import { SubscriptionBadge } from './SubscriptionBadge';
@@ -27,8 +28,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = '
       navigateTo('account', { account: author });
   };
   
-  const isOverlay = variant === 'overlay';
-  const usernameColor = isOverlay ? 'text-white' : 'text-gray-800';
+  const usernameColor = variant === 'overlay' ? 'text-white' : 'text-gray-800';
 
 
   return (

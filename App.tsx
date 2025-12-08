@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -29,6 +30,7 @@ import { useConfirmationModal } from './hooks/useConfirmationModal';
 import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
 import { NavigationContext, useNavigation } from './contexts/NavigationContext';
+import { STORAGE_KEYS } from './lib/constants';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./components/MapView').then(module => ({ default: module.MapView })));
@@ -85,7 +87,9 @@ export const App: React.FC = () => {
   
   const [view, setView] = useState<AppView>('all');
   const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
-  const [gridView, setGridView] = usePersistentState<'default' | 'compact'>('localeAppGridView', 'default');
+  const [gridView, setGridView] = usePersistentState<'default' | 'compact'>(STORAGE_KEYS.GRID_VIEW, 'default');
+  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(window.innerWidth >= 768);
+
   const [viewingPostId, setViewingPostId] = useState<string | null>(null);
   const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
   const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
@@ -113,19 +117,17 @@ export const App: React.FC = () => {
 
   const [notificationSettings, setNotificationSettings] = usePersistentState<NotificationSettings>(NOTIFICATION_SETTINGS_KEY, { expiryAlertsEnabled: true, expiryThresholdDays: 3 });
 
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  const isTabletOrDesktop = windowWidth >= 768;
-
   // This hook must be called at the top level.
   const viewedPosts = useMemo(() => viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p), [viewedPostIds, findPostById]);
 
   useEffect(() => {
     setIsInitialLoading(false); 
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsTabletOrDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -578,13 +580,18 @@ export const App: React.FC = () => {
         if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
         return (
             <Suspense fallback={<LoadingFallback />}>
-                <NearbyPostsView result={nearbyPostsResult} currentAccount={currentAccount} />
+                <NearbyPostsView
+                    result={nearbyPostsResult}
+                    currentAccount={currentAccount}
+                    gridView={gridView}
+                    isTabletOrDesktop={isTabletOrDesktop}
+                />
             </Suspense>
         );
        case 'forums':
         return (
             <Suspense fallback={<LoadingFallback />}>
-                <ForumsView />
+                <ForumsView gridView={gridView} isTabletOrDesktop={isTabletOrDesktop} />
             </Suspense>
         );
        case 'forumPostDetail':
@@ -732,6 +739,7 @@ export const App: React.FC = () => {
           onMainViewChange={handleMainViewChange}
           gridView={gridView}
           onGridViewChange={setGridView}
+          isTabletOrDesktop={isTabletOrDesktop}
         />
         <main
           ref={mainContentRef}

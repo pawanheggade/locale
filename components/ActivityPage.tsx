@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
 import { timeSince } from '../utils/formatters';
@@ -37,7 +38,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
   onSignOut,
   initialTab = 'notifications',
   gridView,
-  isTabletOrDesktop
+  isTabletOrDesktop,
 }) => {
   const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
 
@@ -163,7 +164,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                     <PostList
                         posts={viewedPosts}
                         currentAccount={currentAccount}
-                        variant={isTabletOrDesktop ? gridView : "default"}
+                        variant={isTabletOrDesktop ? gridView : 'default'}
                     />
                 )
             ) : (

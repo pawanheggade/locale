@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
@@ -28,13 +30,13 @@ interface PostCardProps {
   isSearchResult?: boolean;
   isArchived?: boolean;
   hideAuthorInfo?: boolean;
-  variant?: 'default' | 'compact';
   hideExpiry?: boolean;
   enableEntryAnimation?: boolean;
   isInitiallyExpanded?: boolean;
+  variant?: 'default' | 'compact';
 }
 
-const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false }) => {
+const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false, variant = 'default' }) => {
   const { navigateTo, showOnMap } = useNavigation();
   const { toggleLikePost, toggleLikeAccount, bag, addPostToViewHistory } = useAuth();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
@@ -49,7 +51,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const isAddedToBag = useMemo(() => bag.some(item => item.postId === post.id), [bag, post.id]);
 
   const hasMedia = post.media && post.media.length > 0;
-  const isCompact = variant === 'compact';
   
   const [isInView, setIsInView] = useState(!enableEntryAnimation);
   const [hasAnimated, setHasAnimated] = useState(!enableEntryAnimation);
@@ -87,7 +88,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const coordsToUse = (post.type === PostType.EVENT && post.eventCoordinates) ? post.eventCoordinates : post.coordinates;
 
   // Determine description truncation
-  const descriptionMaxLength = isCompact ? 60 : 90;
+  const descriptionMaxLength = 90;
   const shouldTruncate = post.description.length > descriptionMaxLength;
   
   // Only show detailed metadata (Category, Tags) if expanded or if description is short enough to show fully
@@ -100,7 +101,11 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     setIsDescriptionExpanded(prev => !prev);
   };
 
-  const LocationElement = ({ isOverlay = false }: { isOverlay?: boolean }) => (
+  const handleCardClick = () => {
+    openModal({ type: 'viewPost', data: post });
+  }
+
+  const LocationElement = ({ overlay }: { overlay?: boolean }) => (
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
@@ -132,18 +137,77 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   );
 
   const ExpiryElement = post.type === PostType.EVENT && post.eventStartDate ? (
-     <div className={cn("flex items-center gap-2", isCompact ? 'text-xs' : 'text-sm', 'text-gray-600')}>
+     <div className={cn("flex items-center gap-2", 'text-sm', 'text-gray-600')}>
         <ClockIcon className="w-4 h-4 shrink-0" />
         <span>{formatFullDate(post.eventStartDate)}</span>
      </div>
   ) : !hideExpiry && post.expiryDate ? (
-    <div className={cn("flex items-center gap-2", isCompact ? 'text-xs' : 'text-sm', isExpired ? 'text-red-600' : 'text-gray-600')}>
+    <div className={cn("flex items-center gap-2", 'text-sm', isExpired ? 'text-red-600' : 'text-gray-600')}>
       <ClockIcon className="w-4 h-4 shrink-0" />
       <span title={formatFullDateTime(post.expiryDate)}>
         {isExpired ? 'Expired' : `Expires on ${formatFullDate(post.expiryDate)}`}
       </span>
     </div>
   ) : null;
+
+  if (variant === 'compact') {
+    return (
+      <Card
+        ref={cardRef}
+        className={cn(
+          'group cursor-pointer aspect-[4/5]',
+          enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
+        )}
+        style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
+        onClick={handleCardClick}
+        role="article"
+        aria-labelledby={`post-title-${post.id}`}
+      >
+        <div className="relative w-full h-full overflow-hidden">
+          {hasMedia && (
+            <MediaCarousel
+              id={`postcard-compact-${post.id}`}
+              media={post.media}
+              isInView={isInView}
+              aspectRatio={'aspect-[4/5]'}
+              onMediaClick={handleCardClick}
+            />
+          )}
+          {showHeader && (
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/70 to-transparent p-2">
+              <PostAuthorInfo
+                author={post.author!}
+                variant="overlay"
+                subscriptionBadgeIconOnly={true}
+                location={<LocationElement overlay />}
+              >
+                  <PostActionsDropdown 
+                      post={post} 
+                      isArchived={isArchived} 
+                      currentAccount={currentAccount} 
+                      variant="overlay"
+                  />
+              </PostAuthorInfo>
+            </div>
+          )}
+           <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+              <h3 id={`post-title-${post.id}`} className="font-bold text-white text-sm line-clamp-2 leading-tight">
+                  {post.title}
+              </h3>
+              <PriceDisplay 
+                price={post.price} 
+                salePrice={post.salePrice} 
+                priceUnit={post.priceUnit} 
+                size={'x-small'} 
+                isExpired={isExpired} 
+                showOriginalPriceOnSale={false}
+                className="[&_p]:text-white"
+              />
+          </div>
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card
@@ -152,13 +216,13 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         'group cursor-pointer',
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
-      style={{ animationDelay: (enableEntryAnimation && !isCompact) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
-      onClick={() => handleExpandToggle()}
+      style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
+      onClick={handleCardClick}
       role="article"
       aria-labelledby={`post-title-${post.id}`}
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
-      {showHeader && !isCompact && (
+      {showHeader && (
           <div className="p-3 border-b border-gray-100">
             <PostAuthorInfo 
                 author={post.author!} 
@@ -232,75 +296,21 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             id={`postcard-${post.id}`}
             media={post.media}
             isInView={isInView}
-            aspectRatio={isCompact ? 'aspect-square' : 'aspect-[4/3]'}
+            aspectRatio={'aspect-[4/3]'}
           />
         )}
         
-        {showHeader && isCompact && (
-          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/60 to-transparent">
-            <PostAuthorInfo 
-                author={post.author!}
-                subscriptionBadgeIconOnly={true}
-                variant="overlay"
-                location={<LocationElement isOverlay={true} />}
-            >
-                {isOwnPost ? (
-                    !isArchived && (
-                        <Button
-                          onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }}
-                          variant="overlay"
-                          size="icon-sm"
-                          className="flex-shrink-0 text-white/80 active:scale-95"
-                          aria-label="Edit post"
-                          title="Edit post"
-                        >
-                            <PencilIcon className="w-5 h-5" />
-                        </Button>
-                    )
-                ) : (
-                    <>
-                        <LikeButton
-                            isLiked={isProfileLiked}
-                            onToggle={() => {
-                                if (currentAccount) {
-                                    toggleLikeAccount(post.authorId);
-                                } else {
-                                    openModal({ type: 'login' });
-                                }
-                            }}
-                            variant="overlay"
-                            size="icon-sm"
-                            className={cn(
-                                "flex-shrink-0 active:scale-95",
-                                isProfileLiked ? "text-red-400" : "text-white/80"
-                            )}
-                            iconClassName="w-5 h-5"
-                            aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
-                            title={isProfileLiked ? "Liked" : "Like profile"}
-                        />
-                        <PostActionsDropdown 
-                            post={post} 
-                            isArchived={isArchived} 
-                            currentAccount={currentAccount} 
-                            variant="overlay"
-                        />
-                    </>
-                )}
-            </PostAuthorInfo>
-          </div>
-        )}
-
         {post.isLocaleChoice && isSearchResult && <LocaleChoiceBadge className="top-3 left-3" />}
       </div>
       
-      <CardContent className={isCompact ? 'p-3' : 'p-4'}>
+      <CardContent className={'p-4'}>
         <div className="flex-grow">
           {/* Post Title */}
           <h3
             id={`post-title-${post.id}`}
             className={cn(
               'font-bold text-gray-800 line-clamp-2 leading-tight',
-              isCompact ? 'text-base' : 'text-lg'
+              'text-lg'
             )}
           >
             <button
@@ -325,9 +335,9 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 price={post.price} 
                 salePrice={post.salePrice} 
                 priceUnit={post.priceUnit} 
-                size={isCompact ? 'x-small' : 'small'} 
+                size={'small'} 
                 isExpired={isExpired} 
-                showOriginalPriceOnSale={!isCompact} 
+                showOriginalPriceOnSale={true} 
               />
               
               {/* Explicit check to allow rendering for non-authors on valid items */}
@@ -377,7 +387,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           </div>
 
           {/* Description Snippet with Expand Link */}
-          <div className={cn("text-gray-600 mt-2", isCompact ? "text-xs" : "text-sm")}>
+          <div className={cn("text-gray-600 mt-2", "text-sm")}>
             {shouldTruncate && !isDescriptionExpanded ? (
                 <>
                     {post.description.slice(0, descriptionMaxLength)}...
@@ -442,7 +452,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
 
           {/* Location & Expiry/Date Info */}
           <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-1 mt-2">
-            {!showHeader && !isCompact && <LocationElement />}
+            {!showHeader && <LocationElement />}
             {ExpiryElement}
           </div>
 
@@ -453,16 +463,16 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     <>
                         <div className="flex-1 flex items-center gap-2">
                             {isArchived ? (
-                                <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Unarchive">
-                                    <ArrowUturnLeftIcon className="w-5 h-5" /> {!isCompact && 'Unarchive'}
+                                <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("bg-gray-50", "flex-1 gap-1.5")} title="Unarchive">
+                                    <ArrowUturnLeftIcon className="w-5 h-5" /> {'Unarchive'}
                                 </Button>
                             ) : (
                                 <>
-                                    <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Edit">
-                                        <PencilIcon className="w-5 h-5" /> {!isCompact && 'Edit'}
+                                    <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={"sm"} className={cn("bg-gray-50", "flex-1 gap-1.5")} title="Edit">
+                                        <PencilIcon className="w-5 h-5" /> {'Edit'}
                                     </Button>
-                                    <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "sm"} className={cn("text-amber-600 bg-gray-50", isCompact ? "flex-1" : "flex-1 gap-1.5")} title="Archive">
-                                        <ArchiveBoxIcon className="w-5 h-5" /> {!isCompact && 'Archive'}
+                                    <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("text-amber-600 bg-gray-50", "flex-1 gap-1.5")} title="Archive">
+                                        <ArchiveBoxIcon className="w-5 h-5" /> {'Archive'}
                                     </Button>
                                 </>
                             )}
@@ -483,27 +493,27 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             {!isArchived && (
                                 <>
                                 {isExpired ? (
-                                    <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } toggleAvailabilityAlert(post.id); }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}>
+                                    <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } toggleAvailabilityAlert(post.id); }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}>
                                         <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
-                                        {!isCompact && <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>}
+                                        <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
                                     </Button>
                                 ) : (
                                     <>
                                         {isPurchasable ? (
-                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
+                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
                                                 <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
-                                                {!isCompact && <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>}
+                                                <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
                                             </Button>
                                         ) : (
-                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={isCompact ? "icon-sm" : "sm"} className={cn(isCompact ? "flex-1" : "flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
+                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
                                                 <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
-                                                {!isCompact && <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>}
+                                                <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
                                             </Button>
                                         )}
                                         {isPurchasable && (
-                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={isCompact ? "icon-sm" : "icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Contact seller">
+                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Contact seller">
                                             <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
-                                            {!isCompact && <span className="sr-only">Contact</span>}
+                                            <span className="sr-only">Contact</span>
                                         </Button>
                                         )}
                                     </>

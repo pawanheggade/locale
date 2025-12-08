@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
@@ -58,7 +59,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
               <PostList
                 posts={likedPosts}
                 currentAccount={currentAccount}
-                variant={isTabletOrDesktop ? gridView : "default"}
+                variant={isTabletOrDesktop ? gridView : 'default'}
               />
             )}
           </div>

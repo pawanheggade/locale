@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
@@ -29,6 +28,7 @@ interface HeaderProps {
   onMainViewChange: (view: 'grid' | 'map') => void;
   gridView: 'default' | 'compact';
   onGridViewChange: (view: 'default' | 'compact') => void;
+  isTabletOrDesktop: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -46,8 +46,9 @@ export const Header: React.FC<HeaderProps> = ({
   onMainViewChange,
   gridView,
   onGridViewChange,
+  isTabletOrDesktop,
 }) => {
-  const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit } = useFilters();
+  const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal } = useUI();
@@ -56,28 +57,31 @@ export const Header: React.FC<HeaderProps> = ({
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isLikesDropdownOpen, setIsLikesDropdownOpen] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
-
+  
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const likesDropdownRef = useRef<HTMLDivElement>(null);
+
+  const showViewSelector = useMemo(() => {
+    if (!isTabletOrDesktop) {
+      return false;
+    }
+    const viewsWithGrid = ['all', 'likes', 'account', 'forums', 'nearbyPosts', 'activity'];
+    return viewsWithGrid.includes(view);
+  }, [view, isTabletOrDesktop]);
 
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
   useClickOutside(likesDropdownRef, () => setIsLikesDropdownOpen(false), isLikesDropdownOpen);
 
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+      const handleResize = () => {
+          if (window.innerWidth >= 640 && isMobileSearchOpen) {
+              setIsMobileSearchOpen(false);
+          }
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileSearchOpen]);
   
-  const isTabletOrDesktop = windowWidth >= 768;
-
-  useEffect(() => {
-      if (windowWidth >= 640 && isMobileSearchOpen) {
-          setIsMobileSearchOpen(false);
-      }
-  }, [windowWidth, isMobileSearchOpen]);
-
   const handleSortChange = (sortOption: string) => {
     dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });
     setIsFilterDropdownOpen(false);
@@ -382,31 +386,51 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
-            {view === 'all' && (
-                <div className="flex items-center gap-1">
-                    {isTabletOrDesktop && mainView === 'grid' && (
-                        <Button
-                            onClick={() => onGridViewChange(gridView === 'default' ? 'compact' : 'default')}
-                            variant="overlay-dark"
-                            size="icon"
-                            className="!rounded-xl"
-                            aria-label={gridView === 'default' ? 'Switch to Compact View' : 'Switch to Default View'}
-                            title={gridView === 'default' ? 'Compact View' : 'Default View'}
-                        >
-                            {gridView === 'default' ? <Squares3X3Icon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
-                        </Button>
-                    )}
-                    <Button
-                        onClick={() => onMainViewChange(mainView === 'grid' ? 'map' : 'grid')}
-                        variant="overlay-dark"
-                        size="icon"
-                        className="!rounded-xl"
-                        aria-label={mainView === 'grid' ? 'Switch to Map View' : 'Switch to Grid View'}
-                        title={mainView === 'grid' ? 'Map View' : 'Grid View'}
-                    >
-                        {mainView === 'grid' ? <MapPinIcon className="w-6 h-6" /> : <Squares2X2Icon className="w-6 h-6" />}
-                    </Button>
+        <div className="flex items-center gap-2 shrink-0 col-start-3 justify-self-end">
+            {showViewSelector && (
+                <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
+                     <Button
+                         onClick={() => {
+                             if (mainView === 'map') onMainViewChange('grid');
+                             onGridViewChange('default');
+                         }}
+                         variant="ghost"
+                         size="icon-sm"
+                         className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")}
+                         aria-label="Default View" title="Default View"
+                         aria-pressed={mainView === 'grid' && gridView === 'default'}
+                     >
+                         <Squares2X2Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
+                     </Button>
+                     <Button
+                         onClick={() => {
+                             if (mainView === 'map') onMainViewChange('grid');
+                             onGridViewChange('compact');
+                         }}
+                         variant="ghost"
+                         size="icon-sm"
+                         className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")}
+                         aria-label="Compact View" title="Compact View"
+                         aria-pressed={mainView === 'grid' && gridView === 'compact'}
+                     >
+                         <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
+                     </Button>
+                     <Button
+                         onClick={() => {
+                             if (view !== 'all') {
+                                 onClearFilters();
+                                 navigateTo('all');
+                             }
+                             onMainViewChange('map');
+                         }}
+                         variant="ghost"
+                         size="icon-sm"
+                         className={cn("!rounded-lg", mainView === 'map' ? "bg-red-100 text-red-600" : "text-gray-500")}
+                         aria-label="Map View" title="Map View"
+                         aria-pressed={mainView === 'map'}
+                     >
+                         <MapPinIcon className="w-5 h-5" isFilled={mainView === 'map'} />
+                     </Button>
                 </div>
             )}
             <div className="relative">
@@ -430,10 +454,9 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
             </div>
         </div>
-      </div>
       
       {/* Mobile Search Sub-Header */}
-      {isMobileSearchOpen && windowWidth < 640 && (
+      {isMobileSearchOpen && (
           <div className="px-4 pb-3 sm:hidden animate-fade-in-down flex items-center">
               <SearchBar 
                     searchQuery={filterState.searchQuery}

@@ -12,11 +12,15 @@ interface NearbyPostsViewProps {
     locationName: string | null;
   };
   currentAccount: Account;
+  gridView: 'default' | 'compact';
+  isTabletOrDesktop: boolean;
 }
 
 export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
   result,
   currentAccount,
+  gridView,
+  isTabletOrDesktop,
 }) => {
   const { posts, locationName } = result;
 
@@ -38,6 +42,7 @@ export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
             posts={posts}
             currentAccount={currentAccount}
             isSearchResult={true}
+            variant={isTabletOrDesktop ? gridView : 'default'}
         />
       )}
     </div>

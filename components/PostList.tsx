@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useCallback } from 'react';
 import { DisplayablePost, Account } from '../types';
 import { PostCard } from './PostCard';
@@ -18,12 +19,12 @@ interface PostListProps {
   hideAuthorInfo?: boolean;
   isLoading?: boolean;
   isFiltering?: boolean;
-  variant?: 'default' | 'compact';
   hideExpiry?: boolean;
   enableEntryAnimation?: boolean;
+  variant?: 'default' | 'compact';
 }
 
-const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onLoadMore, hasMore, isLoadingMore, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, isFiltering = false, variant = 'default', hideExpiry = false, enableEntryAnimation = false }) => {
+const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onLoadMore, hasMore, isLoadingMore, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, isFiltering = false, hideExpiry = false, enableEntryAnimation = false, variant = 'default' }) => {
   const observer = useRef<IntersectionObserver | null>(null);
   const lastPostElementRef = useCallback((node: HTMLDivElement | null) => {
     if (observer.current) observer.current.disconnect();
@@ -37,12 +38,13 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
     if (node) observer.current.observe(node);
   }, [isLoadingMore, hasMore, onLoadMore]);
   
-  const isCompact = variant === 'compact';
-
   if (isLoading) {
     return (
-      <div className={cn('grid', isCompact ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6')}>
-        {Array.from({ length: isCompact ? 8 : 6 }).map((_, index) => (
+      <div className={cn(
+        'grid',
+        variant === 'compact' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
+      )}>
+        {Array.from({ length: 10 }).map((_, index) => (
           <PostCardSkeleton key={index} index={index} />
         ))}
       </div>
@@ -69,8 +71,8 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
       )}
       <div className={cn(
         'grid transition-opacity duration-200',
-        isFiltering ? 'opacity-40' : 'opacity-100',
-        isCompact ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
+        variant === 'compact' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6',
+        isFiltering ? 'opacity-40' : 'opacity-100'
       )}>
         {posts.map((post, index) => (
           <PostCard 
@@ -81,8 +83,8 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
               isSearchResult={isSearchResult}
               isArchived={isArchived}
               hideAuthorInfo={hideAuthorInfo}
-              variant={variant}
               hideExpiry={hideExpiry}
+              variant={variant}
               enableEntryAnimation={enableEntryAnimation}
           />
         ))}
