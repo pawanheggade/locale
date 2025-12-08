@@ -14,6 +14,7 @@ export const STORAGE_KEYS = {
   FILTERS: 'localeAppFilters',
   NOTIFICATIONS: 'localeAppNotifSettings',
   RECENT_SEARCHES: 'localeAppRecentSearches',
+  SAVED_SEARCHES: 'localeAppSavedSearches',
   GRID_VIEW: 'localeAppGridView',
   REPORTS: 'localeAppReports',
   FEEDBACK: 'localeAppFeedback',

@@ -1,5 +1,6 @@
 
 
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const [accounts, setAccounts] = useLargePersistentState<Account[]>(STORAGE_KEYS.ACCOUNTS, mockAccounts);
     const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(STORAGE_KEYS.CURRENT_ACCOUNT_ID, null);
-    const [savedSearches, setSavedSearches] = usePersistentState<SavedSearch[]>(STORAGE_KEYS.RECENT_SEARCHES, []);
+    const [savedSearches, setSavedSearches] = usePersistentState<SavedSearch[]>(STORAGE_KEYS.SAVED_SEARCHES, []);
     const [allUsersData, setAllUsersData] = useLargePersistentState<AllUsersData>(STORAGE_KEYS.USER_DATA, {});
     
     // Global/Admin Data

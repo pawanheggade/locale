@@ -26,9 +26,6 @@ interface HeaderProps {
   view: AppView;
   mainView: 'grid' | 'map';
   onMainViewChange: (view: 'grid' | 'map') => void;
-  gridView: 'default' | 'compact';
-  onGridViewChange: (view: 'default' | 'compact') => void;
-  isTabletOrDesktop: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,14 +41,11 @@ export const Header: React.FC<HeaderProps> = ({
   view,
   mainView,
   onMainViewChange,
-  gridView,
-  onGridViewChange,
-  isTabletOrDesktop,
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
-  const { openModal } = useUI();
+  const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
   const { navigateTo, saveHistoryState } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
@@ -310,7 +304,7 @@ export const Header: React.FC<HeaderProps> = ({
                      <Button
                          onClick={() => {
                              if (mainView === 'map') onMainViewChange('grid');
-                             onGridViewChange('default');
+                             setGridView('default');
                          }}
                          variant="ghost"
                          size="icon-sm"
@@ -323,7 +317,7 @@ export const Header: React.FC<HeaderProps> = ({
                      <Button
                          onClick={() => {
                              if (mainView === 'map') onMainViewChange('grid');
-                             onGridViewChange('compact');
+                             setGridView('compact');
                          }}
                          variant="ghost"
                          size="icon-sm"

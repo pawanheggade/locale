@@ -1,5 +1,11 @@
 
 
+
+
+
+
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -70,7 +76,7 @@ export const App: React.FC = () => {
   } = useAuth();
   
   const { 
-    notifications, markAsRead
+    notifications, markAsRead, markAllAsRead
   } = useActivity();
 
   const { 
@@ -78,8 +84,9 @@ export const App: React.FC = () => {
     priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
   } = usePosts();
   
+  // FIX: Renamed `updateCategory` destructuring to `updateForumCategory` to avoid redeclaration.
   const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
-  const { activeModal, openModal, closeModal, addToast } = useUI();
+  const { activeModal, openModal, closeModal, addToast, gridView, isTabletOrDesktop } = useUI();
   const showConfirmation = useConfirmationModal();
   const isMounted = useIsMounted();
 
@@ -87,9 +94,7 @@ export const App: React.FC = () => {
   
   const [view, setView] = useState<AppView>('all');
   const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
-  const [gridView, setGridView] = usePersistentState<'default' | 'compact'>(STORAGE_KEYS.GRID_VIEW, 'default');
-  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(window.innerWidth >= 768);
-
+  
   const [viewingPostId, setViewingPostId] = useState<string | null>(null);
   const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
   const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
@@ -106,7 +111,7 @@ export const App: React.FC = () => {
   const [adminInitialView, setAdminInitialView] = useState<AdminView>();
   const [isScrolled, setIsScrolled] = useState(false);
   const [nearbyPostsResult, setNearbyPostsResult] = useState<{ posts: DisplayablePost[], locationName: string | null } | null>(null);
-  const [recentSearches, setRecentSearches] = usePersistentState<string[]>('localeAppRecentSearches', []);
+  const [recentSearches, setRecentSearches] = usePersistentState<string[]>(STORAGE_KEYS.RECENT_SEARCHES, []);
   const [activityInitialTab, setActivityInitialTab] = useState<ActivityTab>('notifications');
   
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -122,12 +127,6 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     setIsInitialLoading(false); 
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => setIsTabletOrDesktop(window.innerWidth >= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -161,6 +160,16 @@ export const App: React.FC = () => {
       newView: AppView,
       options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab } = {}
   ) => {
+      const protectedViews: AppView[] = [
+        'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
+        'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
+      ];
+
+      if (!currentAccount && protectedViews.includes(newView)) {
+          openModal({ type: 'login' });
+          return;
+      }
+
       const isSameView = view === newView;
       const isSamePost = viewingPostId === (options.postId || null);
       const isSameAccount = viewingAccount?.id === (options.account?.id || null);
@@ -207,7 +216,7 @@ export const App: React.FC = () => {
       
       // Reset scroll for the new view
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState]);
+  }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState, openModal]);
 
   const navigateToAccount = useCallback((accountId: string) => {
     const account = accountsById.get(accountId);
@@ -526,21 +535,16 @@ export const App: React.FC = () => {
           </Suspense>
         );
       case 'likes':
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
-        const likedPosts = allDisplayablePosts.filter(post => likedPostIds.has(post.id));
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <LikesView 
-                    likedPosts={likedPosts} 
+                    likedPosts={allDisplayablePosts.filter(post => likedPostIds.has(post.id))} 
                     allPosts={allDisplayablePosts}
-                    currentAccount={currentAccount} 
-                    gridView={gridView}
-                    isTabletOrDesktop={isTabletOrDesktop}
+                    currentAccount={currentAccount!} 
                 />
             </Suspense>
         );
       case 'bag':
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <BagView onViewDetails={openPostDetailsModal} allAccounts={accounts} />
@@ -570,43 +574,37 @@ export const App: React.FC = () => {
                     posts={allDisplayablePosts}
                     archivedPosts={archivedPosts}
                     allAccounts={accounts}
-                    gridView={gridView}
-                    isTabletOrDesktop={isTabletOrDesktop}
                 />
             </Suspense>
         );
       case 'nearbyPosts':
         if (!nearbyPostsResult) return <div className="p-8 text-center">No nearby results available.</div>;
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
         return (
             <Suspense fallback={<LoadingFallback />}>
                 <NearbyPostsView
                     result={nearbyPostsResult}
-                    currentAccount={currentAccount}
-                    gridView={gridView}
-                    isTabletOrDesktop={isTabletOrDesktop}
+                    currentAccount={currentAccount!}
                 />
             </Suspense>
         );
        case 'forums':
         return (
             <Suspense fallback={<LoadingFallback />}>
-                <ForumsView gridView={gridView} isTabletOrDesktop={isTabletOrDesktop} />
+                <ForumsView />
             </Suspense>
         );
        case 'forumPostDetail':
         if (!viewingForumPostId) return null;
         return <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} />;
       case 'createPost':
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
         return (
             <CreatePostPage 
                 onBack={handleBack} 
                 onSubmitPost={createPost}
                 onNavigateToPost={() => navigateTo('all')} 
-                currentAccount={currentAccount} 
+                currentAccount={currentAccount!} 
                 categories={categories}
-                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount, ...details })}
+                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount!, ...details })}
             />
         );
       case 'editPost':
@@ -629,36 +627,27 @@ export const App: React.FC = () => {
               />
           );
       case 'subscription':
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
         return (
             <SubscriptionPage 
-                currentAccount={currentAccount} 
-                onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)}
+                currentAccount={currentAccount!} 
+                onUpdateSubscription={(tier) => updateSubscription(currentAccount!.id, tier)}
                 openModal={openModal}
             />
         );
       case 'activity':
-        if (!currentAccount) return <GuestPrompt onSignIn={() => openModal({ type: 'login' })} onCreateAccount={() => openModal({ type: 'createAccount' })} />;
-        const markAllAsRead = () => {
-            notifications.forEach(n => {
-                if (!n.isRead) markAsRead(n.id);
-            });
-        };
         return (
             <ActivityPage
-                notifications={notifications.filter(n => n.recipientId === currentAccount.id)}
+                notifications={notifications.filter(n => n.recipientId === currentAccount!.id)}
                 onDismiss={markAsRead}
                 onDismissAll={markAllAsRead}
                 onNotificationClick={handleNotificationClick}
                 viewedPosts={viewedPosts}
-                currentAccount={currentAccount}
+                currentAccount={currentAccount!}
                 settings={notificationSettings}
                 onSettingsChange={handleUpdateNotificationSettings}
                 onArchiveAccount={handleArchiveAccount}
                 onSignOut={signOut}
                 initialTab={activityInitialTab}
-                gridView={gridView}
-                isTabletOrDesktop={isTabletOrDesktop}
             />
         );
       case 'accountAnalytics':
@@ -737,9 +726,6 @@ export const App: React.FC = () => {
           view={view}
           mainView={mainView}
           onMainViewChange={handleMainViewChange}
-          gridView={gridView}
-          onGridViewChange={setGridView}
-          isTabletOrDesktop={isTabletOrDesktop}
         />
         <main
           ref={mainContentRef}

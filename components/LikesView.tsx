@@ -1,24 +1,25 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { TabButton } from './ui/Button';
 import { HeartIcon } from './Icons';
 import { EmptyState } from './EmptyState';
+import { useUI } from '../contexts/UIContext';
 
 interface LikesViewProps {
   likedPosts: DisplayablePost[];
   allPosts: DisplayablePost[];
   currentAccount: Account;
-  gridView: 'default' | 'compact';
-  isTabletOrDesktop: boolean;
 }
 
 type LikedTab = 'posts' | 'profiles';
 
-export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, currentAccount, gridView, isTabletOrDesktop }) => {
+export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, currentAccount }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
+  const { gridView, isTabletOrDesktop } = useUI();
 
   const postsFromLikedProfiles = useMemo(() => {
     const likedAccountIds = new Set(currentAccount?.likedAccountIds || []);

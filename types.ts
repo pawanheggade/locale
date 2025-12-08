@@ -2,6 +2,8 @@
 
 
 
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -223,9 +225,22 @@ export type ModalState =
   | { type: 'viewPost', data: DisplayablePost };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'postDetail';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
 export type ActivityTab = 'notifications' | 'alerts' | 'history' | 'settings';
 
+export interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error';
+  onUndo?: () => void;
+}
+
+export interface UIState {
+    activeModal: ModalState | null;
+    toasts: Toast[];
+    gridView: 'default' | 'compact';
+    isTabletOrDesktop: boolean;
+}
 
 // --- Context API Action Types ---
 
@@ -249,6 +264,14 @@ export interface FiltersState {
 export type ModalAction = 
   | { type: 'OPEN_MODAL'; payload: ModalState }
   | { type: 'CLOSE_MODAL' };
+
+export type UIAction =
+    | { type: 'OPEN_MODAL'; payload: ModalState | null }
+    | { type: 'CLOSE_MODAL' }
+    | { type: 'ADD_TOAST'; payload: Toast }
+    | { type: 'REMOVE_TOAST'; payload: number }
+    | { type: 'SET_GRID_VIEW'; payload: 'default' | 'compact' }
+    | { type: 'SET_IS_TABLET_OR_DESKTOP'; payload: boolean };
 
 export type AuthAction =
   | { type: 'LOGIN'; payload: { accountId: string } }
@@ -276,6 +299,7 @@ export type FilterAction =
   | { type: 'SET_MIN_PRICE'; payload: string }
   | { type: 'SET_MAX_PRICE'; payload: string }
   | { type: 'SET_FILTER_TAGS'; payload: string[] }
+  // FIX: Corrected typo in action type from 'SET_FILTER_EXPIRing_SOON' to 'SET_FILTER_EXPIRING_SOON'.
   | { type: 'SET_FILTER_EXPIRING_SOON'; payload: boolean }
   | { type: 'SET_FILTER_SHOW_EXPIRED'; payload: boolean }
   | { type: 'SET_FILTER_LAST_7_DAYS'; payload: boolean }

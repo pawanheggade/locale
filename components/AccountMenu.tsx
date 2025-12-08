@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares2X2Icon } from './Icons';
+import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -130,7 +130,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         <div>
                             <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
-                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PencilIcon className="w-5 h-5 text-gray-700" />} label="Post" />
+                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PlusIcon className="w-5 h-5 text-gray-700" />} label="Post" />
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />

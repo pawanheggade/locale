@@ -1,10 +1,12 @@
 
 
+
 import React from 'react';
 import { DisplayablePost, Account } from '../types';
 import { PostList } from './PostList';
 import { MapPinIcon } from './Icons';
 import { EmptyState } from './EmptyState';
+import { useUI } from '../contexts/UIContext';
 
 interface NearbyPostsViewProps {
   result: {
@@ -12,17 +14,14 @@ interface NearbyPostsViewProps {
     locationName: string | null;
   };
   currentAccount: Account;
-  gridView: 'default' | 'compact';
-  isTabletOrDesktop: boolean;
 }
 
 export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
   result,
   currentAccount,
-  gridView,
-  isTabletOrDesktop,
 }) => {
   const { posts, locationName } = result;
+  const { gridView, isTabletOrDesktop } = useUI();
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">

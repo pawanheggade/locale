@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -74,14 +75,11 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
 
 type SortOption = 'latest' | 'top';
 
-interface ForumsViewProps {
-    gridView: 'default' | 'compact';
-    isTabletOrDesktop: boolean;
-}
+interface ForumsViewProps {}
 
-export const ForumsView: React.FC<ForumsViewProps> = ({ gridView, isTabletOrDesktop }) => {
+export const ForumsView: React.FC<ForumsViewProps> = () => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
-    const { openModal } = useUI();
+    const { openModal, gridView, isTabletOrDesktop } = useUI();
     const { currentAccount } = useAuth();
     const { navigateTo } = useNavigation();
     const [sortOption, setSortOption] = useState<SortOption>('latest');

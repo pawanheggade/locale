@@ -2,34 +2,16 @@
 
 
 
-import React, { createContext, useReducer, useContext, useMemo, useCallback } from 'react';
-import { ModalState } from '../types';
-
-// State
-
-export interface Toast {
-  id: number;
-  message: string;
-  type: 'success' | 'error';
-  onUndo?: () => void;
-}
-
-interface UIState {
-    activeModal: ModalState | null;
-    toasts: Toast[];
-}
+import React, { createContext, useReducer, useContext, useMemo, useCallback, useEffect } from 'react';
+import { ModalState, UIState, UIAction, Toast } from '../types';
+import { STORAGE_KEYS } from '../lib/constants';
 
 const initialState: UIState = {
     activeModal: null,
     toasts: [],
+    gridView: 'default',
+    isTabletOrDesktop: window.innerWidth >= 768,
 };
-
-// Actions
-type UIAction =
-    | { type: 'OPEN_MODAL'; payload: ModalState }
-    | { type: 'CLOSE_MODAL' }
-    | { type: 'ADD_TOAST'; payload: Toast }
-    | { type: 'REMOVE_TOAST'; payload: number };
 
 // Reducer
 const uiReducer = (state: UIState, action: UIAction): UIState => {
@@ -42,10 +24,26 @@ const uiReducer = (state: UIState, action: UIAction): UIState => {
             return { ...state, toasts: [...state.toasts, action.payload] };
         case 'REMOVE_TOAST':
             return { ...state, toasts: state.toasts.filter(t => t.id !== action.payload) };
+        case 'SET_GRID_VIEW':
+            return { ...state, gridView: action.payload };
+        case 'SET_IS_TABLET_OR_DESKTOP':
+            return { ...state, isTabletOrDesktop: action.payload };
         default:
             return state;
     }
 };
+
+const init = (defaultState: UIState): UIState => {
+    try {
+        const storedGridView = window.localStorage.getItem(STORAGE_KEYS.GRID_VIEW);
+        if (storedGridView) {
+            return { ...defaultState, gridView: JSON.parse(storedGridView) };
+        }
+    } catch (e) {
+        console.error("Failed to load grid view from storage", e);
+    }
+    return defaultState;
+}
 
 // Context
 interface UIContextType {
@@ -55,20 +53,35 @@ interface UIContextType {
     toasts: Toast[];
     addToast: (message: string, type?: 'success' | 'error', onUndo?: () => void) => void;
     removeToast: (id: number) => void;
+    gridView: 'default' | 'compact';
+    setGridView: (view: 'default' | 'compact') => void;
+    isTabletOrDesktop: boolean;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
 
 // Provider
 export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, dispatch] = useReducer(uiReducer, initialState);
+    const [state, dispatch] = useReducer(uiReducer, initialState, init);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(STORAGE_KEYS.GRID_VIEW, JSON.stringify(state.gridView));
+        } catch(e) {
+            console.error("Failed to save grid view to storage", e);
+        }
+    }, [state.gridView]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            dispatch({ type: 'SET_IS_TABLET_OR_DESKTOP', payload: window.innerWidth >= 768 });
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const openModal = useCallback((modalState: ModalState | null) => {
-        if (modalState) {
-            dispatch({ type: 'OPEN_MODAL', payload: modalState });
-        } else {
-            dispatch({ type: 'CLOSE_MODAL' });
-        }
+        dispatch({ type: 'OPEN_MODAL', payload: modalState });
     }, []);
 
     const closeModal = useCallback(() => {
@@ -90,6 +103,10 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         }
     }, [removeToast]);
 
+    const setGridView = useCallback((view: 'default' | 'compact') => {
+        dispatch({ type: 'SET_GRID_VIEW', payload: view });
+    }, []);
+
     const value = useMemo(() => ({
         activeModal: state.activeModal,
         openModal,
@@ -97,7 +114,10 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         toasts: state.toasts,
         addToast,
         removeToast,
-    }), [state.activeModal, state.toasts, openModal, closeModal, addToast, removeToast]);
+        gridView: state.gridView,
+        setGridView,
+        isTabletOrDesktop: state.isTabletOrDesktop,
+    }), [state, openModal, closeModal, addToast, removeToast, setGridView]);
 
     return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };

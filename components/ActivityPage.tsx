@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
 import { timeSince } from '../utils/formatters';
@@ -8,6 +9,7 @@ import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
 import { SettingsPage } from './SettingsPage';
+import { useUI } from '../contexts/UIContext';
 
 interface ActivityPageProps {
   notifications: Notification[];
@@ -21,8 +23,6 @@ interface ActivityPageProps {
   onArchiveAccount: () => void;
   onSignOut: () => void;
   initialTab?: 'notifications' | 'alerts' | 'history' | 'settings';
-  gridView: 'default' | 'compact';
-  isTabletOrDesktop: boolean;
 }
 
 export const ActivityPage: React.FC<ActivityPageProps> = ({
@@ -37,10 +37,9 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
   onArchiveAccount,
   onSignOut,
   initialTab = 'notifications',
-  gridView,
-  isTabletOrDesktop,
 }) => {
   const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
+  const { gridView, isTabletOrDesktop } = useUI();
 
   useEffect(() => {
     if (initialTab) {
