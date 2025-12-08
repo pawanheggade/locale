@@ -7,7 +7,6 @@ import { useFilters } from '../contexts/FiltersContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { ConfirmationModal } from './ConfirmationModal';
-import { MediaViewerModal } from './MediaViewerModal';
 import { FindNearbyModal } from './FindNearbyModal';
 import { ShareModal } from './ShareModal';
 import ReportItemModal from './ReportItemModal';
@@ -74,7 +73,7 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
         addSavedSearch({ id: `saved-${Date.now()}`, name, filters: filtersToSave });
     };
 
-    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'viewMedia', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
+    const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
     if (!currentAccount && !publicModals.has(activeModal.type)) {
         openModal({ type: 'login' });
         return null;
@@ -115,8 +114,6 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
                 </div>
             </ModalShell>
         );
-      case 'viewMedia':
-        return <MediaViewerModal media={activeModal.data.media} startIndex={activeModal.data.startIndex} onClose={closeModal} />;
       case 'findNearby':
         return <FindNearbyModal onClose={closeModal} onSearch={handleFindNearby} isSearching={isFindingNearby} />;
       case 'sharePost':

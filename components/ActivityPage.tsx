@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
 import { timeSince } from '../utils/formatters';
@@ -10,34 +7,26 @@ import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
 import { SettingsPage } from './SettingsPage';
 import { useUI } from '../contexts/UIContext';
+// FIX: Import context hooks
+import { useActivity } from '../contexts/ActivityContext';
+import { useAuth } from '../contexts/AuthContext';
+import { usePosts } from '../contexts/PostsContext';
+import { useNavigation } from '../contexts/NavigationContext';
 
+// FIX: Update props interface
 interface ActivityPageProps {
-  notifications: Notification[];
-  onDismiss: (notificationId: string) => void;
-  onDismissAll: () => void;
-  onNotificationClick: (notification: Notification) => void;
-  viewedPosts: DisplayablePost[];
-  currentAccount: Account;
-  settings: NotificationSettings;
-  onSettingsChange: (newSettings: NotificationSettings) => void;
-  onArchiveAccount: () => void;
-  onSignOut: () => void;
   initialTab?: 'notifications' | 'alerts' | 'history' | 'settings';
 }
 
 export const ActivityPage: React.FC<ActivityPageProps> = ({
-  notifications,
-  onDismiss,
-  onDismissAll,
-  onNotificationClick,
-  viewedPosts,
-  currentAccount,
-  settings,
-  onSettingsChange,
-  onArchiveAccount,
-  onSignOut,
   initialTab = 'notifications',
 }) => {
+  // FIX: Get data from contexts
+  const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll, settings, onSettingsChange } = useActivity();
+  const { currentAccount, viewedPostIds, toggleAccountStatus, signOut: onSignOut } = useAuth();
+  const { findPostById } = usePosts();
+  const { navigateTo } = useNavigation();
+
   const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab);
   const { gridView, isTabletOrDesktop } = useUI();
 
@@ -46,6 +35,30 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
         setActiveTab(initialTab);
     }
   }, [initialTab]);
+  
+  const viewedPosts = useMemo(() => {
+    return viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p);
+  }, [viewedPostIds, findPostById]);
+
+  const onNotificationClick = (notification: Notification) => {
+    onDismiss(notification.id);
+    if (notification.postId) {
+        const post = findPostById(notification.postId);
+        if (post) navigateTo('all'); // Navigate home to show post in modal
+    } else if (notification.relatedAccountId) {
+        const account = { id: notification.relatedAccountId } as Account;
+        if (account) navigateTo('account', { account });
+    } else if (notification.forumPostId) {
+        navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
+    }
+  };
+
+  const onArchiveAccount = () => {
+    if(currentAccount) {
+      toggleAccountStatus(currentAccount.id, false);
+    }
+  };
+
 
   // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
@@ -84,6 +97,8 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
         ))}
     </ul>
   );
+
+  if (!currentAccount) return null;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
@@ -162,7 +177,6 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
                 ) : (
                     <PostList
                         posts={viewedPosts}
-                        currentAccount={currentAccount}
                         variant={isTabletOrDesktop ? gridView : 'default'}
                     />
                 )

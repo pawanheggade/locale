@@ -104,27 +104,28 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId })
   const [showMapPicker, setShowMapPicker] = useState(false);
   
   const locationInput = useLocationInput(
-    !isEditing && currentAccount.address ? currentAccount.address : '',
-    !isEditing && currentAccount.coordinates ? currentAccount.coordinates : null
+    !isEditing && currentAccount?.address ? currentAccount.address : '',
+    !isEditing && currentAccount?.coordinates ? currentAccount.coordinates : null
   );
   const eventLocationInput = useLocationInput();
 
-  const needsSellerDetails = currentAccount.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
+  const needsSellerDetails = currentAccount?.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
   const [sellerOptions, setSellerOptions] = useState<SellerOptionsState>({
-    deliveryOptions: currentAccount.deliveryOptions || [],
-    paymentMethods: currentAccount.paymentMethods || [],
-    contactOptions: currentAccount.contactOptions || [],
+    deliveryOptions: currentAccount?.deliveryOptions || [],
+    paymentMethods: currentAccount?.paymentMethods || [],
+    contactOptions: currentAccount?.contactOptions || [],
   });
 
   const maxFiles = useMemo(() => {
+    if (!currentAccount) return 10;
     switch (currentAccount.subscription.tier) {
         case 'Business': return 25;
         case 'Verified': return 15;
         default: return 10;
     }
-  }, [currentAccount.subscription.tier]);
+  }, [currentAccount?.subscription.tier]);
 
-  const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({ maxFiles, maxFileSizeMB, subscriptionTier: currentAccount.subscription.tier });
+  const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({ maxFiles, maxFileSizeMB, subscriptionTier: currentAccount?.subscription.tier });
 
   useEffect(() => {
       if (!isEditing) {
@@ -274,7 +275,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId })
         return;
     }
 
-    if (needsSellerDetails && onUpdateCurrentAccountDetails) {
+    if (needsSellerDetails && onUpdateCurrentAccountDetails && currentAccount) {
         onUpdateCurrentAccountDetails({ ...currentAccount, deliveryOptions: sellerOptions.deliveryOptions, paymentMethods: sellerOptions.paymentMethods });
     }
     
@@ -299,12 +300,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId })
     };
     
     if (isEditing && onUpdatePost && editingPost) {
-        await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        navigateTo('all');
-    } else if (onSubmitPost) {
-        onSubmitPost(postData, currentAccount.id);
+        const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
+        navigateTo('all', { postId: updatedPost.id });
+    } else if (onSubmitPost && currentAccount) {
+        const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        navigateTo('all');
+        navigateTo('all', { postId: newPost.id });
     }
   };
 
@@ -378,7 +379,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId })
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField id="post-type" label="Type">
                           <Select value={type} onChange={e => setField('type', e.target.value as PostType)}>
-                              {Object.values(PostType).map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                              {/* FIX: Add explicit string type to iterator to fix TS error */}
+                              {Object.values(PostType).map((t: string) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
                       </FormField>
                       <div>

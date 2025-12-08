@@ -1,9 +1,4 @@
 
-
-
-
-
-
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -201,7 +196,6 @@ export interface ConfirmationModalData {
 
 export type ModalState =
   | { type: 'login' }
-  | { type: 'viewMedia', data: { media: Media[], startIndex: number } }
   | { type: 'findNearby' }
   | { type: 'sharePost', data: Post }
   | { type: 'reportItem', data: { item: Post | ForumPost | ForumComment } }

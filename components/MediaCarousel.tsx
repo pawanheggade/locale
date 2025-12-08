@@ -12,7 +12,6 @@ interface MediaCarouselProps {
     slideClassName?: string;
     aspectRatio?: string;
     maxHeight?: string;
-    onMediaClick?: (startIndex: number) => void;
     isInView?: boolean;
     videoThumbnails?: Record<string, { url: string | null; error: boolean }>;
     defaultMuted?: boolean;
@@ -107,7 +106,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
     slideClassName = 'bg-black',
     aspectRatio = 'aspect-video',
     maxHeight,
-    onMediaClick,
     isInView = true,
     videoThumbnails = {},
     defaultMuted = true,
@@ -160,12 +158,6 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
         });
     }, [isInView, currentIndex, media, defaultMuted]);
 
-    const handleMediaItemClick = () => {
-        if (onMediaClick) {
-            onMediaClick(currentIndex);
-        }
-    };
-
     const handlePreviousClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         goToPrevious();
@@ -193,12 +185,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
                 {media.map((item, index) => (
                     <div 
                         key={index} 
-                        className={`w-full h-full flex-shrink-0 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white ${slideClassName}`} 
-                        onClick={handleMediaItemClick}
-                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleMediaItemClick()}
-                        tabIndex={onMediaClick ? 0 : -1}
-                        role={onMediaClick ? "button" : undefined}
-                        aria-label={onMediaClick ? `View media ${index + 1}` : undefined}
+                        className={`w-full h-full flex-shrink-0 flex items-center justify-center cursor-pointer ${slideClassName}`} 
                     >
                         {item.type === 'image' ? (
                             <ImageWithLoader

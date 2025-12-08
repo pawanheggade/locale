@@ -1,7 +1,5 @@
-
-
 import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Notification, PriceAlert, AvailabilityAlert, Post } from '../types';
+import { Notification, PriceAlert, AvailabilityAlert, Post, NotificationSettings } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';
 import { useUI } from './UIContext';
@@ -12,6 +10,7 @@ interface ActivityContextType {
   notifications: Notification[];
   priceAlerts: PriceAlert[];
   availabilityAlerts: AvailabilityAlert[];
+  settings: NotificationSettings;
   unreadCount: number;
   totalActivityCount: number;
   
@@ -28,9 +27,20 @@ interface ActivityContextType {
   toggleAvailabilityAlert: (postId: string) => void;
   checkAvailabilityAlerts: (post: Post) => void;
   checkPriceAlerts: (updatedPost: Post, originalPost: Post) => void;
+  onSettingsChange: (newSettings: NotificationSettings) => void;
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
+
+const initialActivityData = {
+  notifications: [],
+  priceAlerts: [],
+  availabilityAlerts: [],
+  settings: {
+    expiryAlertsEnabled: true,
+    expiryThresholdDays: 3,
+  },
+};
 
 export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentAccount } = useAuth();
@@ -41,19 +51,26 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     notifications: Notification[];
     priceAlerts: PriceAlert[];
     availabilityAlerts: AvailabilityAlert[];
+    settings: NotificationSettings;
   }>>(STORAGE_KEYS.USER_ACTIVITY_DATA, {});
 
   const currentUserId = currentAccount?.id;
 
   // Helper to access current user's data safely
   const userData = useMemo(() => {
-    if (!currentUserId) return { notifications: [], priceAlerts: [], availabilityAlerts: [] };
-    return allActivityData[currentUserId] || { notifications: [], priceAlerts: [], availabilityAlerts: [] };
+    if (!currentUserId) return initialActivityData;
+    // FIX: Ensure settings object is always present with defaults.
+    const data = allActivityData[currentUserId] || initialActivityData;
+    return {
+      ...data,
+      settings: { ...initialActivityData.settings, ...data.settings },
+    };
   }, [allActivityData, currentUserId]);
 
   const notifications = userData.notifications;
   const priceAlerts = userData.priceAlerts;
   const availabilityAlerts = userData.availabilityAlerts;
+  const settings = userData.settings;
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const totalActivityCount = unreadCount;
 
@@ -62,7 +79,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAllActivityData(prev => ({
       ...prev,
       [currentUserId]: {
-        ...(prev[currentUserId] || { notifications: [], priceAlerts: [], availabilityAlerts: [] }),
+        ...(prev[currentUserId] || initialActivityData),
         ...updates
       }
     }));
@@ -82,7 +99,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setAllActivityData(prev => {
       const targetId = data.recipientId;
-      const targetData = prev[targetId] || { notifications: [], priceAlerts: [], availabilityAlerts: [] };
+      const targetData = prev[targetId] || initialActivityData;
       return {
         ...prev,
         [targetId]: {
@@ -113,6 +130,12 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const clearAllNotifications = useCallback(() => {
     updateUserData({ notifications: [] });
   }, [updateUserData]);
+
+  // --- Settings ---
+  const onSettingsChange = useCallback((newSettings: NotificationSettings) => {
+    updateUserData({ settings: newSettings });
+  }, [updateUserData]);
+
 
   // --- Alerts ---
 
@@ -168,7 +191,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         let hasChanges = false;
         
         Object.keys(nextState).forEach(userId => {
-            const userActivity = nextState[userId];
+            const userActivity = nextState[userId] || initialActivityData;
             const matchingAlerts = userActivity.priceAlerts.filter(a => a.postId === updatedPost.id);
             
             if (matchingAlerts.length > 0) {
@@ -219,7 +242,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       let hasChanges = false;
 
       Object.keys(nextState).forEach(userId => {
-        const userActivity = nextState[userId];
+        const userActivity = nextState[userId] || initialActivityData;
         const alertIndex = userActivity.availabilityAlerts.findIndex(a => a.postId === post.id);
         
         if (alertIndex > -1) {
@@ -253,6 +276,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     notifications,
     priceAlerts,
     availabilityAlerts,
+    settings,
     unreadCount,
     totalActivityCount,
     addNotification,
@@ -265,14 +289,16 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     deleteAvailabilityAlert,
     toggleAvailabilityAlert,
     checkAvailabilityAlerts,
-    checkPriceAlerts
+    checkPriceAlerts,
+    onSettingsChange,
   }), [
-    notifications, priceAlerts, availabilityAlerts, unreadCount, totalActivityCount,
+    notifications, priceAlerts, availabilityAlerts, settings, unreadCount, totalActivityCount,
     addNotification, markAsRead, markAllAsRead, clearAllNotifications,
     setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert,
     toggleAvailabilityAlert,
     checkAvailabilityAlerts,
-    checkPriceAlerts
+    checkPriceAlerts,
+    onSettingsChange,
   ]);
 
   return (

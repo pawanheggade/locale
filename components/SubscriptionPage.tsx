@@ -1,16 +1,15 @@
-
 import React from 'react';
 import { Account, Subscription, ModalState } from '../types';
 import { CheckIcon } from './Icons';
 import { formatDaysRemaining } from '../utils/formatters';
 import { Button, ButtonProps } from './ui/Button';
 import { TIER_STYLES } from '../lib/utils';
+// FIX: Import context hooks
+import { useAuth } from '../contexts/AuthContext';
+import { useUI } from '../contexts/UIContext';
 
-interface SubscriptionPageProps {
-  currentAccount: Account;
-  onUpdateSubscription: (tier: Subscription['tier']) => void;
-  openModal: (modalState: ModalState) => void;
-}
+// FIX: Remove props interface
+interface SubscriptionPageProps {}
 
 const plans = [
   {
@@ -85,7 +84,15 @@ const plans = [
   },
 ];
 
-export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccount, onUpdateSubscription, openModal }) => {
+export const SubscriptionPage: React.FC<SubscriptionPageProps> = () => {
+  // FIX: Get data from contexts
+  const { currentAccount, updateSubscription: onUpdateSubscription } = useAuth();
+  const { openModal } = useUI();
+
+  if (!currentAccount) {
+    return null;
+  }
+  
   const isOnTrial = currentAccount.subscription.isTrial && currentAccount.subscription.trialEndDate && currentAccount.subscription.trialEndDate > Date.now();
 
   const handleSelectPlan = (tier: Subscription['tier']) => {
@@ -98,7 +105,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ currentAccou
         openModal({ type: 'upgradeToSeller', data: { tier } });
     } else {
         // This covers seller-to-seller changes and seller-to-personal downgrades.
-        onUpdateSubscription(tier);
+        onUpdateSubscription(currentAccount.id, tier);
     }
   };
 

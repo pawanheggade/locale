@@ -18,16 +18,14 @@ import { MediaUploader } from './MediaUploader';
 import { usePosts } from '../contexts/PostsContext';
 import { FormField } from './FormField';
 import { STORAGE_KEYS } from '../lib/constants';
+// FIX: Import context hooks
+import { useNavigation } from '../contexts/NavigationContext';
+import { useAuth } from '../contexts/AuthContext';
 
+
+// FIX: Update props to only accept editingPostId
 interface CreatePostPageProps {
-  onBack: () => void;
-  onSubmitPost: (post: Omit<Post, 'id' | 'isLiked' | 'authorId'>) => Post;
-  onUpdatePost?: (post: Post) => Promise<Post>;
-  onNavigateToPost: () => void;
-  editingPost?: Post | null;
-  currentAccount: Account;
-  categories: PostCategory[];
-  onUpdateCurrentAccountDetails?: (updatedAccount: Partial<Account>) => void;
+  editingPostId?: string | null;
 }
 
 const TITLE_MAX_LENGTH = 100;
@@ -88,9 +86,14 @@ function formReducer(state: FormState, action: Action): FormState {
 }
 
 
-export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmitPost, onUpdatePost, onNavigateToPost, editingPost, currentAccount, categories, onUpdateCurrentAccountDetails }) => {
+export const CreatePostPage: React.FC<CreatePostPageProps> = ({ editingPostId }) => {
+  // FIX: Use context hooks
+  const { handleBack: onBack, navigateTo } = useNavigation();
+  const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
+  const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
+  
+  const editingPost = editingPostId ? findPostById(editingPostId) : null;
   const isEditing = !!editingPost;
-  const { priceUnits } = usePosts();
   
   const [state, dispatch] = useReducer(formReducer, initialState);
   const { title, description, price, priceUnit, isOnSale, salePrice, type, category, tags, tagInput, hasExpiry, expiryDate, eventStartDate, eventEndDate, errors } = state;
@@ -101,27 +104,28 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
   const [showMapPicker, setShowMapPicker] = useState(false);
   
   const locationInput = useLocationInput(
-    !isEditing && currentAccount.address ? currentAccount.address : '',
-    !isEditing && currentAccount.coordinates ? currentAccount.coordinates : null
+    !isEditing && currentAccount?.address ? currentAccount.address : '',
+    !isEditing && currentAccount?.coordinates ? currentAccount.coordinates : null
   );
   const eventLocationInput = useLocationInput();
 
-  const needsSellerDetails = currentAccount.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
+  const needsSellerDetails = currentAccount?.subscription.tier !== 'Personal' && (!currentAccount.deliveryOptions?.length || !currentAccount.paymentMethods?.length);
   const [sellerOptions, setSellerOptions] = useState<SellerOptionsState>({
-    deliveryOptions: currentAccount.deliveryOptions || [],
-    paymentMethods: currentAccount.paymentMethods || [],
-    contactOptions: currentAccount.contactOptions || [],
+    deliveryOptions: currentAccount?.deliveryOptions || [],
+    paymentMethods: currentAccount?.paymentMethods || [],
+    contactOptions: currentAccount?.contactOptions || [],
   });
 
   const maxFiles = useMemo(() => {
+    if (!currentAccount) return 10;
     switch (currentAccount.subscription.tier) {
         case 'Business': return 25;
         case 'Verified': return 15;
         default: return 10;
     }
-  }, [currentAccount.subscription.tier]);
+  }, [currentAccount?.subscription.tier]);
 
-  const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({ maxFiles, maxFileSizeMB, subscriptionTier: currentAccount.subscription.tier });
+  const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({ maxFiles, maxFileSizeMB, subscriptionTier: currentAccount?.subscription.tier });
 
   useEffect(() => {
       if (!isEditing) {
@@ -271,8 +275,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
         return;
     }
 
-    if (needsSellerDetails && onUpdateCurrentAccountDetails) {
-        onUpdateCurrentAccountDetails({ deliveryOptions: sellerOptions.deliveryOptions, paymentMethods: sellerOptions.paymentMethods });
+    if (needsSellerDetails && onUpdateCurrentAccountDetails && currentAccount) {
+        onUpdateCurrentAccountDetails({ ...currentAccount, deliveryOptions: sellerOptions.deliveryOptions, paymentMethods: sellerOptions.paymentMethods });
     }
     
     const postData: Omit<Post, 'id' | 'isLiked' | 'authorId'> = {
@@ -296,18 +300,22 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
     };
     
     if (isEditing && onUpdatePost && editingPost) {
-        await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        onNavigateToPost();
-    } else if (onSubmitPost) {
-        onSubmitPost(postData);
+        const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
+        navigateTo('all'); // Navigate home after edit
+    } else if (onSubmitPost && currentAccount) {
+        const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        onNavigateToPost();
+        navigateTo('all'); // Navigate home after create
     }
   };
 
   const setField = useCallback((field: keyof Omit<FormState, 'tags'>, payload: any) => {
       dispatch({ type: 'SET_FIELD', field, payload });
   }, []);
+
+  if (!currentAccount) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -371,7 +379,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onBack, onSubmit
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField id="post-type" label="Type">
                           <Select value={type} onChange={e => setField('type', e.target.value as PostType)}>
-                              {Object.values(PostType).map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                              {/* FIX: Add explicit string type to iterator to fix TS error */}
+                              {Object.values(PostType).map((t: string) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
                       </FormField>
                       <div>

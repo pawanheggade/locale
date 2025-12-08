@@ -39,7 +39,7 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
   }, [postsProp, isArchived, authorId, allDisplayablePosts, archivedPosts]);
 
   const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, isLoading);
-  const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, accounts);
+  const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, Array.from(accounts.values()));
 
   // FIX: If postsProp or authorId is provided, bypass global filters from `usePostFilters`.
   const posts = (postsProp || authorId) ? displayedItems : filteredAndSortedPosts;

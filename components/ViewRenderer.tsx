@@ -84,13 +84,17 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
        case 'forumPostDetail':
         if (!viewingForumPostId) return null;
         return <Suspense fallback={<LoadingFallback />}><ForumsPostDetailView postId={viewingForumPostId} /></Suspense>;
+// FIX: Remove props that are now handled by context hooks inside CreatePostPage.
       case 'createPost':
         return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
+// FIX: Update prop from `editingPost` to `editingPostId` to match the refactored component.
       case 'editPost':
           if (!viewingPostId) return null;
           return <Suspense fallback={<LoadingFallback />}><CreatePostPage editingPostId={viewingPostId} /></Suspense>;
+// FIX: Remove props that are now handled by context hooks inside SubscriptionPage.
       case 'subscription':
         return <Suspense fallback={<LoadingFallback />}><SubscriptionPage /></Suspense>;
+// FIX: Remove props that are now handled by context hooks inside ActivityPage, keeping only `initialTab`.
       case 'activity':
         return <Suspense fallback={<LoadingFallback />}><ActivityPage initialTab={activityInitialTab} /></Suspense>;
       case 'accountAnalytics':

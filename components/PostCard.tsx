@@ -98,8 +98,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   };
 
   const handleCardClick = () => {
-    openModal({ type: 'viewPost', data: post });
-  }
+    if (variant === 'compact') {
+        openModal({ type: 'viewPost', data: post });
+    } else {
+        handleExpandToggle();
+    }
+  };
 
   const LocationElement = () => (
      <div
@@ -166,7 +170,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
               media={post.media}
               isInView={isInView}
               aspectRatio={'aspect-[4/5]'}
-              onMediaClick={handleCardClick}
             />
           )}
           {showHeader && (

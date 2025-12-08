@@ -46,7 +46,8 @@ export const ActivityPage: React.FC<ActivityPageProps> = ({
         const post = findPostById(notification.postId);
         if (post) navigateTo('all', { postId: notification.postId });
     } else if (notification.relatedAccountId) {
-        navigateTo('account', { account: { id: notification.relatedAccountId } as Account });
+        const account = { id: notification.relatedAccountId } as Account;
+        if (account) navigateTo('account', { account });
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
