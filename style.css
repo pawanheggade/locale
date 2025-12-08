@@ -225,7 +225,7 @@
     /* Selected state for custom marker */
     .marker-selected .marker-content {
         transform: translateY(-4px) scale(1.1) !important;
-        box-shadow: 0 0 0 3px white, 0 0 0 6px #ef4444 !important; /* Tailwind's red-500 ring */
+        box-shadow: 0 0 0 3px #ef4444 !important; /* Tailwind's red-500 ring */
     }
 
     /* Custom Marker Cluster Styles */
@@ -235,7 +235,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        border: 4px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
     .marker-cluster div {
         text-align: center;

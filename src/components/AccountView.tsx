@@ -142,7 +142,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
-    // FIX: Use .some() for better type inference with array methods.
+    // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue.
     const isCategoryTab = categoryTabs.some(c => c === activeTab);
     
     if ((!isStandardTab && !isCategoryTab) || !activeTab) {
@@ -284,7 +284,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
                           <div
                               role="button"
                               tabIndex={0}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                              onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
                               onClick={() => showOnMap(account)}
                               className="flex items-center gap-1.5 cursor-pointer text-red-400 group min-w-0"
                           >
