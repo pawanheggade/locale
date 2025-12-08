@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { TabButton } from './ui/Button';
@@ -18,6 +20,14 @@ type LikedTab = 'posts' | 'profiles';
 export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount, allAccounts }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
   const { navigateTo } = useNavigation();
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const isDesktop = windowWidth >= 1024;
 
   const likedAccounts = useMemo(() => {
       const likedIds = new Set(currentAccount?.likedAccountIds || []);
@@ -55,7 +65,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
               <PostList
                 posts={likedPosts}
                 currentAccount={currentAccount}
-                variant="compact"
+                variant={isDesktop ? "compact" : "default"}
               />
             )}
           </div>

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
@@ -103,7 +104,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            isOverlay ? 'text-white/80' : 'text-red-400',
+            'text-red-400',
             coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {

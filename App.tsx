@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -115,6 +117,14 @@ export const App: React.FC = () => {
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const [notificationSettings, setNotificationSettings] = usePersistentState<NotificationSettings>(NOTIFICATION_SETTINGS_KEY, { expiryAlertsEnabled: true, expiryThresholdDays: 3 });
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const isDesktop = windowWidth >= 1024;
 
   // This hook must be called at the top level.
   const viewedPosts = useMemo(() => viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p), [viewedPostIds, findPostById]);
@@ -499,7 +509,7 @@ export const App: React.FC = () => {
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}
             isFiltering={isFiltering}
-            variant={gridView}
+            variant={isDesktop ? gridView : 'default'}
             enableEntryAnimation={true}
           />
         ) : (

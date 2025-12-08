@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, HeartIcon, BellIcon, PencilIcon, MapPinIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, Squares3X3Icon, Squares2X2Icon } from './Icons';
@@ -63,6 +64,18 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     const accountMenuRef = useRef<HTMLDivElement>(null);
     const isMounted = useIsMounted();
     const animateBadge = useBadgeAnimation(bagCount);
+
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    useEffect(() => {
+        const handleResize = () => {
+            if (isMounted()) {
+                setWindowWidth(window.innerWidth);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isMounted]);
+    const isDesktop = windowWidth >= 1024;
 
     const closeMenu = useCallback(() => {
         setIsClosing(true);
@@ -146,11 +159,13 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                         </div>
                         <div className="my-1.5 h-px bg-gray-200/50" />
                         <div>
-                            <MenuItem
-                                onClick={() => handleMenuAction(handleGridViewToggle)}
-                                icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
-                                label={gridView === 'default' ? 'Compact' : 'Default'}
-                            />
+                            {isDesktop && (
+                                <MenuItem
+                                    onClick={() => handleMenuAction(handleGridViewToggle)}
+                                    icon={gridView === 'default' ? <Squares3X3Icon className={cn(iconClass, "text-gray-700")}/> : <Squares2X2Icon className={cn(iconClass, "text-gray-700")}/>}
+                                    label={gridView === 'default' ? 'Compact' : 'Default'}
+                                />
+                            )}
                         </div>
 
                         {currentAccount.role === 'admin' && (
