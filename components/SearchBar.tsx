@@ -21,6 +21,7 @@ interface SearchBarProps {
   aiButton?: React.ReactNode;
   filterButton?: React.ReactNode;
   hideSearchIcon?: boolean;
+  leftAccessory?: React.ReactNode;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -40,6 +41,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   aiButton,
   filterButton,
   hideSearchIcon = false,
+  leftAccessory,
 }) => {
 
   const {
@@ -112,11 +114,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
             "relative flex items-center w-full h-10 bg-gray-100 border border-gray-200/80 rounded-xl",
             "focus-within:bg-white focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50"
         )}>
-            {!hideSearchIcon && (
-              <div className="pl-4 flex items-center pointer-events-none">
+            {leftAccessory ? (
+                <div className="pl-1 shrink-0">{leftAccessory}</div>
+            ) : !hideSearchIcon ? (
+              <div className="pl-4 flex items-center pointer-events-none shrink-0">
                   <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
               </div>
-            )}
+            ) : null }
             <input
                 id="global-search-bar"
                 type="search"
@@ -127,7 +131,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 onKeyDown={handleKeyDown}
                 autoFocus={autoFocus} 
                 className={cn("block w-full h-full bg-transparent border-0 text-sm text-gray-900 placeholder-gray-600 focus:ring-0 focus:outline-none truncate",
-                    hideSearchIcon ? 'pl-4' : 'pl-2'
+                    (leftAccessory || !hideSearchIcon) ? 'pl-2' : 'pl-4'
                 )}
                 autoComplete="off"
                 role="combobox"

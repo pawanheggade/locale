@@ -1,6 +1,3 @@
-
-
-
 import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -125,11 +122,16 @@ export const applyFiltersToPosts = (
   const lowercasedQuery = filterState.isAiSearchEnabled ? '' : debouncedSearchQuery.toLowerCase();
 
   return postsToFilter.filter(post => {
+    // Filter out posts from archived or rejected accounts on main feeds
+    if (post.author?.status === 'archived' || post.author?.status === 'rejected') {
+        return false;
+    }
+
     // Hide posts from pending sellers unless the current user is the author
     if (post.author?.status === 'pending' && post.authorId !== currentAccount?.id) {
       return false;
     }
-
+    
     if (filterState.filterType !== 'all' && post.type !== filterState.filterType) return false;
     if (filterState.filterCategory !== 'all' && post.category !== filterState.filterCategory) return false;
     

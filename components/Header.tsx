@@ -385,17 +385,7 @@ export const Header: React.FC<HeaderProps> = ({
       
       {isMobileSearchOpen && (
           <div className="fixed inset-0 bg-white z-[2001] p-4 sm:hidden animate-fade-in flex flex-col" role="dialog" aria-modal="true">
-            <div className="flex items-center gap-2">
-                <Button
-                    type="button"
-                    onClick={handleMobileSearchCancel}
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-500 rounded-xl -ml-2 shrink-0"
-                    aria-label="Go back"
-                >
-                    <ChevronLeftIcon className="w-6 h-6" />
-                </Button>
+            <div className="flex items-center">
                 <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -408,11 +398,22 @@ export const Header: React.FC<HeaderProps> = ({
                       onClearRecentSearches={onClearRecentSearches}
                       onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                       isAiSearching={filterState.isAiSearching}
-                      onCancelSearch={filterState.searchQuery ? handleClearSearch : undefined}
+                      onCancelSearch={filterState.searchQuery ? handleClearSearch : handleMobileSearchCancel}
                       autoFocus
                       aiButton={renderAiButton()}
                       filterButton={renderFilterButton()}
-                      hideSearchIcon
+                      leftAccessory={
+                        <Button
+                            type="button"
+                            onClick={handleMobileSearchCancel}
+                            variant="ghost"
+                            size="icon"
+                            className="text-gray-500 rounded-xl shrink-0"
+                            aria-label="Go back"
+                        >
+                            <ChevronLeftIcon className="w-6 h-6" />
+                        </Button>
+                      }
                 />
             </div>
           </div>
