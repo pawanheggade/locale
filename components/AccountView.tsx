@@ -242,7 +242,7 @@ export const AccountView: React.FC = () => {
                                   onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-full h-5 px-2 mb-1.5"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-xl h-5 px-2 mb-1.5"
                               >
                                   Subscription
                               </Button>
