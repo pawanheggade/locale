@@ -9,19 +9,14 @@ import { STORAGE_KEYS } from '../lib/constants';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
+// FIX: Import useNavigation hook to access context.
+import { useNavigation } from '../contexts/NavigationContext';
 
 // Declare Leaflet global object
 declare var L: any;
 
-interface MapViewProps {
-  userLocation?: { lat: number; lng: number } | null;
-  isLoading?: boolean;
-  isFindingNearby: boolean;
-  postToFocusOnMap: string | null;
-  onPostFocusComplete: () => void;
-  locationToFocus: { coords: { lat: number; lng: number; }; name: string; } | null;
-  onLocationFocusComplete: () => void;
-}
+// FIX: Remove props interface.
+interface MapViewProps {}
 
 // Define a type for the saved map state
 interface MapState {
@@ -82,7 +77,17 @@ const createMarkerIcon = (post: DisplayablePost) => {
 };
 
 
-const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete }) => {
+const MapViewComponent: React.FC<MapViewProps> = () => {
+  // FIX: Get state from context.
+  const {
+    userLocation,
+    isFindingNearby,
+    postToFocusOnMap,
+    onPostFocusComplete,
+    locationToFocus,
+    onLocationFocusComplete,
+  } = useNavigation();
+
   const mapRef = useRef<HTMLDivElement>(null);
   const clusterGroupRef = useRef<any>(null);
   const userLocationMarkerRef = useRef<any>(null);
@@ -404,10 +409,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
       mapInstanceRef.current.zoomOut();
     }
   };
-
-  if (isLoading) {
-    return <MapSkeleton />;
-  }
 
   const whiteButtonClass = "bg-white text-gray-700 border border-gray-200";
 

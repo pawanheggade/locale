@@ -1,11 +1,6 @@
 import React, { Suspense } from 'react';
-import { AppView, Account, ActivityTab } from '../types';
+import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
-import { useAuth } from '../contexts/AuthContext';
-import { usePosts } from '../contexts/PostsContext';
-import { useActivity } from '../contexts/ActivityContext';
-import { useNavigation } from '../contexts/NavigationContext';
-import { useUI } from '../contexts/UIContext';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./MapView').then(module => ({ default: module.MapView })));
@@ -26,32 +21,15 @@ const EditProfilePage = React.lazy(() => import('./EditProfilePage').then(module
 const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 
+// FIX: Simplify props as most data is now passed via NavigationContext.
 interface ViewRendererProps {
   view: AppView;
   mainView: 'grid' | 'map';
   isInitialLoading: boolean;
-  userLocation: { lat: number; lng: number } | null;
-  isFindingNearby: boolean;
-  postToFocusOnMap: string | null;
-  onPostFocusComplete: () => void;
-  locationToFocus: { coords: { lat: number; lng: number }; name: string } | null;
-  onLocationFocusComplete: () => void;
-  adminInitialView: any;
-  nearbyPostsResult: { posts: any[]; locationName: string | null } | null;
-  viewingAccount: Account | null;
-  viewingPostId: string | null;
-  viewingForumPostId: string | null;
-  editingAdminPageKey: 'terms' | 'privacy' | null;
-  activityInitialTab: ActivityTab;
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
-  const { 
-      view, mainView, isInitialLoading, userLocation, isFindingNearby,
-      postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
-      adminInitialView, nearbyPostsResult, viewingAccount, viewingPostId, viewingForumPostId,
-      editingAdminPageKey, activityInitialTab
-  } = props;
+  const { view, mainView } = props;
     
   switch (view) {
       case 'all':
@@ -61,15 +39,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
           </Suspense>
         ) : (
           <Suspense fallback={<LoadingFallback />}>
-            <MapView 
-              userLocation={userLocation} 
-              isLoading={isInitialLoading}
-              isFindingNearby={isFindingNearby}
-              postToFocusOnMap={postToFocusOnMap}
-              onPostFocusComplete={onPostFocusComplete}
-              locationToFocus={locationToFocus}
-              onLocationFocusComplete={onLocationFocusComplete}
-            />
+            <MapView />
           </Suspense>
         );
       case 'likes':
@@ -77,43 +47,31 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
       case 'bag':
         return <Suspense fallback={<LoadingFallback />}><BagView /></Suspense>;
       case 'admin':
-        return <Suspense fallback={<LoadingFallback />}><AdminPanel initialView={adminInitialView} /></Suspense>;
+        return <Suspense fallback={<LoadingFallback />}><AdminPanel /></Suspense>;
       case 'account':
-        if (!viewingAccount) return <div className="p-8 text-center">Account not found.</div>;
-        return <Suspense fallback={<LoadingFallback />}><AccountView account={viewingAccount} /></Suspense>;
+        return <Suspense fallback={<LoadingFallback />}><AccountView /></Suspense>;
       case 'nearbyPosts':
-        if (!nearbyPostsResult) return <div className="p-8 text-center">No nearby results available.</div>;
-        return <Suspense fallback={<LoadingFallback />}><NearbyPostsView result={nearbyPostsResult} /></Suspense>;
+        return <Suspense fallback={<LoadingFallback />}><NearbyPostsView /></Suspense>;
        case 'forums':
         return <Suspense fallback={<LoadingFallback />}><ForumsView /></Suspense>;
        case 'forumPostDetail':
-        if (!viewingForumPostId) return null;
-        return <Suspense fallback={<LoadingFallback />}><ForumsPostDetailView postId={viewingForumPostId} /></Suspense>;
-// FIX: Remove props that are now handled by context hooks inside CreatePostPage.
+        return <Suspense fallback={<LoadingFallback />}><ForumsPostDetailView /></Suspense>;
       case 'createPost':
         return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
-// FIX: Update prop from `editingPost` to `editingPostId` to match the refactored component.
       case 'editPost':
-          if (!viewingPostId) return null;
-          return <Suspense fallback={<LoadingFallback />}><CreatePostPage editingPostId={viewingPostId} /></Suspense>;
-// FIX: Remove props that are now handled by context hooks inside SubscriptionPage.
+          return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
       case 'subscription':
         return <Suspense fallback={<LoadingFallback />}><SubscriptionPage /></Suspense>;
-// FIX: Remove props that are now handled by context hooks inside ActivityPage, keeping only `initialTab`.
       case 'activity':
-        return <Suspense fallback={<LoadingFallback />}><ActivityPage initialTab={activityInitialTab} /></Suspense>;
+        return <Suspense fallback={<LoadingFallback />}><ActivityPage /></Suspense>;
       case 'accountAnalytics':
-        if (!viewingAccount) return <div className="p-8 text-center">Account not found.</div>;
-        return <Suspense fallback={<LoadingFallback />}><AccountAnalyticsView account={viewingAccount} /></Suspense>;
+        return <Suspense fallback={<LoadingFallback />}><AccountAnalyticsView /></Suspense>;
        case 'editAdminPage':
-         if (!editingAdminPageKey) return null;
-         return <Suspense fallback={<LoadingFallback />}><EditPageView pageKey={editingAdminPageKey} /></Suspense>;
+         return <Suspense fallback={<LoadingFallback />}><EditPageView /></Suspense>;
        case 'editProfile':
-         if (!viewingAccount) return null;
-         return <Suspense fallback={<LoadingFallback />}><EditProfilePage account={viewingAccount} /></Suspense>;
+         return <Suspense fallback={<LoadingFallback />}><EditProfilePage /></Suspense>;
        case 'manageCatalog':
-         if (!viewingAccount) return null;
-         return <Suspense fallback={<LoadingFallback />}><ManageCatalogPage account={viewingAccount} /></Suspense>;
+         return <Suspense fallback={<LoadingFallback />}><ManageCatalogPage /></Suspense>;
        case 'createForumPost':
          return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage /></Suspense>;
       default:

@@ -274,13 +274,9 @@ export const App: React.FC = () => {
       setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
     
-    // Only navigate if we are not already on the map view.
-    if (view !== 'all' || mainView !== 'map') {
-        pushHistoryState();
-        setView('all'); // This is the key fix.
-        setMainView('map');
-    }
-  }, [findPostById, addToast, pushHistoryState, view, mainView]);
+    pushHistoryState();
+    setMainView('map');
+  }, [findPostById, addToast, pushHistoryState]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);
@@ -376,7 +372,27 @@ export const App: React.FC = () => {
     handleBack,
     showOnMap,
     saveHistoryState: pushHistoryState,
-  }), [navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState]);
+    // FIX: Pass all view-specific state through the context provider to solve prop-drilling and type issues.
+    viewingAccount,
+    viewingPostId,
+    viewingForumPostId,
+    editingAdminPageKey,
+    activityInitialTab,
+    adminInitialView,
+    nearbyPostsResult,
+    userLocation,
+    isFindingNearby,
+    postToFocusOnMap,
+    onPostFocusComplete,
+    locationToFocus,
+    onLocationFocusComplete,
+  }), [
+    navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState,
+    viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey,
+    activityInitialTab, adminInitialView, nearbyPostsResult, userLocation,
+    isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus,
+    onLocationFocusComplete,
+  ]);
   
   const openPostDetailsModal = useCallback((post: DisplayablePost) => {
     if (currentAccount) {
@@ -386,12 +402,7 @@ export const App: React.FC = () => {
   }, [currentAccount, addPostToViewHistory, openModal]);
 
   const viewRendererProps = {
-    view, mainView, isInitialLoading, userLocation, isFindingNearby,
-    postToFocusOnMap, onPostFocusComplete,
-    openPostDetailsModal, locationToFocus, onLocationFocusComplete,
-    adminInitialView, nearbyPostsResult, viewingAccount,
-    viewingPostId, viewingForumPostId, editingAdminPageKey,
-    activityInitialTab,
+    view, mainView, isInitialLoading, openPostDetailsModal
   };
 
   return (
