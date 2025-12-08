@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -26,6 +25,8 @@ interface AccountViewProps {
   posts: DisplayablePost[];
   archivedPosts: DisplayablePost[];
   allAccounts: Account[];
+  gridView: 'default' | 'compact';
+  isTabletOrDesktop: boolean;
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -50,7 +51,7 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts }) => {
+export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts, gridView, isTabletOrDesktop }) => {
   const { openModal } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap } = useNavigation();
@@ -76,14 +77,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   useClickOutside(categoryDropdownRef, () => setIsCategoryDropdownOpen(false), isCategoryDropdownOpen);
-
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  const isDesktop = windowWidth >= 1024;
 
   // --- TAB MANAGEMENT ---
   const { availableTabs, categoryTabs } = useMemo(() => {
@@ -436,7 +429,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                                     posts={displayedPosts} 
                                     currentAccount={currentAccount}
                                     isArchived={activeTab === 'archives'}
-                                    variant={isDesktop ? "compact" : "default"}
+                                    variant={isTabletOrDesktop ? gridView : "default"}
                                 />
                             ) : (
                             (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (

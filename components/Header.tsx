@@ -70,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  const isDesktop = windowWidth >= 1024;
+  const isTabletOrDesktop = windowWidth >= 768;
 
   useEffect(() => {
       if (windowWidth >= 640 && isMobileSearchOpen) {
@@ -385,7 +385,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-1 shrink-0 col-start-3 justify-self-end">
             {view === 'all' && (
                 <div className="flex items-center gap-1">
-                    {isDesktop && mainView === 'grid' && (
+                    {isTabletOrDesktop && mainView === 'grid' && (
                         <Button
                             onClick={() => onGridViewChange(gridView === 'default' ? 'compact' : 'default')}
                             variant="overlay-dark"

@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
 import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
 import { Header } from './components/Header';
@@ -124,7 +119,7 @@ export const App: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  const isDesktop = windowWidth >= 1024;
+  const isTabletOrDesktop = windowWidth >= 768;
 
   // This hook must be called at the top level.
   const viewedPosts = useMemo(() => viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p), [viewedPostIds, findPostById]);
@@ -509,7 +504,7 @@ export const App: React.FC = () => {
             hasMore={hasMore}
             isLoadingMore={isLoadingMore}
             isFiltering={isFiltering}
-            variant={isDesktop ? gridView : 'default'}
+            variant={isTabletOrDesktop ? gridView : 'default'}
             enableEntryAnimation={true}
           />
         ) : (
@@ -533,7 +528,13 @@ export const App: React.FC = () => {
         const likedPosts = allDisplayablePosts.filter(post => likedPostIds.has(post.id));
         return (
             <Suspense fallback={<LoadingFallback />}>
-                <LikesView likedPosts={likedPosts} currentAccount={currentAccount} allAccounts={accounts} />
+                <LikesView 
+                    likedPosts={likedPosts} 
+                    currentAccount={currentAccount} 
+                    allAccounts={accounts} 
+                    gridView={gridView}
+                    isTabletOrDesktop={isTabletOrDesktop}
+                />
             </Suspense>
         );
       case 'bag':
@@ -567,6 +568,8 @@ export const App: React.FC = () => {
                     posts={allDisplayablePosts}
                     archivedPosts={archivedPosts}
                     allAccounts={accounts}
+                    gridView={gridView}
+                    isTabletOrDesktop={isTabletOrDesktop}
                 />
             </Suspense>
         );
@@ -647,6 +650,8 @@ export const App: React.FC = () => {
                 onArchiveAccount={handleArchiveAccount}
                 onSignOut={signOut}
                 initialTab={activityInitialTab}
+                gridView={gridView}
+                isTabletOrDesktop={isTabletOrDesktop}
             />
         );
       case 'accountAnalytics':

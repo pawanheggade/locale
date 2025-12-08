@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
@@ -13,21 +12,15 @@ interface LikesViewProps {
   likedPosts: DisplayablePost[];
   currentAccount: Account;
   allAccounts: Account[];
+  gridView: 'default' | 'compact';
+  isTabletOrDesktop: boolean;
 }
 
 type LikedTab = 'posts' | 'profiles';
 
-export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount, allAccounts }) => {
+export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount, allAccounts, gridView, isTabletOrDesktop }) => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
   const { navigateTo } = useNavigation();
-
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  const isDesktop = windowWidth >= 1024;
 
   const likedAccounts = useMemo(() => {
       const likedIds = new Set(currentAccount?.likedAccountIds || []);
@@ -65,7 +58,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, currentAccount
               <PostList
                 posts={likedPosts}
                 currentAccount={currentAccount}
-                variant={isDesktop ? "compact" : "default"}
+                variant={isTabletOrDesktop ? gridView : "default"}
               />
             )}
           </div>
