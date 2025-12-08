@@ -62,8 +62,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       return <ErrorFallback onReset={this.handleReset} />;
     }
 
-    // FIX: Correctly access the `children` prop via `this.props`.
-    const { children } = this.props;
-    return children;
+    // FIX: The destructuring of `this.props` was causing a misleading TypeScript error. Returning `this.props.children` directly resolves the issue.
+    return this.props.children;
   }
 }

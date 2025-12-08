@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react';
 import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
-import { useNavigation } from '../contexts/NavigationContext';
 
 // Lazy loaded components to reduce initial bundle size
 const MapView = React.lazy(() => import('./MapView').then(module => ({ default: module.MapView })));
@@ -22,7 +21,6 @@ const EditProfilePage = React.lazy(() => import('./EditProfilePage').then(module
 const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 
-// FIX: Simplify props as most data is now passed via NavigationContext.
 interface ViewRendererProps {
   view: AppView;
   mainView: 'grid' | 'map';
@@ -30,7 +28,9 @@ interface ViewRendererProps {
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
-  const { view, mainView } = props;
+  const { 
+      view, mainView
+  } = props;
     
   switch (view) {
       case 'all':
@@ -40,7 +40,6 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
           </Suspense>
         ) : (
           <Suspense fallback={<LoadingFallback />}>
-            {/* FIX: Remove props from MapView as they are now provided by NavigationContext */}
             <MapView />
           </Suspense>
         );
