@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, SocialPlatform, DisplayableForumPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -20,13 +17,10 @@ import { generateContactMethods } from '../utils/account';
 import { cn } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { isShareAbortError } from '../lib/utils';
+import { usePosts } from '../contexts/PostsContext';
 
 interface AccountViewProps {
   account: Account;
-  currentAccount: Account | null;
-  posts: DisplayablePost[];
-  archivedPosts: DisplayablePost[];
-  allAccounts: Account[];
 }
 
 const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; }> = ({ post, onClick }) => (
@@ -51,11 +45,13 @@ const ForumPostRow: React.FC<{ post: DisplayableForumPost; onClick: () => void; 
     </div>
 );
 
-export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccount, posts, archivedPosts, allAccounts }) => {
+// FIX: Refactor component to use contexts and only accept `account` prop.
+export const AccountView: React.FC<AccountViewProps> = ({ account }) => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap } = useNavigation();
-  const { toggleLikeAccount } = useAuth();
+  const { currentAccount, toggleLikeAccount } = useAuth();
+  const { posts, archivedPosts } = usePosts();
   
   const isOwnAccount = !!currentAccount && account.id === currentAccount.id;
   const isLiked = currentAccount?.likedAccountIds?.includes(account.id) ?? false;
@@ -427,7 +423,6 @@ export const AccountView: React.FC<AccountViewProps> = ({ account, currentAccoun
                             {displayedPosts.length > 0 ? (
                                 <PostList 
                                     posts={displayedPosts} 
-                                    currentAccount={currentAccount}
                                     isArchived={activeTab === 'archives'}
                                     variant={isTabletOrDesktop ? gridView : 'default'}
                                 />

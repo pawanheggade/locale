@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { DisplayablePost, PostType, Subscription } from '../types';
 import { formatCurrency, formatCompactCurrency } from '../utils/formatters';
@@ -8,19 +7,18 @@ import { Button } from './ui/Button';
 import { TIER_STYLES } from '../lib/utils';
 import { STORAGE_KEYS } from '../lib/constants';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { usePosts } from '../contexts/PostsContext';
+import { useUI } from '../contexts/UIContext';
 
 // Declare Leaflet global object
 declare var L: any;
 
 interface MapViewProps {
-  posts: DisplayablePost[];
   userLocation?: { lat: number; lng: number } | null;
   isLoading?: boolean;
-  onFindNearby: () => void;
   isFindingNearby: boolean;
   postToFocusOnMap: string | null;
   onPostFocusComplete: () => void;
-  onViewPostDetails: (post: DisplayablePost) => void;
   locationToFocus: { coords: { lat: number; lng: number; }; name: string; } | null;
   onLocationFocusComplete: () => void;
 }
@@ -84,7 +82,7 @@ const createMarkerIcon = (post: DisplayablePost) => {
 };
 
 
-const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoading, onFindNearby, isFindingNearby, postToFocusOnMap, onPostFocusComplete, onViewPostDetails, locationToFocus, onLocationFocusComplete }) => {
+const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const clusterGroupRef = useRef<any>(null);
   const userLocationMarkerRef = useRef<any>(null);
@@ -95,6 +93,9 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
   const displayedMarkerIdsRef = useRef(new Set<string>());
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const isMounted = useIsMounted();
+  
+  const { posts } = usePosts();
+  const { openModal } = useUI();
 
   const initialMapState = useMemo(() => {
     try {
@@ -110,6 +111,10 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
   }, []);
 
   const mapInstanceRef = useMap(mapRef, { ...initialMapState, zoomControl: false });
+  
+  const onViewPostDetails = (post: DisplayablePost) => {
+    openModal({ type: 'viewPost', data: post });
+  };
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -411,7 +416,7 @@ const MapViewComponent: React.FC<MapViewProps> = ({ posts, userLocation, isLoadi
       <div className="absolute top-4 right-4 z-[401] flex flex-col items-end gap-2">
         <div className="flex items-center gap-2 flex-row">
             <Button
-                onClick={onFindNearby}
+                onClick={() => openModal({ type: 'findNearby' })}
                 disabled={isFindingNearby}
                 variant="outline"
                 className={`flex items-center justify-center gap-2 ${whiteButtonClass}`}

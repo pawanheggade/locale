@@ -21,7 +21,6 @@ interface CommentProps {
   replyingToId: string | null;
 }
 
-// FIX: Renamed component to `CommentComponent` to match its recursive usage.
 const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, replyingToId }) => {
   const { currentAccount, reportItem, accounts: allAccounts } = useAuth();
   const { toggleVote, updateComment, deleteComment } = useForum();
@@ -127,7 +126,6 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
         )}
         <div className="mt-6 space-y-6">
           {comment.replies.map(reply => (
-            // FIX: The component recursively called `CommentComponent` which was not defined. It has been renamed to `CommentComponent` to fix this.
             <CommentComponent key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
           ))}
         </div>
@@ -136,5 +134,4 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
   );
 };
 
-// FIX: Exporting a memoized version as `Comment` to align with project patterns.
 export const Comment = React.memo(CommentComponent);

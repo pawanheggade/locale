@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { DisplayablePost, PostCategory, Account } from '../types';
 import { DataVisualizationView } from './DataVisualizationView';
@@ -6,15 +5,20 @@ import { HeartIcon, ArchiveBoxIcon, UserIcon, DocumentIcon } from './Icons';
 import { StatCard } from './StatCard';
 import { PostPerformanceTable } from './PostPerformanceTable';
 import { usePostLikeCounts } from '../hooks/usePostLikeCounts';
+import { useAuth } from '../contexts/AuthContext';
+import { usePosts } from '../contexts/PostsContext';
 
 interface AccountAnalyticsViewProps {
   account: Account;
-  accountPosts: DisplayablePost[];
-  allCategories: PostCategory[];
-  allAccounts: Account[];
 }
 
-export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ account, accountPosts, allCategories, allAccounts }) => {
+export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = ({ account }) => {
+  const { accounts: allAccounts } = useAuth();
+  const { posts: allPosts, categories: allCategories } = usePosts();
+  
+  const accountPosts = useMemo(() => {
+    return allPosts.filter(post => post.authorId === account.id);
+  }, [allPosts, account.id]);
   
   const likeCounts = usePostLikeCounts(allAccounts);
 

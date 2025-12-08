@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { Button } from './ui/Button';
 import { Textarea } from './ui/Textarea';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface EditPageViewProps {
   pageKey: 'terms' | 'privacy';
-  initialContent: string;
-  onSave: (newContent: string) => void;
-  onBack: () => void;
 }
 
-export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey, initialContent, onSave, onBack }) => {
+export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey }) => {
+  const { termsContent, setTermsContent, privacyContent, setPrivacyContent } = useAuth();
+  const { handleBack } = useNavigation();
+
+  const initialContent = pageKey === 'terms' ? termsContent : privacyContent;
+  const onSave = pageKey === 'terms' ? setTermsContent : setPrivacyContent;
+
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -19,7 +24,7 @@ export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey, initialCont
     // Simulate save time and navigate back
     setTimeout(() => {
       setIsSaving(false);
-      onBack();
+      handleBack();
     }, 500);
   };
 
@@ -42,7 +47,7 @@ export const EditPageView: React.FC<EditPageViewProps> = ({ pageKey, initialCont
         <div className="bg-white border-t border-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
             <div className="py-3 flex items-center gap-3">
-              <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
+              <Button variant="overlay-dark" onClick={handleBack} className="mr-auto">Cancel</Button>
               <Button onClick={handleSave} isLoading={isSaving} size="lg" variant="pill-red">
                 Save Changes
               </Button>

@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Post, PostCategory, DisplayablePost } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';

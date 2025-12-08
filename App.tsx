@@ -1,52 +1,25 @@
-
-
-
-import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense, createContext, useContext } from 'react';
-import { DisplayablePost, NotificationSettings, Notification, Account, ModalState, Subscription, Report, AdminView, AppView, SavedSearch, SavedSearchFilters, Post, PostType, ContactOption, ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment, Feedback, ActivityTab, FiltersState } from './types';
+import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
-import { PostList } from './components/PostList';
+import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
 import { useUI } from './contexts/UIContext';
 import { useFilters } from './contexts/FiltersContext';
 import { useAuth } from './contexts/AuthContext';
 import { usePosts } from './contexts/PostsContext';
-import { useForum } from './contexts/ForumContext';
-import { usePostFilters } from './hooks/usePostFilters';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
-import { useInfiniteScroll } from './hooks/useInfiniteScroll';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './components/AppModals';
-import { ForumsPostDetailView } from './components/ForumsPostDetailView';
+import { AppModals } from './AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
-import { CreatePostPage } from './components/CreatePostPage';
-import { useDebounce } from './hooks/useDebounce';
 import { cn } from './lib/utils';
-import { SubscriptionPage } from './components/SubscriptionPage';
-import { geocodeLocation, reverseGeocode, haversineDistance } from './utils/geocoding';
+// FIX: Import haversineDistance function.
+import { reverseGeocode, haversineDistance } from './utils/geocoding';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { ActivityPage } from './components/ActivityPage';
-import { useConfirmationModal } from './hooks/useConfirmationModal';
 import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
-import { NavigationContext, useNavigation } from './contexts/NavigationContext';
+import { NavigationContext } from './contexts/NavigationContext';
 import { STORAGE_KEYS } from './lib/constants';
-// FIX: `useActivity` was not imported, causing a reference error.
-import { useActivity } from './contexts/ActivityContext';
-
-// Lazy loaded components to reduce initial bundle size
-const MapView = React.lazy(() => import('./components/MapView').then(module => ({ default: module.MapView })));
-const AdminPanel = React.lazy(() => import('./components/AdminPanel').then(module => ({ default: module.AdminPanel })));
-const AccountView = React.lazy(() => import('./components/AccountView').then(module => ({ default: module.AccountView })));
-const LikesView = React.lazy(() => import('./components/LikesView').then(module => ({ default: module.LikesView })));
-const BagView = React.lazy(() => import('./components/BagView').then(module => ({ default: module.BagView })));
-const AccountAnalyticsView = React.lazy(() => import('./components/AccountAnalyticsView').then(module => ({ default: module.AccountAnalyticsView })));
-const NearbyPostsView = React.lazy(() => import('./components/NearbyPostsView').then(module => ({ default: module.NearbyPostsView })));
-const ForumsView = React.lazy(() => import('./components/ForumsView').then(module => ({ default: module.ForumsView })));
-const EditPageView = React.lazy(() => import('./components/EditPageView').then(module => ({ default: module.EditPageView })));
-const EditProfilePage = React.lazy(() => import('./components/EditProfilePage').then(module => ({ default: module.EditProfilePage })));
-const ManageCatalogPage = React.lazy(() => import('./components/ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
-const CreateForumPostPage = React.lazy(() => import('./components/CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 
 interface HistoryItem {
     view: AppView;
@@ -59,38 +32,20 @@ interface HistoryItem {
     filters: FiltersState;
 }
 
-const NOTIFICATION_SETTINGS_KEY = 'localeAppNotifSettings';
-
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
   'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
 ];
 
 export const App: React.FC = () => {
-  const { 
-    currentAccount, accounts, accountsById, signOut, 
-    likedPostIds, deleteAccount, toggleAccountStatus, updateSubscription, updateAccountRole, approveAccount, rejectAccount, upgradeToSeller, updateAccountDetails,
-    bag, 
-    addPostToViewHistory, viewedPostIds, savedSearches,
-    reports, setReports, feedbackList, setFeedbackList, termsContent, setTermsContent, privacyContent, setPrivacyContent,
-    addReport, addForumReport, addFeedback, incrementProfileViews
-  } = useAuth();
+  const { currentAccount, accountsById, signOut, addPostToViewHistory, incrementProfileViews } = useAuth();
+  // FIX: Destructure 'posts' instead of 'allDisplayablePosts' to match the context provider.
+  const { posts, findPostById, refreshPosts } = usePosts();
   
-  const { 
-    notifications, markAsRead, markAllAsRead
-  } = useActivity();
-
-  const { 
-    posts: allDisplayablePosts, archivedPosts, categories, allAvailableTags, createPost: createPostInContext, updatePost: updatePostInContext, deletePostPermanently, addCategory, updateCategory, deleteCategory, findPostById,
-    priceUnits, addPriceUnit, updatePriceUnit, deletePriceUnit, refreshPosts
-  } = usePosts();
-  
-  const { posts: forumPosts, getPostWithComments, deletePost: deleteForumPost, deleteComment: deleteForumComment, findForumPostById, categories: forumCategories, addCategory: addForumCategory, updateCategory: updateForumCategory, deleteCategory: deleteForumCategory, addPost: createForumPost } = useForum();
-  const { activeModal, openModal, closeModal, addToast, gridView, isTabletOrDesktop } = useUI();
-  const showConfirmation = useConfirmationModal();
+  const { activeModal, openModal, closeModal, addToast } = useUI();
   const isMounted = useIsMounted();
 
-  const { filterState, dispatchFilterAction, handleAiSearchSubmit, handleToggleAiSearch, onClearFilters, isAnyFilterActive } = useFilters();
+  const { filterState, dispatchFilterAction, onClearFilters, isAnyFilterActive } = useFilters();
   
   const [view, setView] = useState<AppView>('all');
   const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
@@ -102,7 +57,7 @@ export const App: React.FC = () => {
   
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isFiltering, setIsFiltering] = useState(false);
+  
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isFindingNearby, setIsFindingNearby] = useState(false);
   const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
@@ -120,11 +75,6 @@ export const App: React.FC = () => {
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const [notificationSettings, setNotificationSettings] = usePersistentState<NotificationSettings>(NOTIFICATION_SETTINGS_KEY, { expiryAlertsEnabled: true, expiryThresholdDays: 3 });
-
-  // This hook must be called at the top level.
-  const viewedPosts = useMemo(() => viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p), [viewedPostIds, findPostById]);
-
   useEffect(() => {
     setIsInitialLoading(false); 
   }, []);
@@ -137,10 +87,6 @@ export const App: React.FC = () => {
       }
     }
   }, [accountsById, viewingAccount]);
-
-  const handleUpdateNotificationSettings = (newSettings: NotificationSettings) => {
-    setNotificationSettings(newSettings);
-  };
 
   const pushHistoryState = useCallback(() => {
     const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
@@ -220,31 +166,6 @@ export const App: React.FC = () => {
     }
   }, [accountsById, navigateTo]);
 
-  const openPostDetailsModal = useCallback((post: DisplayablePost) => {
-    if (currentAccount) {
-        addPostToViewHistory(post.id);
-    }
-    openModal({ type: 'viewPost', data: post });
-  }, [currentAccount, addPostToViewHistory, openModal]);
-
-  const handleNotificationClick = useCallback((notification: Notification) => {
-    markAsRead(notification.id);
-    
-    if (notification.postId) {
-        const post = findPostById(notification.postId);
-        if (post) {
-            openPostDetailsModal(post);
-        } else {
-            addToast("The related post is no longer available.", "error");
-        }
-    } else if (notification.relatedAccountId) {
-        const account = accountsById.get(notification.relatedAccountId);
-        if (account) navigateTo('account', { account });
-    } else if (notification.forumPostId) {
-        navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
-    }
-  }, [markAsRead, navigateTo, accountsById, findPostById, openPostDetailsModal, addToast]);
-
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
@@ -258,61 +179,6 @@ export const App: React.FC = () => {
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
   
-  const handleSearchSubmit = useCallback((query: string) => {
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return;
-    setRecentSearches(prev => {
-      const lowercasedQuery = trimmedQuery.toLowerCase();
-      const newSearches = [trimmedQuery, ...prev.filter(s => s.toLowerCase() !== lowercasedQuery)];
-      return newSearches.slice(0, 10);
-    });
-  }, [setRecentSearches]);
-
-  const handleToggleFeedbackArchive = (feedbackId: string) => {
-      setFeedbackList(prev => prev.map(f => f.id === feedbackId ? { ...f, isArchived: !f.isArchived } : f));
-  };
-
-  const handleDeleteFeedback = (feedbackId: string) => {
-      showConfirmation({
-        title: 'Delete Feedback',
-        message: 'Are you sure you want to delete this feedback?',
-        onConfirm: () => {
-            setFeedbackList(prev => prev.filter(f => f.id !== feedbackId));
-        },
-        confirmText: 'Delete',
-        confirmClassName: 'bg-red-600 text-white',
-      });
-  };
-
-  const handleMarkFeedbackAsRead = (feedbackId: string) => {
-    setFeedbackList(prev => prev.map(f => f.id === feedbackId ? { ...f, isRead: true } : f));
-  };
-
-  const handleBulkFeedbackAction = (ids: string[], action: 'markRead' | 'archive' | 'unarchive' | 'delete') => {
-      if (action === 'delete') {
-          showConfirmation({
-            title: 'Delete Feedback',
-            message: `Are you sure you want to delete ${ids.length} feedback items?`,
-            onConfirm: () => {
-                setFeedbackList(prev => prev.filter(f => !ids.includes(f.id)));
-            },
-            confirmText: 'Delete',
-            confirmClassName: 'bg-red-600 text-white',
-          });
-          return;
-      }
-      setFeedbackList(prev => prev.map(f => {
-          if (ids.includes(f.id)) {
-              switch (action) {
-                  case 'markRead': return { ...f, isRead: true };
-                  case 'archive': return { ...f, isRead: true, isArchived: true };
-                  case 'unarchive': return { ...f, isArchived: false };
-              }
-          }
-          return f;
-      }));
-  };
-
   const handleBack = useCallback(() => {
     const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;
     if (lastHistoryItem) {
@@ -416,11 +282,14 @@ export const App: React.FC = () => {
     setIsFindingNearby(true);
     closeModal();
     const locationName = await reverseGeocode(coords.lat, coords.lng);
-    const nearby = allDisplayablePosts.filter(post => {
+    // FIX: Use 'posts' instead of 'allDisplayablePosts'.
+    const nearby = posts.filter(post => {
         const postCoords = post.coordinates || post.eventCoordinates;
         if (!postCoords) return false;
+        // FIX: Use imported `haversineDistance` function.
         const distance = haversineDistance(coords, postCoords);
         return distance <= 50; // 50km radius
+    // FIX: Use imported `haversineDistance` function.
     }).map(post => ({...post, distance: haversineDistance(coords, post.coordinates || post.eventCoordinates!)}));
     
     nearby.sort((a, b) => a.distance! - b.distance!);
@@ -428,7 +297,8 @@ export const App: React.FC = () => {
     setNearbyPostsResult({ posts: nearby, locationName });
     setIsFindingNearby(false);
     navigateTo('nearbyPosts');
-  }, [allDisplayablePosts, closeModal, navigateTo]);
+  // FIX: Update dependency array.
+  }, [posts, closeModal, navigateTo]);
   
   const handleEnableLocation = async () => {
       if (!navigator.geolocation) {
@@ -453,47 +323,48 @@ export const App: React.FC = () => {
       }
   };
 
-  const handleArchiveAccount = useCallback(() => {
-    if (!currentAccount) return;
-    showConfirmation({
-        title: 'Archive Account',
-        message: 'Are you sure you want to archive your account? You can reactivate it by signing in again.',
-        onConfirm: () => {
-            toggleAccountStatus(currentAccount.id, false);
-            signOut();
-        },
-        confirmText: 'Archive',
-        confirmClassName: 'bg-amber-600 text-white',
-    });
-  }, [currentAccount, toggleAccountStatus, signOut, showConfirmation]);
-
-  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
-  const debouncedFilters = useDebounce(filterState, 200);
-
-  useEffect(() => {
-      const t = setTimeout(() => setIsFiltering(false), 300);
-      return () => clearTimeout(t);
-  }, [debouncedFilters]);
-
-  const handleScroll = useCallback(() => {
-      const currentScrollTop = mainContentRef.current?.scrollTop ?? 0;
-      setIsScrolled(currentScrollTop > 0);
-
-      // Simple check to avoid running on every scroll event
-      if (Math.abs(currentScrollTop - lastScrollTopRef.current) <= 10) return;
-      
-      if (currentScrollTop > lastScrollTopRef.current && currentScrollTop > 80) { // Scrolling down
-          setIsHeaderVisible(false);
-      } else { // Scrolling up
-          setIsHeaderVisible(true);
-      }
-      lastScrollTopRef.current = currentScrollTop;
+  const onPostFocusComplete = useCallback(() => {
+    setPostToFocusOnMap(null);
   }, []);
 
-  const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(allDisplayablePosts, isInitialLoading);
-  const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, userLocation, currentAccount, accounts);
+  const onLocationFocusComplete = useCallback(() => {
+    setLocationToFocus(null);
+  }, []);
 
-  const postsToShow = (viewingAccount ? allDisplayablePosts.filter(p => p.authorId === viewingAccount.id) : filteredAndSortedPosts);
+  const handleScroll = useCallback(() => {
+    if (rafRef.current) {
+      window.cancelAnimationFrame(rafRef.current);
+    }
+
+    rafRef.current = window.requestAnimationFrame(() => {
+      if (!mainContentRef.current) return;
+      
+      const currentScrollTop = mainContentRef.current.scrollTop;
+      const lastScrollTop = lastScrollTopRef.current;
+
+      setIsScrolled(currentScrollTop > 0);
+
+      // Scrolling down and past the header threshold
+      if (currentScrollTop > lastScrollTop && currentScrollTop > 80) {
+        setIsHeaderVisible(false);
+      } 
+      // Scrolling up
+      else if (currentScrollTop < lastScrollTop) {
+        setIsHeaderVisible(true);
+      }
+      
+      lastScrollTopRef.current = currentScrollTop <= 0 ? 0 : currentScrollTop;
+    });
+  }, []);
+
+  // Cleanup raf on component unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const navigationContextValue = useMemo(() => ({
     navigateTo,
@@ -503,229 +374,20 @@ export const App: React.FC = () => {
     saveHistoryState: pushHistoryState,
   }), [navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState]);
   
-  const createPost = (postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>): Post => {
-      if(!currentAccount) throw new Error("No current account");
-      const newPost = createPostInContext(postData, currentAccount.id);
-      addToast('Post created successfully!', 'success');
-      return newPost;
-  };
-  
-  const updatePost = async (updatedPost: Post): Promise<Post> => {
-      const result = await updatePostInContext(updatedPost);
-      addToast('Post updated successfully!', 'success');
-      return result;
-  };
-
-  const renderMainContent = () => {
-    switch (view) {
-      case 'all':
-        return mainView === 'grid' ? (
-          <PostList
-            posts={postsToShow}
-            currentAccount={currentAccount}
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            isLoadingMore={isLoadingMore}
-            isFiltering={isFiltering}
-            variant={isTabletOrDesktop ? gridView : 'default'}
-            enableEntryAnimation={true}
-          />
-        ) : (
-          <Suspense fallback={<LoadingFallback />}>
-            <MapView 
-              posts={postsToShow} 
-              userLocation={userLocation} 
-              isLoading={isInitialLoading}
-              onFindNearby={() => openModal({ type: 'findNearby' })}
-              isFindingNearby={isFindingNearby}
-              postToFocusOnMap={postToFocusOnMap}
-              onPostFocusComplete={() => setPostToFocusOnMap(null)}
-              onViewPostDetails={openPostDetailsModal}
-              locationToFocus={locationToFocus}
-              onLocationFocusComplete={() => setLocationToFocus(null)}
-            />
-          </Suspense>
-        );
-      case 'likes':
-        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view your likes.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <LikesView 
-                    likedPosts={allDisplayablePosts.filter(post => likedPostIds.has(post.id))} 
-                    allPosts={allDisplayablePosts}
-                    currentAccount={currentAccount} 
-                />
-            </Suspense>
-        );
-      case 'bag':
-        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view your bag.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <BagView onViewDetails={openPostDetailsModal} allAccounts={accounts} />
-            </Suspense>
-        );
-      case 'admin':
-        if (currentAccount?.role !== 'admin') return <div className="p-8 text-center text-red-600">Access Denied.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <AdminPanel 
-                    initialView={adminInitialView} 
-                    feedbackList={feedbackList}
-                    onDeleteFeedback={handleDeleteFeedback}
-                    onToggleFeedbackArchive={handleToggleFeedbackArchive}
-                    onMarkFeedbackAsRead={handleMarkFeedbackAsRead}
-                    onBulkFeedbackAction={handleBulkFeedbackAction}
-                />
-            </Suspense>
-        );
-      case 'account':
-        if (!viewingAccount) return <div className="p-8 text-center">Account not found.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <AccountView
-                    account={viewingAccount}
-                    currentAccount={currentAccount}
-                    posts={allDisplayablePosts}
-                    archivedPosts={archivedPosts}
-                    allAccounts={accounts}
-                />
-            </Suspense>
-        );
-      case 'nearbyPosts':
-        if (!currentAccount) return <div className="p-8 text-center">You must be logged in to view nearby posts.</div>;
-        if (!nearbyPostsResult) return <div className="p-8 text-center">No nearby results available.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <NearbyPostsView
-                    result={nearbyPostsResult}
-                    currentAccount={currentAccount}
-                />
-            </Suspense>
-        );
-       case 'forums':
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <ForumsView />
-            </Suspense>
-        );
-       case 'forumPostDetail':
-        if (!viewingForumPostId) return null;
-        return <ForumsPostDetailView postId={viewingForumPostId} onBack={handleBack} />;
-      case 'createPost':
-        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to create a post.</div>;
-        return (
-            <CreatePostPage 
-                onBack={handleBack} 
-                onSubmitPost={createPost}
-                onNavigateToPost={() => navigateTo('all')} 
-                currentAccount={currentAccount} 
-                categories={categories}
-                onUpdateCurrentAccountDetails={(details) => updateAccountDetails({ ...currentAccount, ...details })}
-            />
-        );
-      case 'editPost':
-          if (!viewingPostId) return null;
-          const postToEdit = findPostById(viewingPostId);
-          if (!postToEdit) return <div className="p-8 text-center">Post not found.</div>;
-          if (!currentAccount || (currentAccount.id !== postToEdit.authorId && currentAccount.role !== 'admin')) return <div className="p-8 text-center">You don't have permission to edit this post.</div>;
-          return (
-              <CreatePostPage 
-                  onBack={handleBack}
-                  onSubmitPost={createPost}
-                  onUpdatePost={updatePost}
-                  onNavigateToPost={() => {
-                      openPostDetailsModal(postToEdit);
-                      handleBack();
-                  }}
-                  editingPost={postToEdit}
-                  currentAccount={currentAccount}
-                  categories={categories}
-              />
-          );
-      case 'subscription':
-        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to manage your subscription.</div>;
-        return (
-            <SubscriptionPage 
-                currentAccount={currentAccount} 
-                onUpdateSubscription={(tier) => updateSubscription(currentAccount.id, tier)}
-                openModal={openModal}
-            />
-        );
-      case 'activity':
-        if (!currentAccount) return <div className="p-8 text-center">You must be signed in to view your activity.</div>;
-        return (
-            <ActivityPage
-                notifications={notifications.filter(n => n.recipientId === currentAccount.id)}
-                onDismiss={markAsRead}
-                onDismissAll={markAllAsRead}
-                onNotificationClick={handleNotificationClick}
-                viewedPosts={viewedPosts}
-                currentAccount={currentAccount}
-                settings={notificationSettings}
-                onSettingsChange={handleUpdateNotificationSettings}
-                onArchiveAccount={handleArchiveAccount}
-                onSignOut={signOut}
-                initialTab={activityInitialTab}
-            />
-        );
-      case 'accountAnalytics':
-        if (!currentAccount || !viewingAccount || viewingAccount.id !== currentAccount.id) return <div className="p-8 text-center">Access denied.</div>;
-        return (
-            <Suspense fallback={<LoadingFallback />}>
-                <AccountAnalyticsView 
-                    account={viewingAccount}
-                    accountPosts={allDisplayablePosts.filter(p => p.authorId === viewingAccount.id)}
-                    allCategories={categories}
-                    allAccounts={accounts}
-                />
-            </Suspense>
-        );
-       case 'editAdminPage':
-         if (!editingAdminPageKey) return null;
-         return (
-             <Suspense fallback={<LoadingFallback />}>
-                 <EditPageView
-                     pageKey={editingAdminPageKey}
-                     initialContent={editingAdminPageKey === 'terms' ? termsContent : privacyContent}
-                     onSave={(content) => {
-                         if (editingAdminPageKey === 'terms') setTermsContent(content);
-                         else setPrivacyContent(content);
-                     }}
-                     onBack={handleBack}
-                 />
-             </Suspense>
-         );
-       case 'editProfile':
-           if (!currentAccount) return null;
-           return (
-               <Suspense fallback={<LoadingFallback />}>
-                   <EditProfilePage account={currentAccount} onBack={handleBack} />
-               </Suspense>
-           );
-       case 'manageCatalog':
-           if (!currentAccount) return null;
-            return (
-                <Suspense fallback={<LoadingFallback />}>
-                    <ManageCatalogPage account={currentAccount} onBack={handleBack} />
-                </Suspense>
-            );
-       case 'createForumPost':
-            if (!currentAccount) return null;
-            return (
-                <Suspense fallback={<LoadingFallback />}>
-                    <CreateForumPostPage 
-                        onBack={handleBack} 
-                        onSubmit={(postData) => {
-                            const newPost = createForumPost(postData);
-                            if (newPost) {
-                                navigateTo('forumPostDetail', { forumPostId: newPost.id });
-                            }
-                        }}
-                    />
-                </Suspense>
-            );
-      default: return null;
+  const openPostDetailsModal = useCallback((post: DisplayablePost) => {
+    if (currentAccount) {
+        addPostToViewHistory(post.id);
     }
+    openModal({ type: 'viewPost', data: post });
+  }, [currentAccount, addPostToViewHistory, openModal]);
+
+  const viewRendererProps = {
+    view, mainView, isInitialLoading, userLocation, isFindingNearby,
+    postToFocusOnMap, onPostFocusComplete,
+    openPostDetailsModal, locationToFocus, onLocationFocusComplete,
+    adminInitialView, nearbyPostsResult, viewingAccount,
+    viewingPostId, viewingForumPostId, editingAdminPageKey,
+    activityInitialTab,
   };
 
   return (
@@ -761,9 +423,11 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
+            <div className={cn('relative z-0', mainView === 'map' || ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view) ? 'h-full' : 'p-4 sm:p-6 lg:p-8')}>
               <ErrorBoundary>
-                {isInitialLoading ? <LoadingFallback /> : renderMainContent()}
+                <Suspense fallback={<LoadingFallback />}>
+                  {isInitialLoading ? <LoadingFallback /> : <ViewRenderer {...viewRendererProps} />}
+                </Suspense>
               </ErrorBoundary>
             </div>
           </div>

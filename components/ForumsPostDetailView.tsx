@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
-import { DisplayableForumComment } from '../types';
 import { timeSince, renderWithMentions } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { SpinnerIcon, ChatBubbleEllipsisIcon, FlagIcon, PaperAirplaneIcon, PencilIcon, TrashIcon } from './Icons';
@@ -19,15 +17,14 @@ import { isShareAbortError } from '../lib/utils';
 
 interface ForumPostDetailViewProps {
   postId: string;
-  onBack: () => void;
 }
 
-export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId, onBack }) => {
+export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postId }) => {
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
-    const { addToast, openModal } = useUI();
+    const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
     const { currentAccount, accounts: allAccounts, reportItem } = useAuth();
-    const { navigateToAccount } = useNavigation();
+    const { navigateTo, handleBack, navigateToAccount } = useNavigation();
     const { dispatchFilterAction } = useFilters();
     
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -45,6 +42,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
     
     const onFilterByTag = (tag: string) => {
         dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] });
+        navigateTo('all');
     };
 
 
@@ -73,7 +71,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
             message: 'Are you sure you want to delete this discussion? This will also remove all comments and cannot be undone.',
             onConfirm: () => {
                 deletePost(post.id);
-                onBack();
+                handleBack();
             },
             confirmText: 'Delete',
         });
@@ -112,7 +110,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = ({ postI
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveCategory(post.category);
-                                onBack();
+                                navigateTo('forums');
                             }}
                             className="text-[10px] h-auto min-h-0"
                         />

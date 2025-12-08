@@ -1,34 +1,38 @@
-
-
-
 import React, { useState, useMemo } from 'react';
-import { Account, DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { TabButton } from './ui/Button';
 import { HeartIcon } from './Icons';
 import { EmptyState } from './EmptyState';
 import { useUI } from '../contexts/UIContext';
-
-interface LikesViewProps {
-  likedPosts: DisplayablePost[];
-  allPosts: DisplayablePost[];
-  currentAccount: Account;
-}
+import { useAuth } from '../contexts/AuthContext';
+import { usePosts } from '../contexts/PostsContext';
 
 type LikedTab = 'posts' | 'profiles';
 
-export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, currentAccount }) => {
+export const LikesView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<LikedTab>('posts');
   const { gridView, isTabletOrDesktop } = useUI();
+  const { currentAccount, likedPostIds } = useAuth();
+  const { posts: allPosts } = usePosts();
+
+  const likedPosts = useMemo(() => {
+    if (!currentAccount) return [];
+    return allPosts.filter(post => likedPostIds.has(post.id));
+  }, [allPosts, likedPostIds, currentAccount]);
 
   const postsFromLikedProfiles = useMemo(() => {
-    const likedAccountIds = new Set(currentAccount?.likedAccountIds || []);
+    if (!currentAccount) return [];
+    const likedAccountIds = new Set(currentAccount.likedAccountIds || []);
     if (likedAccountIds.size === 0) return [];
     
     return allPosts
         .filter(post => likedAccountIds.has(post.authorId))
         .sort((a, b) => b.lastUpdated - a.lastUpdated);
   }, [currentAccount, allPosts]);
+
+  if (!currentAccount) {
+    return <div className="p-8 text-center">You must be logged in to view your likes.</div>;
+  }
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
@@ -54,11 +58,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, curr
                 className="py-20"
               />
             ) : (
-              <PostList
-                posts={likedPosts}
-                currentAccount={currentAccount}
-                variant={isTabletOrDesktop ? gridView : 'default'}
-              />
+              <PostList posts={likedPosts} />
             )}
           </div>
         )}
@@ -73,11 +73,7 @@ export const LikesView: React.FC<LikesViewProps> = ({ likedPosts, allPosts, curr
                 className="py-20"
               />
             ) : (
-              <PostList
-                posts={postsFromLikedProfiles}
-                currentAccount={currentAccount}
-                variant={isTabletOrDesktop ? gridView : 'default'}
-              />
+              <PostList posts={postsFromLikedProfiles} />
             )}
           </div>
         )}

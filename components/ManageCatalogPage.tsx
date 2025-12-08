@@ -6,14 +6,15 @@ import { TrashIcon, PlusIcon, DocumentIcon, PencilIcon, CheckIcon, XMarkIcon } f
 import { cn } from '../lib/utils';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { Input } from './ui/Input';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface ManageCatalogPageProps {
   account: Account;
-  onBack: () => void;
 }
 
-export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, onBack }) => {
+export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account }) => {
   const { addCatalogItems, updateAccountDetails } = useAuth();
+  const { handleBack } = useNavigation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const showConfirmation = useConfirmationModal();
@@ -232,7 +233,7 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = ({ account, o
         <div className="bg-white border-t border-gray-100">
           <div className="max-w-2xl mx-auto px-4 sm:px-6">
             <div className="py-3 flex items-center justify-end">
-              <Button onClick={onBack} size="lg" variant="pill-red">Done</Button>
+              <Button onClick={handleBack} size="lg" variant="pill-red">Done</Button>
             </div>
           </div>
         </div>

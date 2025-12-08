@@ -221,7 +221,6 @@ export type ModalState =
   | { type: 'feedback' }
   | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
   | { type: 'profileQR', data: Account }
-  // FIX: Added 'viewPost' to the ModalState union type to support viewing post details in a modal.
   | { type: 'viewPost', data: DisplayablePost };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
@@ -299,7 +298,6 @@ export type FilterAction =
   | { type: 'SET_MIN_PRICE'; payload: string }
   | { type: 'SET_MAX_PRICE'; payload: string }
   | { type: 'SET_FILTER_TAGS'; payload: string[] }
-  // FIX: Corrected typo in action type from 'SET_FILTER_EXPIRing_SOON' to 'SET_FILTER_EXPIRING_SOON'.
   | { type: 'SET_FILTER_EXPIRING_SOON'; payload: boolean }
   | { type: 'SET_FILTER_SHOW_EXPIRED'; payload: boolean }
   | { type: 'SET_FILTER_LAST_7_DAYS'; payload: boolean }

@@ -1,43 +1,64 @@
-
-
-import React, { useRef, useCallback } from 'react';
-import { DisplayablePost, Account } from '../types';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { PostCard } from './PostCard';
 import { SpinnerIcon, ArchiveBoxIcon } from './Icons';
 import { cn } from '../lib/utils';
 import { EmptyState } from './EmptyState';
 import { PostCardSkeleton } from './PostCardSkeleton';
+import { useAuth } from '../contexts/AuthContext';
+import { usePosts } from '../contexts/PostsContext';
+import { usePostFilters } from '../hooks/usePostFilters';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { useUI } from '../contexts/UIContext';
+import { DisplayablePost } from '../types';
 
 interface PostListProps {
-  posts: DisplayablePost[];
-  currentAccount: Account | null;
-  onLoadMore?: () => void;
-  hasMore?: boolean;
-  isLoadingMore?: boolean;
   isSearchResult?: boolean;
   isArchived?: boolean;
   hideAuthorInfo?: boolean;
   isLoading?: boolean;
-  isFiltering?: boolean;
   hideExpiry?: boolean;
   enableEntryAnimation?: boolean;
   variant?: 'default' | 'compact';
+  // If an authorId is provided, the list will only show posts from that author.
+  authorId?: string;
+  // FIX: Add optional `posts` prop to allow passing a pre-filtered/sorted list.
+  posts?: DisplayablePost[];
 }
 
-const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onLoadMore, hasMore, isLoadingMore, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, isFiltering = false, hideExpiry = false, enableEntryAnimation = false, variant = 'default' }) => {
+const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, hideExpiry = false, enableEntryAnimation = false, variant: variantProp, authorId }) => {
+  const { currentAccount, accounts } = useAuth();
+  const { posts: allDisplayablePosts, archivedPosts } = usePosts();
+  const { gridView, isTabletOrDesktop } = useUI();
+  
+  const sourcePosts = useMemo(() => {
+    // FIX: If posts are passed as a prop, use them directly.
+    if (postsProp) return postsProp;
+    if (isArchived) return archivedPosts;
+    if (authorId) return allDisplayablePosts.filter(p => p.authorId === authorId);
+    return allDisplayablePosts;
+  }, [postsProp, isArchived, authorId, allDisplayablePosts, archivedPosts]);
+
+  const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, isLoading);
+  const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, accounts);
+
+  // FIX: If postsProp or authorId is provided, bypass global filters from `usePostFilters`.
+  const posts = (postsProp || authorId) ? displayedItems : filteredAndSortedPosts;
+
   const observer = useRef<IntersectionObserver | null>(null);
   const lastPostElementRef = useCallback((node: HTMLDivElement | null) => {
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore && !isLoadingMore && onLoadMore) {
-        onLoadMore();
+      if (entries[0].isIntersecting && hasMore && !isLoadingMore && loadMore) {
+        loadMore();
       }
     });
 
     if (node) observer.current.observe(node);
-  }, [isLoadingMore, hasMore, onLoadMore]);
+  }, [isLoadingMore, hasMore, loadMore]);
   
+  const variant = variantProp || (isTabletOrDesktop ? gridView : 'default');
+
   if (isLoading) {
     return (
       <div className={cn(
@@ -64,20 +85,15 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
 
   return (
     <div className="relative">
-      {isFiltering && (
-          <div className="absolute inset-0 bg-white/80 z-10 flex justify-center items-start pt-32 animate-fade-in pointer-events-none">
-              <SpinnerIcon className="w-10 h-10 text-red-500" />
-          </div>
-      )}
       <div className={cn(
         'grid transition-opacity duration-200',
-        variant === 'compact' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6',
-        isFiltering ? 'opacity-40' : 'opacity-100'
+        variant === 'compact' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
       )}>
         {posts.map((post, index) => (
           <PostCard 
               key={post.id}
               post={post} 
+              // FIX: Pass the required `currentAccount` prop to PostCard.
               currentAccount={currentAccount}
               index={index}
               isSearchResult={isSearchResult}
@@ -95,7 +111,7 @@ const PostListComponent: React.FC<PostListProps> = ({ posts, currentAccount, onL
         )}
       </div>
       
-      {onLoadMore && (
+      {loadMore && (
         <div ref={lastPostElementRef} />
       )}
     </div>

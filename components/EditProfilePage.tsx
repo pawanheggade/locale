@@ -3,14 +3,15 @@ import { Account } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { AccountForm } from './AccountForm';
 import { Button } from './ui/Button';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface EditProfilePageProps {
   account: Account;
-  onBack: () => void;
 }
 
-export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account, onBack }) => {
+export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account }) => {
   const { accounts: allAccounts, updateAccountDetails } = useAuth();
+  const { handleBack } = useNavigation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
@@ -18,7 +19,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account, onBac
     setIsSubmitting(true);
     try {
       updateAccountDetails({ ...account, ...formData });
-      onBack();
+      handleBack();
     } catch (error) {
       console.error("Failed to update account", error);
       setIsSubmitting(false);
@@ -48,7 +49,7 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = ({ account, onBac
             <div className="bg-white border-t border-gray-100">
                 <div className="max-w-2xl mx-auto px-4 sm:px-6">
                     <div className="py-3 flex items-center gap-3">
-                        <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
+                        <Button variant="overlay-dark" onClick={handleBack} className="mr-auto">Cancel</Button>
                         <Button type="submit" form="edit-profile-form" isLoading={isSubmitting} size="lg" variant="pill-red">
                             Save Changes
                         </Button>

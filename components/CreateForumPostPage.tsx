@@ -6,11 +6,7 @@ import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { Select } from './ui/Select';
 import { FormField } from './FormField';
-
-interface CreateForumPostPageProps {
-    onBack: () => void;
-    onSubmit: (postData: Omit<ForumPost, 'id' | 'authorId' | 'timestamp' | 'upvotes' | 'downvotes' | 'isPinned'>) => void;
-}
+import { useNavigation } from '../contexts/NavigationContext';
 
 const initialState = {
     title: '',
@@ -35,16 +31,17 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack, onSubmit }) => {
-    const { categories } = useForum();
+export const CreateForumPostPage: React.FC = () => {
+    const { categories, addPost } = useForum();
+    const { navigateTo, handleBack } = useNavigation();
     const [state, dispatch] = useReducer(reducer, initialState);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (categories.length > 0) {
+        if (categories.length > 0 && !state.category) {
             dispatch({ type: 'SET_FIELD', field: 'category', payload: categories[0] });
         }
-    }, [categories]);
+    }, [categories, state.category]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,7 +53,11 @@ export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack
         }
 
         setIsSubmitting(true);
-        onSubmit({ title, content, category });
+        const newPost = addPost({ title, content, category });
+        if (newPost) {
+            navigateTo('forumPostDetail', { forumPostId: newPost.id });
+        }
+        setIsSubmitting(false);
     };
 
     return (
@@ -100,7 +101,7 @@ export const CreateForumPostPage: React.FC<CreateForumPostPageProps> = ({ onBack
                 <div className="bg-white border-t border-gray-100">
                     <div className="max-w-2xl mx-auto px-4 sm:px-6">
                         <div className="py-3 flex items-center gap-3">
-                            <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
+                            <Button variant="overlay-dark" onClick={handleBack} className="mr-auto">Cancel</Button>
                             <Button type="submit" form="create-forum-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
                                 Post
                             </Button>

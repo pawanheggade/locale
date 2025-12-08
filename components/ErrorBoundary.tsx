@@ -39,7 +39,6 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-// FIX: Corrected the class to extend `React.Component` to ensure `this.props` is available.
 export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false };
 

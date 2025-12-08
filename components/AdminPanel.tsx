@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -20,21 +19,14 @@ import { useUI } from '../contexts/UIContext';
 
 interface AdminPanelProps {
   initialView?: AdminView;
-  feedbackList: Feedback[];
-  onDeleteFeedback: (id: string) => void;
-  onToggleFeedbackArchive: (id: string) => void;
-  onMarkFeedbackAsRead: (id: string) => void;
-  onBulkFeedbackAction: (ids: string[], action: 'markRead' | 'archive' | 'unarchive' | 'delete') => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
-  const { initialView, feedbackList, onDeleteFeedback, onToggleFeedbackArchive, onMarkFeedbackAsRead, onBulkFeedbackAction } = props;
-
+export const AdminPanel: React.FC<AdminPanelProps> = ({ initialView }) => {
   // Data from Contexts
   const { 
       accounts, currentAccount, deleteAccount, updateAccountRole, toggleAccountStatus, 
       approveAccount, rejectAccount, updateSubscription, reports, setReports, 
-      termsContent, privacyContent 
+      termsContent, privacyContent, feedbackList, setFeedbackList
   } = useAuth();
   
   const { 
@@ -60,7 +52,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
     setView(newView);
     setIsDropdownOpen(false);
   };
-
+  
   const navItems: { id: AdminView, label: string, icon: React.ReactNode, badge?: number }[] = [
     { id: 'accounts', label: 'Accounts', icon: <UserIcon className="w-5 h-5" /> },
     { id: 'posts', label: 'Posts', icon: <ArchiveBoxIcon className="w-5 h-5" /> },
@@ -71,48 +63,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
     { id: 'analytics', label: 'Analytics', icon: <ChartBarIcon className="w-5 h-5" /> },
   ];
 
-  const viewProps = {
-    accounts,
-    allPosts: allDisplayablePosts,
-    currentAccount: currentAccount!,
-    onDeleteAccount: (account: Account) => deleteAccount(account.id),
-    onUpdateAccountRole: updateAccountRole,
-    onEditAccount: (acc: Account) => navigateTo('editProfile', { account: acc }),
-    onToggleAccountStatus: (acc: Account) => toggleAccountStatus(acc.id, true),
-    onApproveAccount: approveAccount,
-    onRejectAccount: (acc: Account) => rejectAccount(acc.id),
-    categories,
-    onAddCategory: addCategory,
-    onUpdateCategory: updateCategory,
-    onDeleteCategory: deleteCategory,
-    onUpdateSubscription: updateSubscription,
-    reports,
-    onReportAction: (report: Report, action: 'dismiss' | 'delete') => {
-        if (action === 'delete') { /* delete logic handled in context */ }
-        setReports(prev => prev.filter(r => r.id !== report.id));
-    },
-    onViewPost: (post: DisplayablePost) => openModal({ type: 'viewPost', data: post }),
-    onEditPost: (postId: string) => navigateTo('editPost', { postId }),
-    onDeletePost: deletePostPermanently,
-    termsContent,
-    privacyContent,
-    forumPosts,
-    getPostWithComments,
-    onViewForumPost: (postId: string) => navigateTo('forumPostDetail', { forumPostId: postId }),
-    forumCategories,
-    onAddForumCategory: addForumCategory,
-    onUpdateForumCategory: updateForumCategory,
-    onDeleteForumCategory: deleteForumCategory,
-    priceUnits,
-    onAddPriceUnit: addPriceUnit,
-    onUpdatePriceUnit: updatePriceUnit,
-    onDeletePriceUnit: deletePriceUnit,
-    feedbackList,
-    onDeleteFeedback,
-    onToggleFeedbackArchive,
-    onMarkFeedbackAsRead,
-    onBulkAction: onBulkFeedbackAction,
-  };
+  if (!currentAccount) return null;
 
   return (
     <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8">
@@ -193,9 +144,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
         </nav>
         {/* Main Content Area */}
         <main className="md:col-span-3">
-          {view === 'accounts' && <AccountsView {...viewProps} />}
-          {view === 'posts' && <PostsView {...viewProps} />}
-          {view === 'reports' && <ReportsView {...viewProps} />}
+          {view === 'accounts' && <AccountsView
+            accounts={accounts}
+            currentAccount={currentAccount}
+            onDeleteAccount={(account: Account) => deleteAccount(account.id)}
+            onUpdateAccountRole={updateAccountRole}
+            onEditAccount={(acc: Account) => navigateTo('editProfile', { account: acc })}
+            onToggleAccountStatus={(acc: Account) => toggleAccountStatus(acc.id, true)}
+            onApproveAccount={approveAccount}
+            onRejectAccount={(acc: Account) => rejectAccount(acc.id)}
+            onUpdateSubscription={updateSubscription}
+          />}
+          {view === 'posts' && <PostsView
+            allPosts={allDisplayablePosts}
+            onEditPost={(postId: string) => navigateTo('editPost', { postId })}
+            onDeletePost={deletePostPermanently}
+            onViewPost={(post: DisplayablePost) => openModal({ type: 'viewPost', data: post })}
+          />}
+          {view === 'reports' && <ReportsView
+            reports={reports}
+            allPosts={allDisplayablePosts}
+            forumPosts={forumPosts}
+            getPostWithComments={getPostWithComments}
+            onReportAction={(report: Report, action: 'dismiss' | 'delete') => {
+                if (action === 'delete') { /* delete logic handled in context */ }
+                setReports(prev => prev.filter(r => r.id !== report.id));
+            }}
+            onViewPost={(post: DisplayablePost) => openModal({ type: 'viewPost', data: post })}
+            onViewForumPost={(postId: string) => navigateTo('forumPostDetail', { forumPostId: postId })}
+          />}
           {view === 'categories' && <CategoriesView
             categories={categories}
             onAddCategory={addCategory}
@@ -212,7 +189,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = (props) => {
           />}
           {view === 'analytics' && <DataVisualizationView accounts={accounts} allPosts={allDisplayablePosts} categories={categories} />}
           {view === 'pages' && <AdminPagesView termsContent={termsContent} privacyContent={privacyContent} />}
-          {view === 'feedback' && <FeedbackView {...viewProps} />}
+          {view === 'feedback' && <FeedbackView
+            feedbackList={feedbackList}
+            accounts={accounts}
+            onDeleteFeedback={(id: string) => setFeedbackList(prev => prev.filter(f => f.id !== id))}
+            onToggleFeedbackArchive={(id: string) => setFeedbackList(prev => prev.map(f => f.id === id ? { ...f, isArchived: !f.isArchived } : f))}
+            onMarkFeedbackAsRead={(id: string) => setFeedbackList(prev => prev.map(f => f.id === id ? { ...f, isRead: true } : f))}
+            onBulkAction={(ids: string[], action) => {
+                setFeedbackList(prev => prev.map(f => {
+                    if (ids.includes(f.id)) {
+                        switch (action) {
+                            case 'markRead': return { ...f, isRead: true };
+                            case 'archive': return { ...f, isRead: true, isArchived: true };
+                            case 'unarchive': return { ...f, isArchived: false };
+                            case 'delete': return null;
+                        }
+                    }
+                    return f;
+                }).filter((f): f is Feedback => f !== null));
+            }}
+          />}
         </main>
       </div>
     </div>

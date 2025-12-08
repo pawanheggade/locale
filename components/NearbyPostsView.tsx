@@ -1,27 +1,26 @@
-
-
-
 import React from 'react';
-import { DisplayablePost, Account } from '../types';
+import { DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { MapPinIcon } from './Icons';
 import { EmptyState } from './EmptyState';
-import { useUI } from '../contexts/UIContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NearbyPostsViewProps {
   result: {
     posts: DisplayablePost[];
     locationName: string | null;
   };
-  currentAccount: Account;
 }
 
 export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
   result,
-  currentAccount,
 }) => {
   const { posts, locationName } = result;
-  const { gridView, isTabletOrDesktop } = useUI();
+  const { currentAccount } = useAuth();
+  
+  if (!currentAccount) {
+    return <div className="p-8 text-center">You must be logged in to view nearby posts.</div>;
+  }
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
@@ -39,9 +38,7 @@ export const NearbyPostsView: React.FC<NearbyPostsViewProps> = ({
       ) : (
          <PostList
             posts={posts}
-            currentAccount={currentAccount}
             isSearchResult={true}
-            variant={isTabletOrDesktop ? gridView : 'default'}
         />
       )}
     </div>

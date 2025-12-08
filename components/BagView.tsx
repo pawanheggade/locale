@@ -13,11 +13,6 @@ import { EmptyState } from './EmptyState';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { cn } from '../lib/utils';
 
-interface BagViewProps {
-  onViewDetails: (post: DisplayablePost) => void;
-  allAccounts: Account[];
-}
-
 // --- Reusable Item Row Component ---
 interface BagItemRowProps {
   item: { id: string; quantity: number; isChecked?: boolean; post: DisplayablePost };
@@ -101,7 +96,7 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
 };
 
 
-export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) => {
+export const BagView: React.FC = () => {
   const { 
     bag, 
     savedLists,
@@ -114,7 +109,7 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
     addListToBag,
     deleteListAndMoveItems,
   } = useAuth();
-  const { posts } = usePosts();
+  const { findPostById } = usePosts();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
   
@@ -125,11 +120,11 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
   
   const itemsWithPostData = useMemo(() => bag
     .map(item => {
-      const post = posts.find(p => p.id === item.postId);
+      const post = findPostById(item.postId);
       return post ? { ...item, post } : null;
     })
     .filter((item): item is (typeof bag[0] & { post: DisplayablePost }) => item !== null),
-  [bag, posts]);
+  [bag, findPostById]);
 
   const inBagItems = useMemo(() => itemsWithPostData.filter(item => item.savedListIds.length === 0), [itemsWithPostData]);
   const savedItemsByList = useMemo(() => {
@@ -180,10 +175,9 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
     });
   };
 
-  const handleViewDetails = (post: Post) => {
-    const author = allAccounts.find(a => a.id === post.authorId);
-    onViewDetails({ ...post, author });
-  }
+  const onViewDetails = (post: DisplayablePost) => {
+    openModal({ type: 'viewPost', data: post });
+  };
 
   const handleQuantityChange = (itemId: string, value: string) => {
     setQuantityInputs(prev => ({ ...prev, [itemId]: value }));
@@ -326,7 +320,7 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
                     onIncrement={() => handleIncrement(id, quantity)}
                     onDecrement={() => handleDecrement(id, quantity)}
                     onRemove={() => handleRemoveClick(item)}
-                    onViewDetails={() => handleViewDetails(item.post)}
+                    onViewDetails={() => onViewDetails(item.post)}
                     onToggleCheck={(checked) => updateBagItem(id, { isChecked: checked })}
                     actionButton={
                       <Button variant="overlay-dark" size="sm" onClick={() => openModal({ type: 'saveToList', data: { bagItemId: id } })}>
@@ -431,7 +425,7 @@ export const BagView: React.FC<BagViewProps> = ({ onViewDetails, allAccounts }) 
                                   onIncrement={() => handleIncrement(id, quantity)}
                                   onDecrement={() => handleDecrement(id, quantity)}
                                   onRemove={() => handleRemoveClick(item)}
-                                  onViewDetails={() => handleViewDetails(item.post)}
+                                  onViewDetails={() => onViewDetails(item.post)}
                                   actionButton={
                                     <Button variant="overlay-dark" size="sm" onClick={() => addToBag(item.post.id, item.quantity)}>
                                       Add to Bag
