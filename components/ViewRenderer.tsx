@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { AppView, Account, ActivityTab, DisplayablePost } from '../types';
+import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
 
 // Lazy loaded components to reduce initial bundle size

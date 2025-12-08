@@ -1,8 +1,6 @@
 import React, { useRef } from 'react';
-import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
+import { ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { usePosts } from '../contexts/PostsContext';
-import { useForum } from '../contexts/ForumContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
@@ -59,10 +57,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
 
     const modalRef = useRef<HTMLDivElement>(null);
 
-    if (!activeModal) {
-        return null;
-    }
-
     const handleLoadSearch = (searchId: string) => {
         const search = savedSearches.find(s => s.id === searchId);
         if (search) {
@@ -78,10 +72,12 @@ export const AppModals: React.FC<AppModalsProps> = ({
     };
 
     const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
-    if (!currentAccount && !publicModals.has(activeModal.type)) {
+    if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
         openModal({ type: 'login' });
         return null;
     }
+
+    if (!activeModal) return null;
 
     switch (activeModal.type) {
       case 'login':

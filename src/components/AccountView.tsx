@@ -223,22 +223,22 @@ export const AccountView: React.FC = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
             
-            <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-16 mb-4">
+            <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
-                 <div className="shrink-0 relative">
+                 <div className="shrink-0 relative z-20">
                     <Avatar 
                         src={account.avatarUrl} 
                         alt={account.name} 
                         tier={account.subscription.tier} 
-                        className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-white cursor-pointer bg-white rounded-full shadow-sm"
+                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md"
                         onClick={() => openModal({ type: 'profileQR', data: account })}
                     />
                  </div>
 
                  {/* Name and Info */}
-                 <div className="flex-1 pt-2 sm:pt-0 sm:pb-1 mt-1 sm:mt-0 min-w-0 w-full">
-                      <div className="flex flex-col items-start">
-                          <div className="flex items-center gap-3 flex-wrap">
+                 <div className="flex-1 pt-1 sm:pt-[calc(4rem+4px)] min-w-0 w-full">
+                      <div className="flex flex-col items-start gap-1">
+                          <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
                               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                               {isOwnAccount && (
                                   <Button
@@ -251,89 +251,99 @@ export const AccountView: React.FC = () => {
                                   </Button>
                               )}
                           </div>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <p className="text-gray-600 font-medium text-sm">@{account.username}</p>
+                          
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <p className="font-medium text-sm">@{account.username}</p>
                             <SubscriptionBadge tier={account.subscription.tier} />
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
+                              <div className="flex items-center gap-1.5">
+                                <CalendarIcon className="w-4 h-4 text-gray-400" />
+                                <span>Joined {formatMonthYear(account.joinDate)}</span>
+                              </div>
+                              {account.taxInfo && (
+                                <div className="flex items-center gap-1.5">
+                                    <DocumentIcon className="w-4 h-4 text-gray-400" />
+                                    <span>Tax ID: {account.taxInfo}</span>
+                                </div>
+                              )}
                           </div>
                       </div>
                  </div>
             </div>
 
-            {/* Meta Info Row */}
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-600 mb-4">
-                <div className="flex items-center gap-1.5"><CalendarIcon className="w-4 h-4 text-gray-400" /><span>Joined {formatMonthYear(account.joinDate)}</span></div>
-                {account.taxInfo && (<div className="flex items-center gap-1.5"><DocumentIcon className="w-4 h-4 text-gray-400" /><span>Tax ID: {account.taxInfo}</span></div>)}
-            </div>
-
-            {/* Description & Location */}
-            <div className="space-y-4">
-                {account.description && (
-                    <p className="text-gray-700 text-sm sm:text-base leading-relaxed max-w-3xl">{account.description}</p>
-                )}
-                
-                {account.address && (
-                    <div className="flex items-center gap-3">
-                         {(account.googleMapsUrl || account.appleMapsUrl) && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
-                                        <GoogleIcon className="w-4 h-4" />
-                                    </a>
-                                )}
-                                {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
-                                        <AppleIcon className="w-4 h-4" />
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
-                            onClick={(e) => { 
-                                e.preventDefault();
-                                e.stopPropagation(); 
-                                showOnMap(account); 
-                            }}
-                            className={cn(
-                                "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+            {/* Description, Location, and Actions */}
+            <div className="space-y-6">
+                <div className="space-y-3 max-w-3xl">
+                    {account.description && (
+                        <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
+                    )}
+                    
+                    {account.address && (
+                        <div className="flex items-center gap-3">
+                             {(account.googleMapsUrl || account.appleMapsUrl) && (
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {account.googleMapsUrl && (
+                                        <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                            <GoogleIcon className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                    {account.appleMapsUrl && (
+                                        <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                            <AppleIcon className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                </div>
                             )}
-                            title={account.coordinates ? "Show on map" : "No map location available"}
-                        >
-                            <MapPinIcon className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{account.address}</span>
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                                onClick={(e) => { 
+                                    e.preventDefault();
+                                    e.stopPropagation(); 
+                                    showOnMap(account); 
+                                }}
+                                className={cn(
+                                    "flex items-center gap-1.5 group min-w-0 transition-colors",
+                                    account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                                )}
+                                title={account.coordinates ? "Show on map" : "No map location available"}
+                            >
+                                <MapPinIcon className="w-4 h-4 shrink-0" />
+                                <span className="truncate">{account.address}</span>
+                            </div>
                         </div>
-                    </div>
-                )}
-            </div>
-            
-            <div className="mt-6">
-                <ProfileActions
-                    account={account}
-                    isOwnAccount={isOwnAccount}
-                    canHaveCatalog={canHaveCatalog}
-                    onEditAccount={() => navigateTo('editProfile', { account })}
-                    onOpenCatalog={() => navigateTo('manageCatalog', { account })}
-                    onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
-                    socialLinks={sortedSocialLinks}
-                    onShare={handleShareProfile}
-                    contactMethods={contactMethods}
-                    onContactAction={handleContactAction}
-                    isLiked={isLiked}
-                    onToggleLike={() => {
-                        if (currentAccount) {
-                            toggleLikeAccount(account.id);
-                        } else {
-                            openModal({ type: 'login' });
-                        }
-                    }}
-                />
+                    )}
+                </div>
+                
+                <div>
+                    <ProfileActions
+                        account={account}
+                        isOwnAccount={isOwnAccount}
+                        canHaveCatalog={canHaveCatalog}
+                        onEditAccount={() => navigateTo('editProfile', { account })}
+                        onOpenCatalog={() => navigateTo('manageCatalog', { account })}
+                        onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
+                        socialLinks={sortedSocialLinks}
+                        onShare={handleShareProfile}
+                        contactMethods={contactMethods}
+                        onContactAction={handleContactAction}
+                        isLiked={isLiked}
+                        onToggleLike={() => {
+                            if (currentAccount) {
+                                toggleLikeAccount(account.id);
+                            } else {
+                                openModal({ type: 'login' });
+                            }
+                        }}
+                    />
+                </div>
             </div>
             
             {isOwnAccount && account.subscription.tier !== 'Personal' && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
+                <div className="mt-8 pt-6 border-t border-gray-100">
                     <ReferralCard account={account} />
                 </div>
             )}

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, Notification, NotificationSettings, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -105,7 +105,7 @@ export const App: React.FC = () => {
         mainView, 
         viewingPostId, 
         viewingAccount, 
-        viewingForumPostId,
+        viewingForumPostId, 
         editingAdminPageKey,
         scrollPosition: currentScrollPosition,
         filters: filterState,
@@ -443,10 +443,6 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            {/* 
-                We remove the default padding for map, editors, AND account view. 
-                Account view manages its own layout (full width header, padded content).
-            */}
             <div className={cn(
               'relative z-0 w-full', 
               (mainView === 'map' || isEditorView) && 'h-full',
