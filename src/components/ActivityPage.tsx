@@ -13,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Update props interface
+// FIX: Update props interface to remove props
 interface ActivityPageProps {}
 
 export const ActivityPage: React.FC<ActivityPageProps> = () => {

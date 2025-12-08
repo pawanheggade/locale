@@ -1,6 +1,7 @@
 
 
 import { createContext, useContext } from 'react';
+// FIX: Import additional types required for the updated context.
 import { AppView, Account, ActivityTab, AdminView, DisplayablePost } from '../types';
 
 // --- Navigation Context ---

@@ -9,6 +9,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 
 // FIX: Remove props interface
+interface SubscriptionPageProps {}
+
 const plans = [
   {
     tier: 'Personal',
@@ -82,7 +84,7 @@ const plans = [
   },
 ];
 
-export const SubscriptionPage: React.FC = () => {
+export const SubscriptionPage: React.FC<SubscriptionPageProps> = () => {
   // FIX: Get data from contexts
   const { currentAccount, updateSubscription: onUpdateSubscription } = useAuth();
   const { openModal } = useUI();

@@ -291,16 +291,16 @@ export const App: React.FC = () => {
     // Save current state before navigating
     pushHistoryState();
 
-    // Directly set the view to map view
+    // Set view to 'all' and mainView to 'map' to render the MapView component
     setView('all');
     setMainView('map');
+    
+    // Clear context-specific data from the previous view
+    setViewingAccount(null);
+    setViewingForumPostId(null);
+    setEditingAdminPageKey(null);
 
-    // Clear any context-specific data that shouldn't persist
-    if(viewingAccount) setViewingAccount(null);
-    if(viewingForumPostId) setViewingForumPostId(null);
-    if(editingAdminPageKey) setEditingAdminPageKey(null);
-
-  }, [findPostById, addToast, pushHistoryState, viewingAccount, viewingForumPostId, editingAdminPageKey]);
+  }, [findPostById, addToast, pushHistoryState]); // Use a minimal dependency array to prevent stale closures.
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);

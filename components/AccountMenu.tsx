@@ -99,7 +99,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                 size="icon"
                 className={cn(
                     "relative !rounded-xl",
-                    isAccountMenuOpen && "text-red-600"
+                    isAccountMenuOpen && "text-red-600 bg-red-100"
                 )}
                 aria-label="Open account menu"
                 aria-haspopup="true"

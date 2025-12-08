@@ -40,6 +40,7 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
           </Suspense>
         ) : (
           <Suspense fallback={<LoadingFallback />}>
+            {/* FIX: Remove props from MapView as they are now provided by NavigationContext */}
             <MapView />
           </Suspense>
         );

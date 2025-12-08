@@ -143,7 +143,7 @@ export const AccountView: React.FC<AccountViewProps> = () => {
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
-    // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue.
+    // FIX: Replaced .includes() with .some() to resolve a TypeScript type inference issue, as indicated by a similar fix in a related file.
     const isCategoryTab = categoryTabs.some(c => c === activeTab);
     
     if ((!isStandardTab && !isCategoryTab) || !activeTab) {

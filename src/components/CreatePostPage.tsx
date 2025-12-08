@@ -23,7 +23,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
 
 
-// FIX: Update props to only accept editingPostId
+// FIX: Update props to remove direct dependencies
 interface CreatePostPageProps {}
 
 const TITLE_MAX_LENGTH = 100;
@@ -85,7 +85,7 @@ function formReducer(state: FormState, action: Action): FormState {
 
 
 export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
-  // FIX: Use context hooks
+  // FIX: Use context hooks for navigation and data
   const { handleBack: onBack, navigateTo, viewingPostId: editingPostId } = useNavigation();
   const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
   const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
@@ -299,11 +299,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
     
     if (isEditing && onUpdatePost && editingPost) {
         const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        navigateTo('all', { postId: updatedPost.id });
+        // FIX: Pass postId to navigateTo for a better UX after editing.
+        navigateTo('all', { postId: updatedPost.id }); // Navigate home after edit
     } else if (onSubmitPost && currentAccount) {
         const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        navigateTo('all', { postId: newPost.id });
+        // FIX: Pass postId to navigateTo for a better UX after creating a post.
+        navigateTo('all', { postId: newPost.id }); // Navigate home after create
     }
   };
 
