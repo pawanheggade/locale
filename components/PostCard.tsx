@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
@@ -105,7 +101,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     openModal({ type: 'viewPost', data: post });
   }
 
-  const LocationElement = ({ overlay }: { overlay?: boolean }) => (
+  const LocationElement = () => (
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
@@ -174,24 +170,24 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             />
           )}
           {showHeader && (
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/70 to-transparent p-2">
+            <div className="absolute top-0 left-0 right-0 bg-white p-2">
               <PostAuthorInfo
                 author={post.author!}
-                variant="overlay"
+                variant="default"
                 subscriptionBadgeIconOnly={true}
-                location={<LocationElement overlay />}
+                location={<LocationElement />}
               >
                   <PostActionsDropdown 
                       post={post} 
                       isArchived={isArchived} 
                       currentAccount={currentAccount} 
-                      variant="overlay"
+                      variant="card"
                   />
               </PostAuthorInfo>
             </div>
           )}
-           <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-              <h3 id={`post-title-${post.id}`} className="font-bold text-white text-sm line-clamp-2 leading-tight">
+           <div className="absolute bottom-0 left-0 right-0 p-2 bg-white">
+              <h3 id={`post-title-${post.id}`} className="font-bold text-gray-800 text-sm line-clamp-2 leading-tight">
                   {post.title}
               </h3>
               <PriceDisplay 
@@ -201,7 +197,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 size={'x-small'} 
                 isExpired={isExpired} 
                 showOriginalPriceOnSale={false}
-                className="[&_p]:text-white"
               />
           </div>
         </div>
