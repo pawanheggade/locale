@@ -247,12 +247,12 @@ export const AccountView: React.FC = () => {
                                   Subscription
                               </Button>
                           )}
-                          <div className="flex items-center flex-wrap gap-x-2">
-                              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                              <SubscriptionBadge tier={account.subscription.tier} />
-                          </div>
+                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                           
-                          <p className="font-medium text-gray-600">@{account.username}</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <p className="font-medium text-gray-600">@{account.username}</p>
+                            <SubscriptionBadge tier={account.subscription.tier} />
+                          </div>
 
                           <div className="flex flex-col gap-1 text-sm text-gray-500 mt-1">
                               <div className="flex items-center gap-1.5">
