@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { DisplayablePost, PostType, Subscription } from '../types';
 import { formatCurrency, formatCompactCurrency } from '../utils/formatters';
 import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
@@ -9,19 +9,12 @@ import { STORAGE_KEYS } from '../lib/constants';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
+import { useNavigation } from '../contexts/NavigationContext';
 
 // Declare Leaflet global object
 declare var L: any;
 
-interface MapViewProps {
-  userLocation?: { lat: number; lng: number } | null;
-  isLoading?: boolean;
-  isFindingNearby: boolean;
-  postToFocusOnMap: string | null;
-  onPostFocusComplete: () => void;
-  locationToFocus: { coords: { lat: number; lng: number; }; name: string; } | null;
-  onLocationFocusComplete: () => void;
-}
+interface MapViewProps {}
 
 // Define a type for the saved map state
 interface MapState {
@@ -29,17 +22,6 @@ interface MapState {
   lng: number;
   zoom: number;
 }
-
-const MapSkeleton: React.FC = () => {
-    return (
-        <div className="h-full w-full bg-gray-300 flex items-center justify-center animate-pulse">
-            <div className="relative flex items-center justify-center">
-                <MapPinIcon className="w-16 h-16 text-gray-400" />
-                <div className="absolute w-24 h-24 border-4 border-gray-400 rounded-full animate-ping"></div>
-            </div>
-        </div>
-    );
-};
 
 const createMarkerIcon = (post: DisplayablePost) => {
     const tier = post.author?.subscription?.tier || 'Personal';
@@ -82,7 +64,15 @@ const createMarkerIcon = (post: DisplayablePost) => {
 };
 
 
-const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete }) => {
+const MapViewComponent: React.FC<MapViewProps> = () => {
+  const {
+    userLocation,
+    isFindingNearby,
+    postToFocusOnMap,
+    onPostFocusComplete,
+    locationToFocus,
+    onLocationFocusComplete,
+  } = useNavigation();
   const mapRef = useRef<HTMLDivElement>(null);
   const clusterGroupRef = useRef<any>(null);
   const userLocationMarkerRef = useRef<any>(null);
@@ -112,9 +102,9 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
 
   const mapInstanceRef = useMap(mapRef, { ...initialMapState, zoomControl: false });
   
-  const onViewPostDetails = (post: DisplayablePost) => {
+  const onViewPostDetails = useCallback((post: DisplayablePost) => {
     openModal({ type: 'viewPost', data: post });
-  };
+  }, [openModal]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -201,7 +191,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
 
     const postsWithCoords = posts.filter(post => post.coordinates || (post.type === PostType.EVENT && post.eventCoordinates));
     
-    // FIX: Explicitly type the Set to avoid type inference issues.
     const newPostIds = new Set<string>(postsWithCoords.map(p => p.id));
     const currentPostIds = displayedMarkerIdsRef.current;
     const markersToAdd: any[] = [];
@@ -230,43 +219,13 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
                   alt: `Marker for ${post.title}`,
               });
               
-              const hasImage = post.media && post.media.length > 0 && post.media[0].type === 'image';
-              
-              const popupContent = `
-                <div class="w-56 overflow-hidden">
-                  ${ hasImage ? `<img src="${post.media[0].url}" alt="" class="w-full h-24 object-cover bg-gray-200">` : `<div class="w-full h-24 bg-gray-200 flex items-center justify-center text-gray-600 text-sm">No Image</div>` }
-                  <div class="p-3">
-                    <h3 class="font-bold text-base text-gray-800 truncate" title="${post.title}">${post.title}</h3>
-                    <div class="flex justify-between items-center mt-2">
-                        <p class="text-lg font-extrabold text-gray-900">${formatCurrency(post.price)}</p>
-                        <button class="view-details-btn text-center bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors">
-                            Details
-                        </button>
-                    </div>
-                  </div>
-                </div>
-              `;
-              
-              marker.bindPopup(popupContent, { offset: L.point(0, -25) });
-              
-              marker.on('popupopen', (e: any) => {
-                  if (isMounted()) setSelectedPostId(post.id);
-                  const popupEl = e.popup.getElement();
-                  if (!popupEl) return;
-
-                  const btn = popupEl.querySelector('.view-details-btn');
-                  const clickHandler = (event: MouseEvent) => {
-                      L.DomEvent.stopPropagation(event);
-                      onViewPostDetails(post);
-                  };
-
-                  if (btn) {
-                      L.DomEvent.on(btn, 'click', clickHandler);
-                      e.popup.on('remove', () => L.DomEvent.off(btn, 'click', clickHandler));
-                  }
+              marker.on('click', (e: any) => {
+                L.DomEvent.stopPropagation(e);
+                if (isMounted()) {
+                    setSelectedPostId(post.id);
+                }
+                onViewPostDetails(post);
               });
-        
-              marker.on('popupclose', () => { if (isMounted()) setSelectedPostId(null); });
               
               markersRef.current[post.id] = marker;
               markersToAdd.push(marker);
@@ -344,16 +303,20 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
     if (!postToFocusOnMap || !map || !clusterGroup) return;
 
     const markerToFocus = markersRef.current[postToFocusOnMap];
+    const postToView = posts.find(p => p.id === postToFocusOnMap);
     
-    if (markerToFocus) {
+    if (markerToFocus && postToView) {
       clusterGroup.zoomToShowLayer(markerToFocus, () => {
-        markerToFocus.openPopup();
+        if (isMounted()) {
+            setSelectedPostId(postToView.id);
+        }
+        onViewPostDetails(postToView);
       });
     }
     
     onPostFocusComplete();
     
-  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef]);
+  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted, onViewPostDetails]);
   
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -404,10 +367,6 @@ const MapViewComponent: React.FC<MapViewProps> = ({ userLocation, isLoading, isF
       mapInstanceRef.current.zoomOut();
     }
   };
-
-  if (isLoading) {
-    return <MapSkeleton />;
-  }
 
   const whiteButtonClass = "bg-white text-gray-700 border border-gray-200";
 
