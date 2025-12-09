@@ -222,7 +222,7 @@ export const AccountView: React.FC = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
         <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
             
-            <div className="flex flex-row items-end gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex flex-col sm:flex-row items-end gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
