@@ -220,7 +220,7 @@ export const AccountView: React.FC = () => {
 
       {/* Profile Header Section - Full Width */}
       <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
             
             <div className="flex flex-row items-end gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
@@ -350,7 +350,7 @@ export const AccountView: React.FC = () => {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {(availableTabs.length > 0 || categoryTabs.length > 0) && (
             <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
                 <div className="border-b border-gray-200 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
