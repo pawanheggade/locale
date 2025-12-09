@@ -10,7 +10,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './AppModals';
+import { AppModals } from './components/AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';

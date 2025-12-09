@@ -35,7 +35,7 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
       titleId="contact-seller-title"
     >
       <div className="p-4 sm:p-6">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-start gap-4 mb-6">
             <Avatar src={author.avatarUrl} alt={author.name} size="xl" tier={author.subscription.tier} className="shrink-0" />
             <div className="flex flex-col items-start min-w-0 flex-1">
                 <div className="flex items-center gap-2 w-full">
