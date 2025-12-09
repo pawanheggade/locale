@@ -235,7 +235,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
     }
     .marker-cluster div {
         text-align: center;
@@ -247,28 +246,31 @@
         justify-content: center;
     }
     .marker-cluster-small {
-        background-color: rgba(239, 68, 68, 0.9); /* red-500 */
+        background-color: rgba(254, 202, 202, 0.6); /* red-200 */
     }
     .marker-cluster-small div {
+        background-color: rgba(239, 68, 68, 0.9); /* red-500 */
         font-size: 14px;
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
     }
     .marker-cluster-medium {
-        background-color: rgba(220, 38, 38, 0.9); /* red-600 */
+        background-color: rgba(252, 165, 165, 0.6); /* red-300 */
     }
     .marker-cluster-medium div {
+        background-color: rgba(220, 38, 38, 0.9); /* red-600 */
         font-size: 16px;
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
     }
     .marker-cluster-large {
-        background-color: rgba(185, 28, 28, 0.9); /* red-700 */
+        background-color: rgba(248, 113, 113, 0.6); /* red-400 */
     }
     .marker-cluster-large div {
+        background-color: rgba(185, 28, 28, 0.9); /* red-700 */
         font-size: 18px;
-        width: 44px;
-        height: 44px;
+        width: 50px;
+        height: 50px;
     }
 
     /* --- Prose content styling for modals --- */
