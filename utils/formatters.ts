@@ -1,9 +1,21 @@
-
 import React from 'react';
 import { Account } from '../types';
 
 // Use Intl.RelativeTimeFormat for locale-aware relative time.
 const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+
+// Cached formatters to avoid re-instantiation overhead
+const currencyFormatterInteger = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+});
+
+const currencyFormatterStandard = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+});
 
 export const formatTimeRemaining = (expiryDate: number): string => {
   const now = Date.now();
@@ -34,19 +46,11 @@ export const formatTimeRemaining = (expiryDate: number): string => {
 export const formatCurrency = (price: number | undefined | null): string => {
   if (price === undefined || price === null) return 'Contact for Price';
   
-  const options: Intl.NumberFormatOptions = {
-    style: 'currency',
-    currency: 'INR',
-  };
-
   // If the number is an integer, show no decimal places.
   if (price % 1 === 0) {
-    options.minimumFractionDigits = 0;
-    options.maximumFractionDigits = 0;
+    return currencyFormatterInteger.format(price);
   }
-  // Otherwise, let toLocaleString decide (usually 2 for currency).
-
-  return price.toLocaleString('en-IN', options);
+  return currencyFormatterStandard.format(price);
 };
 
 export const formatCompactCurrency = (price: number | undefined | null): string => {

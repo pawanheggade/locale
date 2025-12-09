@@ -16,6 +16,7 @@ interface MediaCarouselProps {
     videoThumbnails?: Record<string, { url: string | null; error: boolean }>;
     defaultMuted?: boolean;
     loop?: boolean;
+    persistState?: boolean;
 }
 
 const ImageWithLoader: React.FC<{ src: string; alt: string; className: string }> = ({ src, alt, className }) => {
@@ -110,8 +111,10 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
     videoThumbnails = {},
     defaultMuted = true,
     loop = true,
+    persistState = false,
 }) => {
     const getInitialIndex = () => {
+        if (!persistState) return 0;
         try {
             const savedState = localStorage.getItem(`${STORAGE_KEYS.MEDIA_CAROUSEL_PREFIX}${id}`);
             if (savedState) {
@@ -130,13 +133,14 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
     const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
     useEffect(() => {
+        if (!persistState) return;
         try {
             const stateToSave = JSON.stringify({ currentIndex });
             localStorage.setItem(`${STORAGE_KEYS.MEDIA_CAROUSEL_PREFIX}${id}`, stateToSave);
         } catch (error) {
             console.error('Error saving carousel state to localStorage:', error);
         }
-    }, [currentIndex, id]);
+    }, [currentIndex, id, persistState]);
 
     useEffect(() => {
         videoRefs.current = videoRefs.current.slice(0, media.length);
