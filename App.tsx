@@ -10,7 +10,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './components/AppModals';
+import { ModalRenderer } from './components/ModalRenderer';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -464,7 +464,7 @@ export const App: React.FC = () => {
           </div>
         </main>
         
-        <AppModals 
+        <ModalRenderer 
           activeModal={activeModal} 
           closeModal={closeModal}
           openModal={openModal}

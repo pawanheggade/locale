@@ -29,7 +29,7 @@ import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 
 interface ModalRendererProps {
-    activeModal: ModalState;
+    activeModal: ModalState | null;
     closeModal: () => void;
     openModal: (modalState: ModalState) => void;
     isFindingNearby: boolean;
@@ -58,6 +58,11 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     const showConfirmation = useConfirmationModal();
 
     const modalRef = useRef<HTMLDivElement>(null);
+
+    // If there is no active modal, do not render anything
+    if (!activeModal) {
+        return null;
+    }
 
     const handleLoadSearch = (searchId: string) => {
         const search = savedSearches.find(s => s.id === searchId);
