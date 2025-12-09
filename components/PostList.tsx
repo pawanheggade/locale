@@ -21,7 +21,6 @@ interface PostListProps {
   variant?: 'default' | 'compact';
   // If an authorId is provided, the list will only show posts from that author.
   authorId?: string;
-  // FIX: Add optional `posts` prop to allow passing a pre-filtered/sorted list.
   posts?: DisplayablePost[];
 }
 
@@ -31,7 +30,6 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
   const { gridView, isTabletOrDesktop } = useUI();
   
   const sourcePosts = useMemo(() => {
-    // FIX: If posts are passed as a prop, use them directly.
     if (postsProp) return postsProp;
     if (isArchived) return archivedPosts;
     if (authorId) return allDisplayablePosts.filter(p => p.authorId === authorId);
@@ -41,7 +39,6 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
   const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, isLoading);
   const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, Array.from(accounts.values()));
 
-  // FIX: If postsProp or authorId is provided, bypass global filters from `usePostFilters`.
   const posts = (postsProp || authorId) ? displayedItems : filteredAndSortedPosts;
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -93,7 +90,6 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
           <PostCard 
               key={post.id}
               post={post} 
-              // FIX: Pass the required `currentAccount` prop to PostCard.
               currentAccount={currentAccount}
               index={index}
               isSearchResult={isSearchResult}

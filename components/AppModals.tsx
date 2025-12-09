@@ -69,6 +69,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
         const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags } = filterState;
         const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags };
         addSavedSearch({ id: `saved-${Date.now()}`, name, filters: filtersToSave });
+        closeModal();
     };
 
     const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);

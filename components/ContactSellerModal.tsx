@@ -35,16 +35,18 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
       titleId="contact-seller-title"
     >
       <div className="p-4 sm:p-6">
-        <div className="flex items-start gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6">
             <Avatar src={author.avatarUrl} alt={author.name} size="xl" tier={author.subscription.tier} className="shrink-0" />
             <div className="flex flex-col items-start min-w-0 flex-1">
                 <div className="flex items-center gap-2 w-full">
-                    <h3 className="text-xl font-bold text-gray-900 truncate">{author.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 truncate">{author.businessName || author.name}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm text-gray-600 font-medium">@{author.username}</p>
                     <SubscriptionBadge tier={author.subscription.tier} />
                 </div>
-                <p className="text-sm text-gray-600 font-medium">@{author.username}</p>
                 
-                <div className="flex flex-col gap-1 text-xs text-gray-500 mt-1.5">
+                <div className="flex flex-col items-start gap-1 text-xs text-gray-500 mt-1.5">
                     <div className="flex items-center gap-1">
                         <CalendarIcon className="w-3 h-3 text-gray-400" />
                         <span>Joined {formatMonthYear(author.joinDate)}</span>

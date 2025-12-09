@@ -3,6 +3,7 @@ import { Account } from '../types';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { Avatar } from './Avatar';
 import { useNavigation } from '../contexts/NavigationContext';
+import { cn } from '../lib/utils';
 
 interface PostAuthorInfoProps {
   author: Account;
@@ -52,7 +53,10 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = '
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleProfileClick(e as any)}
             >
                 <div className="flex items-center gap-1.5 leading-tight">
-                    <span className={`font-bold ${textColor} truncate ${size === 'small' ? 'text-sm' : 'text-base'}`}>
+                    <span className={cn(
+                        `font-bold ${textColor} truncate`,
+                        size === 'small' ? 'text-sm' : 'text-base'
+                    )}>
                         {displayName}
                     </span>
                     <SubscriptionBadge tier={author.subscription?.tier} iconOnly={subscriptionBadgeIconOnly} className="w-3.5 h-3.5" />

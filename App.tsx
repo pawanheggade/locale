@@ -250,9 +250,12 @@ export const App: React.FC = () => {
   }, [currentAccount, view, handleGoHome]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
+      if (view !== 'all') {
+          navigateTo('all');
+      }
       pushHistoryState();
       setMainView(newMainView);
-  }, [pushHistoryState]);
+  }, [pushHistoryState, view, navigateTo]);
 
   const showOnMap = useCallback((target: string | Account) => {
     const isPostId = typeof target === 'string';
@@ -428,7 +431,7 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1',
+            'flex-1 w-full',
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
               : 'overflow-y-auto pt-16', // default

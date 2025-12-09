@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';

@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
 import { Button } from './ui/Button';
 
@@ -32,14 +32,14 @@ const ErrorFallback = ({ onReset }: { onReset: () => void }) => (
 
 
 interface ErrorBoundaryProps {
-  children?: ReactNode;
+    children?: ReactNode;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = {
     hasError: false
   };

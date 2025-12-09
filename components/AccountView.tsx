@@ -222,7 +222,7 @@ export const AccountView: React.FC = () => {
       <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
             
-            <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex flex-row items-end gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
@@ -235,26 +235,28 @@ export const AccountView: React.FC = () => {
                  </div>
 
                  {/* Name and Info */}
-                 <div className="flex-1 pt-1 sm:pt-[calc(4rem+4px)] min-w-0 w-full">
+                 <div className="flex-1 min-w-0 w-full pb-1">
                       <div className="flex flex-col items-start gap-0.5">
                           {isOwnAccount && (
                               <Button
                                   onClick={() => navigateTo('subscription')}
                                   variant="ghost"
                                   size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-xl h-5 px-2 mb-1.5"
+                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-xl px-2 mb-1.5"
                               >
                                   Subscription
                               </Button>
                           )}
-                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
+                          <div className="flex items-center flex-wrap gap-x-2">
+                              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
+                          </div>
                           
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <p className="font-medium text-gray-600">@{account.username}</p>
-                            <SubscriptionBadge tier={account.subscription.tier} />
+                          <div className="flex items-center gap-2 text-gray-600">
+                             <p className="font-medium text-sm">@{account.username}</p>
+                             <SubscriptionBadge tier={account.subscription.tier} />
                           </div>
 
-                          <div className="flex flex-col gap-1 text-sm text-gray-500 mt-1">
+                          <div className="flex flex-col items-start gap-1 text-sm text-gray-500 mt-1.5">
                               <div className="flex items-center gap-1.5">
                                 <CalendarIcon className="w-4 h-4 text-gray-400" />
                                 <span>Joined {formatMonthYear(account.joinDate)}</span>
@@ -272,7 +274,7 @@ export const AccountView: React.FC = () => {
 
             {/* Description, Location, and Actions */}
             <div className="space-y-6">
-                <div className="space-y-3 max-w-3xl">
+                <div className="space-y-3">
                     {account.description && (
                         <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
                     )}
