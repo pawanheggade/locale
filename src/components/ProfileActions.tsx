@@ -15,8 +15,7 @@ import {
     XIcon, 
     InstagramIcon, 
     YouTubeIcon, 
-    ChevronDownIcon,
-    UserPlusIcon
+    ChevronDownIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -238,8 +237,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
                     includeLabel 
                     iconClassName="w-5 h-5"
-                    icon={UserPlusIcon}
-                    fillOnLike={false}
                 />
                 
                 {primaryContact && (
@@ -300,7 +297,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     )}
                     <Button 
                         onClick={onEditAccount} 
-                        variant="overlay-dark" 
+                        variant="overlay-dark"
                         size="sm"
                         className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
                     >

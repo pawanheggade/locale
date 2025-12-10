@@ -274,7 +274,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             )}
                             iconClassName="w-5 h-5"
                             icon={UserPlusIcon}
-                            fillOnLike={false}
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
                             title={isProfileLiked ? "Liked" : "Like profile"}
                         />

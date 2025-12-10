@@ -1,11 +1,11 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import { Account, DisplayablePost, Notification } from '../types';
+import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
 import { timeSince } from '../utils/formatters';
 import { BellIcon, XMarkIcon, CheckIcon, ClockIcon } from './Icons';
 import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
+import { SettingsPage } from './SettingsPage';
 import { useUI } from '../contexts/UIContext';
 // FIX: Import context hooks
 import { useActivity } from '../contexts/ActivityContext';
@@ -18,12 +18,12 @@ interface ActivityPageProps {}
 
 export const ActivityPage: React.FC<ActivityPageProps> = () => {
   // FIX: Get data from contexts
-  const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
-  const { currentAccount, viewedPostIds } = useAuth();
+  const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll, settings, onSettingsChange } = useActivity();
+  const { currentAccount, viewedPostIds, toggleAccountStatus, signOut: onSignOut } = useAuth();
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history'>(initialTab || 'notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab || 'notifications');
   const { gridView, isTabletOrDesktop } = useUI();
 
   useEffect(() => {
@@ -48,6 +48,13 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
   };
+
+  const onArchiveAccount = () => {
+    if(currentAccount) {
+      toggleAccountStatus(currentAccount.id, false);
+    }
+  };
+
 
   // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
@@ -95,7 +102,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
         <div className="border-b border-gray-200">
             <div className="flex space-x-6" role="tablist">
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'}>
-                    Updates
+                    Notifications
                     {unreadGeneralCount > 0 && (
                         <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 h-5 min-w-[1.25rem] rounded-full flex items-center justify-center inline-flex align-middle">
                             {unreadGeneralCount}
@@ -113,6 +120,9 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 <TabButton onClick={() => setActiveTab('history')} isActive={activeTab === 'history'}>
                     History
                 </TabButton>
+                <TabButton onClick={() => setActiveTab('settings')} isActive={activeTab === 'settings'}>
+                    Settings
+                </TabButton>
             </div>
         </div>
         <div className="py-6 space-y-4">
@@ -120,7 +130,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 generalNotifications.length === 0 ? (
                     <EmptyState
                         icon={<BellIcon />}
-                        title="No Updates"
+                        title="No Notifications"
                         description="You have no new interactions."
                         className="py-8"
                     />
@@ -152,7 +162,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 ) : (
                     renderNotificationList(alertNotifications)
                 )
-            ) : (
+            ) : activeTab === 'history' ? (
                  viewedPosts.length === 0 ? (
                     <EmptyState
                         icon={<ClockIcon />}
@@ -166,6 +176,16 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                         variant={isTabletOrDesktop ? gridView : 'default'}
                     />
                 )
+            ) : (
+                <div className="-m-4 sm:-m-6 lg:-m-8">
+                    <SettingsPage
+                        settings={settings}
+                        onSettingsChange={onSettingsChange}
+                        onArchiveAccount={onArchiveAccount}
+                        onSignOut={onSignOut}
+                        currentAccount={currentAccount}
+                    />
+                </div>
             )}
         </div>
     </div>

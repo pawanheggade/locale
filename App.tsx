@@ -429,10 +429,11 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1 pt-16',
-            ((mainView === 'map' && view === 'all') || isEditorView)
-              ? 'overflow-hidden'
-              : 'overflow-y-auto'
+            'flex-1',
+            (mainView === 'map' && view === 'all')
+              ? 'overflow-hidden pt-16' // map is below header, no scroll
+              : 'overflow-y-auto pt-16', // default
+            isEditorView && 'pt-0 overflow-hidden'
           )}
           {...touchHandlers}
         >
