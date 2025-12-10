@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DisplayableForumComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -66,16 +67,13 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
   }
 
   return (
-    <div className="flex gap-4">
-      <div className="flex flex-col items-center mt-1">
-        <Avatar src={comment.author?.avatarUrl} alt={comment.author?.name} size="sm" tier={comment.author?.subscription.tier} />
-        <div className="w-px bg-gray-200 flex-grow my-2"></div>
-      </div>
-      <div className="flex-1">
+    <div>
+      <div>
         <PostAuthorInfo
             author={comment.author}
             showAvatar={false}
             size="small"
+            hideName={true}
         />
         <div className="mt-1 prose prose-sm max-w-none text-gray-600">
           {isEditing ? (
@@ -118,13 +116,13 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
               postId={comment.postId}
               parentId={comment.id}
               onCommentAdded={() => onSetReplyTarget(null)}
-              placeholder={`Replying to ${comment.author?.name || 'user'}...`}
+              placeholder={`Replying to @${comment.author?.username || 'user'}...`}
               autoFocus={true}
               onCancel={() => onSetReplyTarget(null)}
             />
           </div>
         )}
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-6 pl-6 border-l-2 border-gray-100">
           {comment.replies.map(reply => (
             <CommentComponent key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
           ))}

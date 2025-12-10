@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -38,7 +34,7 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
                 className="bg-white rounded-xl border border-gray-200/80 p-3 flex flex-col gap-2 cursor-pointer h-full"
             >
                 <div className="flex items-center gap-2 text-xs">
-                    <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
+                    
                     <span className="font-semibold text-gray-600 truncate">@{post.author?.username || 'unknown'}</span>
                 </div>
                 <h3 className="text-sm font-bold text-gray-800 break-words line-clamp-3">{post.title}</h3>
@@ -59,7 +55,7 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
             <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 text-xs">
-                    <Avatar src={post.author?.avatarUrl} alt={post.author?.name} size="xs" tier={post.author?.subscription.tier} />
+                    
                     <span className="font-semibold text-gray-600">@{post.author?.username || 'unknown'}</span>
                 </div>
                 <h3 className="text-lg font-bold text-gray-800 mt-1 break-words">{post.title}</h3>
