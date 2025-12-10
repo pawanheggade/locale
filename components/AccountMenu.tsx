@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon } from './Icons';
@@ -21,18 +20,39 @@ interface AccountMenuProps {
     onOpenSubscriptionPage: () => void;
 }
 
-const MenuItem: React.FC<{
+interface MenuItemProps {
   onClick: () => void;
-  icon: React.ReactNode;
+  // FIX: Type the icon prop more specifically to solve cloneElement errors.
+  icon: React.ReactElement<{ className?: string }>;
   label: string;
   badgeCount?: number;
   animateBadge?: boolean;
-}> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false }) => (
-    <Button onClick={onClick} variant="ghost" className="w-full p-0 h-auto rounded-xl text-right">
+  isActive?: boolean;
+}
+
+const MenuItem: React.FC<MenuItemProps> = ({ onClick, icon, label, badgeCount = 0, animateBadge = false, isActive = false }) => (
+    <Button
+      onClick={onClick}
+      variant="ghost"
+      className={cn(
+        "w-full p-0 h-auto rounded-xl text-right",
+        isActive && "bg-red-50"
+      )}
+    >
       <div className="w-full flex items-center justify-end gap-2 p-2">
-        <span className="text-sm font-bold text-gray-700 whitespace-nowrap">{label}</span>
+        <span className={cn(
+          "text-sm font-bold whitespace-nowrap",
+          isActive ? "text-red-600" : "text-gray-700"
+        )}>
+          {label}
+        </span>
         <div className="relative w-5 h-5 flex items-center justify-center">
-            {icon}
+            {React.cloneElement(icon, {
+              className: cn(
+                icon.props.className,
+                isActive ? 'text-red-600' : 'text-gray-700'
+              ),
+            })}
             {badgeCount > 0 && (
                 <span className={`absolute -top-1 -right-1.5 block h-4 w-4 rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white ${animateBadge ? 'animate-badge-pop-in' : ''}`}>{badgeCount}</span>
             )}
@@ -129,20 +149,20 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                 >
                     <div className="p-1.5">
                         <div>
-                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Profile" />
+                            <MenuItem onClick={() => handleMenuAction(handleAccountViewToggle)} icon={<UserIcon className="w-5 h-5" />} label="Profile" isActive={currentView === 'account'} />
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
-                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PlusIcon className="w-5 h-5 text-gray-700" />} label="Post" />
+                                <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PlusIcon className="w-5 h-5" />} label="Post" isActive={currentView === 'createPost' || currentView === 'editPost'} />
                             )}
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
-                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('settings'))} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} isActive={currentView === 'bag'} />
+                            <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5" />} label="Activity" badgeCount={activityCount} isActive={currentView === 'activity'} />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('settings'))} icon={<Cog6ToothIcon className="w-5 h-5" />} label="Settings" isActive={currentView === 'settings'} />
                         </div>
 
                         {currentAccount.role === 'admin' && (
                             <>
                                 <div className="my-1.5 h-px bg-gray-200/50" />
                                 <div>
-                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5 text-gray-700" />} label="Admin Panel" />
+                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5" />} label="Admin Panel" isActive={currentView === 'admin'} />
                                 </div>
                             </>
                         )}

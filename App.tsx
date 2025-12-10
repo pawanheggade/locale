@@ -409,9 +409,7 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
-  // Identify views that handle their own scrolling or are full-screen overlays (no parent padding)
   const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
-  // Account view also needs full width for the header image
   const isFullWidthView = view === 'account';
 
   return (
@@ -439,8 +437,7 @@ export const App: React.FC = () => {
             'flex-1',
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
-              : 'overflow-y-auto pt-16', // default
-            isEditorView && 'overflow-hidden'
+              : 'overflow-y-auto pt-16' // default for ALL other views
           )}
           {...touchHandlers}
         >
@@ -452,14 +449,10 @@ export const App: React.FC = () => {
             }}
             className="h-full"
           >
-            {/* 
-                We remove the default padding for map, editors, AND account view. 
-                Account view manages its own layout (full width header, padded content).
-            */}
             <div className={cn(
               'relative z-0 w-full', 
-              (mainView === 'map' || isEditorView) && 'h-full',
-              !(mainView === 'map' || isEditorView || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
+              (mainView === 'map') && 'h-full',
+              !(mainView === 'map' || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
             )}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>

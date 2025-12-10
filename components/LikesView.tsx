@@ -37,6 +37,7 @@ export const LikesView: React.FC = () => {
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Likes</h1>
       <div className="mb-6 border-b border-gray-200">
         <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist" aria-label="Likes content">
           <TabButton onClick={() => setActiveTab('profiles')} isActive={activeTab === 'profiles'}>

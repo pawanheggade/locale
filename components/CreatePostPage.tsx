@@ -318,8 +318,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
+    <div className="flex flex-col">
+      <div className="animate-fade-in-down pb-28">
           {showMapPicker ? (
           <LocationPickerMap
               initialCoordinates={type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates}

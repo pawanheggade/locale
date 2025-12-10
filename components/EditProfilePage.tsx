@@ -31,8 +31,8 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = () => {
   if (!account) return null;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
+    <div className="flex flex-col">
+      <div className="animate-fade-in-down pb-28">
         <div className="max-w-2xl mx-auto">
             {!isMapPickerOpen && <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Profile</h1>}
             <AccountForm
