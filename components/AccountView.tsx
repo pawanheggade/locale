@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
@@ -220,9 +221,9 @@ export const AccountView: React.FC = () => {
 
       {/* Profile Header Section - Full Width */}
       <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
-        <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
             
-            <div className="flex flex-col sm:flex-row items-end gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex flex-row items-end gap-4 sm:gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
@@ -235,7 +236,7 @@ export const AccountView: React.FC = () => {
                  </div>
 
                  {/* Name and Info */}
-                 <div className="flex-1 min-w-0 w-full pb-1">
+                 <div className="flex-1 pb-1 sm:pb-2 min-w-0">
                       <div className="flex flex-col items-start gap-0.5">
                           {isOwnAccount && (
                               <Button
@@ -342,7 +343,7 @@ export const AccountView: React.FC = () => {
             </div>
             
             {isOwnAccount && account.subscription.tier !== 'Personal' && (
-                <div className="mt-8 pt-8 border-t border-gray-200/80">
+                <div className="mt-8 pt-6 border-t border-gray-100">
                     <ReferralCard account={account} />
                 </div>
             )}
@@ -350,7 +351,7 @@ export const AccountView: React.FC = () => {
       </div>
 
       {/* Content Section */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         {(availableTabs.length > 0 || categoryTabs.length > 0) && (
             <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
                 <div className="border-b border-gray-200/80 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
