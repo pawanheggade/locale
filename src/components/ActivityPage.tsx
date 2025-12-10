@@ -1,25 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Account, DisplayablePost, Notification, NotificationSettings } from '../types';
+import { Account, DisplayablePost, Notification } from '../types';
 import { timeSince } from '../utils/formatters';
-import { BellIcon, XMarkIcon, CheckIcon, ClockIcon } from './Icons';
+import { BellIcon, XMarkIcon, CheckIcon, ClockIcon, Cog6ToothIcon } from './Icons';
 import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
 import { SettingsPage } from './SettingsPage';
 import { useUI } from '../contexts/UIContext';
-// FIX: Import context hooks
 import { useActivity } from '../contexts/ActivityContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Update props interface to remove props
-interface ActivityPageProps {}
-
-export const ActivityPage: React.FC<ActivityPageProps> = () => {
-  // FIX: Get data from contexts
-  const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll, settings, onSettingsChange } = useActivity();
-  const { currentAccount, viewedPostIds, toggleAccountStatus, signOut: onSignOut } = useAuth();
+export const ActivityPage: React.FC = () => {
+  const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
+  const { currentAccount, viewedPostIds } = useAuth();
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
@@ -48,13 +43,6 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
     }
   };
-
-  const onArchiveAccount = () => {
-    if(currentAccount) {
-      toggleAccountStatus(currentAccount.id, false);
-    }
-  };
-
 
   // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
@@ -99,10 +87,10 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Activity</h1>
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200/80">
             <div className="flex space-x-6" role="tablist">
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'}>
-                    Notifications
+                    Updates
                     {unreadGeneralCount > 0 && (
                         <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 h-5 min-w-[1.25rem] rounded-full flex items-center justify-center inline-flex align-middle">
                             {unreadGeneralCount}
@@ -130,7 +118,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 generalNotifications.length === 0 ? (
                     <EmptyState
                         icon={<BellIcon />}
-                        title="No Notifications"
+                        title="No Updates"
                         description="You have no new interactions."
                         className="py-8"
                     />
@@ -178,13 +166,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 )
             ) : (
                 <div className="-m-4 sm:-m-6 lg:-m-8">
-                    <SettingsPage
-                        settings={settings}
-                        onSettingsChange={onSettingsChange}
-                        onArchiveAccount={onArchiveAccount}
-                        onSignOut={onSignOut}
-                        currentAccount={currentAccount}
-                    />
+                    <SettingsPage />
                 </div>
             )}
         </div>

@@ -1,4 +1,5 @@
 
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
 import { Button } from './ui/Button';
@@ -41,7 +42,6 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Refactored to use a constructor for state initialization to resolve potential environment-specific issues with class properties.
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {

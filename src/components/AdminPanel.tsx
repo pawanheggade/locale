@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
-import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
+import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
 import { DataVisualizationView } from './DataVisualizationView';
 import { AdminPagesView } from './AdminPagesView';
 import { AccountsView } from './admin/AccountsView';
@@ -18,7 +18,6 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 
 export const AdminPanel: React.FC = () => {
-  // FIX: Get initialView from context.
   const { navigateTo, adminInitialView: initialView } = useNavigation();
   // Data from Contexts
   const { 

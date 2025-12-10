@@ -5,8 +5,9 @@ import { AccountForm } from './AccountForm';
 import { useNavigation } from '../contexts/NavigationContext';
 import { FixedPageFooter } from './FixedPageFooter';
 
-export const EditProfilePage: React.FC = () => {
-  // FIX: Get account from context.
+interface EditProfilePageProps {}
+
+export const EditProfilePage: React.FC<EditProfilePageProps> = () => {
   const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts, updateAccountDetails } = useAuth();
   const { handleBack } = useNavigation();

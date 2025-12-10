@@ -1,4 +1,3 @@
-
 import React, { useState, useReducer, useEffect } from 'react';
 import { ForumPost } from '../types';
 import { useForum } from '../contexts/ForumContext';
@@ -66,7 +65,7 @@ export const CreateForumPostPage: React.FC = () => {
         <div className="flex flex-col h-full">
             <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
                 <div className="max-w-2xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Start a Discussion</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Create Forum Post</h1>
                     <form id="create-forum-post-form" onSubmit={handleSubmit} className="space-y-6">
                         <FormField id="forum-post-title" label="Title" error={state.error && !state.title.trim() ? "Title is required" : ""}>
                             <Input
@@ -93,7 +92,7 @@ export const CreateForumPostPage: React.FC = () => {
                                 onChange={e => dispatch({ type: 'SET_FIELD', field: 'content', payload: e.target.value })}
                                 required
                                 rows={10}
-                                placeholder="Share your thoughts, ask a question, or start a discussion..."
+                                placeholder="Share your thoughts, ask a question, or create a forum post..."
                             />
                         </FormField>
                     </form>

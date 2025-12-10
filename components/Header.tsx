@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -21,6 +22,8 @@ interface HeaderProps {
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
   onGoHome: () => void;
+  // FIX: Added onRefresh to HeaderProps
+  onRefresh: () => void;
   viewingAccount: Account | null;
   isScrolled: boolean;
   isVisible: boolean;
@@ -36,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRemoveRecentSearch,
   onClearRecentSearches,
   onGoHome,
+  onRefresh,
   viewingAccount,
   isScrolled,
   isVisible,
@@ -66,7 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, [view, isTabletOrDesktop]);
   
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
-  useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
+  useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isFilterDropdownOpen);
 
   useEffect(() => {
     if (isSearchOpen) {

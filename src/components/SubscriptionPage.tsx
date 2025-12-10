@@ -4,7 +4,6 @@ import { CheckIcon } from './Icons';
 import { formatDaysRemaining } from '../utils/formatters';
 import { Button, ButtonProps } from './ui/Button';
 import { TIER_STYLES } from '../lib/utils';
-// FIX: Import context hooks
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 
@@ -82,7 +81,6 @@ const plans = [
 ];
 
 export const SubscriptionPage: React.FC = () => {
-  // FIX: Get data from contexts
   const { currentAccount, updateSubscription: onUpdateSubscription } = useAuth();
   const { openModal } = useUI();
 

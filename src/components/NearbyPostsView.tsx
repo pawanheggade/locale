@@ -4,11 +4,9 @@ import { PostList } from './PostList';
 import { MapPinIcon } from './Icons';
 import { EmptyState } from './EmptyState';
 import { useAuth } from '../contexts/AuthContext';
-// FIX: Import useNavigation hook to access context.
 import { useNavigation } from '../contexts/NavigationContext';
 
 export const NearbyPostsView: React.FC = () => {
-  // FIX: Get result from context.
   const { nearbyPostsResult: result } = useNavigation();
   const { currentAccount } = useAuth();
   

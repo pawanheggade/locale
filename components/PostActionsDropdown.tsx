@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
@@ -74,6 +75,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         key="report"
         onClick={(e) => {
           e.stopPropagation();
+          // FIX: The reportItem function now accepts DisplayablePost
           reportItem(post);
           setIsOpen(false);
         }}

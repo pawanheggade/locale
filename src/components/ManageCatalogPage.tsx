@@ -9,8 +9,9 @@ import { Input } from './ui/Input';
 import { useNavigation } from '../contexts/NavigationContext';
 import { FixedPageFooter } from './FixedPageFooter';
 
-export const ManageCatalogPage: React.FC = () => {
-  // FIX: Get account from context.
+interface ManageCatalogPageProps {}
+
+export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
   const { viewingAccount: account } = useNavigation();
   const { addCatalogItems, updateAccountDetails } = useAuth();
   const { handleBack } = useNavigation();
@@ -25,7 +26,6 @@ export const ManageCatalogPage: React.FC = () => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragItem = useRef<number | null>(null);
 
-  // FIX: Add guard clause for when account is not available.
   if (!account) {
     return <div className="p-8 text-center">Account not found.</div>;
   }

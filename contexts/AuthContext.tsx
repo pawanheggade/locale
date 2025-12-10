@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
+import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Report, Feedback, Post, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
@@ -71,7 +71,8 @@ interface AuthContextType {
 
   // Admin & Global Data
   reports: Report[];
-  reportItem: (item: ForumPost | ForumComment) => void;
+  // FIX: Widen type to allow reporting any reportable item.
+  reportItem: (item: Post | ForumPost | ForumComment) => void;
   addReport: (postId: string, reason: string) => void;
   addForumReport: (item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => void;
   setReports: React.Dispatch<React.SetStateAction<Report[]>>; 
@@ -151,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openModal({ type: 'confirmation', data });
     }, [openModal]);
     
-    const reportItem = useCallback((item: ForumPost | ForumComment) => {
+    const reportItem = useCallback((item: Post | ForumPost | ForumComment) => {
         if (!currentAccount) {
             openModal({ type: 'login' });
             return;

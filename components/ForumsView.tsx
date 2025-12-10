@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -72,9 +71,10 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
     );
 };
 
-type SortOption = 'latest' | 'top';
-
 interface ForumsViewProps {}
+
+// FIX: Define SortOption type
+type SortOption = 'latest' | 'top';
 
 export const ForumsView: React.FC<ForumsViewProps> = () => {
     const { posts, categories, activeCategory, setActiveCategory } = useForum();
@@ -113,7 +113,7 @@ export const ForumsView: React.FC<ForumsViewProps> = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={handleDiscussClick} size="sm" variant="pill-red" className="shrink-0">
                     <PencilIcon className="w-4 h-4 mr-2" />
-                    Discuss
+                    Create Post
                 </Button>
             </div>
 
@@ -157,10 +157,10 @@ export const ForumsView: React.FC<ForumsViewProps> = () => {
             ) : (
                 <EmptyState
                     icon={<ChatBubbleEllipsisIcon />}
-                    title="No Discussions Yet"
+                    title="No Posts Yet"
                     description={activeCategory === 'All'
-                        ? "Be the first to start a conversation!"
-                        : `Be the first to start a discussion in the "${activeCategory}" category.`
+                        ? "Be the first to create a forum post!"
+                        : `Be the first to create a forum post in the "${activeCategory}" category.`
                     }
                     className="py-20"
                 />

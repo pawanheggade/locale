@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { DisplayableForumPost, SocialPlatform } from '../types';
-import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
+import { DisplayableForumPost, SocialPlatform, Account, ContactOption } from '../types';
+import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -49,7 +49,7 @@ export const AccountView: React.FC = () => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
-  const { currentAccount, toggleLikeAccount } = useAuth();
+  const { currentAccount, toggleLikeAccount, updateAccountDetails } = useAuth();
   const { posts, archivedPosts } = usePosts();
   
   if (!account) {
@@ -97,7 +97,7 @@ export const AccountView: React.FC = () => {
     
     // Posts Tab
     if (isOwnAccount || accountPosts.length > 0) {
-        tabs.push({ id: 'all', label: 'Posts', icon: <Squares2X2Icon className="w-6 h-6" /> });
+        tabs.push({ id: 'all', label: 'Posts', icon: <PostCardIcon className="w-6 h-6" /> });
     }
     
     // Forums Tab
@@ -189,6 +189,11 @@ export const AccountView: React.FC = () => {
       }
   };
 
+  const handleUpdateAccount = (updatedFields: Partial<Account>) => {
+    if (!account) return;
+    updateAccountDetails({ ...account, ...updatedFields });
+  };
+
   const handleShareProfile = async () => {
       const profileUrl = `${window.location.origin}/?account=${account.id}`;
       if (navigator.share) {
@@ -219,9 +224,8 @@ export const AccountView: React.FC = () => {
       </div>
 
       {/* Profile Header Section - Full Width */}
-      <div className="bg-white border-b border-gray-200 shadow-sm relative z-10">
+      <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-            
             <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
@@ -274,48 +278,46 @@ export const AccountView: React.FC = () => {
 
             {/* Description, Location, and Actions */}
             <div className="space-y-6">
-                <div className="space-y-3">
-                    {account.description && (
-                        <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
-                    )}
-                    
-                    {account.address && (
-                        <div className="flex items-center gap-3">
-                             {(account.googleMapsUrl || account.appleMapsUrl) && (
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    {account.googleMapsUrl && (
-                                        <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
-                                            <GoogleIcon className="w-4 h-4" />
-                                        </a>
-                                    )}
-                                    {account.appleMapsUrl && (
-                                        <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
-                                            <AppleIcon className="w-4 h-4" />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
-                            <div
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
-                                onClick={(e) => { 
-                                    e.preventDefault();
-                                    e.stopPropagation(); 
-                                    showOnMap(account); 
-                                }}
-                                className={cn(
-                                    "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                    account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                {account.description && (
+                    <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
+                )}
+                
+                {account.address && (
+                    <div className="flex items-center gap-3">
+                         {(account.googleMapsUrl || account.appleMapsUrl) && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {account.googleMapsUrl && (
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                        <GoogleIcon className="w-4 h-4" />
+                                    </a>
                                 )}
-                                title={account.coordinates ? "Show on map" : "No map location available"}
-                            >
-                                <MapPinIcon className="w-4 h-4 shrink-0" />
-                                <span className="truncate">{account.address}</span>
+                                {account.appleMapsUrl && (
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                        <AppleIcon className="w-4 h-4" />
+                                    </a>
+                                )}
                             </div>
+                        )}
+                        <div
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                            onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation(); 
+                                showOnMap(account); 
+                            }}
+                            className={cn(
+                                "flex items-center gap-1.5 group min-w-0 transition-colors",
+                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                            )}
+                            title={account.coordinates ? "Show on map" : "No map location available"}
+                        >
+                            <MapPinIcon className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{account.address}</span>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
                 
                 <div>
                     <ProfileActions
@@ -337,6 +339,7 @@ export const AccountView: React.FC = () => {
                                 openModal({ type: 'login' });
                             }
                         }}
+                        onUpdateAccount={handleUpdateAccount}
                     />
                 </div>
             </div>
@@ -348,153 +351,156 @@ export const AccountView: React.FC = () => {
             )}
         </div>
       </div>
-
+      
       {/* Content Section */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        {(availableTabs.length > 0 || categoryTabs.length > 0) && (
-            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
-                <div className="border-b border-gray-200 flex items-center justify-between pl-4 sm:pl-6 pr-2 sm:pr-4">
-                    <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
-                        {availableTabs.map(tab => (
-                            <TabButton
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                isActive={activeTab === tab.id}
-                                title={tab.label}
-                                className="px-3 sm:px-4"
-                            >
-                                {tab.icon}
-                            </TabButton>
-                        ))}
-                    </div>
-                    {categoryTabs.length > 0 && (
-                        <div className="flex-shrink-0 py-2 relative" ref={categoryDropdownRef}>
-                            <TabButton 
-                                onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                                isActive={categoryTabs.some(c => c === activeTab)}
-                                className="gap-1 px-3"
-                                title="Categories"
-                                aria-label="Categories"
-                            >
-                                <HashtagIcon className="w-6 h-6" />
-                                <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
-                            </TabButton>
-                            
-                            {isCategoryDropdownOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
-                                    {categoryTabs.map(cat => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => {
-                                                setActiveTab(cat);
-                                                setIsCategoryDropdownOpen(false);
-                                            }}
-                                            className={cn(
-                                                "w-full text-left px-4 py-2 text-sm whitespace-nowrap",
-                                                activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
-                                            )}
-                                        >
-                                            {cat}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className="p-4 sm:p-6 min-h-[300px]">
-                    {activeTab === 'catalogs' ? (
-                        <div className="space-y-4 animate-fade-in">
-                            {hasCatalogContent ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                    {account.catalog!.map((item) => (
-                                        <div 
-                                            key={item.id} 
-                                            onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
-                                            className="group cursor-pointer bg-gray-50 rounded-xl border border-gray-200 overflow-hidden aspect-[3/4] flex flex-col"
-                                        >
-                                            <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
-                                                {item.type === 'image' ? (
-                                                    <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
-                                                )}
-                                            </div>
-                                            <div className="p-3 border-t border-gray-100 bg-white relative z-10">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<DocumentIcon />}
-                                    title="No Catalog Items"
-                                    description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
-                                    className="bg-gray-50 rounded-xl"
-                                />
-                            )}
-                        </div>
-                    ) : activeTab === 'forums' ? (
-                        <div className="animate-fade-in">
-                            {userForumPosts.length > 0 ? (
-                                <div className="space-y-4">
-                                    {userForumPosts.map(post => (
-                                        <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    icon={<ChatBubbleEllipsisIcon />}
-                                    title="No Forum Discussions"
-                                    description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
-                                    className="bg-gray-50 rounded-xl"
-                                />
-                            )}
-                        </div>
-                    ) : (
-                        <div className="animate-fade-in">
-                            {displayedPosts.length > 0 ? (
-                                <PostList 
-                                    posts={displayedPosts} 
-                                    isArchived={activeTab === 'archives'}
-                                    variant={isTabletOrDesktop ? gridView : 'default'}
-                                />
-                            ) : (
-                            (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
-                                <EmptyState
-                                    icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <Squares2X2Icon />}
-                                    title={
-                                        activeTab === 'archives' ? "No Archived Posts" :
-                                        activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
-                                    }
-                                    description={isOwnAccount 
-                                        ? (
-                                            activeTab === 'archives' ? "Posts you archive will appear here." :
-                                            activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
-                                          )
-                                        : (
-                                            activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
-                                          )
-                                    }
-                                    className="py-20"
-                                />
-                            ) : (
-                                <EmptyState
-                                    icon={<Squares2X2Icon />}
-                                    title={`No items in ${activeTab}`}
-                                    description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
-                                    className="py-20"
-                                />
-                            )
-                            )}
-                        </div>
-                    )}
-                </div>
+      {(availableTabs.length > 0 || categoryTabs.length > 0) && (
+        <>
+          <div className="border-b border-gray-200/80 bg-white">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between">
+                  <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
+                      {availableTabs.map(tab => (
+                          <TabButton
+                              key={tab.id}
+                              onClick={() => setActiveTab(tab.id)}
+                              isActive={activeTab === tab.id}
+                              title={tab.label}
+                              className="px-3 sm:px-4"
+                          >
+                              {tab.icon}
+                          </TabButton>
+                      ))}
+                  </div>
+                  {categoryTabs.length > 0 && (
+                      <div className="flex-shrink-0 py-2 relative" ref={categoryDropdownRef}>
+                          <TabButton 
+                              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                              isActive={categoryTabs.some(c => c === activeTab)}
+                              className="gap-1 px-3"
+                              title="Categories"
+                              aria-label="Categories"
+                          >
+                              <HashtagIcon className="w-6 h-6" />
+                              <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                          </TabButton>
+                          
+                          {isCategoryDropdownOpen && (
+                              <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
+                                  {categoryTabs.map(cat => (
+                                      <button
+                                          key={cat}
+                                          onClick={() => {
+                                              setActiveTab(cat);
+                                              setIsCategoryDropdownOpen(false);
+                                          }}
+                                          className={cn(
+                                              "w-full text-left px-4 py-2 text-sm whitespace-nowrap",
+                                              activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
+                                          )}
+                                      >
+                                          {cat}
+                                      </button>
+                                  ))}
+                              </div>
+                          )}
+                      </div>
+                  )}
+              </div>
             </div>
-        )}
-      </div>
+          </div>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            <div className="min-h-[300px]">
+                {activeTab === 'catalogs' ? (
+                    <div className="space-y-4 animate-fade-in">
+                        {hasCatalogContent ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {account.catalog!.map((item) => (
+                                    <div 
+                                        key={item.id} 
+                                        onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
+                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col"
+                                    >
+                                        <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
+                                            {item.type === 'image' ? (
+                                                <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
+                                            )}
+                                        </div>
+                                        <div className="p-3 border-t border-gray-100 bg-white relative z-10">
+                                            <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <EmptyState
+                                icon={<DocumentIcon />}
+                                title="No Catalog Items"
+                                description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
+                                className="bg-white rounded-xl"
+                            />
+                        )}
+                    </div>
+                ) : activeTab === 'forums' ? (
+                    <div className="animate-fade-in">
+                        {userForumPosts.length > 0 ? (
+                            <div className="space-y-4">
+                                {userForumPosts.map(post => (
+                                    <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
+                                ))}
+                            </div>
+                        ) : (
+                            <EmptyState
+                                icon={<ChatBubbleEllipsisIcon />}
+                                title="No Forum Discussions"
+                                description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
+                                className="bg-white rounded-xl"
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <div className="animate-fade-in">
+                        {displayedPosts.length > 0 ? (
+                            <PostList 
+                                posts={displayedPosts} 
+                                isArchived={activeTab === 'archives'}
+                                variant={isTabletOrDesktop ? gridView : 'default'}
+                            />
+                        ) : (
+                        (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
+                            <EmptyState
+                                icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <PostCardIcon />}
+                                title={
+                                    activeTab === 'archives' ? "No Archived Posts" :
+                                    activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
+                                }
+                                description={isOwnAccount 
+                                    ? (
+                                        activeTab === 'archives' ? "Posts you archive will appear here." :
+                                        activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
+                                      )
+                                    : (
+                                        activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
+                                      )
+                                }
+                                className="py-20"
+                            />
+                        ) : (
+                            <EmptyState
+                                icon={<PostCardIcon />}
+                                title={`No items in ${activeTab}`}
+                                description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
+                                className="py-20"
+                            />
+                        )
+                        )}
+                    </div>
+                )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

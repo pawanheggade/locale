@@ -1,5 +1,4 @@
 import { createContext, useContext } from 'react';
-// FIX: Import additional types required for the updated context.
 import { AppView, Account, ActivityTab, AdminView, DisplayablePost } from '../types';
 
 // --- Navigation Context ---
@@ -9,7 +8,6 @@ interface NavigationContextType {
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
   saveHistoryState: () => void;
-  // FIX: Add view-specific state to the context to be accessible by child components without prop drilling.
   viewingAccount: Account | null;
   viewingPostId: string | null;
   viewingForumPostId: string | null;

@@ -18,12 +18,11 @@ import { MediaUploader } from './MediaUploader';
 import { usePosts } from '../contexts/PostsContext';
 import { FormField } from './FormField';
 import { STORAGE_KEYS } from '../lib/constants';
-// FIX: Import context hooks
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
+import { FixedPageFooter } from './FixedPageFooter';
 
 
-// FIX: Update props to remove direct dependencies
 interface CreatePostPageProps {}
 
 const TITLE_MAX_LENGTH = 100;
@@ -85,7 +84,6 @@ function formReducer(state: FormState, action: Action): FormState {
 
 
 export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
-  // FIX: Use context hooks for navigation and data
   const { handleBack: onBack, navigateTo, viewingPostId: editingPostId } = useNavigation();
   const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
   const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
@@ -299,12 +297,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
     
     if (isEditing && onUpdatePost && editingPost) {
         const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        // FIX: Pass postId to navigateTo for a better UX after editing.
         navigateTo('all', { postId: updatedPost.id }); // Navigate home after edit
     } else if (onSubmitPost && currentAccount) {
         const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        // FIX: Pass postId to navigateTo for a better UX after creating a post.
         navigateTo('all', { postId: newPost.id }); // Navigate home after create
     }
   };
@@ -379,7 +375,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField id="post-type" label="Type">
                           <Select value={type} onChange={e => setField('type', e.target.value as PostType)}>
-                              {/* FIX: Add explicit string type to iterator to fix TS error */}
                               {Object.values(PostType).map((t: string) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
                       </FormField>
@@ -541,18 +536,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         )}
       </div>
       {!showMapPicker && (
-          <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-              <div className="bg-white border-t border-gray-100">
-                  <div className="max-w-2xl mx-auto px-4 sm:px-6">
-                      <div className="py-3 flex items-center gap-3">
-                          <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
-                          <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
-                              {isEditing ? 'Save Changes' : 'Publish Post'}
-                          </Button>
-                      </div>
-                  </div>
-              </div>
-          </div>
+          <FixedPageFooter
+            onCancel={onBack}
+            submitFormId="create-post-form"
+            isLoading={isSubmitting}
+            submitText={isEditing ? 'Save Changes' : 'Post'}
+          />
       )}
     </div>
   );
