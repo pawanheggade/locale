@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
@@ -33,7 +34,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
 ];
 
 export const App: React.FC = () => {
@@ -105,7 +106,7 @@ export const App: React.FC = () => {
         mainView, 
         viewingPostId, 
         viewingAccount, 
-        viewingForumPostId,
+        viewingForumPostId, 
         editingAdminPageKey,
         scrollPosition: currentScrollPosition,
         filters: filterState,
@@ -432,7 +433,7 @@ export const App: React.FC = () => {
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
               : 'overflow-y-auto pt-16', // default
-            isEditorView && 'pt-0 overflow-hidden'
+            isEditorView && 'overflow-hidden' // Remove pt-0 to ensure it starts below header
           )}
           {...touchHandlers}
         >
@@ -442,6 +443,7 @@ export const App: React.FC = () => {
               transform: `translateY(${pullPosition}px)`,
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
+            className="h-full" // Ensure wrapper is full height to pass to children if needed
           >
             {/* 
                 We remove the default padding for map, editors, AND account view. 
