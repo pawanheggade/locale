@@ -91,8 +91,8 @@ export const getBadgeSvg = (tier: Subscription['tier']): string => {
 
     const isSolid = tier === 'Organisation';
     const path = isSolid
-        ? `<path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" />`
-        : `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />`;
+        ? `<path fill-rule="evenodd" clip-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.49 4.49 0 0 1-3.498-1.306 4.491 4.491 0 0 1-1.307-3.498A4.49 4.49 0 0 1 2.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 0 1 1.307-3.497 4.49 4.49 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" />`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />`;
     
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isSolid ? styles.hex : 'none'}" stroke="${isSolid ? 'none' : styles.hex}" stroke-width="${isSolid ? '0' : '1.5'}">${path}</svg>`;
     return svg;
@@ -131,27 +131,39 @@ export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number,
     ctx.fillText("cale", cale_x, y);
 
     // Draw SVG parts over 'o'
+    // Position adjusted to match HTML 'top-[75%]' and scaled SVG dimensions
     const o_center_x = o_x;
-    const o_center_y = y;
+    const o_center_y = y; 
+    
+    const scale = 1.4; // Scale factor to match CSS 0.6em relative to font size
+    const verticalOffset = 10; // Push down to match top-[75%]
 
     ctx.lineWidth = 1.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // triangle
+    // Triangle Path: M1.5 1.5 L6 10.5 L10.5 1.5 H1.5 Z
+    // Scaled around center x
     ctx.beginPath();
-    ctx.moveTo(o_center_x - 4, o_center_y - 6);
-    ctx.lineTo(o_center_x, o_center_y + 2);
-    ctx.lineTo(o_center_x + 4, o_center_y - 6);
+    // Top Left
+    ctx.moveTo(o_center_x - (4.5 * scale), o_center_y + verticalOffset); 
+    // Bottom Tip (Tip at y + 9 relative to top, scaled)
+    ctx.lineTo(o_center_x, o_center_y + verticalOffset + (9 * scale));       
+    // Top Right
+    ctx.lineTo(o_center_x + (4.5 * scale), o_center_y + verticalOffset); 
     ctx.closePath();
-    ctx.strokeStyle = accentColor;
+    ctx.strokeStyle = textColor;
     ctx.stroke();
 
-    // line
+    // Horizontal Line: M1 7 H11
+    // Y=7 relative to top (5.5 units down from top of triangle)
+    const lineY = o_center_y + verticalOffset + (5.5 * scale);
+    const lineWidth = 5 * scale;
+
     ctx.beginPath();
-    ctx.moveTo(o_center_x - 5.5, o_center_y - 1);
-    ctx.lineTo(o_center_x + 5.5, o_center_y - 1);
-    ctx.strokeStyle = textColor;
+    ctx.moveTo(o_center_x - lineWidth, lineY);
+    ctx.lineTo(o_center_x + lineWidth, lineY);
+    ctx.strokeStyle = accentColor;
     ctx.stroke();
 
     ctx.restore();

@@ -198,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
                                   onClick={() => handleSortChange(option.value)}
                                   variant="ghost"
                                   className={cn(
-                                    "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                    "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
                                     filterState.sortOption === option.value ? "text-red-600 bg-red-50" : "text-gray-600"
                                   )}
                               >
@@ -211,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button
                       onClick={handleOpenFilterPanel}
                       variant="ghost"
-                      className="w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600 whitespace-nowrap"
+                      className="w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold text-gray-600 whitespace-nowrap"
                   >
                       More Filters
                   </Button>
@@ -284,7 +284,7 @@ export const Header: React.FC<HeaderProps> = ({
                       <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
                   </Button>
                   {isNavDropdownOpen && (
-                       <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                       <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                            <ul className="flex flex-col gap-0.5">
                            {navItems.map(item => (
                               <li key={item.view} className="list-none">
@@ -292,7 +292,7 @@ export const Header: React.FC<HeaderProps> = ({
                                       onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
                                       variant="ghost"
                                       className={cn(
-                                          "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                          "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
                                           view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
                                       )}
                                   >
