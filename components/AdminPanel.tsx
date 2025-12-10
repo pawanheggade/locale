@@ -17,11 +17,7 @@ import { useForum } from '../contexts/ForumContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 
-// FIX: Remove props interface.
-interface AdminPanelProps {}
-
-export const AdminPanel: React.FC<AdminPanelProps> = () => {
-  // FIX: Get initialView from context.
+export const AdminPanel: React.FC = () => {
   const { navigateTo, adminInitialView: initialView } = useNavigation();
   // Data from Contexts
   const { 

@@ -1,8 +1,9 @@
 
+
 import React, { useState, useRef, useEffect, useReducer } from 'react';
 import { Post, PriceAlert } from '../types';
 import ModalShell from './ModalShell';
-import { AlertIcon, TrashIcon } from './Icons';
+import { TrashIcon } from './Icons';
 import { formatCurrency } from '../utils/formatters';
 import { Button } from './ui/Button';
 import { FormField } from './FormField';

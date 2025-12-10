@@ -1,7 +1,9 @@
+
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
-import { TrashIcon, ShoppingBagIcon, SpinnerIcon, PlusIcon, PencilIcon, DocumentIcon } from './Icons';
+// FIX: Import SpinnerIcon
+import { TrashIcon, ShoppingBagIcon, PlusIcon, PencilIcon, DocumentIcon, SpinnerIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/Button';

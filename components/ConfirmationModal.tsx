@@ -1,9 +1,9 @@
 
+
 import React, { useRef, useState } from 'react';
 import { ConfirmationModalData } from '../types';
 import ModalShell from './ModalShell';
 import { ModalFooter } from './ModalFooter';
-import { useUI } from '../contexts/UIContext';
 
 interface ConfirmationModalProps extends ConfirmationModalData {
   onClose: () => void;

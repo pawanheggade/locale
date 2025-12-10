@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Post, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -10,7 +10,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './AppModals';
+import { ModalRenderer } from './components/ModalRenderer';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -33,7 +33,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
 ];
 
 export const App: React.FC = () => {
@@ -409,7 +409,6 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
-  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
   const isFullWidthView = view === 'account';
 
   return (
@@ -463,14 +462,13 @@ export const App: React.FC = () => {
           </div>
         </main>
         
-        <AppModals 
+        <ModalRenderer 
           activeModal={activeModal} 
           closeModal={closeModal}
           openModal={openModal}
           isFindingNearby={isFindingNearby}
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
-          onSignOut={signOut}
           onEnableLocation={handleEnableLocation}
         />
         

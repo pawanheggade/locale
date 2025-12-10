@@ -1,5 +1,4 @@
-
-import { Account, Post } from '../types';
+import { Account, Subscription, PostType } from '../types';
 
 // Validates 10 digits, starting with 6, 7, 8, or 9 (Standard Mobile Format)
 export const PHONE_REGEX = /^[6-9]\d{9}$/;
@@ -126,7 +125,7 @@ interface PostValidationData {
     price: string;
     isOnSale: boolean;
     salePrice: string;
-    type: Post['type'];
+    type: PostType;
     eventLocation: string;
     eventStartDate: string;
     hasExpiry: boolean;

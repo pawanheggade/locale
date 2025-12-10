@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post, NotificationSettings } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useAuth } from './AuthContext';

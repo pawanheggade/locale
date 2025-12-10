@@ -5,7 +5,6 @@ import React, { createContext, useReducer, useContext, useMemo, useCallback, use
 import { PostType, FilterAction, FiltersState, SavedSearchFilters } from '../types';
 import { performAiSearch } from '../utils/gemini';
 import { usePosts } from './PostsContext';
-import { useUI } from './UIContext';
 import { STORAGE_KEYS } from '../lib/constants';
 
 export const initialFiltersState: FiltersState = {

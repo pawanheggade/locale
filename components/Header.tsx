@@ -1,11 +1,12 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -49,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
-  const { navigateTo, saveHistoryState } = useNavigation();
+  const { navigateTo } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -342,7 +343,7 @@ export const Header: React.FC<HeaderProps> = ({
                               currentAccount={currentAccount}
                               activityCount={totalActivityCount}
                               onOpenCreateModal={() => navigateTo('createPost')}
-                              onViewChange={(v) => navigateTo(v)}
+                              navigateTo={navigateTo}
                               currentView={view}
                               handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
                               onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}

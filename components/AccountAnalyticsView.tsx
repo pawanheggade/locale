@@ -7,14 +7,9 @@ import { PostPerformanceTable } from './PostPerformanceTable';
 import { usePostLikeCounts } from '../hooks/usePostLikeCounts';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
-// FIX: Import useNavigation hook.
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Remove props interface.
-interface AccountAnalyticsViewProps {}
-
-export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = () => {
-  // FIX: Get account from context.
+export const AccountAnalyticsView: React.FC = () => {
   const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts } = useAuth();
   const { posts: allPosts, categories: allCategories } = usePosts();
@@ -52,7 +47,6 @@ export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = () => {
       return { totalCatalogViews: views, totalCatalogDownloads: downloads };
   }, [account?.catalog]);
 
-  // FIX: Add guard clause for when account is not available.
   if (!account) {
     return <div className="p-8 text-center">Account not found or analytics not available.</div>;
   }

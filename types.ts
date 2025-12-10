@@ -221,8 +221,8 @@ export type ModalState =
   | { type: 'viewPost', data: DisplayablePost };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings';
-export type ActivityTab = 'notifications' | 'alerts' | 'history';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost';
+export type ActivityTab = 'notifications' | 'alerts' | 'history' | 'settings';
 
 export interface Toast {
   id: number;

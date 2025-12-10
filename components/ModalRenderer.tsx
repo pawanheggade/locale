@@ -35,7 +35,6 @@ interface ModalRendererProps {
     isFindingNearby: boolean;
     handleFindNearby: (coords: { lat: number, lng: number }) => Promise<void>;
     userLocation: { lat: number; lng: number } | null;
-    onSignOut: () => void;
     onEnableLocation: () => Promise<void>;
 }
 

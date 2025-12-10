@@ -1,3 +1,4 @@
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
 import { Button } from './ui/Button';
@@ -40,11 +41,9 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  
-  // FIX: Use class property syntax for state initialization. This is a more modern
-  // approach and resolves the TypeScript errors related to 'this.state' not being found.
+  // FIX: Initialized state as a class property for cleaner syntax and to resolve potential initialization issues.
   state: ErrorBoundaryState = {
-    hasError: false
+    hasError: false,
   };
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {

@@ -6,12 +6,13 @@ import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { cn } from '../lib/utils';
+import { useNavigation } from '../contexts/NavigationContext';
 
 interface AccountMenuProps {
     currentAccount: Account;
     activityCount: number;
     onOpenCreateModal?: () => void;
-    onViewChange: (view: AppView) => void;
+    navigateTo: (view: AppView, options?: any) => void;
     currentView: AppView;
     handleAccountViewToggle: () => void;
     onEditProfile: () => void;
@@ -22,7 +23,6 @@ interface AccountMenuProps {
 
 interface MenuItemProps {
   onClick: () => void;
-  // FIX: Type the icon prop more specifically to solve cloneElement errors.
   icon: React.ReactElement<{ className?: string }>;
   label: string;
   badgeCount?: number;
@@ -66,7 +66,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
     currentAccount,
     activityCount,
     onOpenCreateModal,
-    onViewChange,
+    navigateTo,
     currentView,
     handleAccountViewToggle,
     onEditProfile,
@@ -153,16 +153,16 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             {onOpenCreateModal && currentAccount.subscription.tier !== 'Personal' && (
                                 <MenuItem onClick={() => handleMenuAction(onOpenCreateModal)} icon={<PlusIcon className="w-5 h-5" />} label="Post" isActive={currentView === 'createPost' || currentView === 'editPost'} />
                             )}
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} isActive={currentView === 'bag'} />
+                            <MenuItem onClick={() => handleMenuAction(() => navigateTo('bag'))} icon={<ShoppingBagIcon className="w-5 h-5" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} isActive={currentView === 'bag'} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5" />} label="Activity" badgeCount={activityCount} isActive={currentView === 'activity'} />
-                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('settings'))} icon={<Cog6ToothIcon className="w-5 h-5" />} label="Settings" isActive={currentView === 'settings'} />
+                            <MenuItem onClick={() => handleMenuAction(() => navigateTo('activity', { activityTab: 'settings' }))} icon={<Cog6ToothIcon className="w-5 h-5" />} label="Settings" />
                         </div>
 
                         {currentAccount.role === 'admin' && (
                             <>
                                 <div className="my-1.5 h-px bg-gray-200/50" />
                                 <div>
-                                    <MenuItem onClick={() => handleMenuAction(() => onViewChange('admin'))} icon={<UserIcon className="w-5 h-5" />} label="Admin Panel" isActive={currentView === 'admin'} />
+                                    <MenuItem onClick={() => handleMenuAction(() => navigateTo('admin'))} icon={<UserIcon className="w-5 h-5" />} label="Admin Panel" isActive={currentView === 'admin'} />
                                 </div>
                             </>
                         )}

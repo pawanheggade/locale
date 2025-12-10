@@ -1,6 +1,6 @@
 
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';

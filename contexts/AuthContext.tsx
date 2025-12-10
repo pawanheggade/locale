@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
-import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
+import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useUI } from './UIContext';
@@ -33,7 +33,6 @@ interface AuthContextType {
   signOut: () => void;
   socialLogin: (provider: 'google' | 'apple') => void;
   createAccount: (newAccountData: Omit<Account, 'id' | 'joinDate' | 'role' | 'status' | 'subscription' | 'likedAccountIds' | 'referralCode'>, isSeller: boolean, referralCode?: string) => Promise<Account>;
-  updateAccount: (updatedAccount: Account) => Promise<void>;
   updateAccountDetails: (updatedAccount: Account) => void;
   upgradeToSeller: (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => Promise<void>;
   toggleLikeAccount: (accountId: string) => void;
@@ -72,7 +71,7 @@ interface AuthContextType {
 
   // Admin & Global Data
   reports: Report[];
-  reportItem: (item: Post | ForumPost | ForumComment) => void;
+  reportItem: (item: ForumPost | ForumComment) => void;
   addReport: (postId: string, reason: string) => void;
   addForumReport: (item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => void;
   setReports: React.Dispatch<React.SetStateAction<Report[]>>; 
@@ -152,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         openModal({ type: 'confirmation', data });
     }, [openModal]);
     
-    const reportItem = useCallback((item: Post | ForumPost | ForumComment) => {
+    const reportItem = useCallback((item: ForumPost | ForumComment) => {
         if (!currentAccount) {
             openModal({ type: 'login' });
             return;
@@ -275,10 +274,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         login(userAccount, true);
     }, [accounts, createAccount, login]);
-
-    const updateAccount = useCallback(async (updatedAccount: Account) => {
-        setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
-    }, [setAccounts]);
 
     const updateAccountDetails = useCallback((updatedAccount: Account) => {
         setAccounts(prev => prev.map(acc => acc.id === updatedAccount.id ? updatedAccount : acc));
@@ -596,7 +591,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [updateAccountInList]);
 
     const value = useMemo(() => ({
-        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
         addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
         addPostToViewHistory,
@@ -607,7 +602,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews
     }), [
-        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
         addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
         addPostToViewHistory,
