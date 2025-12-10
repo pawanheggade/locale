@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
+import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon, UserIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -276,6 +277,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 isProfileLiked ? "text-red-600" : "text-gray-400"
                             )}
                             iconClassName="w-5 h-5"
+                            icon={UserIcon}
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
                             title={isProfileLiked ? "Liked" : "Like profile"}
                         />

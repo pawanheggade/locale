@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Post, PostCategory, DisplayablePost } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -44,8 +45,8 @@ const PostsContext = createContext<PostsContextType | undefined>(undefined);
 export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
-    const { accountsById } = useAuth();
-    const { checkAvailabilityAlerts, checkPriceAlerts } = useActivity();
+    const { accountsById, accounts } = useAuth();
+    const { checkAvailabilityAlerts, checkPriceAlerts, addNotification } = useActivity();
     
     // Use LargePersistentState for posts (images/content)
     const [rawPosts, setRawPosts] = useLargePersistentState<Post[]>(STORAGE_KEYS.POSTS, initialPosts);
@@ -115,8 +116,28 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const addPostSilently = useCallback((postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string): Post => {
         const newPost: Post = { ...postData, id: Date.now().toString(), isLiked: false, authorId };
         setRawPosts(prev => [newPost, ...prev]);
+        
+        // Notify followers
+        const author = accountsById.get(authorId);
+        if (author) {
+             const authorName = author.businessName || author.name;
+             const followers = accounts.filter(acc => acc.likedAccountIds?.includes(authorId));
+             
+             followers.forEach(follower => {
+                 if (follower.id !== authorId) {
+                     addNotification({
+                         recipientId: follower.id,
+                         message: `New post from ${authorName}: "${newPost.title}"`,
+                         type: 'liked_seller_active',
+                         postId: newPost.id,
+                         relatedAccountId: authorId,
+                     });
+                 }
+             });
+        }
+
         return newPost;
-    }, [setRawPosts]);
+    }, [setRawPosts, accounts, accountsById, addNotification]);
 
     const createPost = useCallback((postData: Omit<Post, 'id' | 'isLiked' | 'authorId'>, authorId: string): Post => {
         const newPost = addPostSilently(postData, authorId);

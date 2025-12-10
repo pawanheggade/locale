@@ -1,7 +1,8 @@
+
 import React, { useState, useMemo } from 'react';
 import { PostList } from './PostList';
 import { TabButton } from './ui/Button';
-import { HeartIcon } from './Icons';
+import { HeartIcon, UserIcon } from './Icons';
 import { EmptyState } from './EmptyState';
 import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,7 +53,7 @@ export const LikesView: React.FC = () => {
           <div>
             {postsFromLikedProfiles.length === 0 ? (
               <EmptyState
-                icon={<HeartIcon />}
+                icon={<UserIcon />}
                 title="No Posts from Liked Profiles"
                 description="Posts from sellers you like will appear here. Like some profiles to get started!"
                 className="py-20"

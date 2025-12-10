@@ -9,6 +9,7 @@ interface LikeButtonProps extends Omit<ButtonProps, 'onClick'> {
   onToggle: () => void;
   includeLabel?: boolean;
   iconClassName?: string;
+  icon?: React.FC<{ className?: string; isFilled?: boolean }>;
 }
 
 export const LikeButton: React.FC<LikeButtonProps> = ({ 
@@ -19,6 +20,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   size = 'icon', 
   includeLabel = false,
   iconClassName = "w-5 h-5",
+  icon: Icon = HeartIcon,
   children,
   ...props 
 }) => {
@@ -47,7 +49,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
       aria-pressed={isLiked}
       {...props}
     >
-      <HeartIcon isFilled={isLiked} className={iconClassName} />
+      <Icon isFilled={isLiked} className={iconClassName} />
       {includeLabel && <span>{isLiked ? 'Liked' : 'Like'}</span>}
       {children}
     </Button>

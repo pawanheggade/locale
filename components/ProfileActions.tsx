@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -14,7 +15,8 @@ import {
     XIcon, 
     InstagramIcon, 
     YouTubeIcon, 
-    ChevronDownIcon
+    ChevronDownIcon,
+    UserIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -44,7 +46,7 @@ const getSocialIcon = (platform: SocialPlatform) => {
     }
 };
 
-// Reusable list item
+// Reusable list item to reduce code duplication in dropdowns
 const DropdownItem: React.FC<{
     icon: React.ReactNode;
     label: string;
@@ -68,43 +70,145 @@ const DropdownItem: React.FC<{
     );
 };
 
-// Generic internal Dropdown component to handle state and outside clicks
-const ActionDropdown: React.FC<{
-    trigger: (isOpen: boolean, toggle: () => void) => React.ReactNode;
-    children: (close: () => void) => React.ReactNode;
-    align?: 'left' | 'right';
-    className?: string;
-}> = ({ trigger, children, align = 'right', className }) => {
+const ConnectDropdown = ({ 
+    contacts, 
+    socialLinks, 
+    onShare, 
+    onContactAction 
+}: { 
+    contacts: any[], 
+    socialLinks: SocialLink[],
+    onShare: () => void,
+    onContactAction: (e: React.MouseEvent, method: { toast: string }) => void 
+}) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     useClickOutside(menuRef, () => setIsOpen(false), isOpen);
 
-    const toggle = () => setIsOpen(!isOpen);
-    const close = () => setIsOpen(false);
+    const hasContacts = contacts && contacts.length > 0;
+    const hasSocials = socialLinks && socialLinks.length > 0;
+    const hasContent = hasContacts || hasSocials || !!onShare;
+    if (!hasContent) return null;
 
     return (
-        <div className={cn("relative", className)} ref={menuRef}>
-            {trigger(isOpen, toggle)}
+        <div className="relative" ref={menuRef}>
+            <Button
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                variant="outline"
+                size="icon"
+                title="More actions"
+                className={cn(
+                    "rounded-xl border-gray-300 text-gray-700",
+                    isOpen ? 'bg-gray-100' : ''
+                )}
+            >
+                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
+            </Button>
             {isOpen && (
-                <div className={cn(
-                    "absolute top-full mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden py-1",
-                    align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'
-                )}>
-                    {children(close)}
+                <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
+                    <div className="py-1">
+                        {hasContacts && contacts.map((method) => (
+                            <DropdownItem
+                                key={method.key}
+                                href={method.href}
+                                onClick={(e) => { onContactAction(e, method); setIsOpen(false); }}
+                                icon={<method.icon className="w-4 h-4" />}
+                                label={method.label}
+                            />
+                        ))}
+                        
+                        {hasContacts && (hasSocials || onShare) && <div className="my-1 h-px bg-gray-100" />}
+
+                        {hasSocials && socialLinks.map((link) => (
+                             <DropdownItem
+                                key={link.platform}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setIsOpen(false)}
+                                icon={getSocialIcon(link.platform)}
+                                label={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                            />
+                        ))}
+                        
+                        {hasSocials && onShare && <div className="my-1 h-px bg-gray-100" />}
+                        
+                        {onShare && (
+                            <DropdownItem
+                                onClick={(e) => { e.stopPropagation(); onShare(); setIsOpen(false); }}
+                                icon={<PaperAirplaneIcon className="w-4 h-4" />}
+                                label="Share"
+                            />
+                        )}
+                    </div>
                 </div>
             )}
         </div>
     );
 };
 
+const PrimaryContactDropdown = ({ 
+    methods, 
+    primaryLabel, 
+    primaryIcon: PrimaryIcon,
+    onSelect
+}: { 
+    methods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[],
+    primaryLabel: string,
+    primaryIcon: React.FC<any>,
+    onSelect: (key: string) => void
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    useClickOutside(menuRef, () => setIsOpen(false), isOpen);
+
+    if (!methods || methods.length === 0) return null;
+
+    return (
+        <div className="relative flex-1 sm:flex-none" ref={menuRef}>
+            <Button
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+                variant="pill-dark"
+                className="w-full sm:w-auto justify-center gap-2 px-6"
+            >
+                <PrimaryIcon className="w-5 h-5" />
+                <span>{primaryLabel}</span>
+                <ChevronDownIcon className="w-4 h-4 ml-1 opacity-70" />
+            </Button>
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-left">
+                    <div className="py-1">
+                        {methods.map((method) => (
+                            <DropdownItem
+                                key={method.key}
+                                onClick={(e) => { 
+                                    e.preventDefault();
+                                    e.stopPropagation(); 
+                                    onSelect(method.key); 
+                                    setIsOpen(false); 
+                                }}
+                                icon={<method.icon className="w-4 h-4" />}
+                                label={method.label}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
     socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike
 }) => {
     
+    // Local state to allow owner to switch the visible primary contact for preview
     const [activeContactKey, setActiveContactKey] = useState<string | null>(null);
+
     const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
 
+    // Calculate Primary Contact
     // Priority: User Selected > Message > Mobile > Email
     const primaryContact = 
         contactMethods.find(m => m.key === activeContactKey) || 
@@ -112,20 +216,20 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         contactMethods.find(m => m.key === 'mobile') || 
         contactMethods.find(m => m.key === 'email');
     
+    // Ensure activeContactKey is valid if methods change
     useEffect(() => {
         if (activeContactKey && !contactMethods.some(m => m.key === activeContactKey)) {
             setActiveContactKey(null);
         }
     }, [contactMethods, activeContactKey]);
 
+    // Filter out primary from the list to show remaining as secondary icons
     const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
-    const hasSocials = socialLinks && socialLinks.length > 0;
-    const hasMoreActions = secondaryContacts.length > 0 || hasSocials || !!onShare;
 
     return (
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 w-full">
             
-            {/* Left-aligned actions */}
+            {/* Left-aligned actions (for everyone) */}
             <div className="flex flex-wrap gap-2 w-full sm:w-auto items-stretch">
                 <LikeButton 
                     isLiked={isLiked} 
@@ -134,41 +238,16 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
                     includeLabel 
                     iconClassName="w-5 h-5"
+                    icon={UserIcon}
                 />
                 
                 {primaryContact && (
                     isOwnAccount && contactMethods.length > 1 ? (
-                        <ActionDropdown
-                            className="flex-1 sm:flex-none"
-                            align="left"
-                            trigger={(isOpen, toggle) => (
-                                <Button
-                                    onClick={(e) => { e.stopPropagation(); toggle(); }}
-                                    variant="pill-dark"
-                                    className="w-full sm:w-auto justify-center gap-2 px-6"
-                                >
-                                    <primaryContact.icon className="w-5 h-5" />
-                                    <span>{primaryContact.label}</span>
-                                    <ChevronDownIcon className="w-4 h-4 ml-1 opacity-70" />
-                                </Button>
-                            )}
-                            children={(close) => (
-                                <>
-                                    {contactMethods.map((method) => (
-                                        <DropdownItem
-                                            key={method.key}
-                                            onClick={(e) => { 
-                                                e.preventDefault();
-                                                e.stopPropagation(); 
-                                                setActiveContactKey(method.key); 
-                                                close(); 
-                                            }}
-                                            icon={<method.icon className="w-4 h-4" />}
-                                            label={method.label}
-                                        />
-                                    ))}
-                                </>
-                            )}
+                        <PrimaryContactDropdown 
+                            methods={contactMethods} 
+                            primaryLabel={primaryContact.label}
+                            primaryIcon={primaryContact.icon}
+                            onSelect={setActiveContactKey}
                         />
                     ) : (
                         <Button
@@ -185,62 +264,12 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                         </Button>
                     )
                 )}
-
-                {hasMoreActions && (
-                    <ActionDropdown
-                        trigger={(isOpen, toggle) => (
-                            <Button
-                                onClick={(e) => { e.stopPropagation(); toggle(); }}
-                                variant="outline"
-                                size="icon"
-                                title="More actions"
-                                className={cn(
-                                    "rounded-xl border-gray-300 text-gray-700",
-                                    isOpen ? 'bg-gray-100' : ''
-                                )}
-                            >
-                                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
-                            </Button>
-                        )}
-                        children={(close) => (
-                            <>
-                                {secondaryContacts.map((method) => (
-                                    <DropdownItem
-                                        key={method.key}
-                                        href={method.href}
-                                        onClick={(e) => { onContactAction(e, method); close(); }}
-                                        icon={<method.icon className="w-4 h-4" />}
-                                        label={method.label}
-                                    />
-                                ))}
-                                
-                                {secondaryContacts.length > 0 && (hasSocials || onShare) && <div className="my-1 h-px bg-gray-100" />}
-
-                                {hasSocials && socialLinks.map((link) => (
-                                     <DropdownItem
-                                        key={link.platform}
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={() => close()}
-                                        icon={getSocialIcon(link.platform)}
-                                        label={link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
-                                    />
-                                ))}
-                                
-                                {hasSocials && onShare && <div className="my-1 h-px bg-gray-100" />}
-                                
-                                {onShare && (
-                                    <DropdownItem
-                                        onClick={(e) => { e.stopPropagation(); onShare(); close(); }}
-                                        icon={<PaperAirplaneIcon className="w-4 h-4" />}
-                                        label="Share"
-                                    />
-                                )}
-                            </>
-                        )}
-                    />
-                )}
+                 <ConnectDropdown 
+                    contacts={secondaryContacts}
+                    socialLinks={socialLinks}
+                    onShare={onShare}
+                    onContactAction={onContactAction}
+                />
             </div>
 
             {/* Right-aligned Owner Management Buttons */}
