@@ -222,7 +222,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
       {showHeader && (
-          <div className="p-3 border-b border-gray-100">
+          <div className="p-3 border-b border-gray-200/80">
             <PostAuthorInfo 
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}

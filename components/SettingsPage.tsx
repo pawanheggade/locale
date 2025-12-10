@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -53,7 +52,7 @@ export const SettingsPage: React.FC = () => {
                     />
                 
                     {settings.expiryAlertsEnabled && (
-                        <div className="pt-4 mt-4 border-t border-gray-200 animate-fade-in-down">
+                        <div className="pt-4 mt-4 border-t border-gray-200/80 animate-fade-in-down">
                             <label htmlFor="expiry-threshold" className="block text-sm font-medium text-gray-600">
                                 Notify me when an item will expire in:
                             </label>

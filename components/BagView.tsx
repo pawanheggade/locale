@@ -306,7 +306,7 @@ export const BagView: React.FC = () => {
           />
         ) : (
           <div className="bg-white rounded-xl overflow-hidden">
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gray-200/80">
               {inBagItems.map((item) => {
                 const { id, quantity } = item;
                 
@@ -331,7 +331,7 @@ export const BagView: React.FC = () => {
                 );
               })}
             </ul>
-            <div className="p-4 bg-gray-50 border-t text-right">
+            <div className="p-4 bg-gray-50 border-t border-gray-200/80 text-right">
               <p className="text-gray-600">Subtotal for active items:</p>
               <p className="text-2xl font-bold text-gray-800">{formatCurrency(total)}</p>
             </div>
@@ -411,7 +411,7 @@ export const BagView: React.FC = () => {
                         {itemsInList.length === 0 ? (
                           <div className="px-4 py-8 text-center text-gray-500">This list is empty.</div>
                         ) : (
-                          <ul className="divide-y divide-gray-200 border-t">
+                          <ul className="divide-y divide-gray-200/80 border-t border-gray-200/80">
                             {itemsInList.map((item) => {
                               const { id, quantity } = item;
                               

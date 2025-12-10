@@ -92,7 +92,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Activity</h1>
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200/80">
             <div className="flex space-x-6" role="tablist">
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'}>
                     Updates

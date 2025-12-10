@@ -186,7 +186,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                 </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t">
+            <div className="mt-8 pt-8 border-t border-gray-200/80">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <ChatBubbleEllipsisIcon className="w-6 h-6" />
                     {post.commentCount} Comments
