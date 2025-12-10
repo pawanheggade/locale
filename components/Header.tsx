@@ -1,11 +1,12 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, Squares2X2Icon, Squares3X3Icon, LogoIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CheckIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -311,7 +312,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="sm:hidden">
                       {view === 'all' && mainView === 'map' ? (
                           <Button onClick={() => onMainViewChange('grid')} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Grid View" title="Grid View">
-                              <Squares2X2Icon className="w-6 h-6" />
+                              <PostCardIcon className="w-6 h-6" />
                           </Button>
                       ) : (
                           <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Map View" title="Map View">
@@ -323,7 +324,7 @@ export const Header: React.FC<HeaderProps> = ({
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
                            <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
-                               <Squares2X2Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
+                               <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
                            </Button>
                            <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
                                <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />

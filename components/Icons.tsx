@@ -54,9 +54,12 @@ export const CloudSlashIcon = createIcon(<path strokeLinecap="round" strokeLinej
 export const Cog6ToothIcon = createIcon(<><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></>);
 export const CrosshairsIcon = createIcon(<><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75a3 3 0 116 0 3 3 0 01-6 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-2.25m0-13.5V3M21 12h-2.25m-13.5 0H3" /></>);
 export const EllipsisVerticalIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />);
+
+const MagnifyingGlassPath = <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />;
+
 export const AIIcon = createIcon(
   <>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+    {MagnifyingGlassPath}
     <text x="10.5" y="13.5" fontSize="8.5" fontWeight="900" textAnchor="middle" fill="currentColor" stroke="none">AI</text>
   </>
 );
@@ -147,9 +150,15 @@ export const PencilIcon = createIcon(<path strokeLinecap="round" strokeLinejoin=
 export const PinIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 2a5 5 0 0 0-5 5v2.5l-1.5 2V13h5.5v8l1 1 1-1v-8h5.5v-1.5l-1.5-2v-2.5A5 5 0 0 0 12 2z" />);
 export const BellIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />);
 export const XMarkIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />);
-export const ZoomInIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6" />);
-export const ZoomOutIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM13.5 10.5h-6" />);
-export const SearchIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />);
+export const ZoomInIcon = createIcon(<>
+    {MagnifyingGlassPath}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 7.5v6m3-3h-6" />
+</>);
+export const ZoomOutIcon = createIcon(<>
+    {MagnifyingGlassPath}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5h-6" />
+</>);
+export const SearchIcon = createIcon(<>{MagnifyingGlassPath}</>);
 export const PlusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />);
 export const MinusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />);
 export const XCircleIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />);
@@ -190,6 +199,20 @@ export const EnvelopeIcon = createIcon(<path strokeLinecap="round" strokeLinejoi
 export const GlobeAltIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />);
 export const LockClosedIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0V10.5m-2.146.327c-.62.392-1.003 1.086-1.003 1.836v6.635c0 .85.69 1.572 1.553 1.572h12.192c.863 0 1.553-.721 1.553-1.572V12.663c0-.75-.383-1.444-1.003-1.836l-1.25-.784a1.572 1.572 0 0 0-1.69 0l-1.25.784a1.572 1.572 0 0 0-.742 1.337v1.34c0 .444.356.806.799.806h.412a.806.806 0 0 0 .806-.799v-1.348c0-.19-.06-.374-.17-.524M9.75 6.75a2.25 2.25 0 0 1 4.5 0v3.75h-4.5V6.75Z" />);
 export const PhotoIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />);
+
+export const PostCardIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
+    <Icon className={className} title={title} isFilled={isFilled} {...props}>
+      {isFilled ? (
+          <path fillRule="evenodd" clipRule="evenodd" d="M2.25 4.5A2.25 2.25 0 0 1 4.5 2.25h15A2.25 2.25 0 0 1 21.75 4.5v15A2.25 2.25 0 0 1 19.5 21.75h-15A2.25 2.25 0 0 1 2.25 19.5v-15ZM4.5 9.75V4.5h15v5.25H4.5Z" />
+      ) : (
+          <>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 10.5h16.5" />
+          </>
+      )}
+    </Icon>
+);
+
 export const Squares3X3Icon = createIcon(
   <>
     <rect x="3" y="3" width="5" height="5" rx="1" />
@@ -203,15 +226,6 @@ export const Squares3X3Icon = createIcon(
     <rect x="16" y="16" width="5" height="5" rx="1" />
   </>
 );
-export const Squares2X2Icon = createIcon(
-  <>
-    <rect x="3" y="3" width="8" height="8" rx="1.5" />
-    <rect x="13" y="3" width="8" height="8" rx="1.5" />
-    <rect x="3" y="13" width="8" height="8" rx="1.5" />
-    <rect x="13" y="13" width="8" height="8" rx="1.5" />
-  </>
-);
-
 export const LogoIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"

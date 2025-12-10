@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform } from '../types';
-import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, Squares2X2Icon } from './Icons';
+import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -98,7 +98,7 @@ export const AccountView: React.FC = () => {
     
     // Posts Tab
     if (isOwnAccount || accountPosts.length > 0) {
-        tabs.push({ id: 'all', label: 'Posts', icon: <Squares2X2Icon className="w-6 h-6" /> });
+        tabs.push({ id: 'all', label: 'Posts', icon: <PostCardIcon className="w-6 h-6" /> });
     }
     
     // Forums Tab
@@ -465,7 +465,7 @@ export const AccountView: React.FC = () => {
                             ) : (
                             (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
                                 <EmptyState
-                                    icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <Squares2X2Icon />}
+                                    icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <PostCardIcon />}
                                     title={
                                         activeTab === 'archives' ? "No Archived Posts" :
                                         activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
@@ -483,7 +483,7 @@ export const AccountView: React.FC = () => {
                                 />
                             ) : (
                                 <EmptyState
-                                    icon={<Squares2X2Icon />}
+                                    icon={<PostCardIcon />}
                                     title={`No items in ${activeTab}`}
                                     description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
                                     className="py-20"

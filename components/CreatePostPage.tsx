@@ -541,7 +541,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
             onCancel={onBack}
             submitFormId="create-post-form"
             isLoading={isSubmitting}
-            submitText={isEditing ? 'Save Changes' : 'Publish Post'}
+            submitText={isEditing ? 'Save Changes' : 'Post'}
           />
       )}
     </div>
