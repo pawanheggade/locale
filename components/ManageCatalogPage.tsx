@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, DragEvent } from 'react';
 import { Account, CatalogItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,12 +8,11 @@ import { cn } from '../lib/utils';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { Input } from './ui/Input';
 import { useNavigation } from '../contexts/NavigationContext';
+import { FixedPageFooter } from './FixedPageFooter';
 
-// FIX: Remove props interface.
 interface ManageCatalogPageProps {}
 
 export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
-  // FIX: Get account from context.
   const { viewingAccount: account } = useNavigation();
   const { addCatalogItems, updateAccountDetails } = useAuth();
   const { handleBack } = useNavigation();
@@ -20,16 +20,13 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const showConfirmation = useConfirmationModal();
 
-  // Edit State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ name: '', url: '' });
 
-  // Drag State
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragItem = useRef<number | null>(null);
 
-  // FIX: Add guard clause for when account is not available.
   if (!account) {
     return <div className="p-8 text-center">Account not found.</div>;
   }
@@ -79,18 +76,15 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
       setEditingId(null);
   };
 
-  // Drag Handlers
   const handleDragStart = (e: DragEvent<HTMLLIElement>, index: number) => {
       dragItem.current = index;
       setDraggedIndex(index);
-      // Required for Firefox
       e.dataTransfer.setData('text/plain', index.toString());
       e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: DragEvent<HTMLLIElement>, index: number) => {
       e.preventDefault();
-      // Only update drop target if we are dragging a valid item and it's not the same index
       if (dragItem.current !== null && dragItem.current !== index) {
           setDragOverIndex(index);
       }
@@ -121,8 +115,8 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="animate-fade-in-down pb-28">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Catalog</h1>
           <div className="space-y-6">
@@ -234,15 +228,11 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
           </div>
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-        <div className="bg-white border-t border-gray-100">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6">
-            <div className="py-3 flex items-center justify-end">
-              <Button onClick={handleBack} size="lg" variant="pill-red">Done</Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <FixedPageFooter
+        onCancel={handleBack}
+        submitText="Done"
+        onSubmit={handleBack}
+      />
     </div>
   );
 };

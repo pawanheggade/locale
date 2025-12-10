@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -18,12 +19,11 @@ import { MediaUploader } from './MediaUploader';
 import { usePosts } from '../contexts/PostsContext';
 import { FormField } from './FormField';
 import { STORAGE_KEYS } from '../lib/constants';
-// FIX: Import context hooks
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
+import { FixedPageFooter } from './FixedPageFooter';
 
 
-// FIX: Update props to remove direct dependencies
 interface CreatePostPageProps {}
 
 const TITLE_MAX_LENGTH = 100;
@@ -85,7 +85,6 @@ function formReducer(state: FormState, action: Action): FormState {
 
 
 export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
-  // FIX: Use context hooks for navigation and data
   const { handleBack: onBack, navigateTo, viewingPostId: editingPostId } = useNavigation();
   const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
   const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
@@ -299,12 +298,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
     
     if (isEditing && onUpdatePost && editingPost) {
         const updatedPost = await onUpdatePost({ ...editingPost, ...postData, lastUpdated: Date.now() });
-        // FIX: Pass postId to navigateTo for a better UX after editing.
         navigateTo('all', { postId: updatedPost.id }); // Navigate home after edit
     } else if (onSubmitPost && currentAccount) {
         const newPost = onSubmitPost(postData, currentAccount.id);
         localStorage.removeItem(STORAGE_KEYS.POST_DRAFT);
-        // FIX: Pass postId to navigateTo for a better UX after creating a post.
         navigateTo('all', { postId: newPost.id }); // Navigate home after create
     }
   };
@@ -318,8 +315,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="animate-fade-in-down pb-28">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
           {showMapPicker ? (
           <LocationPickerMap
               initialCoordinates={type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates}
@@ -379,7 +376,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField id="post-type" label="Type">
                           <Select value={type} onChange={e => setField('type', e.target.value as PostType)}>
-                              {/* FIX: Add explicit string type to iterator to fix TS error */}
                               {Object.values(PostType).map((t: string) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
                           </Select>
                       </FormField>
@@ -451,66 +447,64 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       </FormField>
                   )}
 
-                  <div className="space-y-4 pt-6 mt-6 border-t border-gray-200/80">
-                      {type === PostType.EVENT ? (
-                          <>
-                              <FormField id="event-location" label="Event Location" error={errors.eventLocation || eventLocationInput.error}>
-                                  <LocationInput 
-                                      value={eventLocationInput.location}
-                                      onValueChange={eventLocationInput.setLocation}
-                                      onSuggestionSelect={eventLocationInput.selectSuggestion}
-                                      onVerify={eventLocationInput.verify}
-                                      onOpenMapPicker={() => setShowMapPicker(true)}
-                                      suggestions={eventLocationInput.suggestions}
-                                      status={eventLocationInput.status}
-                                      placeholder="e.g., Address or Venue Name"
-                                  />
+                  {type === PostType.EVENT ? (
+                      <div className="space-y-4 pt-4 border-t">
+                          <FormField id="event-location" label="Event Location" error={errors.eventLocation || eventLocationInput.error}>
+                              <LocationInput 
+                                  value={eventLocationInput.location}
+                                  onValueChange={eventLocationInput.setLocation}
+                                  onSuggestionSelect={eventLocationInput.selectSuggestion}
+                                  onVerify={eventLocationInput.verify}
+                                  onOpenMapPicker={() => setShowMapPicker(true)}
+                                  suggestions={eventLocationInput.suggestions}
+                                  status={eventLocationInput.status}
+                                  placeholder="e.g., Address or Venue Name"
+                              />
+                          </FormField>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
+                                  <Input type="datetime-local" value={eventStartDate} onChange={e => setField('eventStartDate', e.target.value)} required />
                               </FormField>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <FormField id="event-start-date" label="Start Date & Time" error={errors.eventStartDate}>
-                                      <Input type="datetime-local" value={eventStartDate} onChange={e => setField('eventStartDate', e.target.value)} required />
-                                  </FormField>
-                                  <FormField id="event-end-date" label="End Date & Time (Optional)">
-                                      <Input type="datetime-local" value={eventEndDate} onChange={e => setField('eventEndDate', e.target.value)} min={eventStartDate} />
-                                  </FormField>
-                              </div>
-                          </>
-                      ) : (
-                          <>
-                              <FormField id="post-location" label="Item Location" error={errors.location || locationInput.error}>
-                                  <LocationInput 
-                                      value={locationInput.location}
-                                      onValueChange={locationInput.setLocation}
-                                      onSuggestionSelect={locationInput.selectSuggestion}
-                                      onVerify={locationInput.verify}
-                                      onOpenMapPicker={() => setShowMapPicker(true)}
-                                      suggestions={locationInput.suggestions}
-                                      status={locationInput.status}
-                                      placeholder="e.g., City, Neighborhood"
-                                  />
+                              <FormField id="event-end-date" label="End Date & Time (Optional)">
+                                  <Input type="datetime-local" value={eventEndDate} onChange={e => setField('eventEndDate', e.target.value)} min={eventStartDate} />
                               </FormField>
-                              <div className="flex items-center">
-                                  <input
-                                      id="has-expiry"
-                                      type="checkbox"
-                                      checked={hasExpiry}
-                                      onChange={e => setField('hasExpiry', e.target.checked)}
-                                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                  />
-                                  <label htmlFor="has-expiry" className="ml-2 block text-sm font-medium text-gray-700">
-                                      Set an expiry date
-                                  </label>
-                              </div>
-                              {hasExpiry && (
-                                  <FormField id="post-expiry-date" label="Expiry Date" error={errors.expiryDate} className="animate-fade-in-down">
-                                      <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} required min={toDateTimeLocal(Date.now())} />
-                                  </FormField>
-                              )}
-                          </>
-                      )}
-                  </div>
+                          </div>
+                      </div>
+                  ) : (
+                      <div className="space-y-4 pt-4 border-t">
+                          <FormField id="post-location" label="Item Location" error={errors.location || locationInput.error}>
+                              <LocationInput 
+                                  value={locationInput.location}
+                                  onValueChange={locationInput.setLocation}
+                                  onSuggestionSelect={locationInput.selectSuggestion}
+                                  onVerify={locationInput.verify}
+                                  onOpenMapPicker={() => setShowMapPicker(true)}
+                                  suggestions={locationInput.suggestions}
+                                  status={locationInput.status}
+                                  placeholder="e.g., City, Neighborhood"
+                              />
+                          </FormField>
+                          <div className="flex items-center">
+                              <input
+                                  id="has-expiry"
+                                  type="checkbox"
+                                  checked={hasExpiry}
+                                  onChange={e => setField('hasExpiry', e.target.checked)}
+                                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                              />
+                              <label htmlFor="has-expiry" className="ml-2 block text-sm font-medium text-gray-700">
+                                  Set an expiry date
+                              </label>
+                          </div>
+                          {hasExpiry && (
+                              <FormField id="post-expiry-date" label="Expiry Date" error={errors.expiryDate} className="animate-fade-in-down">
+                                  <Input type="datetime-local" value={expiryDate} onChange={e => setField('expiryDate', e.target.value)} required min={toDateTimeLocal(Date.now())} />
+                              </FormField>
+                          )}
+                      </div>
+                  )}
 
-                  <div className="pt-6 mt-6 border-t border-gray-200/80">
+                  <div className="pt-4 border-t">
                       <div className="flex items-center gap-2 mb-1">
                           <Label htmlFor="post-tags">Tags</Label>
                           <Button type="button" size="xs" variant="outline" onClick={handleSuggestTags} isLoading={isSuggestingTags}>
@@ -543,18 +537,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         )}
       </div>
       {!showMapPicker && (
-          <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-              <div className="bg-white border-t border-gray-100">
-                  <div className="max-w-2xl mx-auto px-4 sm:px-6">
-                      <div className="py-3 flex items-center gap-3">
-                          <Button variant="overlay-dark" onClick={onBack} className="mr-auto">Cancel</Button>
-                          <Button type="submit" form="create-post-form" isLoading={isSubmitting} size="lg" variant="pill-red">
-                              {isEditing ? 'Save Changes' : 'Publish Post'}
-                          </Button>
-                      </div>
-                  </div>
-              </div>
-          </div>
+          <FixedPageFooter
+            onCancel={onBack}
+            submitFormId="create-post-form"
+            isLoading={isSubmitting}
+            submitText={isEditing ? 'Save Changes' : 'Publish Post'}
+          />
       )}
     </div>
   );
