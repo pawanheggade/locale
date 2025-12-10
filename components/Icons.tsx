@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Generic base Icon component to reduce boilerplate
@@ -210,7 +211,7 @@ export const Squares2X2Icon = createIcon(
   </>
 );
 
-export const LogoIcon: React.FC<IconProps> = ({ className, title, ...props }) => (
+export const LogoIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"

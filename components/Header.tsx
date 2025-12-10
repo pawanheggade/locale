@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -193,7 +194,7 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
                 <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
@@ -232,69 +233,29 @@ export const Header: React.FC<HeaderProps> = ({
         'bg-white/80 backdrop-blur-md border-b border-gray-200',
         !isVisible && '-translate-y-full'
       )}>
-        {/* Main Header */}
+        {/* Main Header - Revised Layout: Search Left | Logo Center | Account Right */}
         <div className={cn(
-            'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_minmax(0,42rem)_1fr] items-center gap-1 sm:gap-6 md:gap-8 transition-all duration-300',
+            'px-4 sm:px-6 lg:px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4 transition-all duration-300',
             isScrolled ? 'h-14' : 'h-16'
         )}>
           
-          {/* Left Section */}
-          <div className="flex items-center gap-2 shrink-0 col-start-1 justify-self-start">
+          {/* Left Section: Search & Back */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 col-start-1 justify-self-start w-full">
               {onBack && (
                 <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
                   <ChevronLeftIcon className="w-6 h-6" />
                 </Button>
               )}
-              <Logo onClick={handleLogoClick} />
-              {showNavDropdown && (
-                  <div className="relative" ref={navDropdownRef}>
-                      <Button
-                          onClick={() => setIsNavDropdownOpen(prev => !prev)}
-                          variant="overlay-dark"
-                          size="icon-sm"
-                          className="!rounded-xl"
-                          aria-label="Open navigation menu"
-                      >
-                          <ChevronDownIcon className={cn("w-5 h-5 transition-transform", isNavDropdownOpen && "rotate-180")} />
-                      </Button>
-                      {isNavDropdownOpen && (
-                           <div className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 p-1 animate-zoom-in">
-                               {navItems.map(item => (
-                                  <li key={item.view} className="list-none">
-                                      <Button
-                                          onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
-                                          variant="ghost"
-                                          className={cn(
-                                              "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
-                                              view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
-                                          )}
-                                      >
-                                          <div className="flex items-center gap-2 w-full">
-                                              {React.cloneElement(item.icon, { isFilled: view === item.view })}
-                                              {item.label}
-                                          </div>
-                                      </Button>
-                                  </li>
-                               ))}
-                           </div>
-                      )}
-                  </div>
-              )}
-          </div>
-          
-          {/* Center Section */}
-          <div className="flex justify-center min-w-0 col-start-2">
-              {/* Mobile Mini Search Bar */}
-              <div 
-                  className="sm:hidden flex items-center justify-center bg-gray-100 border border-gray-200/80 rounded-xl h-10 px-4 w-full"
-                  onClick={() => setIsMobileSearchOpen(true)}
-              >
-                  <SearchIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600 ml-2 truncate">{placeholder}</span>
+              
+              {/* Mobile Search Icon */}
+              <div className="sm:hidden">
+                 <Button onClick={() => setIsMobileSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
+                    <SearchIcon className="w-6 h-6" />
+                 </Button>
               </div>
 
-              {/* Desktop Search Bar & Filter */}
-              <div className="hidden sm:flex items-center w-full">
+              {/* Desktop Search Bar */}
+              <div className="hidden sm:flex items-center w-full max-w-md">
                   <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -313,8 +274,49 @@ export const Header: React.FC<HeaderProps> = ({
                   />
               </div>
           </div>
+          
+          {/* Center Section: Logo & Nav Dropdown */}
+          <div className="flex items-center justify-center gap-1 col-start-2 justify-self-center pointer-events-auto">
+               <Logo onClick={handleLogoClick} />
+               {showNavDropdown && (
+                  <div className="relative" ref={navDropdownRef}>
+                      <Button
+                          onClick={() => setIsNavDropdownOpen(prev => !prev)}
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-gray-400 hover:text-gray-700 rounded-full w-6 h-6"
+                          aria-label="Open navigation menu"
+                      >
+                          <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                      </Button>
+                      {isNavDropdownOpen && (
+                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                               <ul className="flex flex-col gap-0.5">
+                               {navItems.map(item => (
+                                  <li key={item.view} className="list-none">
+                                      <Button
+                                          onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
+                                          variant="ghost"
+                                          className={cn(
+                                              "w-full justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                              view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
+                                          )}
+                                      >
+                                          <div className="flex items-center gap-3">
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: view === item.view, className: "w-5 h-5" })}
+                                              {item.label}
+                                          </div>
+                                      </Button>
+                                  </li>
+                               ))}
+                               </ul>
+                           </div>
+                      )}
+                  </div>
+              )}
+          </div>
 
-          {/* Right Section */}
+          {/* Right Section: Account & Tools */}
           <div className="flex items-center gap-2 shrink-0 col-start-3 justify-self-end">
               {/* MOBILE MAP/GRID TOGGLE */}
               <div className="sm:hidden">
