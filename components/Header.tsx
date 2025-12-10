@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -70,6 +69,15 @@ export const Header: React.FC<HeaderProps> = ({
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
   useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
+  const prevSearchQueryRef = useRef(filterState.searchQuery);
+  useEffect(() => {
+    // If search query changes from something to nothing (i.e., cleared), close the search bar.
+    if (prevSearchQueryRef.current && !filterState.searchQuery) {
+      setIsSearchOpen(false);
+    }
+    prevSearchQueryRef.current = filterState.searchQuery;
+  }, [filterState.searchQuery]);
+
   useEffect(() => {
     if (isSearchOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -97,13 +105,11 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleFormSubmit = (query: string) => {
     onSearchSubmit(query);
-    setIsSearchOpen(false);
   };
 
   const handleAiSearchSubmitWithHistory = (query: string) => {
       onSearchSubmit(query);
       handleAiSearchSubmit(query);
-      setIsSearchOpen(false);
   };
 
   const handleLogoClick = () => {
