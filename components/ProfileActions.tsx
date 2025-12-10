@@ -16,7 +16,7 @@ import {
     InstagramIcon, 
     YouTubeIcon, 
     ChevronDownIcon,
-    UserIcon
+    UserPlusIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -238,7 +238,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     className="flex-1 sm:flex-none sm:w-auto justify-center gap-2 px-6" 
                     includeLabel 
                     iconClassName="w-5 h-5"
-                    icon={UserIcon}
+                    icon={UserPlusIcon}
                 />
                 
                 {primaryContact && (

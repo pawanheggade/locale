@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon, UserIcon } from './Icons';
+import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon, UserPlusIcon } from './Icons';
 import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -32,35 +32,6 @@ interface PostCardProps {
   isInitiallyExpanded?: boolean;
   variant?: 'default' | 'compact';
 }
-
-// Extracted for performance
-const LocationElement = React.memo(({ 
-    location, 
-    coords, 
-    onMapClick 
-}: { 
-    location: string, 
-    coords: { lat: number, lng: number } | null | undefined, 
-    onMapClick: (e: React.MouseEvent | React.KeyboardEvent) => void 
-}) => (
-     <div
-        className={cn(
-            "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            'text-red-400',
-            coords ? "cursor-pointer group" : ""
-        )}
-        onClick={coords ? onMapClick as any : undefined}
-        role={coords ? "button" : undefined}
-        tabIndex={coords ? 0 : undefined}
-        onKeyDown={coords ? onMapClick as any : undefined}
-        title={coords ? "View on Map" : undefined}
-     >
-        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0")} />
-        <span className={cn("truncate text-xs", coords ? "underline-offset-2" : "")}>
-            {location}
-        </span>
-     </div>
-));
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false, variant = 'default' }) => {
   const { navigateTo, showOnMap } = useNavigation();
@@ -135,11 +106,36 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     }
   };
 
-  const handleMapClick = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      showOnMap(post.id);
-  }, [post.id, showOnMap]);
+  const LocationElement = () => (
+     <div
+        className={cn(
+            "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            'text-red-400',
+            coordsToUse ? "cursor-pointer group" : ""
+        )}
+        onClick={(e) => {
+            if (coordsToUse) {
+                e.stopPropagation();
+                showOnMap(post.id);
+            }
+        }}
+        role={coordsToUse ? "button" : undefined}
+        tabIndex={coordsToUse ? 0 : undefined}
+        onKeyDown={(e: React.KeyboardEvent) => {
+            if ((e.key === 'Enter' || e.key === ' ') && coordsToUse) {
+                e.preventDefault();
+                e.stopPropagation();
+                showOnMap(post.id);
+            }
+        }}
+        title={coordsToUse ? "View on Map" : undefined}
+     >
+        <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0")} />
+        <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
+            {locationToDisplay}
+        </span>
+     </div>
+  );
 
   const ExpiryElement = post.type === PostType.EVENT && post.eventStartDate ? (
      <div className={cn("flex items-center gap-2", 'text-sm', 'text-gray-600')}>
@@ -183,7 +179,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 author={post.author!}
                 variant="default"
                 subscriptionBadgeIconOnly={true}
-                location={<LocationElement location={locationToDisplay} coords={coordsToUse} onMapClick={handleMapClick} />}
+                location={<LocationElement />}
               >
                   <PostActionsDropdown 
                       post={post} 
@@ -230,7 +226,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             <PostAuthorInfo 
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}
-                location={<LocationElement location={locationToDisplay} coords={coordsToUse} onMapClick={handleMapClick} />}
+                location={<LocationElement />}
             >
                 {isOwnPost ? (
                     !isArchived && (
@@ -277,7 +273,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 isProfileLiked ? "text-red-600" : "text-gray-400"
                             )}
                             iconClassName="w-5 h-5"
-                            icon={UserIcon}
+                            icon={UserPlusIcon}
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
                             title={isProfileLiked ? "Liked" : "Like profile"}
                         />
@@ -456,7 +452,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
 
           {/* Location & Expiry/Date Info */}
           <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-1 mt-2">
-            {!showHeader && <LocationElement location={locationToDisplay} coords={coordsToUse} onMapClick={handleMapClick} />}
+            {!showHeader && <LocationElement />}
             {ExpiryElement}
           </div>
 
