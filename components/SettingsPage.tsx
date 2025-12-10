@@ -1,22 +1,21 @@
+
 import React from 'react';
-import { NotificationSettings, Account } from '../types';
+import { useAuth } from '../contexts/AuthContext';
+import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { SettingsSection } from './SettingsSection';
 import { SettingsRow } from './SettingsRow';
 import { Switch } from './ui/Switch';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
-interface SettingsPageProps {
-  settings: NotificationSettings;
-  onSettingsChange: (newSettings: NotificationSettings) => void;
-  onArchiveAccount: () => void;
-  onSignOut: () => void;
-  currentAccount: Account;
-}
-
-export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettingsChange, onArchiveAccount, onSignOut, currentAccount }) => {
+// This component is now a self-contained View
+export const SettingsPage: React.FC = () => {
+  const { currentAccount, toggleAccountStatus, signOut } = useAuth();
+  const { settings, onSettingsChange } = useActivity();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
+
+  if (!currentAccount) return null;
 
   const isSeller = currentAccount.subscription.tier !== 'Personal';
   
@@ -24,10 +23,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
     showConfirmation({
       title: 'Sign Out',
       message: 'Are you sure you want to sign out?',
-      onConfirm: onSignOut,
+      onConfirm: signOut,
       confirmText: 'Sign Out',
       confirmClassName: 'bg-red-600 text-white',
     });
+  };
+
+  const handleArchiveAccount = () => {
+    toggleAccountStatus(currentAccount.id, false);
   };
 
   return (
@@ -81,7 +84,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ settings, onSettings
                     variant="destructive"
                 />
                 <SettingsRow
-                    onClick={onArchiveAccount}
+                    onClick={handleArchiveAccount}
                     title="Archive Account"
                     description="Temporarily deactivate your account. You can reactivate it later."
                     variant="warning"

@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
-import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon } from './Icons';
+import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon } from './Icons';
 import { Button } from './ui/Button';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -88,8 +89,6 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
         closeMenu();
     };
 
-    const iconClass = "w-5 h-5";
-
     return (
         <div ref={accountMenuRef}>
             <Button
@@ -136,6 +135,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => onViewChange('bag'))} icon={<ShoppingBagIcon className="w-5 h-5 text-gray-700" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5 text-gray-700" />} label="Activity" badgeCount={activityCount} />
+                            <MenuItem onClick={() => handleMenuAction(() => onViewChange('settings'))} icon={<Cog6ToothIcon className="w-5 h-5 text-gray-700" />} label="Settings" />
                         </div>
 
                         {currentAccount.role === 'admin' && (

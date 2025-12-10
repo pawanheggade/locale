@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
@@ -10,7 +11,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { ModalRenderer } from './components/ModalRenderer';
+import { AppModals } from './AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -33,7 +34,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
 ];
 
 export const App: React.FC = () => {
@@ -250,12 +251,9 @@ export const App: React.FC = () => {
   }, [currentAccount, view, handleGoHome]);
 
   const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
-      if (view !== 'all') {
-          navigateTo('all');
-      }
       pushHistoryState();
       setMainView(newMainView);
-  }, [pushHistoryState, view, navigateTo]);
+  }, [pushHistoryState]);
 
   const showOnMap = useCallback((target: string | Account) => {
     const isPostId = typeof target === 'string';
@@ -431,7 +429,7 @@ export const App: React.FC = () => {
           ref={mainContentRef}
           onScroll={handleScroll}
           className={cn(
-            'flex-1 w-full',
+            'flex-1',
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
               : 'overflow-y-auto pt-16', // default
@@ -464,7 +462,7 @@ export const App: React.FC = () => {
           </div>
         </main>
         
-        <ModalRenderer 
+        <AppModals 
           activeModal={activeModal} 
           closeModal={closeModal}
           openModal={openModal}
