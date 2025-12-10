@@ -69,15 +69,6 @@ export const Header: React.FC<HeaderProps> = ({
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
   useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
-  const prevSearchQueryRef = useRef(filterState.searchQuery);
-  useEffect(() => {
-    // If search query changes from something to nothing (i.e., cleared), close the search bar.
-    if (prevSearchQueryRef.current && !filterState.searchQuery) {
-      setIsSearchOpen(false);
-    }
-    prevSearchQueryRef.current = filterState.searchQuery;
-  }, [filterState.searchQuery]);
-
   useEffect(() => {
     if (isSearchOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -116,11 +107,16 @@ export const Header: React.FC<HeaderProps> = ({
       onGoHome();
   };
   
-  const handleClearSearch = () => {
+  const handleClearSearchText = () => {
     dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: '' });
     if (filterState.isAiSearchEnabled) {
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: null });
     }
+  };
+
+  const handleExitSearch = () => {
+      onClearFilters();
+      setIsSearchOpen(false);
   };
 
   const navItems = [
@@ -229,11 +225,11 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex-1 flex items-center gap-2">
               <Button
                   type="button"
-                  onClick={() => setIsSearchOpen(false)}
+                  onClick={handleExitSearch}
                   variant="ghost"
                   size="icon"
                   className="text-gray-500 rounded-xl shrink-0 -ml-2"
-                  aria-label="Close search"
+                  aria-label="Exit search and clear filters"
               >
                   <ChevronLeftIcon className="w-6 h-6" />
               </Button>
@@ -249,7 +245,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClearRecentSearches={onClearRecentSearches}
                   onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                   isAiSearching={filterState.isAiSearching}
-                  onCancelSearch={() => setIsSearchOpen(false)}
+                  onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
                   autoFocus
                   aiButton={renderAiButton()}
                   hideSearchIcon={true}
