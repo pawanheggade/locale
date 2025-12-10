@@ -10,10 +10,7 @@ import { usePosts } from '../contexts/PostsContext';
 // FIX: Import useNavigation hook.
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Remove props interface.
-interface AccountAnalyticsViewProps {}
-
-export const AccountAnalyticsView: React.FC<AccountAnalyticsViewProps> = () => {
+export const AccountAnalyticsView: React.FC = () => {
   // FIX: Get account from context.
   const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts } = useAuth();

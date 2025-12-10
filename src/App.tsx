@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
@@ -11,7 +10,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { AppModals } from './AppModals';
+import { ModalRenderer } from './components/ModalRenderer';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -34,7 +33,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
 ];
 
 export const App: React.FC = () => {
@@ -115,7 +114,7 @@ export const App: React.FC = () => {
 
   const navigateTo = useCallback((
       newView: AppView,
-      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab } = {}
+      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView } = {}
   ) => {
       if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
           openModal({ type: 'login' });
@@ -154,6 +153,14 @@ export const App: React.FC = () => {
           setActivityInitialTab(options.activityTab);
       } else {
           setActivityInitialTab('notifications');
+      }
+
+      if (newView === 'admin' && options.adminView) {
+          setAdminInitialView(options.adminView);
+      } else {
+          if (newView !== 'admin') {
+             setAdminInitialView(undefined);
+          }
       }
 
       pushHistoryState();
@@ -402,9 +409,6 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading,
   };
 
-  // Identify views that handle their own scrolling or are full-screen overlays (no parent padding)
-  const isEditorView = useMemo(() => ['createPost', 'editPost', 'editProfile', 'manageCatalog', 'createForumPost', 'editAdminPage'].includes(view), [view]);
-  // Account view also needs full width for the header image
   const isFullWidthView = view === 'account';
 
   return (
@@ -416,7 +420,6 @@ export const App: React.FC = () => {
           onRemoveRecentSearch={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
           onClearRecentSearches={() => setRecentSearches([])}
           onGoHome={handleGoHome}
-          onRefresh={handleRefresh}
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
@@ -432,8 +435,7 @@ export const App: React.FC = () => {
             'flex-1',
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
-              : 'overflow-y-auto pt-16', // default
-            isEditorView && 'overflow-hidden' // Remove pt-0 to ensure it starts below header
+              : 'overflow-y-auto pt-16' // default for ALL other views
           )}
           {...touchHandlers}
         >
@@ -443,16 +445,12 @@ export const App: React.FC = () => {
               transform: `translateY(${pullPosition}px)`,
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
-            className="h-full" // Ensure wrapper is full height to pass to children if needed
+            className="h-full"
           >
-            {/* 
-                We remove the default padding for map, editors, AND account view. 
-                Account view manages its own layout (full width header, padded content).
-            */}
             <div className={cn(
               'relative z-0 w-full', 
-              (mainView === 'map' || isEditorView) && 'h-full',
-              !(mainView === 'map' || isEditorView || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
+              (mainView === 'map') && 'h-full',
+              !(mainView === 'map' || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
             )}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
@@ -463,14 +461,13 @@ export const App: React.FC = () => {
           </div>
         </main>
         
-        <AppModals 
+        <ModalRenderer 
           activeModal={activeModal} 
           closeModal={closeModal}
           openModal={openModal}
           isFindingNearby={isFindingNearby}
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
-          onSignOut={signOut}
           onEnableLocation={handleEnableLocation}
         />
         

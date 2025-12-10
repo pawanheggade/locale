@@ -7,10 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 // FIX: Import useNavigation hook to access context.
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Remove props interface.
-interface NearbyPostsViewProps {}
-
-export const NearbyPostsView: React.FC<NearbyPostsViewProps> = () => {
+export const NearbyPostsView: React.FC = () => {
   // FIX: Get result from context.
   const { nearbyPostsResult: result } = useNavigation();
   const { currentAccount } = useAuth();

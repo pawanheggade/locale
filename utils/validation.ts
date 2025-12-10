@@ -1,4 +1,4 @@
-import { Account, Subscription, PostType } from '../types';
+import { Account, PostType } from '../types';
 
 // Validates 10 digits, starting with 6, 7, 8, or 9 (Standard Mobile Format)
 export const PHONE_REGEX = /^[6-9]\d{9}$/;

@@ -21,7 +21,6 @@ interface HeaderProps {
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
   onGoHome: () => void;
-  onRefresh: () => void;
   viewingAccount: Account | null;
   isScrolled: boolean;
   isVisible: boolean;
@@ -37,7 +36,6 @@ export const Header: React.FC<HeaderProps> = ({
   onRemoveRecentSearch,
   onClearRecentSearches,
   onGoHome,
-  onRefresh,
   viewingAccount,
   isScrolled,
   isVisible,
@@ -125,9 +123,6 @@ export const Header: React.FC<HeaderProps> = ({
     { view: 'forums' as AppView, label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-5 h-5" /> },
     { view: 'likes' as AppView, label: 'Likes', icon: <HeartIcon className="w-5 h-5" /> },
   ];
-
-  const currentNavItem = navItems.find(item => item.view === view);
-  const currentNavLabel = currentNavItem?.label || 'Markets';
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },

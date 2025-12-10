@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import { Account } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { AccountForm } from './AccountForm';
-import { Button } from './ui/Button';
 import { useNavigation } from '../contexts/NavigationContext';
+import { FixedPageFooter } from './FixedPageFooter';
 
-// FIX: Remove props interface.
-interface EditProfilePageProps {}
-
-export const EditProfilePage: React.FC<EditProfilePageProps> = () => {
+export const EditProfilePage: React.FC = () => {
   // FIX: Get account from context.
   const { viewingAccount: account } = useNavigation();
   const { accounts: allAccounts, updateAccountDetails } = useAuth();
@@ -47,18 +44,12 @@ export const EditProfilePage: React.FC<EditProfilePageProps> = () => {
         </div>
       </div>
       {!isMapPickerOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-[100] animate-slide-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="bg-white border-t border-gray-100">
-                <div className="max-w-2xl mx-auto px-4 sm:px-6">
-                    <div className="py-3 flex items-center gap-3">
-                        <Button variant="overlay-dark" onClick={handleBack} className="mr-auto">Cancel</Button>
-                        <Button type="submit" form="edit-profile-form" isLoading={isSubmitting} size="lg" variant="pill-red">
-                            Save Changes
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <FixedPageFooter
+            onCancel={handleBack}
+            submitFormId="edit-profile-form"
+            isLoading={isSubmitting}
+            submitText="Save Changes"
+        />
       )}
     </div>
   );
