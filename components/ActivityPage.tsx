@@ -102,7 +102,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
         <div className="border-b border-gray-200">
             <div className="flex space-x-6" role="tablist">
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'}>
-                    Notifications
+                    Updates
                     {unreadGeneralCount > 0 && (
                         <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 h-5 min-w-[1.25rem] rounded-full flex items-center justify-center inline-flex align-middle">
                             {unreadGeneralCount}
@@ -130,7 +130,7 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
                 generalNotifications.length === 0 ? (
                     <EmptyState
                         icon={<BellIcon />}
-                        title="No Notifications"
+                        title="No Updates"
                         description="You have no new interactions."
                         className="py-8"
                     />

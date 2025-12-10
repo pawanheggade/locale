@@ -1,6 +1,3 @@
-
-
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Post, Report, Feedback, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -40,6 +37,7 @@ interface AuthContextType {
   updateAccountDetails: (updatedAccount: Account) => void;
   upgradeToSeller: (accountId: string, sellerData: Partial<Account>, newTier: Subscription['tier']) => Promise<void>;
   toggleLikeAccount: (accountId: string) => void;
+  toggleAccountAlert: (accountId: string) => void;
   toggleLikePost: (postId: string) => { wasLiked: boolean };
   updateSubscription: (accountId: string, tier: Subscription['tier']) => void;
   toggleAccountStatus: (accountId: string, byAdmin?: boolean) => void;
@@ -103,7 +101,7 @@ const toggleIdInArray = (array: string[] | undefined, id: string): string[] => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { openModal } = useUI();
+    const { openModal, addToast } = useUI();
 
     const [accounts, setAccounts] = useLargePersistentState<Account[]>(STORAGE_KEYS.ACCOUNTS, mockAccounts);
     const [currentAccountId, setCurrentAccountId] = usePersistentState<string | null>(STORAGE_KEYS.CURRENT_ACCOUNT_ID, null);
@@ -323,6 +321,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return acc;
         }));
     }, [accounts, currentAccountId, setAccounts]);
+
+    const toggleAccountAlert = useCallback((accountIdToAlert: string) => {
+        if (!currentAccountId) return;
+        const loggedInAccount = accounts.find(a => a.id === currentAccountId);
+        if (!loggedInAccount) return;
+
+        const wasAlerting = (loggedInAccount.alertAccountIds || []).includes(accountIdToAlert);
+
+        setAccounts(prev => prev.map(acc => {
+            if (acc.id === currentAccountId) {
+                return { ...acc, alertAccountIds: toggleIdInArray(acc.alertAccountIds, accountIdToAlert) };
+            }
+            return acc;
+        }));
+
+        if (wasAlerting) {
+            addToast("Updates turned off for this user.", 'success');
+        } else {
+            addToast("Updates turned on for this user.", 'success');
+        }
+    }, [accounts, currentAccountId, setAccounts, addToast]);
 
     const toggleLikePost = useCallback((postId: string): { wasLiked: boolean } => {
         if (!currentAccount) return { wasLiked: false };
@@ -577,7 +596,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [updateAccountInList]);
 
     const value = useMemo(() => ({
-        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
         addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
         addPostToViewHistory,
@@ -588,7 +607,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews
     }), [
-        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
+        accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         currentUserData,
         addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,
         addPostToViewHistory,

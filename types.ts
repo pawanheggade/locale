@@ -92,6 +92,7 @@ export interface Account {
   socialLinks?: SocialLink[];
   likedAccountIds?: string[];
   likedPostIds?: string[];
+  alertAccountIds?: string[];
   referralCode: string;
   referredBy?: string;
   referralCount?: number;
