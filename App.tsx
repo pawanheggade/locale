@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
@@ -115,7 +114,7 @@ export const App: React.FC = () => {
 
   const navigateTo = useCallback((
       newView: AppView,
-      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab } = {}
+      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView } = {}
   ) => {
       if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
           openModal({ type: 'login' });
@@ -154,6 +153,14 @@ export const App: React.FC = () => {
           setActivityInitialTab(options.activityTab);
       } else {
           setActivityInitialTab('notifications');
+      }
+
+      if (newView === 'admin' && options.adminView) {
+          setAdminInitialView(options.adminView);
+      } else {
+          if (newView !== 'admin') {
+             setAdminInitialView(undefined);
+          }
       }
 
       pushHistoryState();
@@ -433,7 +440,7 @@ export const App: React.FC = () => {
             (mainView === 'map' && view === 'all')
               ? 'overflow-hidden pt-16' // map is below header, no scroll
               : 'overflow-y-auto pt-16', // default
-            isEditorView && 'pt-0 overflow-hidden'
+            isEditorView && 'overflow-hidden'
           )}
           {...touchHandlers}
         >
@@ -443,6 +450,7 @@ export const App: React.FC = () => {
               transform: `translateY(${pullPosition}px)`,
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
+            className="h-full"
           >
             {/* 
                 We remove the default padding for map, editors, AND account view. 
