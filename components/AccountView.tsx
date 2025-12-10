@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { DisplayableForumPost, SocialPlatform } from '../types';
+import { DisplayableForumPost, SocialPlatform, Account, ContactOption } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
@@ -50,7 +49,7 @@ export const AccountView: React.FC = () => {
   const { openModal, gridView, isTabletOrDesktop } = useUI();
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
-  const { currentAccount, toggleLikeAccount } = useAuth();
+  const { currentAccount, toggleLikeAccount, updateAccountDetails } = useAuth();
   const { posts, archivedPosts } = usePosts();
   
   if (!account) {
@@ -190,6 +189,11 @@ export const AccountView: React.FC = () => {
       }
   };
 
+  const handleUpdateAccount = (updatedFields: Partial<Account>) => {
+    if (!account) return;
+    updateAccountDetails({ ...account, ...updatedFields });
+  };
+
   const handleShareProfile = async () => {
       const profileUrl = `${window.location.origin}/?account=${account.id}`;
       if (navigator.share) {
@@ -274,48 +278,46 @@ export const AccountView: React.FC = () => {
 
             {/* Description, Location, and Actions */}
             <div className="space-y-6">
-                <div className="space-y-3">
-                    {account.description && (
-                        <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
-                    )}
-                    
-                    {account.address && (
-                        <div className="flex items-center gap-3">
-                             {(account.googleMapsUrl || account.appleMapsUrl) && (
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    {account.googleMapsUrl && (
-                                        <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
-                                            <GoogleIcon className="w-4 h-4" />
-                                        </a>
-                                    )}
-                                    {account.appleMapsUrl && (
-                                        <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
-                                            <AppleIcon className="w-4 h-4" />
-                                        </a>
-                                    )}
-                                </div>
-                            )}
-                            <div
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
-                                onClick={(e) => { 
-                                    e.preventDefault();
-                                    e.stopPropagation(); 
-                                    showOnMap(account); 
-                                }}
-                                className={cn(
-                                    "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                    account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                {account.description && (
+                    <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
+                )}
+                
+                {account.address && (
+                    <div className="flex items-center gap-3">
+                         {(account.googleMapsUrl || account.appleMapsUrl) && (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {account.googleMapsUrl && (
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                        <GoogleIcon className="w-4 h-4" />
+                                    </a>
                                 )}
-                                title={account.coordinates ? "Show on map" : "No map location available"}
-                            >
-                                <MapPinIcon className="w-4 h-4 shrink-0" />
-                                <span className="truncate">{account.address}</span>
+                                {account.appleMapsUrl && (
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                        <AppleIcon className="w-4 h-4" />
+                                    </a>
+                                )}
                             </div>
+                        )}
+                        <div
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                            onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation(); 
+                                showOnMap(account); 
+                            }}
+                            className={cn(
+                                "flex items-center gap-1.5 group min-w-0 transition-colors",
+                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                            )}
+                            title={account.coordinates ? "Show on map" : "No map location available"}
+                        >
+                            <MapPinIcon className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{account.address}</span>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
                 
                 <div>
                     <ProfileActions
@@ -337,6 +339,7 @@ export const AccountView: React.FC = () => {
                                 openModal({ type: 'login' });
                             }
                         }}
+                        onUpdateAccount={handleUpdateAccount}
                     />
                 </div>
             </div>

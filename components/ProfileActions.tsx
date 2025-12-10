@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Account, SocialPlatform, SocialLink } from '../types';
+import { Account, SocialPlatform, SocialLink, ContactOption } from '../types';
 import { Button, ButtonProps } from './ui/Button';
 import { LikeButton } from './LikeButton';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -32,6 +33,7 @@ interface ProfileActionsProps {
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
+    onUpdateAccount: (updatedFields: Partial<Account>) => void;
 }
 
 const getSocialIcon = (platform: SocialPlatform) => {
@@ -200,29 +202,33 @@ const PrimaryContactDropdown = ({
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
     account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
-    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike
+    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, onUpdateAccount
 }) => {
     
-    // Local state to allow owner to switch the visible primary contact for preview
-    const [activeContactKey, setActiveContactKey] = useState<string | null>(null);
+    // This state now drives the UI and triggers saves.
+    const [activeContactKey, setActiveContactKey] = useState<string | null>(account.preferredContactMethod || null);
+
+    // Update local state when account prop changes from parent (e.g., after save).
+    useEffect(() => {
+        setActiveContactKey(account.preferredContactMethod || null);
+    }, [account.preferredContactMethod]);
+
+    const handlePrimaryContactChange = (key: string) => {
+        // Optimistically update the local state for immediate UI feedback.
+        setActiveContactKey(key);
+        // Persist the change.
+        onUpdateAccount({ preferredContactMethod: key as ContactOption });
+    };
 
     const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
 
-    // Calculate Primary Contact
-    // Priority: User Selected > Message > Mobile > Email
+    // Calculate Primary Contact based on the current state.
     const primaryContact = 
         contactMethods.find(m => m.key === activeContactKey) || 
         contactMethods.find(m => m.key === 'message') || 
         contactMethods.find(m => m.key === 'mobile') || 
         contactMethods.find(m => m.key === 'email');
     
-    // Ensure activeContactKey is valid if methods change
-    useEffect(() => {
-        if (activeContactKey && !contactMethods.some(m => m.key === activeContactKey)) {
-            setActiveContactKey(null);
-        }
-    }, [contactMethods, activeContactKey]);
-
     // Filter out primary from the list to show remaining as secondary icons
     const secondaryContacts = contactMethods.filter(m => m !== primaryContact);
 
@@ -247,7 +253,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                             methods={contactMethods} 
                             primaryLabel={primaryContact.label}
                             primaryIcon={primaryContact.icon}
-                            onSelect={setActiveContactKey}
+                            onSelect={handlePrimaryContactChange}
                         />
                     ) : (
                         <Button

@@ -1,4 +1,5 @@
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -89,6 +90,7 @@ export interface Account {
   paymentMethods?: string[];
   deliveryOptions?: string[];
   contactOptions?: ContactOption[];
+  preferredContactMethod?: ContactOption;
   socialLinks?: SocialLink[];
   likedAccountIds?: string[];
   likedPostIds?: string[];

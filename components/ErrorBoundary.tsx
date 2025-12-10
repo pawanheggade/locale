@@ -41,12 +41,11 @@ interface ErrorBoundaryState {
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = {
-      hasError: false
-    };
-  }
+  // FIX: Use class property syntax for state initialization. This is a more modern
+  // approach and resolves the TypeScript errors related to 'this.state' not being found.
+  state: ErrorBoundaryState = {
+    hasError: false
+  };
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.

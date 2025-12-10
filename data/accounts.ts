@@ -36,6 +36,7 @@ export const mockAccounts: Account[] = [
     paymentMethods: ['UPI', 'Credit/Debit Card'],
     deliveryOptions: ['Local Pickup', 'Home Delivery'],
     contactOptions: ['email', 'mobile', 'message'],
+    preferredContactMethod: 'message',
     socialLinks: [
         { platform: 'instagram', url: 'https://instagram.com/priyasvintage' },
         { platform: 'website', url: 'https://priyasvintage.com' }
