@@ -19,7 +19,6 @@ interface SearchBarProps {
   onCancelSearch?: () => void;
   autoFocus?: boolean;
   aiButton?: React.ReactNode;
-  filterButton?: React.ReactNode;
   hideSearchIcon?: boolean;
   leftAccessory?: React.ReactNode;
 }
@@ -39,7 +38,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onCancelSearch,
   autoFocus = false,
   aiButton,
-  filterButton,
   hideSearchIcon = false,
   leftAccessory,
 }) => {
@@ -159,7 +157,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 )}
                 
                 {aiButton}
-                {filterButton}
             </div>
         </div>
       {isDropdownVisible && (

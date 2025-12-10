@@ -444,7 +444,7 @@ export const App: React.FC = () => {
           {pullPosition > 0 && <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} isPulling={isPulling} />}
           <div
             style={{
-              transform: `translateY(${pullPosition}px)`,
+              transform: pullPosition > 0 ? `translateY(${pullPosition}px)` : 'none',
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
             className="h-full"

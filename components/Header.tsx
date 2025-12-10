@@ -250,7 +250,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Desktop Search Bar */}
-              <div className="hidden sm:flex items-center w-full max-w-md">
+              <div className="hidden sm:flex items-center gap-2 w-full max-w-md">
                   <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -265,8 +265,8 @@ export const Header: React.FC<HeaderProps> = ({
                       isAiSearching={filterState.isAiSearching}
                       onCancelSearch={filterState.searchQuery ? handleClearSearch : undefined}
                       aiButton={renderAiButton()}
-                      filterButton={renderFilterButton()}
                   />
+                  {renderFilterButton()}
               </div>
           </div>
           
@@ -416,7 +416,7 @@ export const Header: React.FC<HeaderProps> = ({
       
       {isMobileSearchOpen && (
           <div className="fixed inset-0 bg-white z-[2001] p-4 sm:hidden animate-fade-in flex flex-col" role="dialog" aria-modal="true">
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
                 <SearchBar 
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -432,7 +432,6 @@ export const Header: React.FC<HeaderProps> = ({
                       onCancelSearch={filterState.searchQuery ? handleClearSearch : handleMobileSearchCancel}
                       autoFocus
                       aiButton={renderAiButton()}
-                      filterButton={renderFilterButton()}
                       leftAccessory={
                         <Button
                             type="button"
@@ -446,6 +445,7 @@ export const Header: React.FC<HeaderProps> = ({
                         </Button>
                       }
                 />
+                {renderFilterButton()}
             </div>
           </div>
       )}
