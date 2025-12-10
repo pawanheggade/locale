@@ -7,17 +7,14 @@ import { TabButton, Button } from './ui/Button';
 import { EmptyState } from './EmptyState';
 import { PostList } from './PostList';
 import { useUI } from '../contexts/UIContext';
-// FIX: Import context hooks
 import { useActivity } from '../contexts/ActivityContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Update props interface to remove props
 interface ActivityPageProps {}
 
 export const ActivityPage: React.FC<ActivityPageProps> = () => {
-  // FIX: Get data from contexts
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
   const { currentAccount, viewedPostIds } = useAuth();
   const { findPostById } = usePosts();
@@ -49,7 +46,6 @@ export const ActivityPage: React.FC<ActivityPageProps> = () => {
     }
   };
 
-  // Split notifications into Alerts (system events) and General (social/account)
   const { alertNotifications, generalNotifications } = useMemo(() => {
       const alertTypes = new Set(['search_alert', 'expiry', 'price_drop', 'availability_alert']);
       return notifications.reduce((acc, n) => {

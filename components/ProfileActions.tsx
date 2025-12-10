@@ -239,6 +239,7 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     includeLabel 
                     iconClassName="w-5 h-5"
                     icon={UserPlusIcon}
+                    fillOnLike={false}
                 />
                 
                 {primaryContact && (
