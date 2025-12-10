@@ -7,10 +7,10 @@ import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 
-type LikedTab = 'posts' | 'profiles';
+type LikedTab = 'profiles' | 'posts';
 
 export const LikesView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<LikedTab>('posts');
+  const [activeTab, setActiveTab] = useState<LikedTab>('profiles');
   const { gridView, isTabletOrDesktop } = useUI();
   const { currentAccount, likedPostIds } = useAuth();
   const { posts: allPosts } = usePosts();
@@ -38,31 +38,16 @@ export const LikesView: React.FC = () => {
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
       <div className="mb-6 border-b border-gray-200">
         <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist" aria-label="Likes content">
-          <TabButton onClick={() => setActiveTab('posts')} isActive={activeTab === 'posts'}>
-            Posts
-          </TabButton>
           <TabButton onClick={() => setActiveTab('profiles')} isActive={activeTab === 'profiles'}>
             Profiles
+          </TabButton>
+          <TabButton onClick={() => setActiveTab('posts')} isActive={activeTab === 'posts'}>
+            Posts
           </TabButton>
         </nav>
       </div>
 
       <div>
-        {activeTab === 'posts' && (
-          <div>
-            {likedPosts.length === 0 ? (
-              <EmptyState
-                icon={<HeartIcon />}
-                title="No Liked Posts Yet"
-                description="Tap the heart on posts you love to save them here."
-                className="py-20"
-              />
-            ) : (
-              <PostList posts={likedPosts} />
-            )}
-          </div>
-        )}
-
         {activeTab === 'profiles' && (
           <div>
             {postsFromLikedProfiles.length === 0 ? (
@@ -74,6 +59,21 @@ export const LikesView: React.FC = () => {
               />
             ) : (
               <PostList posts={postsFromLikedProfiles} />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'posts' && (
+          <div>
+            {likedPosts.length === 0 ? (
+              <EmptyState
+                icon={<HeartIcon />}
+                title="No Liked Posts Yet"
+                description="Tap the heart on posts you love to save them here."
+                className="py-20"
+              />
+            ) : (
+              <PostList posts={likedPosts} />
             )}
           </div>
         )}
