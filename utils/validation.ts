@@ -130,6 +130,7 @@ interface PostValidationData {
     eventStartDate: string;
     hasExpiry: boolean;
     expiryDate: string;
+    contactForPrice?: boolean;
 }
 
 interface PostValidationOptions {
@@ -145,7 +146,7 @@ export const validatePostData = (
     const errors: Record<string, string> = {};
     const {
         title, description, location, hasCoordinates, price, isOnSale, salePrice,
-        type, eventLocation, eventStartDate, hasExpiry, expiryDate
+        type, eventLocation, eventStartDate, hasExpiry, expiryDate, contactForPrice
     } = data;
     const { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE } = options;
     const priceNum = parseFloat(price);
@@ -156,18 +157,21 @@ export const validatePostData = (
     if (!description.trim()) errors.description = 'Description is required.';
     else if (description.length > DESCRIPTION_MAX_LENGTH) errors.description = `Description cannot exceed ${DESCRIPTION_MAX_LENGTH} characters.`;
     
-    if (!location.trim() || !hasCoordinates) errors.location = 'A verified location is required. Use the map to pinpoint your location.';
+    if (type !== 'EVENT' && (!location.trim() || !hasCoordinates)) errors.location = 'A verified location is required. Use the map to pinpoint your location.';
     
     if (type === 'SERVICE') {
-        if (price && (isNaN(priceNum) || priceNum < 0)) errors.price = 'Please enter a valid, non-negative price.';
-        else if (price && priceNum > MAX_PRICE) errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
+        if (!contactForPrice) {
+            if (!price) errors.price = 'Price is required unless "Contact for price" is checked.';
+            else if (isNaN(priceNum) || priceNum < 0) errors.price = 'Please enter a valid, non-negative price.';
+            else if (priceNum > MAX_PRICE) errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
+        }
     } else {
         if (!price) errors.price = 'Price is required.';
         else if (isNaN(priceNum) || priceNum < 0) errors.price = 'Please enter a valid, non-negative price.';
         else if (priceNum > MAX_PRICE) errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
     }
 
-    if (isOnSale && type !== 'SERVICE') {
+    if (isOnSale) {
         const salePriceNum = parseFloat(salePrice);
         if (!salePrice) errors.salePrice = 'Sale price is required.';
         else if (isNaN(salePriceNum) || salePriceNum < 0) errors.salePrice = 'Please enter a valid, non-negative sale price.';
