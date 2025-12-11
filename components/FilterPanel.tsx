@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
 import ModalShell from './ModalShell';

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Post, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
