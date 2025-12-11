@@ -1,12 +1,12 @@
 
-
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { DocumentIcon, ChevronLeftIcon, ChevronRightIcon, ArrowDownTrayIcon, SpinnerIcon } from './Icons';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useCarousel } from '../hooks/useCarousel';
 
 interface ViewCatalogModalProps {
     catalog: CatalogItem[];
@@ -16,9 +16,13 @@ interface ViewCatalogModalProps {
 
 export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, accountId, onClose }) => {
     const modalRef = useRef<HTMLDivElement>(null);
-    const [selectedIndex, setSelectedIndex] = useState(0);
+    const { currentIndex, goToNext, goToPrevious, setCurrentIndex } = useCarousel({ 
+        itemCount: catalog.length, 
+        loop: false 
+    });
+    
     const [isDownloading, setIsDownloading] = useState(false);
-    const activeItem = catalog[selectedIndex];
+    const activeItem = catalog[currentIndex];
     const { incrementCatalogView, incrementCatalogDownload } = useAuth();
 
     // Track views when the item changes
@@ -26,7 +30,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
         if (activeItem) {
             incrementCatalogView(accountId, activeItem.id);
         }
-    }, [selectedIndex, activeItem, accountId, incrementCatalogView]);
+    }, [currentIndex, activeItem, accountId, incrementCatalogView]);
 
     const isPdf = activeItem?.type === 'pdf';
 
@@ -72,16 +76,16 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
                 <Button 
                     variant="overlay-dark" 
                     size="icon-sm" 
-                    onClick={() => setSelectedIndex(prev => Math.max(0, prev - 1))}
-                    disabled={selectedIndex === 0}
+                    onClick={goToPrevious}
+                    disabled={currentIndex === 0}
                 >
                     <ChevronLeftIcon className="w-5 h-5" />
                 </Button>
                 <Button 
                     variant="overlay-dark" 
                     size="icon-sm" 
-                    onClick={() => setSelectedIndex(prev => Math.min(catalog.length - 1, prev + 1))}
-                    disabled={selectedIndex === catalog.length - 1}
+                    onClick={goToNext}
+                    disabled={currentIndex === catalog.length - 1}
                 >
                     <ChevronRightIcon className="w-5 h-5" />
                 </Button>
@@ -113,11 +117,11 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
                     {catalog.map((item, index) => (
                         <Button
                             key={item.id}
-                            onClick={() => setSelectedIndex(index)}
+                            onClick={() => setCurrentIndex(index)}
                             variant="ghost"
                             className={cn(
                                 "justify-start h-auto p-2 rounded-md text-left w-full flex-shrink-0 gap-2",
-                                selectedIndex === index ? "bg-white ring-1 ring-gray-200" : ""
+                                currentIndex === index ? "bg-white ring-1 ring-gray-200" : ""
                             )}
                         >
                             {item.type === 'image' ? (
@@ -127,7 +131,7 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
                                     <DocumentIcon className="w-5 h-5" />
                                 </div>
                             )}
-                            <span className={cn("text-sm truncate max-w-[120px]", selectedIndex === index ? "font-semibold text-gray-900" : "text-gray-600")}>
+                            <span className={cn("text-sm truncate max-w-[120px]", currentIndex === index ? "font-semibold text-gray-900" : "text-gray-600")}>
                                 {item.name}
                             </span>
                         </Button>
@@ -146,3 +150,4 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
         </ModalShell>
     );
 };
+import { useState } from 'react';
