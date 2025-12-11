@@ -160,20 +160,32 @@ export const validatePostData = (
     if (type !== 'EVENT' && (!location.trim() || !hasCoordinates)) errors.location = 'A verified location is required. Use the map to pinpoint your location.';
     
     if (!contactForPrice) {
-        if (!price) {
-            errors.price = 'Price is required unless "Contact for price" is checked.';
-        } else if (isNaN(priceNum) || priceNum < 0) {
-            errors.price = 'Please enter a valid, non-negative price.';
-        } else if (priceNum > MAX_PRICE) {
-            errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
+        // Price validation
+        if (!price.trim()) {
+            if (isOnSale) {
+                errors.price = 'Price cannot be empty when an item is on sale.';
+            } else {
+                errors.price = 'Price is required unless "Contact for price" is checked.';
+            }
+        } else { // Price is not empty, validate its value
+            if (isNaN(priceNum) || priceNum < 0) {
+                errors.price = 'Please enter a valid, non-negative price.';
+            } else if (priceNum > MAX_PRICE) {
+                errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
+            }
         }
-    }
 
-    if (isOnSale) {
-        const salePriceNum = parseFloat(salePrice);
-        if (!salePrice) errors.salePrice = 'Sale price is required.';
-        else if (isNaN(salePriceNum) || salePriceNum < 0) errors.salePrice = 'Please enter a valid, non-negative sale price.';
-        else if (salePriceNum >= priceNum) errors.salePrice = 'Sale price must be less than the original price.';
+        // Sale price validation
+        if (isOnSale) {
+            const salePriceNum = parseFloat(salePrice);
+            if (!salePrice) {
+                errors.salePrice = 'Sale price is required.';
+            } else if (isNaN(salePriceNum) || salePriceNum < 0) {
+                errors.salePrice = 'Please enter a valid, non-negative sale price.';
+            } else if (!isNaN(priceNum) && salePriceNum >= priceNum) {
+                errors.salePrice = 'Sale price must be less than the original price.';
+            }
+        }
     }
     
     if (type === 'EVENT' && !eventLocation.trim()) errors.eventLocation = 'Event location is required for events.';

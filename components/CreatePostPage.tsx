@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -325,7 +324,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   checked={isOnSale}
                   onChange={e => setField('isOnSale', e.target.checked)}
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                  disabled={!price.trim() || contactForPrice}
+                  disabled={contactForPrice}
               />
               <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-700">
                   Item on sale (Discount)

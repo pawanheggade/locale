@@ -15,10 +15,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
 
-// FIX: Remove postId from props, it will be fetched from context.
-
 export const ForumsPostDetailView: React.FC = () => {
-    // FIX: Get viewingForumPostId from NavigationContext.
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();

@@ -72,7 +72,6 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         key="report"
         onClick={(e) => {
           e.stopPropagation();
-          // FIX: The reportItem function now accepts DisplayablePost
           reportItem(post);
           setIsOpen(false);
         }}
@@ -144,7 +143,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
       </Button>
       {isOpen && (
         <div
-          className="absolute top-full right-0 mt-2 w-auto origin-top-right bg-white rounded-lg border z-10 animate-zoom-in"
+          className="absolute top-full right-0 mt-2 w-auto origin-top-right bg-white rounded-lg shadow-xl border z-10 animate-zoom-in"
           onClick={e => e.stopPropagation()}
           role="menu"
         >

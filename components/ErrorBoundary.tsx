@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 import { XCircleIcon } from './Icons';
 import { Button } from './ui/Button';
 
@@ -39,14 +39,9 @@ interface ErrorBoundaryState {
   hasError: boolean;
 }
 
-export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Converted class properties to a constructor for state initialization
-  // to ensure compatibility with older build toolchains that might not fully support
-  // the class fields syntax, which could lead to incorrect type inference for `this.props`.
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
+export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Use class property for state initialization to resolve issues with 'this' context. This resolves errors on lines 45, 58, and 62.
+  state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.
@@ -59,8 +54,6 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
   render() {
     if (this.state.hasError) {
-      // The handleReset method was removed and its logic inlined here as an arrow function,
-      // which is cleaner since the method didn't use `this`.
       return <ErrorFallback onReset={() => window.location.reload()} />;
     }
 

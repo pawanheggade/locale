@@ -19,7 +19,6 @@ interface HeaderProps {
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
   onGoHome: () => void;
-  // FIX: Added onRefresh to HeaderProps
   onRefresh: () => void;
   viewingAccount: Account | null;
   isScrolled: boolean;
@@ -174,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl border z-10 animate-zoom-in">
+            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
                 <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
