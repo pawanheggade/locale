@@ -420,6 +420,7 @@ export const App: React.FC = () => {
           onRemoveRecentSearch={(q) => setRecentSearches(prev => prev.filter(s => s !== q))}
           onClearRecentSearches={() => setRecentSearches([])}
           onGoHome={handleGoHome}
+          onRefresh={handleRefresh}
           viewingAccount={viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
@@ -469,6 +470,7 @@ export const App: React.FC = () => {
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
           onEnableLocation={handleEnableLocation}
+          onSignOut={signOut}
         />
         
         <OfflineIndicator />

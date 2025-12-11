@@ -126,8 +126,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
     }, [accounts, currentAccountId, setCurrentAccountId]);
     
-    const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
-    const likedPostIds = useMemo(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
+    // FIX: Add explicit generic type <Map<string, Account>> to useMemo to fix type inference issue.
+    const accountsById = useMemo<Map<string, Account>>(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
+    // FIX: Add explicit generic type <Set<string>> to useMemo to fix type inference issue.
+    const likedPostIds = useMemo<Set<string>>(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
     
     const currentUserData = useMemo(() => {
         if (currentAccountId && allUsersData[currentAccountId]) {

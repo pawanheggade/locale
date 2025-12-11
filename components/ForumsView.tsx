@@ -73,7 +73,6 @@ const ForumPostCard: React.FC<ForumPostCardProps> = ({ post, onCategoryClick, va
 
 interface ForumsViewProps {}
 
-// FIX: Define SortOption type
 type SortOption = 'latest' | 'top';
 
 export const ForumsView: React.FC<ForumsViewProps> = () => {
@@ -113,7 +112,7 @@ export const ForumsView: React.FC<ForumsViewProps> = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={handleDiscussClick} size="sm" variant="pill-red" className="shrink-0">
                     <PencilIcon className="w-4 h-4 mr-2" />
-                    Create Post
+                    Discuss
                 </Button>
             </div>
 
@@ -157,10 +156,10 @@ export const ForumsView: React.FC<ForumsViewProps> = () => {
             ) : (
                 <EmptyState
                     icon={<ChatBubbleEllipsisIcon />}
-                    title="No Posts Yet"
+                    title="No Discussions Yet"
                     description={activeCategory === 'All'
-                        ? "Be the first to create a forum post!"
-                        : `Be the first to create a forum post in the "${activeCategory}" category.`
+                        ? "Be the first to create a forum discussion!"
+                        : `Be the first to create a forum discussion in the "${activeCategory}" category.`
                     }
                     className="py-20"
                 />
