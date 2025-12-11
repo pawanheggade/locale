@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Notification, NotificationSettings, Post, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -33,7 +33,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
 ];
 
 export const App: React.FC = () => {
@@ -443,7 +443,7 @@ export const App: React.FC = () => {
           {pullPosition > 0 && <PullToRefreshIndicator pullPosition={pullPosition} isRefreshing={isRefreshing} pullThreshold={pullThreshold} isPulling={isPulling} />}
           <div
             style={{
-              transform: pullPosition > 0 ? `translateY(${pullPosition}px)` : 'none',
+              transform: `translateY(${pullPosition}px)`,
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
             className="h-full"

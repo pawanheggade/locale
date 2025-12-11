@@ -155,7 +155,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                             )}
                             <MenuItem onClick={() => handleMenuAction(() => navigateTo('bag'))} icon={<ShoppingBagIcon className="w-5 h-5" />} label="Bag" badgeCount={bagCount} animateBadge={animateBadge} isActive={currentView === 'bag'} />
                             <MenuItem onClick={() => handleMenuAction(onOpenActivityPage)} icon={<BellIcon className="w-5 h-5" />} label="Activity" badgeCount={activityCount} isActive={currentView === 'activity'} />
-                            <MenuItem onClick={() => handleMenuAction(() => navigateTo('activity', { activityTab: 'settings' }))} icon={<Cog6ToothIcon className="w-5 h-5" />} label="Settings" />
+                            <MenuItem onClick={() => handleMenuAction(() => navigateTo('settings'))} icon={<Cog6ToothIcon className="w-5 h-5" />} label="Settings" isActive={currentView === 'settings'} />
                         </div>
 
                         {currentAccount.role === 'admin' && (

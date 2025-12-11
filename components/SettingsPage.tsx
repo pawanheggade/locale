@@ -33,7 +33,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
+    <div className="animate-fade-in-down max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Settings</h1>
         <div className="space-y-8">
             {isSeller && (
