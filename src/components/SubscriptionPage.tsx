@@ -164,7 +164,7 @@ export const SubscriptionPage: React.FC = () => {
               key={plan.tier}
               className={`relative rounded-xl border-2 p-6 flex flex-col ${
                 isCurrentPlan 
-                    ? `${tierStyles.borderColor} bg-white` 
+                    ? `${tierStyles.borderColor} bg-white shadow-lg` 
                     : isPro 
                         ? 'border-amber-300 bg-amber-50/50' 
                         : 'border-gray-200 bg-white'
@@ -179,7 +179,7 @@ export const SubscriptionPage: React.FC = () => {
               )}
               {isPro && !isCurrentPlan && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-max">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-amber-500 text-white">Best Value</span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-amber-500 text-white shadow-md">Best Value</span>
                   </div>
               )}
               <div className="flex-grow">

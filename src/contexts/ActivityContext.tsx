@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post, NotificationSettings } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
+// FIX: Corrected the import path for useAuth.
 import { useAuth } from './AuthContext';
 import { useUI } from './UIContext';
 import { STORAGE_KEYS } from '../lib/constants';

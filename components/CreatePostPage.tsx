@@ -169,7 +169,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
               expiryDate: toDateTimeLocal(editingPost.expiryDate),
               eventStartDate: toDateTimeLocal(editingPost.eventStartDate),
               eventEndDate: toDateTimeLocal(editingPost.eventEndDate),
-              contactForPrice: editingPost.type === PostType.SERVICE && editingPost.price == null,
+              contactForPrice: editingPost.price == null,
           }});
           
           if (editingPost.coordinates) {
@@ -285,9 +285,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         coordinates: type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates,
         type,
         category,
-        price: price ? parseFloat(price) : undefined,
+        price: !contactForPrice && price ? parseFloat(price) : undefined,
         priceUnit: (type === PostType.SERVICE || type === PostType.PRODUCT) ? priceUnit : undefined,
-        salePrice: isOnSale ? parseFloat(salePrice) : undefined,
+        salePrice: !contactForPrice && isOnSale ? parseFloat(salePrice) : undefined,
         media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })),
         tags: tags.map(t => t.trim()).filter(Boolean),
         lastUpdated: Date.now(),
@@ -325,7 +325,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   checked={isOnSale}
                   onChange={e => setField('isOnSale', e.target.checked)}
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                  disabled={!price.trim()}
+                  disabled={!price.trim() || contactForPrice}
               />
               <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-700">
                   Item on sale (Discount)
@@ -417,71 +417,53 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       </div>
                   </div>
 
-                  {type === PostType.PRODUCT ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                          <div className="grid grid-cols-2 gap-2">
-                              <FormField id="post-price" label="Price" error={errors.price}>
-                                  <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
-                              </FormField>
-                              <FormField id="post-price-unit" label="Unit">
-                                  <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
-                                      {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
-                                  </Select>
-                              </FormField>
-                          </div>
-                          {saleSection}
-                      </div>
-                  ) : type === PostType.SERVICE ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-2">
-                                <FormField id="post-price" label="Price" error={errors.price}>
-                                    <Input 
-                                        type="number" 
-                                        value={price} 
-                                        onChange={e => setField('price', e.target.value)}
-                                        placeholder="e.g. 500"
-                                        max={MAX_PRICE}
-                                        disabled={contactForPrice}
-                                    />
-                                </FormField>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+                    <div className="space-y-4">
+                        <div className={`grid gap-2 ${ (type === PostType.PRODUCT || type === PostType.SERVICE) ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                            <FormField id="post-price" label="Price" error={errors.price} className={(type === PostType.EVENT) ? 'col-span-2' : ''}>
+                                <Input
+                                    type="number"
+                                    value={price}
+                                    onChange={e => setField('price', e.target.value)}
+                                    placeholder="e.g. 1200"
+                                    max={MAX_PRICE}
+                                    disabled={contactForPrice}
+                                    required={!contactForPrice}
+                                />
+                            </FormField>
+                            {(type === PostType.PRODUCT || type === PostType.SERVICE) && (
                                 <FormField id="post-price-unit" label="Unit">
                                     <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
                                         {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
                                     </Select>
                                 </FormField>
-                            </div>
-                            <div className="flex items-center">
-                                <input
-                                    id="contact-for-price"
-                                    type="checkbox"
-                                    checked={contactForPrice}
-                                    onChange={e => {
-                                        const isChecked = e.target.checked;
-                                        setField('contactForPrice', isChecked);
-                                        if (isChecked) {
-                                            setField('price', '');
-                                            setField('isOnSale', false);
-                                            setField('salePrice', '');
-                                        }
-                                    }}
-                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                />
-                                <label htmlFor="contact-for-price" className="ml-2 block text-sm font-medium text-gray-700">
-                                    Contact for price
-                                </label>
-                            </div>
+                            )}
                         </div>
-                        {!contactForPrice && saleSection}
-                      </div>
-                  ) : ( // EVENT
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                          <FormField id="post-price" label="Price" error={errors.price}>
-                              <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
-                          </FormField>
-                          {saleSection}
-                      </div>
-                  )}
+                        <div className="flex items-center">
+                            <input
+                                id="contact-for-price"
+                                type="checkbox"
+                                checked={contactForPrice}
+                                onChange={e => {
+                                    const isChecked = e.target.checked;
+                                    setField('contactForPrice', isChecked);
+                                    if (isChecked) {
+                                        setField('price', '');
+                                        setField('isOnSale', false);
+                                        setField('salePrice', '');
+                                    }
+                                }}
+                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="contact-for-price" className="ml-2 block text-sm font-medium text-gray-700">
+                                Contact for price
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                      {!contactForPrice && saleSection}
+                    </div>
+                  </div>
 
                   {type === PostType.EVENT ? (
                       <div className="space-y-4 pt-4 border-t">

@@ -226,7 +226,7 @@ export const AccountView: React.FC = () => {
       {/* Profile Header Section - Full Width */}
       <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-            <div className="flex items-center gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
@@ -454,7 +454,7 @@ export const AccountView: React.FC = () => {
                             <EmptyState
                                 icon={<ChatBubbleEllipsisIcon />}
                                 title="No Forum Discussions"
-                                description={isOwnAccount ? "Create a forum discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
+                                description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
                                 className="bg-white rounded-xl"
                             />
                         )}

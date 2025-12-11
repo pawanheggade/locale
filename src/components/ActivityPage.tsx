@@ -18,7 +18,7 @@ export const ActivityPage: React.FC = () => {
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history' | 'settings'>(initialTab || 'notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history'>(initialTab || 'notifications');
   const { gridView, isTabletOrDesktop } = useUI();
 
   useEffect(() => {
@@ -108,9 +108,6 @@ export const ActivityPage: React.FC = () => {
                 <TabButton onClick={() => setActiveTab('history')} isActive={activeTab === 'history'}>
                     History
                 </TabButton>
-                <TabButton onClick={() => setActiveTab('settings')} isActive={activeTab === 'settings'}>
-                    Settings
-                </TabButton>
             </div>
         </div>
         <div className="py-6 space-y-4">
@@ -150,7 +147,7 @@ export const ActivityPage: React.FC = () => {
                 ) : (
                     renderNotificationList(alertNotifications)
                 )
-            ) : activeTab === 'history' ? (
+            ) : ( // history
                  viewedPosts.length === 0 ? (
                     <EmptyState
                         icon={<ClockIcon />}
@@ -164,10 +161,6 @@ export const ActivityPage: React.FC = () => {
                         variant={isTabletOrDesktop ? gridView : 'default'}
                     />
                 )
-            ) : (
-                <div className="-m-4 sm:-m-6 lg:-m-8">
-                    <SettingsPage />
-                </div>
             )}
         </div>
     </div>

@@ -159,16 +159,14 @@ export const validatePostData = (
     
     if (type !== 'EVENT' && (!location.trim() || !hasCoordinates)) errors.location = 'A verified location is required. Use the map to pinpoint your location.';
     
-    if (type === 'SERVICE') {
-        if (!contactForPrice) {
-            if (!price) errors.price = 'Price is required unless "Contact for price" is checked.';
-            else if (isNaN(priceNum) || priceNum < 0) errors.price = 'Please enter a valid, non-negative price.';
-            else if (priceNum > MAX_PRICE) errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
+    if (!contactForPrice) {
+        if (!price) {
+            errors.price = 'Price is required unless "Contact for price" is checked.';
+        } else if (isNaN(priceNum) || priceNum < 0) {
+            errors.price = 'Please enter a valid, non-negative price.';
+        } else if (priceNum > MAX_PRICE) {
+            errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
         }
-    } else {
-        if (!price) errors.price = 'Price is required.';
-        else if (isNaN(priceNum) || priceNum < 0) errors.price = 'Please enter a valid, non-negative price.';
-        else if (priceNum > MAX_PRICE) errors.price = `Price cannot exceed ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(MAX_PRICE)}.`;
     }
 
     if (isOnSale) {
