@@ -178,6 +178,6 @@ export const initialPosts: Post[] = [
         coordinates: { lat: 12.9716, lng: 77.5946 },
         expiryDate: null,
         tags: ['meetup', 'community', 'design', 'networking', 'free'],
-        lastUpdated: (Date.now() - 9 * 24 * 60 * 60 * 1000),
+        lastUpdated: (Date.now() - 9 * 24 * 60 * 60 * 1000), 
     },
 ];

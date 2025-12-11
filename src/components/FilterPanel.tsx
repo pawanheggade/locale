@@ -233,10 +233,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           <FilterSection title="Status" isActive={filterState.filterExpiringSoon || filterState.filterShowExpired}>
             <div className="space-y-4 pt-2">
-              {[
-                { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
-                { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
-              ].map(({id, label, checked, action}: {id: string, label: string, checked: boolean, action: string}) => (
+              {(
+                [
+                  { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
+                  { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
+                ] as { id: string; label: string; checked: boolean; action: string }[]
+              ).map(({id, label, checked, action}) => (
                 <div key={id} className="relative flex items-start">
                     <div className="flex h-6 items-center">
                         <input id={id} type="checkbox" checked={checked} onChange={(e) => dispatchFilterAction({ type: action as any, payload: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" />

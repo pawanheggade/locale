@@ -224,7 +224,7 @@ export const AccountView: React.FC = () => {
       </div>
 
       {/* Profile Header Section - Full Width */}
-      <div className="bg-white border-b border-gray-200/80 relative z-10">
+      <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
             <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
@@ -233,7 +233,7 @@ export const AccountView: React.FC = () => {
                         src={account.avatarUrl} 
                         alt={account.name} 
                         tier={account.subscription.tier} 
-                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full"
+                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md"
                         onClick={() => openModal({ type: 'profileQR', data: account })}
                     />
                  </div>
@@ -287,12 +287,12 @@ export const AccountView: React.FC = () => {
                          {(account.googleMapsUrl || account.appleMapsUrl) && (
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
                                         <GoogleIcon className="w-4 h-4" />
                                     </a>
                                 )}
                                 {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
                                         <AppleIcon className="w-4 h-4" />
                                     </a>
                                 )}
@@ -309,7 +309,7 @@ export const AccountView: React.FC = () => {
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-red-500 font-medium" : "cursor-default text-gray-400"
+                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}
                         >
@@ -385,7 +385,7 @@ export const AccountView: React.FC = () => {
                           </TabButton>
                           
                           {isCategoryDropdownOpen && (
-                              <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
+                              <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
                                   {categoryTabs.map(cat => (
                                       <button
                                           key={cat}
