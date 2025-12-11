@@ -470,7 +470,6 @@ export const App: React.FC = () => {
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
           onEnableLocation={handleEnableLocation}
-          onSignOut={signOut}
         />
         
         <OfflineIndicator />

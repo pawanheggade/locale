@@ -29,13 +29,12 @@ import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 
 interface ModalRendererProps {
-    activeModal: ModalState;
+    activeModal: ModalState | null;
     closeModal: () => void;
     openModal: (modalState: ModalState) => void;
     isFindingNearby: boolean;
     handleFindNearby: (coords: { lat: number, lng: number }) => Promise<void>;
     userLocation: { lat: number; lng: number } | null;
-    onSignOut: () => void;
     onEnableLocation: () => Promise<void>;
 }
 
@@ -74,8 +73,12 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     };
 
     const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
-    if (!currentAccount && !publicModals.has(activeModal.type)) {
+    if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
         openModal({ type: 'login' });
+        return null;
+    }
+
+    if (!activeModal) {
         return null;
     }
 
