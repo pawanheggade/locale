@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { DisplayableForumPost, SocialPlatform, Account, ContactOption } from '../types';
+import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';

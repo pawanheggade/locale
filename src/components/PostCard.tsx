@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
-import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
+import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon, UserPlusIcon } from './Icons';
+import { formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
@@ -179,6 +179,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 variant="default"
                 subscriptionBadgeIconOnly={true}
                 location={<LocationElement />}
+                hideName={true}
               >
                   <PostActionsDropdown 
                       post={post} 
@@ -221,11 +222,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
       {showHeader && (
-          <div className="p-3 border-b border-gray-100">
+          <div className="p-3 border-b border-gray-200/80">
             <PostAuthorInfo 
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}
                 location={<LocationElement />}
+                hideName={true}
             >
                 {isOwnPost ? (
                     !isArchived && (
@@ -272,6 +274,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 isProfileLiked ? "text-red-600" : "text-gray-400"
                             )}
                             iconClassName="w-5 h-5"
+                            icon={UserPlusIcon}
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
                             title={isProfileLiked ? "Liked" : "Like profile"}
                         />

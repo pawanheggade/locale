@@ -4,7 +4,7 @@ import LocationPickerMap from './LocationPickerMap';
 import LocationInput from './LocationInput';
 import { SpinnerIcon, XMarkIcon } from './Icons';
 import { suggestTagsForPost, suggestCategoriesForPost } from '../utils/gemini';
-import { formatCurrency, toDateTimeLocal, fromDateTimeLocal } from '../utils/formatters';
+import { toDateTimeLocal, fromDateTimeLocal } from '../utils/formatters';
 import { SellerOptionsForm, SellerOptionsState } from './SellerOptionsForm';
 import { Input } from './ui/Input';
 import { Label } from './ui/Label';
