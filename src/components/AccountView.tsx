@@ -224,7 +224,7 @@ export const AccountView: React.FC = () => {
       </div>
 
       {/* Profile Header Section - Full Width */}
-      <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
+      <div className="bg-white border-b border-gray-200/80 relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
             <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
@@ -233,7 +233,7 @@ export const AccountView: React.FC = () => {
                         src={account.avatarUrl} 
                         alt={account.name} 
                         tier={account.subscription.tier} 
-                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md"
+                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full"
                         onClick={() => openModal({ type: 'profileQR', data: account })}
                     />
                  </div>
@@ -385,7 +385,7 @@ export const AccountView: React.FC = () => {
                           </TabButton>
                           
                           {isCategoryDropdownOpen && (
-                              <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl shadow-lg border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
+                              <div className="absolute top-full right-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-30 py-1 animate-fade-in-up origin-top-right">
                                   {categoryTabs.map(cat => (
                                       <button
                                           key={cat}
@@ -418,7 +418,7 @@ export const AccountView: React.FC = () => {
                                     <div 
                                         key={item.id} 
                                         onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
-                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col"
+                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 overflow-hidden aspect-[3/4] flex flex-col"
                                     >
                                         <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
                                             {item.type === 'image' ? (
