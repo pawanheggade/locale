@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
-import { PostType, PostCategory, Account } from '../types';
+import { PostType, PostCategory, Account, FilterAction } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
 import ModalShell from './ModalShell';
 import { FilterSection } from './FilterSection';
@@ -234,12 +234,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <FilterSection title="Status" isActive={filterState.filterExpiringSoon || filterState.filterShowExpired}>
             <div className="space-y-4 pt-2">
               {[
-                { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
-                { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
+                { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' as const },
+                { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' as const },
               ].map(({id, label, checked, action}) => (
                 <div key={id} className="relative flex items-start">
                     <div className="flex h-6 items-center">
-                        <input id={id} type="checkbox" checked={checked} onChange={(e) => dispatchFilterAction({ type: action as any, payload: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" />
+                        <input id={id} type="checkbox" checked={checked} onChange={(e) => dispatchFilterAction({ type: action, payload: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" />
                     </div>
                     <div className="ml-3 text-sm"><label htmlFor={id} className="font-medium text-gray-600 cursor-pointer">{label}</label></div>
                 </div>

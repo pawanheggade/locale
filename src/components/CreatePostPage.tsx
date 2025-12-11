@@ -35,6 +35,7 @@ const initialState = {
     description: '',
     price: '',
     priceUnit: 'Fixed',
+    isContactForPrice: false,
     isOnSale: false,
     salePrice: '',
     type: PostType.PRODUCT,
@@ -92,7 +93,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
   const isEditing = !!editingPost;
   
   const [state, dispatch] = useReducer(formReducer, initialState);
-  const { title, description, price, priceUnit, isOnSale, salePrice, type, category, tags, tagInput, hasExpiry, expiryDate, eventStartDate, eventEndDate, errors } = state;
+  const { title, description, price, priceUnit, isContactForPrice, isOnSale, salePrice, type, category, tags, tagInput, hasExpiry, expiryDate, eventStartDate, eventEndDate, errors } = state;
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuggestingTags, setIsSuggestingTags] = useState(false);
@@ -137,6 +138,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       tags: draft.tags || [],
                       price: draft.price || '',
                       priceUnit: draft.priceUnit || 'Fixed',
+                      isContactForPrice: draft.isContactForPrice || false,
                   }});
                   if(draft.media) setMediaUploads(draft.media.map((m: Media, i: number) => ({ id: `loaded-${i}`, previewUrl: m.url, finalUrl: m.url, progress: 100, status: 'complete', type: m.type })));
               }
@@ -146,10 +148,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
 
   useEffect(() => {
     if (!isEditing) {
-        const draft = { title, description, type, category, tags, price, priceUnit, media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })) };
+        const draft = { 
+            title, description, type, category, tags, price, priceUnit, isContactForPrice,
+            media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })) 
+        };
         localStorage.setItem(STORAGE_KEYS.POST_DRAFT, JSON.stringify(draft));
     }
-  }, [title, description, type, category, tags, price, priceUnit, mediaUploads, isEditing]);
+  }, [title, description, type, category, tags, price, priceUnit, isContactForPrice, mediaUploads, isEditing]);
 
   useEffect(() => {
       if (editingPost) {
@@ -158,6 +163,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
               description: editingPost.description,
               price: editingPost.price?.toString() || '',
               priceUnit: editingPost.priceUnit || 'Fixed',
+              isContactForPrice: editingPost.price === undefined || editingPost.price === null,
               isOnSale: !!editingPost.salePrice,
               salePrice: editingPost.salePrice?.toString() || '',
               type: editingPost.type,
@@ -242,7 +248,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
     const effectiveHasCoordinates = type === PostType.EVENT ? !!eventLocationInput.coordinates : !!locationInput.coordinates;
 
     const validationErrors = validatePostData({
-        title, description, price, isOnSale, salePrice, type,
+        title, description, price, isContactForPrice, isOnSale, salePrice, type,
         location: effectiveLocation,
         hasCoordinates: effectiveHasCoordinates,
         eventLocation: eventLocationInput.location,
@@ -282,9 +288,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         coordinates: type === PostType.EVENT ? eventLocationInput.coordinates : locationInput.coordinates,
         type,
         category,
-        price: price ? parseFloat(price) : undefined,
+        price: isContactForPrice ? undefined : (price ? parseFloat(price) : undefined),
         priceUnit: (type === PostType.SERVICE || type === PostType.PRODUCT) ? priceUnit : undefined,
-        salePrice: isOnSale ? parseFloat(salePrice) : undefined,
+        salePrice: (isContactForPrice || !isOnSale) ? undefined : parseFloat(salePrice),
         media: mediaUploads.filter(m => m.status === 'complete').map(m => ({ type: m.type, url: m.finalUrl! })),
         tags: tags.map(t => t.trim()).filter(Boolean),
         lastUpdated: Date.now(),
@@ -393,30 +399,53 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
 
                   {type === PostType.PRODUCT ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                          <div className="grid grid-cols-2 gap-2">
-                              <FormField id="post-price" label="Price" error={errors.price}>
-                                  <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
-                              </FormField>
-                              <FormField id="post-price-unit" label="Unit (Optional)">
-                                  <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
-                                      {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
-                                  </Select>
-                              </FormField>
+                          <div className="space-y-3">
+                              <div className="flex items-center">
+                                  <input
+                                      id="contact-for-price"
+                                      type="checkbox"
+                                      checked={isContactForPrice}
+                                      onChange={e => setField('isContactForPrice', e.target.checked)}
+                                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                  />
+                                  <label htmlFor="contact-for-price" className="ml-2 block text-sm font-medium text-gray-700">
+                                      Contact for Price
+                                  </label>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                  <FormField id="post-price" label="Price" error={errors.price}>
+                                      <Input 
+                                          type="number" 
+                                          value={price} 
+                                          onChange={e => setField('price', e.target.value)} 
+                                          required={!isContactForPrice}
+                                          disabled={isContactForPrice}
+                                          placeholder={isContactForPrice ? "-" : "e.g. 1200"}
+                                          max={MAX_PRICE} 
+                                      />
+                                  </FormField>
+                                  <FormField id="post-price-unit" label="Unit (Optional)">
+                                      <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)} disabled={isContactForPrice}>
+                                          {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                                      </Select>
+                                  </FormField>
+                              </div>
                           </div>
                           <div>
-                              <div className="flex items-center mb-1">
+                              <div className="flex items-center mb-1 h-9"> {/* Match height of 'Contact for Price' line roughly */}
                                   <input
                                       id="is-on-sale"
                                       type="checkbox"
                                       checked={isOnSale}
                                       onChange={e => setField('isOnSale', e.target.checked)}
-                                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                      disabled={isContactForPrice}
+                                      className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded disabled:opacity-50"
                                   />
-                                  <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-700">
-                                      Put item on sale
+                                  <label htmlFor="is-on-sale" className={`ml-2 block text-sm font-medium ${isContactForPrice ? 'text-gray-400' : 'text-gray-700'}`}>
+                                      Item on sale (discount)
                                   </label>
                               </div>
-                              {isOnSale && (
+                              {isOnSale && !isContactForPrice && (
                                   <FormField id="post-sale-price" label="Sale Price" error={errors.salePrice} className="animate-fade-in-down">
                                       <Input type="number" value={salePrice} onChange={e => setField('salePrice', e.target.value)} required max={MAX_PRICE} />
                                   </FormField>
@@ -424,26 +453,63 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                           </div>
                       </div>
                   ) : type === PostType.SERVICE ? (
-                      <div className="grid grid-cols-2 gap-2">
-                          <FormField id="post-price" label="Price (Optional)" error={errors.price}>
-                              <Input 
-                                  type="number" 
-                                  value={price} 
-                                  onChange={e => setField('price', e.target.value)}
-                                  placeholder="e.g. 500"
-                                  max={MAX_PRICE}
+                      <div className="space-y-3">
+                          <div className="flex items-center">
+                              <input
+                                  id="contact-for-price-service"
+                                  type="checkbox"
+                                  checked={isContactForPrice}
+                                  onChange={e => setField('isContactForPrice', e.target.checked)}
+                                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                               />
-                          </FormField>
-                          <FormField id="post-price-unit" label="Unit">
-                              <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)}>
-                                  {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
-                              </Select>
-                          </FormField>
+                              <label htmlFor="contact-for-price-service" className="ml-2 block text-sm font-medium text-gray-700">
+                                  Contact for Price
+                              </label>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                              <FormField id="post-price" label="Price" error={errors.price}>
+                                  <Input 
+                                      type="number" 
+                                      value={price} 
+                                      onChange={e => setField('price', e.target.value)}
+                                      placeholder={isContactForPrice ? "-" : "e.g. 500"}
+                                      disabled={isContactForPrice}
+                                      max={MAX_PRICE}
+                                  />
+                              </FormField>
+                              <FormField id="post-price-unit" label="Unit">
+                                  <Select value={priceUnit} onChange={e => setField('priceUnit', e.target.value)} disabled={isContactForPrice}>
+                                      {priceUnits.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                                  </Select>
+                              </FormField>
+                          </div>
                       </div>
                   ) : ( // EVENT
-                      <FormField id="post-price" label="Price" error={errors.price}>
-                          <Input type="number" value={price} onChange={e => setField('price', e.target.value)} required placeholder="e.g. 1200" max={MAX_PRICE} />
-                      </FormField>
+                      <div className="space-y-3">
+                           <div className="flex items-center">
+                              <input
+                                  id="contact-for-price-event"
+                                  type="checkbox"
+                                  checked={isContactForPrice}
+                                  onChange={e => setField('isContactForPrice', e.target.checked)}
+                                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                              />
+                              <label htmlFor="contact-for-price-event" className="ml-2 block text-sm font-medium text-gray-700">
+                                  Contact for Price
+                              </label>
+                          </div>
+                          <FormField id="post-price" label="Price" error={errors.price}>
+                              <Input 
+                                type="number" 
+                                value={price} 
+                                onChange={e => setField('price', e.target.value)} 
+                                required={!isContactForPrice} 
+                                disabled={isContactForPrice}
+                                placeholder={isContactForPrice ? "-" : "e.g. 1200"} 
+                                max={MAX_PRICE} 
+                              />
+                          </FormField>
+                      </div>
                   )}
 
                   {type === PostType.EVENT ? (
