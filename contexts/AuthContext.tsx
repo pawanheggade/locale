@@ -49,7 +49,8 @@ interface AuthContextType {
   savedLists: SavedList[];
   viewedPostIds: string[];
   addToBag: (postId: string, quantity: number) => void;
-  updateBagItem: (itemId: string, updates: Partial<Pick<BagItem, 'quantity' | 'isChecked' | 'savedListIds'>>) => void;
+  // FIX: Replaced Partial<Pick<...>> with an explicit inline type to resolve a TypeScript error.
+  updateBagItem: (itemId: string, updates: Partial<{ quantity: number; isChecked: boolean; savedListIds: string[]; }>) => void;
   saveItemToLists: (itemId: string, listIds: string[]) => void;
   removeBagItem: (itemId: string) => void;
   clearCheckedBagItems: () => void;
@@ -71,7 +72,6 @@ interface AuthContextType {
 
   // Admin & Global Data
   reports: Report[];
-  // FIX: Widen type to allow reporting any reportable item.
   reportItem: (item: Post | ForumPost | ForumComment) => void;
   addReport: (postId: string, reason: string) => void;
   addForumReport: (item: ForumPost | ForumComment, type: 'post' | 'comment', reason: string) => void;
@@ -406,7 +406,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, [currentAccountId, currentUserData.bag, updateCurrentUserSpecificData]);
 
-    const updateBagItem = useCallback((itemId: string, updates: Partial<Pick<BagItem, 'quantity' | 'isChecked' | 'savedListIds'>>) => {
+    const updateBagItem = useCallback((itemId: string, updates: Partial<{ quantity: number; isChecked: boolean; savedListIds: string[] }>) => {
         const newBag = currentUserData.bag.map(item => item.id === itemId ? { ...item, ...updates } : item);
         updateCurrentUserSpecificData({ bag: newBag });
     }, [currentUserData.bag, updateCurrentUserSpecificData]);

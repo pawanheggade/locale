@@ -40,7 +40,9 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Reverted to a constructor to explicitly initialize state and props, resolving issues with `this` context.
+  // FIX: Converted class properties to a constructor for state initialization
+  // to ensure compatibility with older build toolchains that might not fully support
+  // the class fields syntax, which could lead to incorrect type inference for `this.props`.
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -55,15 +57,11 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     console.error("Uncaught error:", error, errorInfo);
   }
 
-  handleReset = () => {
-    // A full page reload is a more robust way to recover from unexpected errors
-    // than simply trying to re-render. It clears corrupted state and ensures a fresh start.
-    window.location.reload();
-  }
-
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback onReset={this.handleReset} />;
+      // The handleReset method was removed and its logic inlined here as an arrow function,
+      // which is cleaner since the method didn't use `this`.
+      return <ErrorFallback onReset={() => window.location.reload()} />;
     }
 
     return this.props.children;
