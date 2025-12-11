@@ -274,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
                           variant="ghost"
                           size="icon-xs"
-                          className="text-gray-400 hover:text-gray-700 rounded-full w-6 h-6"
+                          className="text-gray-400 rounded-full w-6 h-6"
                           aria-label="Open navigation menu"
                       >
                           <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />

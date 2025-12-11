@@ -287,12 +287,12 @@ export const AccountView: React.FC = () => {
                          {(account.googleMapsUrl || account.appleMapsUrl) && (
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
                                         <GoogleIcon className="w-4 h-4" />
                                     </a>
                                 )}
                                 {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
                                         <AppleIcon className="w-4 h-4" />
                                     </a>
                                 )}
@@ -309,7 +309,7 @@ export const AccountView: React.FC = () => {
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                                account.coordinates ? "cursor-pointer text-red-500 font-medium" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}
                         >
@@ -418,7 +418,7 @@ export const AccountView: React.FC = () => {
                                     <div 
                                         key={item.id} 
                                         onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
-                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 overflow-hidden aspect-[3/4] flex flex-col"
+                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col"
                                     >
                                         <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
                                             {item.type === 'image' ? (

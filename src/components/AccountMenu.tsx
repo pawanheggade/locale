@@ -120,7 +120,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                     "relative !rounded-xl border-none transition-colors",
                     isAccountMenuOpen
                         ? "!bg-red-100 !text-red-600"
-                        : "text-gray-700 hover:bg-gray-100"
+                        : "text-gray-700"
                 )}
                 aria-label="Open account menu"
                 aria-haspopup="true"
