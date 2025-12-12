@@ -140,6 +140,22 @@
     .animate-slide-out-down {
         animation: slide-out-down 0.3s var(--ease-in-out-cubic) forwards;
     }
+    
+    @keyframes slide-in-from-right {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .animate-slide-in-from-right {
+      animation: slide-in-from-right 0.25s var(--ease-out-quad) forwards;
+    }
+
+    @keyframes slide-in-from-left {
+      from { transform: translateX(-20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .animate-slide-in-from-left {
+      animation: slide-in-from-left 0.25s var(--ease-out-quad) forwards;
+    }
 
 
     /* User Location Marker */

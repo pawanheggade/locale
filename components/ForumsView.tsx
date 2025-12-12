@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { DisplayableForumPost } from '../types';
@@ -12,6 +13,7 @@ import { EmptyState } from './EmptyState';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 import { cn } from '../lib/utils';
+import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 
 interface ForumPostCardProps {
     post: DisplayableForumPost;
@@ -81,6 +83,29 @@ export const ForumsView: React.FC = () => {
     const { gridView, isTabletOrDesktop } = useUI();
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
+    
+    const swipeRef = useRef<HTMLDivElement>(null);
+    const tabs = useMemo(() => ['All', ...categories], [categories]);
+    const [animationClass, setAnimationClass] = useState('');
+    const prevTabRef = useRef(activeCategory);
+
+    useEffect(() => {
+        const prevIndex = tabs.indexOf(prevTabRef.current);
+        const currentIndex = tabs.indexOf(activeCategory);
+
+        if (prevIndex !== -1 && prevIndex !== currentIndex) {
+            setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+        }
+        prevTabRef.current = activeCategory;
+    }, [activeCategory, tabs]);
+
+    // FIX: Changed setActiveTab shorthand to provide an initializer. The state setter is setActiveCategory.
+    useSwipeToNavigateTabs({
+        tabs,
+        activeTab: activeCategory,
+        setActiveTab: setActiveCategory,
+        swipeRef
+    });
 
     const filteredPosts = useMemo(() => {
         let filtered = posts;
@@ -138,29 +163,35 @@ export const ForumsView: React.FC = () => {
                 </div>
             </div>
 
-            <div className={cn(
-                'grid gap-4',
-                isTabletOrDesktop && gridView === 'compact' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-            )}>
-                {filteredPosts.length > 0 ? (
-                    filteredPosts.map(post => (
-                        <ForumPostCard 
-                            key={post.id} 
-                            post={post} 
-                            onCategoryClick={setActiveCategory}
-                            variant={isTabletOrDesktop && gridView === 'compact' ? 'compact' : 'default'}
-                        />
-                    ))
-                ) : (
-                    <div className="col-span-full">
-                        <EmptyState 
-                            icon={<ChatBubbleEllipsisIcon />} 
-                            title="No discussions found" 
-                            description={activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!"}
-                            className="py-12"
-                        />
-                    </div>
-                )}
+            <div ref={swipeRef} className="relative overflow-x-hidden">
+                <div
+                    key={activeCategory} 
+                    className={cn(
+                        'grid gap-4',
+                        isTabletOrDesktop && gridView === 'compact' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1',
+                        animationClass
+                    )}
+                >
+                    {filteredPosts.length > 0 ? (
+                        filteredPosts.map(post => (
+                            <ForumPostCard 
+                                key={post.id} 
+                                post={post} 
+                                onCategoryClick={setActiveCategory}
+                                variant={isTabletOrDesktop && gridView === 'compact' ? 'compact' : 'default'}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full">
+                            <EmptyState 
+                                icon={<ChatBubbleEllipsisIcon />} 
+                                title="No discussions found" 
+                                description={activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!"}
+                                className="py-12"
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

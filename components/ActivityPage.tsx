@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, Notification } from '../types';
 import { timeSince } from '../utils/formatters';
 import { BellIcon, XMarkIcon, CheckIcon, ClockIcon } from './Icons';
@@ -11,6 +11,7 @@ import { useActivity } from '../contexts/ActivityContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
+import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
@@ -18,8 +19,32 @@ export const ActivityPage: React.FC = () => {
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
-  const [activeTab, setActiveTab] = useState<'notifications' | 'alerts' | 'history'>(initialTab || 'notifications');
+  type ActivityTabType = 'notifications' | 'alerts' | 'history';
+  const [activeTab, setActiveTab] = useState<ActivityTabType>(initialTab || 'notifications');
   const { gridView, isTabletOrDesktop } = useUI();
+  
+  const swipeRef = useRef<HTMLDivElement>(null);
+  const tabs: ActivityTabType[] = ['notifications', 'alerts', 'history'];
+  
+  const [animationClass, setAnimationClass] = useState('');
+  const prevTabRef = useRef(activeTab);
+
+  useEffect(() => {
+    const prevIndex = tabs.indexOf(prevTabRef.current);
+    const currentIndex = tabs.indexOf(activeTab);
+
+    if (prevIndex !== -1 && prevIndex !== currentIndex) {
+      setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab]);
+
+  useSwipeToNavigateTabs({
+      tabs,
+      activeTab,
+      setActiveTab: (tabId) => setActiveTab(tabId as ActivityTabType),
+      swipeRef,
+  });
 
   useEffect(() => {
     if (initialTab) {
@@ -81,6 +106,63 @@ export const ActivityPage: React.FC = () => {
         ))}
     </ul>
   );
+  
+  const renderContent = () => {
+    switch (activeTab) {
+        case 'notifications':
+            return generalNotifications.length === 0 ? (
+                <EmptyState
+                    icon={<BellIcon />}
+                    title="No Updates"
+                    description="You have no new interactions."
+                    className="py-8"
+                />
+            ) : (
+                <div>
+                    <div className="flex justify-end mb-4 -mt-2">
+                      <Button
+                        type="button"
+                        onClick={onDismissAll}
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-gray-600"
+                      >
+                        <CheckIcon className="w-4 h-4" />
+                        Mark all as read
+                      </Button>
+                    </div>
+                    {renderNotificationList(generalNotifications)}
+                </div>
+            );
+        case 'alerts':
+            return alertNotifications.length === 0 ? (
+                <EmptyState
+                    icon={<BellIcon />}
+                    title="No Alerts"
+                    description="Triggered alerts, like price drops or availability notifications, will appear here."
+                    className="py-8"
+                />
+            ) : (
+                renderNotificationList(alertNotifications)
+            );
+        case 'history':
+             return viewedPosts.length === 0 ? (
+                <EmptyState
+                    icon={<ClockIcon />}
+                    title="No Viewing History"
+                    description="Posts you view will appear here."
+                    className="py-8"
+                />
+            ) : (
+                <PostList
+                    posts={viewedPosts}
+                    variant={isTabletOrDesktop ? gridView : 'default'}
+                />
+            );
+        default:
+            return null;
+    }
+  }
 
   if (!currentAccount) return null;
 
@@ -110,58 +192,10 @@ export const ActivityPage: React.FC = () => {
                 </TabButton>
             </div>
         </div>
-        <div className="py-6 space-y-4">
-            {activeTab === 'notifications' ? (
-                generalNotifications.length === 0 ? (
-                    <EmptyState
-                        icon={<BellIcon />}
-                        title="No Updates"
-                        description="You have no new interactions."
-                        className="py-8"
-                    />
-                ) : (
-                    <div>
-                        <div className="flex justify-end mb-4 -mt-2">
-                          <Button
-                            type="button"
-                            onClick={onDismissAll}
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1.5 text-gray-600"
-                          >
-                            <CheckIcon className="w-4 h-4" />
-                            Mark all as read
-                          </Button>
-                        </div>
-                        {renderNotificationList(generalNotifications)}
-                    </div>
-                )
-            ) : activeTab === 'alerts' ? (
-                alertNotifications.length === 0 ? (
-                    <EmptyState
-                        icon={<BellIcon />}
-                        title="No Alerts"
-                        description="Triggered alerts, like price drops or availability notifications, will appear here."
-                        className="py-8"
-                    />
-                ) : (
-                    renderNotificationList(alertNotifications)
-                )
-            ) : (
-                 viewedPosts.length === 0 ? (
-                    <EmptyState
-                        icon={<ClockIcon />}
-                        title="No Viewing History"
-                        description="Posts you view will appear here."
-                        className="py-8"
-                    />
-                ) : (
-                    <PostList
-                        posts={viewedPosts}
-                        variant={isTabletOrDesktop ? gridView : 'default'}
-                    />
-                )
-            )}
+        <div ref={swipeRef} className="py-6 space-y-4 relative overflow-x-hidden">
+            <div key={activeTab} className={animationClass}>
+                {renderContent()}
+            </div>
         </div>
     </div>
   );

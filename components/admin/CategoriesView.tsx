@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { PostCategory } from '../../types';
 import { Button, TabButton } from '../ui/Button';
 import { CategoryManager } from './CategoryManager';
+import { useSwipeToNavigateTabs } from '../../hooks/useSwipeToNavigateTabs';
 
 interface CategoriesViewProps {
     categories: PostCategory[];
@@ -20,12 +22,49 @@ interface CategoriesViewProps {
     onDeletePriceUnit: (name: string) => void;
 }
 
+type CategoryTab = 'markets' | 'forums' | 'units';
+
 export const CategoriesView: React.FC<CategoriesViewProps> = ({ 
     categories, onAddCategory, onUpdateCategory, onDeleteCategory,
     forumCategories, onAddForumCategory, onUpdateForumCategory, onDeleteForumCategory,
     priceUnits, onAddPriceUnit, onUpdatePriceUnit, onDeletePriceUnit
 }) => {
-    const [activeTab, setActiveTab] = useState<'markets' | 'forums' | 'units'>('markets');
+    const [activeTab, setActiveTab] = useState<CategoryTab>('markets');
+    const swipeRef = useRef<HTMLDivElement>(null);
+    const tabs: CategoryTab[] = ['markets', 'forums', 'units'];
+    
+    const [animationClass, setAnimationClass] = useState('');
+    const prevTabRef = useRef(activeTab);
+
+    useEffect(() => {
+        const prevIndex = tabs.indexOf(prevTabRef.current);
+        const currentIndex = tabs.indexOf(activeTab);
+
+        if (prevIndex !== -1 && prevIndex !== currentIndex) {
+            setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+        }
+        prevTabRef.current = activeTab;
+    }, [activeTab]);
+
+    useSwipeToNavigateTabs({
+        tabs,
+        activeTab,
+        setActiveTab: (tabId) => setActiveTab(tabId as CategoryTab),
+        swipeRef
+    });
+    
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'markets':
+                return <CategoryManager title="Markets" categories={categories} onAdd={onAddCategory} onUpdate={onUpdateCategory} onDelete={onDeleteCategory} />;
+            case 'forums':
+                return <CategoryManager title="Forums" categories={forumCategories} onAdd={onAddForumCategory} onUpdate={onUpdateForumCategory} onDelete={onDeleteForumCategory} />;
+            case 'units':
+                return <CategoryManager title="Price Units" categories={priceUnits} onAdd={onAddPriceUnit} onUpdate={onUpdatePriceUnit} onDelete={onDeletePriceUnit} />;
+            default:
+                return null;
+        }
+    }
 
     return (
         <div>
@@ -36,31 +75,11 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
                     <TabButton onClick={() => setActiveTab('units')} isActive={activeTab === 'units'}>Units</TabButton>
                 </nav>
             </div>
-            {activeTab === 'markets' ? (
-                <CategoryManager
-                    title="Markets"
-                    categories={categories}
-                    onAdd={onAddCategory}
-                    onUpdate={onUpdateCategory}
-                    onDelete={onDeleteCategory}
-                />
-            ) : activeTab === 'forums' ? (
-                <CategoryManager
-                    title="Forums"
-                    categories={forumCategories}
-                    onAdd={onAddForumCategory}
-                    onUpdate={onUpdateForumCategory}
-                    onDelete={onDeleteForumCategory}
-                />
-            ) : (
-                <CategoryManager
-                    title="Price Units"
-                    categories={priceUnits}
-                    onAdd={onAddPriceUnit}
-                    onUpdate={onUpdatePriceUnit}
-                    onDelete={onDeletePriceUnit}
-                />
-            )}
+            <div ref={swipeRef} className="relative overflow-x-hidden">
+                <div key={activeTab} className={animationClass}>
+                    {renderContent()}
+                </div>
+            </div>
         </div>
     );
 };

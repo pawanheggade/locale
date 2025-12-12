@@ -18,6 +18,7 @@ import { generateContactMethods } from '../utils/account';
 import { cn, isShareAbortError } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { usePosts } from '../contexts/PostsContext';
+import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 
 interface ForumPostRowProps {
     post: DisplayableForumPost;
@@ -141,6 +142,32 @@ export const AccountView: React.FC = () => {
   ]);
 
   const [activeTab, setActiveTab] = useState<string>('');
+  const swipeRef = useRef<HTMLDivElement>(null);
+
+  const allTabs = useMemo(() => {
+      return [...availableTabs.map(t => t.id), ...categoryTabs];
+  }, [availableTabs, categoryTabs]);
+
+  const [animationClass, setAnimationClass] = useState('');
+  const prevTabRef = useRef(activeTab);
+
+  useEffect(() => {
+    const prevIndex = allTabs.indexOf(prevTabRef.current);
+    const currentIndex = allTabs.indexOf(activeTab);
+
+    if (prevIndex !== -1 && prevIndex !== currentIndex) {
+      setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+    }
+    prevTabRef.current = activeTab;
+  }, [activeTab, allTabs]);
+  
+  useSwipeToNavigateTabs({
+      tabs: allTabs,
+      activeTab,
+      setActiveTab,
+      swipeRef,
+      disabled: allTabs.length <= 1,
+  });
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
@@ -212,6 +239,103 @@ export const AccountView: React.FC = () => {
           openModal({ type: 'profileQR', data: account });
       }
   };
+
+  const renderContent = () => {
+    switch (activeTab) {
+        case 'catalogs':
+            return (
+                <div className="space-y-4">
+                    {hasCatalogContent ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {account.catalog!.map((item) => (
+                                <div 
+                                    key={item.id} 
+                                    onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
+                                    className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col active:scale-[0.98] transition-transform duration-100"
+                                >
+                                    <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
+                                        {item.type === 'image' ? (
+                                            <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
+                                        )}
+                                    </div>
+                                    <div className="p-3 border-t border-gray-100 bg-white relative z-10">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <EmptyState
+                            icon={<DocumentIcon />}
+                            title="No Catalog Items"
+                            description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
+                            className="bg-white rounded-xl"
+                        />
+                    )}
+                </div>
+            );
+        case 'forums':
+            return (
+                <div>
+                    {userForumPosts.length > 0 ? (
+                        <div className="space-y-4">
+                            {userForumPosts.map(post => (
+                                <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
+                            ))}
+                        </div>
+                    ) : (
+                        <EmptyState
+                            icon={<ChatBubbleEllipsisIcon />}
+                            title="No Forum Discussions"
+                            description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
+                            className="bg-white rounded-xl"
+                        />
+                    )}
+                </div>
+            );
+        default:
+             return (
+                <div>
+                    {displayedPosts.length > 0 ? (
+                        <PostList 
+                            posts={displayedPosts} 
+                            isArchived={activeTab === 'archives'}
+                            variant={isTabletOrDesktop ? gridView : 'default'}
+                        />
+                    ) : (
+                    (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
+                        <EmptyState
+                            icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <PostCardIcon />}
+                            title={
+                                activeTab === 'archives' ? "No Archived Posts" :
+                                activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
+                            }
+                            description={isOwnAccount 
+                                ? (
+                                    activeTab === 'archives' ? "Posts you archive will appear here." :
+                                    activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
+                                  )
+                                : (
+                                    activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
+                                  )
+                            }
+                            className="py-20"
+                        />
+                    ) : (
+                        <EmptyState
+                            icon={<PostCardIcon />}
+                            title={`No items in ${activeTab}`}
+                            description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
+                            className="py-20"
+                        />
+                    )
+                    )}
+                </div>
+            );
+    }
+  }
 
   return (
     <div className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
@@ -410,94 +534,10 @@ export const AccountView: React.FC = () => {
             </div>
           </div>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <div className="min-h-[300px]">
-                {activeTab === 'catalogs' ? (
-                    <div className="space-y-4 animate-fade-in">
-                        {hasCatalogContent ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                {account.catalog!.map((item) => (
-                                    <div 
-                                        key={item.id} 
-                                        onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
-                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col active:scale-[0.98] transition-transform duration-100"
-                                    >
-                                        <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
-                                            {item.type === 'image' ? (
-                                                <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
-                                            )}
-                                        </div>
-                                        <div className="p-3 border-t border-gray-100 bg-white relative z-10">
-                                            <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState
-                                icon={<DocumentIcon />}
-                                title="No Catalog Items"
-                                description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
-                                className="bg-white rounded-xl"
-                            />
-                        )}
-                    </div>
-                ) : activeTab === 'forums' ? (
-                    <div className="animate-fade-in">
-                        {userForumPosts.length > 0 ? (
-                            <div className="space-y-4">
-                                {userForumPosts.map(post => (
-                                    <ForumPostRow key={post.id} post={post} onClick={() => navigateTo('forumPostDetail', { forumPostId: post.id })} />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyState
-                                icon={<ChatBubbleEllipsisIcon />}
-                                title="No Forum Discussions"
-                                description={isOwnAccount ? "Start a discussion in the forums to see it here." : "This user hasn't started any discussions yet."}
-                                className="bg-white rounded-xl"
-                            />
-                        )}
-                    </div>
-                ) : (
-                    <div className="animate-fade-in">
-                        {displayedPosts.length > 0 ? (
-                            <PostList 
-                                posts={displayedPosts} 
-                                isArchived={activeTab === 'archives'}
-                                variant={isTabletOrDesktop ? gridView : 'default'}
-                            />
-                        ) : (
-                        (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
-                            <EmptyState
-                                icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <PostCardIcon />}
-                                title={
-                                    activeTab === 'archives' ? "No Archived Posts" :
-                                    activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
-                                }
-                                description={isOwnAccount 
-                                    ? (
-                                        activeTab === 'archives' ? "Posts you archive will appear here." :
-                                        activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
-                                      )
-                                    : (
-                                        activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
-                                      )
-                                }
-                                className="py-20"
-                            />
-                        ) : (
-                            <EmptyState
-                                icon={<PostCardIcon />}
-                                title={`No items in ${activeTab}`}
-                                description={isOwnAccount ? `You don't have any items in this category.` : `This seller has no items in this category.`}
-                                className="py-20"
-                            />
-                        )
-                        )}
-                    </div>
-                )}
+            <div ref={swipeRef} className="min-h-[300px] relative overflow-x-hidden">
+                <div key={activeTab} className={animationClass}>
+                    {renderContent()}
+                </div>
             </div>
           </div>
         </>

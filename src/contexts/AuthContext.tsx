@@ -127,7 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
     }, [accounts, currentAccountId, setCurrentAccountId]);
     
-    const accountsById = useMemo(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
+    // FIX: Explicitly typed `accountsById` to fix type inference issue.
+    const accountsById = useMemo<Map<string, Account>>(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
     const likedPostIds = useMemo(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
     
     const currentUserData = useMemo(() => {
@@ -591,7 +592,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateAccountInList(accountId, acc => ({ ...acc, profileViews: (acc.profileViews || 0) + 1 }));
     }, [updateAccountInList]);
 
-    const value = useMemo(() => ({
+    const value: AuthContextType = useMemo(() => ({
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         bag: currentUserData.bag, savedLists: currentUserData.savedLists, viewedPostIds: currentUserData.viewedPostIds,
         addToBag, updateBagItem, saveItemToLists, removeBagItem, clearCheckedBagItems, createSavedList, renameSavedList, deleteListAndMoveItems, addListToBag,

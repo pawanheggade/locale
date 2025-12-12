@@ -80,7 +80,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       dispatchFilterAction({ type: 'SET_FILTER_DISTANCE', payload: DISTANCE_STEPS[stepIndex] });
   };
 
-  // Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
+  // FIX: Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
     { value: 'relevance-desc', label: 'Relevant' },
     { value: 'popularity-desc', label: 'Popular' },
@@ -94,7 +94,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { value: 'distance-desc', label: 'Distance: Farthest', disabled: !isLocationAvailable },
   ], [isLocationAvailable]);
 
-  const sortOptionsToShow = useMemo(() => {
+  // FIX: Explicitly type `sortOptionsToShow` to help TypeScript infer the type of `option` in the map function.
+  const sortOptionsToShow: { value: string; label: string; disabled?: boolean }[] = useMemo(() => {
     const isCurrentSelectionMain = mainSortOptions.some(opt => opt.value === filterState.sortOption);
     
     if (isCurrentSelectionMain) {
@@ -172,7 +173,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         isLoading={isLoadingLocation}
                         variant="outline" 
                         size="sm" 
-                        className="w-full border-red-200 text-red-600"
+                        className="w-full border-red-200 text-red-600 hover:bg-red-50"
                     >
                         Enable Location Services
                     </Button>
@@ -237,11 +238,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 [
                   { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
                   { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
-                ] as { id: string; label: string; checked: boolean; action: string }[]
+                ] as { id: string; label: string; checked: boolean; action: 'SET_FILTER_EXPIRING_SOON' | 'SET_FILTER_SHOW_EXPIRED' }[]
               ).map(({id, label, checked, action}) => (
                 <div key={id} className="relative flex items-start">
                     <div className="flex h-6 items-center">
-                        <input id={id} type="checkbox" checked={checked} onChange={(e) => dispatchFilterAction({ type: action as any, payload: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" />
+                        <input id={id} type="checkbox" checked={checked} onChange={(e) => dispatchFilterAction({ type: action, payload: e.target.checked })} className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer" />
                     </div>
                     <div className="ml-3 text-sm"><label htmlFor={id} className="font-medium text-gray-600 cursor-pointer">{label}</label></div>
                 </div>
