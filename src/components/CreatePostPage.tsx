@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -322,7 +323,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   id="is-on-sale"
                   type="checkbox"
                   checked={isOnSale}
-                  onChange={e => setField('isOnSale', e.target.checked)}
+                  onChange={e => {
+                      const checked = e.target.checked;
+                      setField('isOnSale', checked);
+                      if (checked && !price.trim() && !contactForPrice) {
+                          dispatch({ type: 'SET_ERRORS', payload: { ...errors, price: 'Price cannot be empty' } });
+                      }
+                  }}
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                   disabled={contactForPrice}
               />

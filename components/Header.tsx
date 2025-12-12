@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -177,7 +174,13 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+            <div
+              id="filter-dropdown-menu"
+              className={cn(
+                "absolute mt-2 w-auto bg-white rounded-xl shadow-lg border z-10 animate-zoom-in",
+                isSearchOpen ? "right-0 origin-top-right" : "left-0 origin-top-left"
+              )}
+            >
                 <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
