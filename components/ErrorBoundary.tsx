@@ -42,6 +42,9 @@ interface ErrorBoundaryState {
 export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   // Fix: Use class property for state initialization to resolve issues with 'this' context. This resolves errors on lines 45, 58, and 62.
   state: ErrorBoundaryState = { hasError: false };
+  
+  // Fix: Explicitly declare props to resolve TS error
+  props!: Readonly<ErrorBoundaryProps>;
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI.

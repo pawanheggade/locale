@@ -4,12 +4,8 @@ import { CheckIcon } from './Icons';
 import { formatDaysRemaining } from '../utils/formatters';
 import { Button, ButtonProps } from './ui/Button';
 import { TIER_STYLES } from '../lib/utils';
-// FIX: Import context hooks
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
-
-// FIX: Remove props interface
-interface SubscriptionPageProps {}
 
 const plans = [
   {
@@ -84,8 +80,7 @@ const plans = [
   },
 ];
 
-export const SubscriptionPage: React.FC<SubscriptionPageProps> = () => {
-  // FIX: Get data from contexts
+export const SubscriptionPage: React.FC = () => {
   const { currentAccount, updateSubscription: onUpdateSubscription } = useAuth();
   const { openModal } = useUI();
 
@@ -153,7 +148,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = () => {
           if (!isCurrentPlan) {
             if (isUpgrade) {
               if (plan.tier === 'Verified') {
-                  buttonVariant = 'pill-red';
+                  buttonVariant = 'pill-slate';
               } else if (plan.tier === 'Business' || plan.tier === 'Organisation') {
                   buttonVariant = 'pill-amber';
               } else if (plan.tier === 'Basic') {
