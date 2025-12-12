@@ -184,15 +184,24 @@ export const App: React.FC = () => {
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    refreshPosts(); 
+    // Refresh markets posts if on home feed
+    if (view === 'all') {
+        refreshPosts();
+    }
+    // Simulate network delay for UI feedback
     setTimeout(() => {
         if (isMounted()) {
             setIsRefreshing(false);
         }
     }, 800);
-  }, [isRefreshing, refreshPosts, isMounted]);
+  }, [isRefreshing, refreshPosts, isMounted, view]);
 
-  const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
+  const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ 
+    onRefresh: handleRefresh, 
+    mainContentRef, 
+    isRefreshing, 
+    disabled: !((view === 'all' && mainView === 'grid') || view === 'forums')
+  });
   
   const handleBack = useCallback(() => {
     const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;

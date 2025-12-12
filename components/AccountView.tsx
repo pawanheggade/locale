@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
@@ -19,6 +18,7 @@ import { cn, isShareAbortError } from '../lib/utils';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { usePosts } from '../contexts/PostsContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
+import { SEO } from './SEO';
 
 interface ForumPostRowProps {
     post: DisplayableForumPost;
@@ -257,7 +257,7 @@ export const AccountView: React.FC = () => {
                                         {item.type === 'image' ? (
                                             <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <DocumentIcon className="w-12 h-12 text-red-500 opacity-80" />
+                                            <DocumentIcon className="w-12 h-12 text-[#123456] opacity-80" />
                                         )}
                                     </div>
                                     <div className="p-3 border-t border-gray-100 bg-white relative z-10">
@@ -339,6 +339,12 @@ export const AccountView: React.FC = () => {
 
   return (
     <div className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
+      <SEO 
+        title={account.name}
+        description={account.description || `Check out ${account.name}'s profile on Locale.`}
+        image={account.avatarUrl}
+        type="profile"
+      />
       {/* Banner Section */}
       <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
         {account.bannerUrl ? (
@@ -434,7 +440,7 @@ export const AccountView: React.FC = () => {
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
+                                account.coordinates ? "cursor-pointer text-[#123456] hover:text-[#0F2A4B] font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}
                         >
@@ -520,7 +526,7 @@ export const AccountView: React.FC = () => {
                                           }}
                                           className={cn(
                                               "w-full text-left px-4 py-2 text-sm whitespace-nowrap active:bg-gray-100 transition-colors",
-                                              activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
+                                              activeTab === cat ? "text-[#123456] font-semibold bg-indigo-50" : "text-gray-700"
                                           )}
                                       >
                                           {cat}

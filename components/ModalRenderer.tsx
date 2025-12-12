@@ -27,6 +27,7 @@ import { ProfileQRModal } from './ProfileQRModal';
 import ModalShell from './ModalShell';
 import { Logo } from './Logo';
 import { PostCard } from './PostCard';
+import { SEO } from './SEO';
 
 interface ModalRendererProps {
     activeModal: ModalState | null;
@@ -58,11 +59,6 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
 
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // If there is no active modal, do not render anything
-    if (!activeModal) {
-        return null;
-    }
-
     const handleLoadSearch = (searchId: string) => {
         const search = savedSearches.find(s => s.id === searchId);
         if (search) {
@@ -78,8 +74,12 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     };
 
     const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
-    if (!currentAccount && !publicModals.has(activeModal.type)) {
+    if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
         openModal({ type: 'login' });
+        return null;
+    }
+
+    if (!activeModal) {
         return null;
     }
 
@@ -199,6 +199,12 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
                 panelClassName="w-full max-w-md bg-transparent border-0 shadow-none"
                 titleId="view-post-title"
             >
+                <SEO 
+                    title={activeModal.data.title}
+                    description={activeModal.data.description.slice(0, 160)}
+                    image={activeModal.data.media?.[0]?.url}
+                    type="article"
+                />
                 <PostCard
                     post={activeModal.data}
                     currentAccount={currentAccount}

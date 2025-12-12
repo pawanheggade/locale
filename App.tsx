@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, Post, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -19,6 +19,7 @@ import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
 import { NavigationContext } from './contexts/NavigationContext';
 import { STORAGE_KEYS } from './lib/constants';
+import { SEO } from './components/SEO';
 
 interface HistoryItem {
     view: AppView;
@@ -184,15 +185,24 @@ export const App: React.FC = () => {
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
-    refreshPosts(); 
+    // Refresh markets posts if on home feed
+    if (view === 'all') {
+        refreshPosts();
+    }
+    // Simulate network delay for UI feedback
     setTimeout(() => {
         if (isMounted()) {
             setIsRefreshing(false);
         }
     }, 800);
-  }, [isRefreshing, refreshPosts, isMounted]);
+  }, [isRefreshing, refreshPosts, isMounted, view]);
 
-  const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ onRefresh: handleRefresh, mainContentRef, isRefreshing, disabled: view !== 'all' || mainView !== 'grid' });
+  const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ 
+    onRefresh: handleRefresh, 
+    mainContentRef, 
+    isRefreshing, 
+    disabled: !((view === 'all' && mainView === 'grid') || view === 'forums')
+  });
   
   const handleBack = useCallback(() => {
     const lastHistoryItem = history.length > 0 ? history[history.length - 1] : null;
@@ -414,6 +424,7 @@ export const App: React.FC = () => {
   return (
     <NavigationContext.Provider value={navigationContextValue}>
       <div className="h-screen flex flex-col">
+        {view === 'all' && <SEO title="Home" />}
         <Header
           onSearchSubmit={handleSearchSubmit}
           recentSearches={recentSearches}

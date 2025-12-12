@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +14,7 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
+import { SEO } from './SEO';
 
 interface ForumPostDetailViewProps {}
 
@@ -100,6 +100,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
 
     return (
         <div className="bg-white rounded-xl border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-down">
+            <SEO title={post.title} description={post.content.slice(0, 160)} type="article" />
             <div className="flex gap-4">
                 <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
                 <div className="flex-1 min-w-0">
@@ -114,7 +115,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                             className="text-[10px] h-auto min-h-0"
                         />
                         <span>&bull;</span>
-                        <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">@{post.author?.username || 'unknown'}</button></span>
+                        <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#123456] rounded-sm">@{post.author?.username || 'unknown'}</button></span>
                          <span className="hidden sm:inline">&bull;</span>
                         <span className="hidden sm:inline">{timeSince(post.timestamp)}</span>
                     </div>
@@ -161,9 +162,8 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                                         </Button>
                                         <Button 
                                             onClick={handleDeletePost} 
-                                            variant="ghost"
+                                            variant="overlay-destructive"
                                             size="icon-sm"
-                                            className="text-red-600"
                                             title="Delete"
                                         >
                                             <TrashIcon className="w-5 h-5" />
