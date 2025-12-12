@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, HeartIcon, UserPlusIcon } from './Icons';
-import { formatTimeRemaining, formatFullDate, formatFullDateTime } from '../utils/formatters';
+import { formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
@@ -111,7 +111,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
             'text-red-400',
-            coordsToUse ? "cursor-pointer group" : ""
+            coordsToUse ? "cursor-pointer group active:scale-95 transition-transform origin-left" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -156,7 +156,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       <Card
         ref={cardRef}
         className={cn(
-          'group cursor-pointer aspect-[4/5]',
+          'group cursor-pointer aspect-[4/5] active:scale-[0.98] transition-transform duration-100',
           enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
         )}
         style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
@@ -213,7 +213,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     <Card
       ref={cardRef}
       className={cn(
-        'group cursor-pointer',
+        'group cursor-pointer active:scale-[0.99] transition-transform duration-100',
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
       style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}

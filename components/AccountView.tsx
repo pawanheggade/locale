@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { DisplayableForumPost, SocialPlatform, Account, ContactOption } from '../types';
+import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
@@ -26,7 +27,7 @@ interface ForumPostRowProps {
 const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
     <div
         onClick={onClick}
-        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer border"
+        className="bg-gray-50/50 rounded-lg p-4 flex items-center gap-4 cursor-pointer border active:scale-[0.99] transition-transform duration-100"
         role="button"
         tabIndex={0}
         onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
@@ -226,20 +227,20 @@ export const AccountView: React.FC = () => {
       {/* Profile Header Section - Full Width */}
       <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-            <div className="flex items-start gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
                         src={account.avatarUrl} 
                         alt={account.name} 
                         tier={account.subscription.tier} 
-                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md"
+                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md active:scale-95 transition-transform"
                         onClick={() => openModal({ type: 'profileQR', data: account })}
                     />
                  </div>
 
                  {/* Name and Info */}
-                 <div className="flex-1 pt-12 sm:pt-16 min-w-0">
+                 <div className="flex-1 pt-1 sm:pt-[calc(4rem+4px)] min-w-0 w-full">
                       <div className="flex flex-col items-start gap-0.5">
                           {isOwnAccount && (
                               <Button
@@ -287,12 +288,12 @@ export const AccountView: React.FC = () => {
                          {(account.googleMapsUrl || account.appleMapsUrl) && (
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Google Maps">
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Google Maps">
                                         <GoogleIcon className="w-4 h-4" />
                                     </a>
                                 )}
                                 {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors" title="Apple Maps">
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Apple Maps">
                                         <AppleIcon className="w-4 h-4" />
                                     </a>
                                 )}
@@ -309,7 +310,7 @@ export const AccountView: React.FC = () => {
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium" : "cursor-default text-gray-400"
+                                account.coordinates ? "cursor-pointer text-red-500 hover:text-red-600 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}
                         >
@@ -394,7 +395,7 @@ export const AccountView: React.FC = () => {
                                               setIsCategoryDropdownOpen(false);
                                           }}
                                           className={cn(
-                                              "w-full text-left px-4 py-2 text-sm whitespace-nowrap",
+                                              "w-full text-left px-4 py-2 text-sm whitespace-nowrap active:bg-gray-100 transition-colors",
                                               activeTab === cat ? "text-red-600 font-semibold bg-red-50" : "text-gray-700"
                                           )}
                                       >
@@ -418,7 +419,7 @@ export const AccountView: React.FC = () => {
                                     <div 
                                         key={item.id} 
                                         onClick={() => openModal({ type: 'viewCatalog', data: { catalog: account.catalog!, accountId: account.id } })}
-                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col"
+                                        className="group cursor-pointer bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden aspect-[3/4] flex flex-col active:scale-[0.98] transition-transform duration-100"
                                     >
                                         <div className="flex-1 bg-white flex items-center justify-center p-4 overflow-hidden relative">
                                             {item.type === 'image' ? (
