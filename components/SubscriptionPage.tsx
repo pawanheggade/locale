@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Account, Subscription, ModalState } from '../types';
 import { CheckIcon } from './Icons';
@@ -148,7 +149,7 @@ export const SubscriptionPage: React.FC = () => {
           if (!isCurrentPlan) {
             if (isUpgrade) {
               if (plan.tier === 'Verified') {
-                  buttonVariant = 'pill-slate';
+                  buttonVariant = 'pill-red';
               } else if (plan.tier === 'Business' || plan.tier === 'Organisation') {
                   buttonVariant = 'pill-amber';
               } else if (plan.tier === 'Basic') {

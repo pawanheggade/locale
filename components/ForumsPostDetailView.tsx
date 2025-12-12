@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,11 +16,9 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
 
-// FIX: Remove postId from props, it will be fetched from context.
 interface ForumPostDetailViewProps {}
 
 export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
-    // FIX: Get viewingForumPostId from NavigationContext.
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
@@ -116,6 +115,8 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                         />
                         <span>&bull;</span>
                         <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">@{post.author?.username || 'unknown'}</button></span>
+                         <span className="hidden sm:inline">&bull;</span>
+                        <span className="hidden sm:inline">{timeSince(post.timestamp)}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{post.title}</h1>
                     {isEditingPost ? (

@@ -1,17 +1,13 @@
+
 import React from 'react';
 import { DisplayablePost } from '../types';
 import { PostList } from './PostList';
 import { MapPinIcon } from './Icons';
 import { EmptyState } from './EmptyState';
 import { useAuth } from '../contexts/AuthContext';
-// FIX: Import useNavigation hook to access context.
 import { useNavigation } from '../contexts/NavigationContext';
 
-// FIX: Remove props interface.
-interface NearbyPostsViewProps {}
-
-export const NearbyPostsView: React.FC<NearbyPostsViewProps> = () => {
-  // FIX: Get result from context.
+export const NearbyPostsView: React.FC = () => {
   const { nearbyPostsResult: result } = useNavigation();
   const { currentAccount } = useAuth();
   

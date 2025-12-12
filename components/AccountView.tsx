@@ -351,7 +351,7 @@ export const AccountView: React.FC = () => {
       {/* Profile Header Section - Full Width */}
       <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-            <div className="flex flex-col sm:flex-row items-start gap-5 -mt-12 sm:-mt-16 mb-6">
+            <div className="flex items-center gap-5 -mt-12 sm:-mt-16 mb-6">
                  {/* Avatar */}
                  <div className="shrink-0 relative z-20">
                     <Avatar 
@@ -364,7 +364,7 @@ export const AccountView: React.FC = () => {
                  </div>
 
                  {/* Name and Info */}
-                 <div className="flex-1 pt-1 sm:pt-[calc(4rem+4px)] min-w-0 w-full">
+                 <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-col items-start gap-0.5">
                           {isOwnAccount && (
                               <Button

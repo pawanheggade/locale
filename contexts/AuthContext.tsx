@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Account, Subscription, BagItem, SavedList, CatalogItem, SavedSearch, Report, Feedback, Post, ForumPost, ForumComment, ConfirmationModalData } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -49,7 +50,6 @@ interface AuthContextType {
   savedLists: SavedList[];
   viewedPostIds: string[];
   addToBag: (postId: string, quantity: number) => void;
-  // FIX: Replaced Partial<Pick<...>> with an explicit inline type to resolve a TypeScript error.
   updateBagItem: (itemId: string, updates: Partial<{ quantity: number; isChecked: boolean; savedListIds: string[]; }>) => void;
   saveItemToLists: (itemId: string, listIds: string[]) => void;
   removeBagItem: (itemId: string) => void;
@@ -127,9 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
     }, [accounts, currentAccountId, setCurrentAccountId]);
     
-    // FIX: Explicitly typed `accountsById` to fix type inference issue.
     const accountsById = useMemo<Map<string, Account>>(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
-    const likedPostIds = useMemo(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
+    const likedPostIds = useMemo(() => new Set<string>(currentAccount?.likedPostIds || []), [currentAccount]);
     
     const currentUserData = useMemo(() => {
         if (currentAccountId && allUsersData[currentAccountId]) {

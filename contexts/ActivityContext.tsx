@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post, NotificationSettings } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -59,7 +60,6 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Helper to access current user's data safely
   const userData = useMemo(() => {
     if (!currentUserId) return initialActivityData;
-    // FIX: Ensure settings object is always present with defaults.
     const data = allActivityData[currentUserId] || initialActivityData;
     return {
       ...data,

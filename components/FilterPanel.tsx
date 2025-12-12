@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
@@ -80,7 +81,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       dispatchFilterAction({ type: 'SET_FILTER_DISTANCE', payload: DISTANCE_STEPS[stepIndex] });
   };
 
-  // FIX: Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
     { value: 'relevance-desc', label: 'Relevant' },
     { value: 'popularity-desc', label: 'Popular' },
@@ -94,7 +94,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { value: 'distance-desc', label: 'Distance: Farthest', disabled: !isLocationAvailable },
   ], [isLocationAvailable]);
 
-  // FIX: Explicitly type `sortOptionsToShow` to help TypeScript infer the type of `option` in the map function.
   const sortOptionsToShow: { value: string; label: string; disabled?: boolean }[] = useMemo(() => {
     const isCurrentSelectionMain = mainSortOptions.some(opt => opt.value === filterState.sortOption);
     

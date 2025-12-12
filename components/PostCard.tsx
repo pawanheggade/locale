@@ -131,7 +131,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         title={coordsToUse ? "View on Map" : undefined}
      >
         <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0")} />
-        <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
+        <span className={cn("truncate text-xs", coordsToUse ? "group-hover:underline underline-offset-2" : "")}>
             {locationToDisplay}
         </span>
      </div>
