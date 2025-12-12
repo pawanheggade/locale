@@ -327,7 +327,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       const checked = e.target.checked;
                       setField('isOnSale', checked);
                       if (checked && !price.trim() && !contactForPrice) {
-                          dispatch({ type: 'SET_ERRORS', payload: { ...errors, price: 'Price cannot be empty' } });
+                          dispatch({ type: 'SET_ERRORS', payload: { ...errors, price: 'Price is required when setting a sale.' } });
                       }
                   }}
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"

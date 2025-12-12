@@ -2,7 +2,7 @@
 const staticDate = new Date('2024-07-26').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
 export const initialTermsContent = `
-<p class="text-sm text-gray-500">Last updated: ${staticDate}</p>
+<p>Last updated: ${staticDate}</p>
 <h2>1. Introduction</h2>
 <p>Welcome to Locale ("we," "our," or "us"). These Terms of Service govern your use of our hyperlocal markets application and any related services provided by us. By accessing or using our service, you agree to be bound by these terms.</p>
 <h2>2. Use of Our Service</h2>
@@ -32,7 +32,7 @@ export const initialTermsContent = `
 `;
 
 export const initialPrivacyContent = `
-<p class="text-sm text-gray-500">Last updated: ${staticDate}</p>
+<p>Last updated: ${staticDate}</p>
 <h2>1. Introduction</h2>
 <p>Your privacy is important to us. This Privacy Policy explains how Locale ("we," "our," or "us") collects, uses, discloses, and safeguards your information when you use our hyperlocal markets application.</p>
 <h2>2. Information We Collect</h2>
@@ -62,5 +62,6 @@ export const initialPrivacyContent = `
 <h2>6. Policy for Children</h2>
 <p>We do not knowingly solicit information from or market to children under the age of 13. If you become aware of any data we have collected from children under age 13, please contact us using the contact information provided below.</p>
 <h2>7. Contact Us</h2>
-<p>If you have questions or comments about this Privacy Policy, please contact us at: privacy@locale.example.com.</p>
+<p>If you have any questions or comments about this Privacy Policy, please contact us at: privacy@locale.example.com.</p>
 `;
+    

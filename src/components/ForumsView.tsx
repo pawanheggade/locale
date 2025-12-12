@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { DisplayableForumPost } from '../types';
@@ -12,6 +13,7 @@ import { EmptyState } from './EmptyState';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 import { cn } from '../lib/utils';
+import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 
 interface ForumPostCardProps {
     post: DisplayableForumPost;
@@ -81,6 +83,28 @@ export const ForumsView: React.FC = () => {
     const { gridView, isTabletOrDesktop } = useUI();
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
+    
+    const swipeRef = useRef<HTMLDivElement>(null);
+    const tabs = useMemo(() => ['All', ...categories], [categories]);
+    const [animationClass, setAnimationClass] = useState('');
+    const prevTabRef = useRef(activeCategory);
+
+    useEffect(() => {
+        const prevIndex = tabs.indexOf(prevTabRef.current);
+        const currentIndex = tabs.indexOf(activeCategory);
+
+        if (prevIndex !== -1 && prevIndex !== currentIndex) {
+            setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+        }
+        prevTabRef.current = activeCategory;
+    }, [activeCategory, tabs]);
+
+    useSwipeToNavigateTabs({
+        tabs,
+        activeTab: activeCategory,
+        setActiveTab: setActiveCategory,
+        swipeRef
+    });
 
     const filteredPosts = useMemo(() => {
         let filtered = posts;
@@ -105,14 +129,11 @@ export const ForumsView: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 pb-24">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
-                    <p className="text-gray-600 text-sm mt-1">Discuss, ask questions, and share with the community.</p>
-                </div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+                <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0">
                     <PlusIcon className="w-5 h-5" />
-                    Start Discussion
+                    Discuss
                 </Button>
             </div>
 
@@ -138,29 +159,35 @@ export const ForumsView: React.FC = () => {
                 </div>
             </div>
 
-            <div className={cn(
-                'grid gap-4',
-                isTabletOrDesktop && gridView === 'compact' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-            )}>
-                {filteredPosts.length > 0 ? (
-                    filteredPosts.map(post => (
-                        <ForumPostCard 
-                            key={post.id} 
-                            post={post} 
-                            onCategoryClick={setActiveCategory}
-                            variant={isTabletOrDesktop && gridView === 'compact' ? 'compact' : 'default'}
-                        />
-                    ))
-                ) : (
-                    <div className="col-span-full">
-                        <EmptyState 
-                            icon={<ChatBubbleEllipsisIcon />} 
-                            title="No discussions found" 
-                            description={activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!"}
-                            className="py-12"
-                        />
-                    </div>
-                )}
+            <div ref={swipeRef} className="relative overflow-x-hidden">
+                <div
+                    key={activeCategory} 
+                    className={cn(
+                        'grid gap-4',
+                        isTabletOrDesktop && gridView === 'compact' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1',
+                        animationClass
+                    )}
+                >
+                    {filteredPosts.length > 0 ? (
+                        filteredPosts.map(post => (
+                            <ForumPostCard 
+                                key={post.id} 
+                                post={post} 
+                                onCategoryClick={setActiveCategory}
+                                variant={isTabletOrDesktop && gridView === 'compact' ? 'compact' : 'default'}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full">
+                            <EmptyState 
+                                icon={<ChatBubbleEllipsisIcon />} 
+                                title="No discussions found" 
+                                description={activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!"}
+                                className="py-12"
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

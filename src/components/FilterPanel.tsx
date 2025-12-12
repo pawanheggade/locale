@@ -209,7 +209,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <FilterSection title="Type" htmlFor="type-filter" isActive={filterState.filterType !== 'all'}>
             <Select id="type-filter" value={filterState.filterType} onChange={(e) => dispatchFilterAction({ type: 'SET_FILTER_TYPE', payload: e.target.value as 'all' | PostType })} variant="overlay">
               <option value="all">All Types</option>
-              {Object.values(PostType).map(type => <option key={type} value={type}>{type}</option>)}
+              {Object.values(PostType).map((type: PostType) => <option key={type} value={type}>{type}</option>)}
             </Select>
           </FilterSection>
           

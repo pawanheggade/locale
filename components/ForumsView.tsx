@@ -99,10 +99,10 @@ export const ForumsView: React.FC = () => {
         prevTabRef.current = activeCategory;
     }, [activeCategory, tabs]);
 
-    // FIX: Changed setActiveTab shorthand to provide an initializer. The state setter is setActiveCategory.
     useSwipeToNavigateTabs({
         tabs,
         activeTab: activeCategory,
+        // FIX: Pass setActiveCategory to the setActiveTab prop. The shorthand was incorrect as the variable is named setActiveCategory.
         setActiveTab: setActiveCategory,
         swipeRef
     });
@@ -130,14 +130,11 @@ export const ForumsView: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 pb-24">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
-                    <p className="text-gray-600 text-sm mt-1">Discuss, ask questions, and share with the community.</p>
-                </div>
+            <div className="flex items-center justify-between gap-4 mb-6">
+                <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
                 <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0">
                     <PlusIcon className="w-5 h-5" />
-                    Start Discussion
+                    Discuss
                 </Button>
             </div>
 

@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // FIX: Explicitly typed `accountsById` to fix type inference issue.
     const accountsById = useMemo<Map<string, Account>>(() => new Map(accounts.map(account => [account.id, account])), [accounts]);
-    const likedPostIds = useMemo(() => new Set(currentAccount?.likedPostIds || []), [currentAccount]);
+    const likedPostIds = useMemo(() => new Set<string>(currentAccount?.likedPostIds || []), [currentAccount]);
     
     const currentUserData = useMemo(() => {
         if (currentAccountId && allUsersData[currentAccountId]) {
