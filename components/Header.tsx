@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'popularity-desc', label: 'Popular' },
+    { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Recent' },
   ];
 
