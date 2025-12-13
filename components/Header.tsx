@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -128,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
     { value: 'popularity-desc', label: 'Trending' },
-    { value: 'date-desc', label: 'Recent' },
+    { value: 'date-desc', label: 'New Arrivals' },
   ];
 
   const placeholder = viewingAccount 

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
@@ -84,7 +85,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
     { value: 'relevance-desc', label: 'Relevant' },
     { value: 'popularity-desc', label: 'Trending' },
-    { value: 'date-desc', label: 'Recent' },
+    { value: 'date-desc', label: 'New Arrivals' },
   ], []);
 
   const granularSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
