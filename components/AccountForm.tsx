@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
-import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, XIcon, FacebookIcon, YouTubeIcon, CheckIcon } from './Icons';
+import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, YouTubeIcon, CheckIcon } from './Icons';
 import { validateAccountData, AccountValidationData, URL_REGEX } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
@@ -55,8 +55,6 @@ const initialState = {
     socials: {
         website: '',
         instagram: '',
-        twitter: '',
-        facebook: '',
         youtube: '',
     } as Record<SocialPlatform, string>,
 };
@@ -151,6 +149,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             type: 'SET_SELLER_OPTIONS',
             payload: { ...state.sellerOptions, [field]: value }
         });
+        if (errors[field as keyof SellerOptionsState]) {
+            setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
     };
 
     const handleMapToggle = (isOpen: boolean) => {
@@ -158,7 +159,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (onToggleMap) onToggleMap(isOpen);
     };
 
-    const validate = (fieldToValidate?: keyof AccountValidationData, forStep1: boolean = false): boolean => {
+    const validate = (fieldToValidate?: keyof AccountValidationData): boolean => {
         const isSeller = isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal');
         const validationData: AccountValidationData = { 
             name: state.name, 
@@ -181,18 +182,22 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             isSeller
         );
         
-        if (!forStep1) {
-            if (isSeller && state.sellerOptions.contactOptions.length === 0) {
-                validationErrors.contactOptions = 'As a seller, you must select at least one contact method.';
-            }
-
-            (Object.keys(state.socials) as SocialPlatform[]).forEach(platform => {
-                const url = state.socials[platform].trim();
-                if (url && !URL_REGEX.test(url)) {
-                    validationErrors[`social-${platform}`] = 'Please enter a valid URL.';
-                }
-            });
+        if (isSeller && state.sellerOptions.contactOptions.length === 0) {
+            validationErrors.contactOptions = 'As a seller, you must select at least one contact method.';
         }
+        if (isSeller && state.sellerOptions.paymentMethods.length === 0) {
+            validationErrors.paymentMethods = 'As a seller, you must select at least one payment method.';
+        }
+        if (isSeller && state.sellerOptions.deliveryOptions.length === 0) {
+            validationErrors.deliveryOptions = 'As a seller, you must select at least one delivery option.';
+        }
+
+        (Object.keys(state.socials) as SocialPlatform[]).forEach(platform => {
+            const url = state.socials[platform].trim();
+            if (url && !URL_REGEX.test(url)) {
+                validationErrors[`social-${platform}`] = 'Please enter a valid URL.';
+            }
+        });
         
         if (fieldToValidate) {
             setErrors(prev => ({ ...prev, [fieldToValidate]: validationErrors[fieldToValidate] }));
@@ -238,11 +243,35 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
     };
 
     const handleNext = () => {
-        const fieldsToValidate: (keyof AccountValidationData)[] = ['name', 'username', 'email', 'password', 'confirmPassword'];
-        const stepIsValid = fieldsToValidate.every(field => validate(field, true));
-        if (stepIsValid) {
-            setStep(2);
+        setErrors({});
+        const fieldsToValidate: (keyof AccountValidationData | 'contactOptions' | 'paymentMethods' | 'deliveryOptions')[] = ['name', 'username', 'email', 'password', 'confirmPassword'];
+        if (isSellerSignup) {
+            fieldsToValidate.push('googleMapsUrl', 'address', 'contactOptions', 'paymentMethods', 'deliveryOptions');
         }
+
+        if (!validate()) {
+            // Re-validate to get all errors, then filter for step 1
+            const allErrors = validateAccountData({ ...state, address: locationInput.location }, allAccounts, false, undefined, undefined, isSellerSignup);
+            if (isSellerSignup) {
+                if (state.sellerOptions.contactOptions.length === 0) allErrors.contactOptions = 'At least one contact method is required.';
+                if (state.sellerOptions.paymentMethods.length === 0) allErrors.paymentMethods = 'At least one payment method is required.';
+                if (state.sellerOptions.deliveryOptions.length === 0) allErrors.deliveryOptions = 'At least one delivery option is required.';
+            }
+            
+            const step1Errors: Record<string, string | undefined> = {};
+            fieldsToValidate.forEach(field => {
+                if (allErrors[field as string]) {
+                    step1Errors[field as string] = allErrors[field as string];
+                }
+            });
+
+            if (Object.keys(step1Errors).length > 0) {
+                setErrors(step1Errors);
+                return;
+            }
+        }
+
+        setStep(2);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -252,7 +281,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (!validate()) return;
         setErrors({});
 
-        const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram', 'facebook', 'twitter'];
+        const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram'];
         const socialLinks: SocialLink[] = platformOrder
             .filter(platform => state.socials[platform] && state.socials[platform].trim() !== '')
             .map(platform => ({ platform, url: state.socials[platform].trim() }));
@@ -297,7 +326,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         <form id={formId} onSubmit={handleSubmit} className="space-y-4">
             {(step === 1 || !isCreating) && (
                 <div className="space-y-4">
-                     {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 1: Required Information</h3>}
+                     {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">{isSellerSignup ? 'Step 1: Required Information' : 'Step 1: Required Information'}</h3>}
 
                     {!isCreating && (
                         <div>
@@ -363,6 +392,48 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             </div>
                         </>
                     )}
+
+                    {isSeller && (isCreating ? isSellerSignup && step === 1 : true) && (
+                         <div className="animate-fade-in-down space-y-4 pt-4 mt-4 border-t">
+                            {isCreating && isSellerSignup && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
+                            {!isCreating && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
+                             
+                             {!isCreating && (
+                                <>
+                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
+                                     <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
+                                 </FormField>
+                                 <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
+                                     <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
+                                 </FormField>
+                                </>
+                             )}
+                              <div>
+                                <FormField id="account-google-maps" label="Google Maps Location" error={errors.googleMapsUrl}>
+                                    <Input type="url" value={state.googleMapsUrl} onChange={(e) => handleFieldChange('googleMapsUrl', e.target.value)} onBlur={() => validate('googleMapsUrl')} placeholder="https://maps.app.goo.gl/..." />
+                                </FormField>
+                                <p className="mt-1 text-xs text-gray-600">Share a link to your business on Google Maps. This is required for sellers.</p>
+                             </div>
+                             <div>
+                                <FormField id="account-address" label="Location" error={errors.address || locationInput.error}>
+                                    <LocationInput value={locationInput.location} onValueChange={locationInput.setLocation} onSuggestionSelect={locationInput.selectSuggestion} onVerify={locationInput.verify} onOpenMapPicker={() => handleMapToggle(true)} suggestions={locationInput.suggestions} status={locationInput.status} placeholder="e.g., 123 Main St, Mumbai" />
+                                </FormField>
+                                <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
+                            </div>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <SellerOptionsForm
+                                    paymentMethods={state.sellerOptions.paymentMethods}
+                                    deliveryOptions={state.sellerOptions.deliveryOptions}
+                                    contactOptions={state.sellerOptions.contactOptions}
+                                    onPaymentChange={(methods) => handleSellerOptionChange('paymentMethods', methods)}
+                                    onDeliveryChange={(options) => handleSellerOptionChange('deliveryOptions', options)}
+                                    onContactChange={(options) => handleSellerOptionChange('contactOptions', options)}
+                                    isSeller={isSeller}
+                                    error={errors}
+                                />
+                            </div>
+                         </div>
+                    )}
                 </div>
             )}
             
@@ -396,6 +467,18 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     
                     <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
                         {!isCreating && <h3 className="text-base font-medium text-gray-800">Additional Info</h3>}
+                        
+                        {isCreating && isSellerSignup && (
+                            <>
+                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
+                                     <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
+                                 </FormField>
+                                 <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
+                                     <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
+                                 </FormField>
+                            </>
+                        )}
+
                         <FormField id="account-description" label="Bio" description={`${state.description.length} / ${DESCRIPTION_MAX_LENGTH}`}>
                             <Textarea rows={3} value={state.description} onChange={(e) => handleFieldChange('description', e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
                         </FormField>
@@ -409,12 +492,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
                         </div>
 
-                        <div>
-                            <FormField id="account-address" label="Location (Optional)" error={errors.address || locationInput.error}>
-                                <LocationInput value={locationInput.location} onValueChange={locationInput.setLocation} onSuggestionSelect={locationInput.selectSuggestion} onVerify={locationInput.verify} onOpenMapPicker={() => handleMapToggle(true)} suggestions={locationInput.suggestions} status={locationInput.status} placeholder="e.g., 123 Main St, Mumbai" />
-                            </FormField>
-                            <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
-                        </div>
+                        {isCreating && !isSellerSignup && (
+                           <div>
+                                <FormField id="account-address" label="Location (Optional)" error={errors.address || locationInput.error}>
+                                    <LocationInput value={locationInput.location} onValueChange={locationInput.setLocation} onSuggestionSelect={locationInput.selectSuggestion} onVerify={locationInput.verify} onOpenMapPicker={() => handleMapToggle(true)} suggestions={locationInput.suggestions} status={locationInput.status} placeholder="e.g., 123 Main St, Mumbai" />
+                                </FormField>
+                                <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
+                            </div>
+                        )}
 
                         <div className="pt-2">
                             <span className="block text-sm font-medium text-gray-600 mb-2">Social Profiles</span>
@@ -423,8 +508,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                     { id: 'website', icon: GlobeAltIcon, placeholder: 'Website URL' },
                                     { id: 'youtube', icon: YouTubeIcon, placeholder: 'YouTube URL' },
                                     { id: 'instagram', icon: InstagramIcon, placeholder: 'Instagram URL' },
-                                    { id: 'facebook', icon: FacebookIcon, placeholder: 'Facebook URL' },
-                                    { id: 'twitter', icon: XIcon, placeholder: 'X URL' }
                                 ].map(social => (
                                     <FormField key={social.id} id={`social-${social.id}`} label="" error={errors[`social-${social.id}`]}>
                                         <InputWithIcon placeholder={social.placeholder} icon={<social.icon className="w-5 h-5 text-gray-400"/>} value={state.socials[social.id as SocialPlatform]} onChange={e => dispatch({ type: 'SET_SOCIAL', platform: social.id as SocialPlatform, value: e.target.value })} />
@@ -433,37 +516,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             </div>
                         </div>
 
-                        {(isSellerSignup || (isEditing && account?.subscription.tier !== 'Personal')) && (
-                            <div className="animate-fade-in-down space-y-4 pt-4 mt-4 border-t">
-                                <h3 className="text-base font-medium text-gray-800">Business Information</h3>
-                                <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
-                                    <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
-                                </FormField>
-                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
-                                    <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
-                                </FormField>
-                                <div>
-                                    <FormField id="account-google-maps" label="Google Maps Location" error={errors.googleMapsUrl}>
-                                        <Input type="url" value={state.googleMapsUrl} onChange={(e) => handleFieldChange('googleMapsUrl', e.target.value)} onBlur={() => validate('googleMapsUrl')} placeholder="https://maps.app.goo.gl/..." />
-                                    </FormField>
-                                    <p className="mt-1 text-xs text-gray-600">Share a link to your business on Google Maps. This is required for sellers.</p>
-                                </div>
-                                <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
-                                    <Input type="url" value={state.appleMapsUrl} onChange={(e) => handleFieldChange('appleMapsUrl', e.target.value)} placeholder="https://maps.apple.com/?q=..." />
-                                </FormField>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <SellerOptionsForm
-                                        paymentMethods={state.sellerOptions.paymentMethods}
-                                        deliveryOptions={state.sellerOptions.deliveryOptions}
-                                        contactOptions={state.sellerOptions.contactOptions}
-                                        onPaymentChange={(methods) => handleSellerOptionChange('paymentMethods', methods)}
-                                        onDeliveryChange={(options) => handleSellerOptionChange('deliveryOptions', options)}
-                                        onContactChange={(options) => handleSellerOptionChange('contactOptions', options)}
-                                        isSeller={isSeller}
-                                        error={errors.contactOptions}
-                                    />
-                                </div>
-                            </div>
+                        {isSeller && (isCreating ? isSellerSignup && step === 2 : true) && (
+                            <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
+                                <Input type="url" value={state.appleMapsUrl} onChange={(e) => handleFieldChange('appleMapsUrl', e.target.value)} placeholder="https://maps.apple.com/?q=..." />
+                            </FormField>
                         )}
                     </div>
                 </div>
@@ -473,7 +529,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 <div className="mt-6 pt-4 border-t flex justify-end gap-2">
                     {step === 1 && (
                         <Button type="button" onClick={handleNext} variant="pill-red" className="w-full">
-                            Next (Optional Fields)
+                            Next
                         </Button>
                     )}
                     {step === 2 && (

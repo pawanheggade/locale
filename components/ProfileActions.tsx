@@ -12,8 +12,6 @@ import {
     ChartBarIcon, 
     GlobeAltIcon, 
     PaperAirplaneIcon, 
-    FacebookIcon, 
-    XIcon, 
     InstagramIcon, 
     YouTubeIcon, 
     ChevronDownIcon,
@@ -39,8 +37,6 @@ interface ProfileActionsProps {
 const getSocialIcon = (platform: SocialPlatform) => {
     const className = "w-4 h-4";
     switch (platform) {
-        case 'facebook': return <FacebookIcon className={className} />;
-        case 'twitter': return <XIcon className={className} />;
         case 'instagram': return <InstagramIcon className={className} />;
         case 'youtube': return <YouTubeIcon className={className} />;
         case 'website': return <GlobeAltIcon className={className} />;

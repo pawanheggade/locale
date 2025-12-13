@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Post } from '../types';
 import ModalShell from './ModalShell';
-import { FacebookIcon, XIcon, WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, PaperAirplaneIcon } from './Icons';
+import { WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, PaperAirplaneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
 import { generatePostPreviewImage } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
@@ -82,8 +81,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
   const encodedText = encodeURIComponent(shareText);
   
   const socialLinks = [
-    { name: 'Facebook', icon: FacebookIcon, url: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}` },
-    { name: 'X', icon: XIcon, url: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedText}` },
+    { name: 'Email', icon: EnvelopeIcon, url: `mailto:?subject=${encodedText}&body=${encodedUrl}` },
+    { name: 'Message', icon: ChatBubbleBottomCenterTextIcon, url: `sms:?&body=${encodedText}%20${encodedUrl}` },
     { name: 'WhatsApp', icon: WhatsAppIcon, url: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}` }
   ];
 

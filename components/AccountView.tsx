@@ -183,7 +183,7 @@ export const AccountView: React.FC = () => {
 
   const sortedSocialLinks = useMemo(() => {
       if (!account.socialLinks) return [];
-      const order: SocialPlatform[] = ['website', 'youtube', 'instagram', 'facebook', 'twitter'];
+      const order: SocialPlatform[] = ['website', 'youtube', 'instagram'];
       return [...account.socialLinks].sort((a, b) => {
           const indexA = order.indexOf(a.platform);
           const indexB = order.indexOf(b.platform);

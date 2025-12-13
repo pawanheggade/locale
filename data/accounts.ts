@@ -129,7 +129,6 @@ export const mockAccounts: Account[] = [
     deliveryOptions: ['Home Delivery'],
     contactOptions: ['email', 'mobile', 'message'],
     socialLinks: [
-        { platform: 'twitter', url: 'https://twitter.com/localeapp' },
         { platform: 'instagram', url: 'https://instagram.com/localeapp' },
         { platform: 'website', url: 'https://locale.app' }
     ],

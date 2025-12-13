@@ -252,8 +252,15 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         eventStartDate, hasExpiry, expiryDate,
     }, { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE });
     
-    if (needsSellerDetails && onUpdateCurrentAccountDetails && (sellerOptions.deliveryOptions.length === 0 || sellerOptions.paymentMethods.length === 0)) {
-        validationErrors.sellerOptions = "Please select at least one delivery and one payment option to continue.";
+    // FIX: Replaced the single `sellerOptions` error with specific errors for each field (`paymentMethods`, `deliveryOptions`)
+    // This aligns with how `SellerOptionsForm` expects to receive and display errors.
+    if (needsSellerDetails && onUpdateCurrentAccountDetails) {
+        if (sellerOptions.deliveryOptions.length === 0) {
+            validationErrors.deliveryOptions = "Please select at least one delivery option to continue.";
+        }
+        if (sellerOptions.paymentMethods.length === 0) {
+            validationErrors.paymentMethods = "Please select at least one payment method to continue.";
+        }
     }
 
     dispatch({ type: 'SET_ERRORS', payload: validationErrors });
@@ -382,7 +389,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                                   onDeliveryChange={(options) => setSellerOptions(prev => ({...prev, deliveryOptions: options}))}
                                   onContactChange={(options) => setSellerOptions(prev => ({...prev, contactOptions: options}))}
                                   isSeller={true}
-                                  error={errors.sellerOptions}
+                                  // FIX: Pass the entire `errors` object to the `SellerOptionsForm` component.
+                                  // This allows the component to access specific errors for each checkbox group (e.g., `errors.paymentMethods`).
+                                  error={errors}
                               />
                           </div>
                       </div>
