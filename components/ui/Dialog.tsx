@@ -97,7 +97,7 @@ const DialogContent = React.forwardRef<
     <div
       ref={dialogRef}
       className={cn(
-        'bg-white flex flex-col m-0 overflow-hidden',
+        'bg-white border border-gray-200/60 flex flex-col m-0 overflow-hidden',
         panelPositionClasses[position],
         panelAnimation,
         className

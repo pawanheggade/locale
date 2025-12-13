@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -102,7 +101,6 @@ export const ForumsView: React.FC = () => {
     useSwipeToNavigateTabs({
         tabs,
         activeTab: activeCategory,
-        // FIX: Pass setActiveCategory to the setActiveTab prop. The shorthand was incorrect as the variable is named setActiveCategory.
         setActiveTab: setActiveCategory,
         swipeRef
     });

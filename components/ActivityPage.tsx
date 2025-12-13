@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, Notification } from '../types';
 import { timeSince } from '../utils/formatters';
@@ -12,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
+import { cn } from '../lib/utils';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();

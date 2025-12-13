@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, RefObject } from 'react';
 
 interface UseSwipeToNavigateTabsProps {

@@ -162,7 +162,8 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                                         </Button>
                                         <Button 
                                             onClick={handleDeletePost} 
-                                            variant="overlay-destructive"
+                                            // FIX: Replaced invalid 'overlay-destructive' variant with 'overlay-red'.
+                                            variant="overlay-red"
                                             size="icon-sm"
                                             title="Delete"
                                         >
