@@ -119,6 +119,7 @@ export interface SavedSearchFilters {
   minPrice: string;
   maxPrice: string;
   filterTags: string[];
+  filterOnSale: boolean;
 }
 
 export interface SavedSearch {
@@ -255,6 +256,7 @@ export interface FiltersState {
   isAiSearchEnabled: boolean;
   isAiSearching: boolean;
   aiSmartFilterResults: Array<{ id: string; reasoning: string }> | null;
+  filterOnSale: boolean;
 }
 
 export type ModalAction = 
@@ -302,6 +304,7 @@ export type FilterAction =
   | { type: 'SET_AI_SEARCH_ENABLED'; payload: boolean }
   | { type: 'SET_AI_SEARCHING'; payload: boolean }
   | { type: 'SET_AI_RESULTS'; payload: Array<{ id: string; reasoning: string }> | null }
+  | { type: 'SET_FILTER_ON_SALE'; payload: boolean }
   | { type: 'CLEAR_FILTERS' }
   | { type: 'SET_ALL_FILTERS'; payload: FiltersState }
   | { type: 'SET_FILTERS_FROM_SAVED'; payload: SavedSearchFilters };

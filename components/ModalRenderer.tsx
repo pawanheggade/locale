@@ -1,3 +1,5 @@
+
+
 import React, { useRef } from 'react';
 import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,8 +70,8 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     };
 
     const handleSaveSearch = (name: string) => {
-        const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags } = filterState;
-        const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags };
+        const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags, filterOnSale } = filterState;
+        const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags, filterOnSale };
         addSavedSearch({ id: `saved-${Date.now()}`, name, filters: filtersToSave });
     };
 

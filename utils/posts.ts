@@ -1,3 +1,5 @@
+
+
 import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -145,6 +147,8 @@ export const applyFiltersToPosts = (
     if (!filterState.filterShowExpired && postStatus.isExpired) return false;
     if (filterState.filterExpiringSoon && !postStatus.isExpiringSoon) return false;
     
+    if (filterState.filterOnSale && !(post.salePrice !== undefined && post.price !== undefined && post.salePrice < post.price)) return false;
+
     if (filterState.filterLast7Days) {
       const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       if (post.lastUpdated < sevenDaysAgo) return false;

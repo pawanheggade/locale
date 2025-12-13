@@ -83,7 +83,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
-    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'relevance-desc', label: 'Recommended' },
     { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Newest' },
   ], []);

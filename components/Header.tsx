@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -90,6 +89,10 @@ export const Header: React.FC<HeaderProps> = ({
     setIsFilterDropdownOpen(false);
   };
 
+  const handleSaleToggle = () => {
+    dispatchFilterAction({ type: 'SET_FILTER_ON_SALE', payload: !filterState.filterOnSale });
+  };
+
   const handleOpenFilterPanel = () => {
     openModal({ type: 'filterPanel' });
     setIsFilterDropdownOpen(false);
@@ -127,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const sortOptions = [
-    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'relevance-desc', label: 'Recommended' },
     { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Newest' },
   ];
@@ -199,6 +202,17 @@ export const Header: React.FC<HeaderProps> = ({
                           </li>
                       ))}
                   </ul>
+                  <div className="my-1 h-px bg-gray-100" />
+                  <Button
+                      onClick={handleSaleToggle}
+                      variant="ghost"
+                      className={cn(
+                        "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                        filterState.filterOnSale ? "text-red-600 bg-red-50" : "text-gray-600"
+                      )}
+                  >
+                      Sale
+                  </Button>
                   <div className="my-1 h-px bg-gray-100" />
                   <Button
                       onClick={handleOpenFilterPanel}
