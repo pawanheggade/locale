@@ -15,7 +15,8 @@ import {
     InstagramIcon, 
     YouTubeIcon, 
     ChevronDownIcon,
-    UserPlusIcon
+    UserPlusIcon,
+    BuildingStorefrontIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -25,6 +26,7 @@ interface ProfileActionsProps {
     onEditAccount: () => void;
     onOpenCatalog: () => void;
     onOpenAnalytics: () => void;
+    onOpenStudio: () => void;
     socialLinks: SocialLink[];
     onShare: () => void;
     contactMethods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[];
@@ -197,7 +199,7 @@ const PrimaryContactDropdown = ({
 }
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
-    account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, 
+    account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, onOpenStudio,
     socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, onUpdateAccount
 }) => {
     
@@ -274,39 +276,17 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                 />
             </div>
 
-            {/* Right-aligned Owner Management Buttons */}
+            {/* Right-aligned Owner Management Buttons - Replaced with Studio Button */}
             {isOwnAccount && (
                 <div className="flex gap-2 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    {isPaidTier && (
-                        <Button 
-                            onClick={onOpenAnalytics} 
-                            variant="overlay-dark"
-                            size="sm"
-                            className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                        >
-                            <ChartBarIcon className="w-5 h-5" />
-                            <span>Analytics</span>
-                        </Button>
-                    )}
-                    {canHaveCatalog && (
-                        <Button 
-                            onClick={onOpenCatalog} 
-                            variant="overlay-dark" 
-                            size="sm"
-                            className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
-                        >
-                            <DocumentIcon className="w-5 h-5" />
-                            <span>Catalogs</span>
-                        </Button>
-                    )}
                     <Button 
-                        onClick={onEditAccount} 
+                        onClick={onOpenStudio} 
                         variant="overlay-dark" 
                         size="sm"
-                        className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-1.5 px-3"
+                        className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-2 px-4"
                     >
-                        <PencilIcon className="w-5 h-5" />
-                        <span>Edit Profile</span>
+                        <BuildingStorefrontIcon className="w-5 h-5" />
+                        <span>Studio</span>
                     </Button>
                 </div>
             )}

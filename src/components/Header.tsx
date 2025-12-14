@@ -1,16 +1,18 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
 
 interface HeaderProps {
@@ -57,16 +59,22 @@ export const Header: React.FC<HeaderProps> = ({
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const navDropdownRef = useRef<HTMLDivElement>(null);
 
+  const bagCount = bag.length;
+  const animateBagBadge = useBadgeAnimation(bagCount);
+
   const showViewSelector = useMemo(() => {
     if (!isTabletOrDesktop) {
       return false;
     }
+    // Don't show grid density controls on map view
+    if (view === 'all' && mainView === 'map') return false;
+
     const viewsWithGrid = ['all', 'likes', 'account', 'forums', 'nearbyPosts', 'activity'];
     return viewsWithGrid.includes(view);
-  }, [view, isTabletOrDesktop]);
+  }, [view, isTabletOrDesktop, mainView]);
   
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
-  useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isFilterDropdownOpen);
+  useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -119,9 +127,48 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const navItems = [
-    { view: 'all' as AppView, label: 'Markets', icon: <LogoIcon className="w-5 h-5" /> },
-    { view: 'forums' as AppView, label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-5 h-5" /> },
-    { view: 'likes' as AppView, label: 'Likes', icon: <HeartIcon className="w-5 h-5" /> },
+    { 
+      id: 'markets',
+      label: 'Markets', 
+      icon: <LogoIcon className="w-5 h-5" />,
+      isActive: view === 'all' && mainView === 'grid',
+      onClick: () => {
+        if (view !== 'all') navigateTo('all');
+        onMainViewChange('grid');
+        setIsNavDropdownOpen(false);
+      }
+    },
+    { 
+        id: 'maps',
+        label: 'Maps', 
+        icon: <MapPinIcon className="w-5 h-5" />,
+        isActive: view === 'all' && mainView === 'map',
+        onClick: () => {
+            if (view !== 'all') navigateTo('all');
+            onMainViewChange('map');
+            setIsNavDropdownOpen(false);
+        }
+    },
+    { 
+      id: 'forums',
+      label: 'Forums', 
+      icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
+      isActive: view === 'forums',
+      onClick: () => {
+          navigateTo('forums');
+          setIsNavDropdownOpen(false);
+      }
+    },
+    { 
+      id: 'likes',
+      label: 'Likes', 
+      icon: <HeartIcon className="w-5 h-5" />,
+      isActive: view === 'likes',
+      onClick: () => {
+          navigateTo('likes');
+          setIsNavDropdownOpen(false);
+      }
+    },
   ];
 
   const sortOptions = [
@@ -282,17 +329,17 @@ export const Header: React.FC<HeaderProps> = ({
                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
                                {navItems.map(item => (
-                                  <li key={item.view} className="list-none">
+                                  <li key={item.id} className="list-none">
                                       <Button
-                                          onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
+                                          onClick={item.onClick}
                                           variant="ghost"
                                           className={cn(
                                               "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
-                                              view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
+                                              item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: view === item.view, className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
                                       </Button>
@@ -307,31 +354,42 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Right Section: Tools & Account */}
               <div className="flex items-center gap-2 flex-1 justify-end">
-                  <div className="sm:hidden">
-                      {view === 'all' && mainView === 'map' ? (
-                          <Button onClick={() => onMainViewChange('grid')} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Grid View" title="Grid View">
-                              <PostCardIcon className="w-6 h-6" />
-                          </Button>
-                      ) : (
-                          <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Map View" title="Map View">
-                              <MapPinIcon className="w-6 h-6" />
-                          </Button>
-                      )}
-                  </div>
-                  
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
-                               <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
+                           <Button onClick={() => setGridView('default')} variant="ghost" size="icon-sm" className={cn("!rounded-lg", gridView === 'default' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={gridView === 'default'}>
+                               <PostCardIcon className="w-5 h-5" isFilled={gridView === 'default'} />
                            </Button>
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
-                               <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
-                           </Button>
-                           <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", mainView === 'map' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Map View" title="Map View" aria-pressed={mainView === 'map'}>
-                               <MapPinIcon className="w-5 h-5" isFilled={mainView === 'map'} />
+                           <Button onClick={() => setGridView('compact')} variant="ghost" size="icon-sm" className={cn("!rounded-lg", gridView === 'compact' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={gridView === 'compact'}>
+                               <Squares3X3Icon className="w-5 h-5" isFilled={gridView === 'compact'} />
                            </Button>
                       </div>
                   )}
+
+                  {currentAccount && (
+                      <div className="relative">
+                          <Button 
+                              onClick={() => navigateTo('bag')}
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "!rounded-xl text-gray-600",
+                                  view === 'bag' && "text-red-600 bg-red-50"
+                              )}
+                              aria-label="Shopping Bag"
+                          >
+                              <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                              {bagCount > 0 && (
+                                  <span className={cn(
+                                      "absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white",
+                                      animateBagBadge ? "animate-badge-pop-in" : ""
+                                  )}>
+                                      {bagCount}
+                                  </span>
+                              )}
+                          </Button>
+                      </div>
+                  )}
+
                   <div className="relative">
                        {currentAccount ? (
                           <AccountMenu

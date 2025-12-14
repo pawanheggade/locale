@@ -5,13 +5,14 @@ import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
 import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
 
 interface HeaderProps {
@@ -57,6 +58,9 @@ export const Header: React.FC<HeaderProps> = ({
   
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const navDropdownRef = useRef<HTMLDivElement>(null);
+
+  const bagCount = bag.length;
+  const animateBagBadge = useBadgeAnimation(bagCount);
 
   const showViewSelector = useMemo(() => {
     if (!isTabletOrDesktop) {
@@ -127,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'popularity-desc', label: 'Popular' },
+    { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Recent' },
   ];
 
@@ -142,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
         size="icon-sm"
         className={cn(
           "text-xs font-extrabold uppercase tracking-wider rounded-xl",
-          !filterState.isAiSearchEnabled && "text-gray-600 ring-1 ring-inset ring-gray-300",
+          !filterState.isAiSearchEnabled && "text-gray-500 ring-1 ring-inset ring-gray-300",
           className
         )}
         aria-label={filterState.isAiSearchEnabled ? 'Disable AI Search' : 'Enable AI Search'}
@@ -192,7 +196,7 @@ export const Header: React.FC<HeaderProps> = ({
                           </li>
                       ))}
                   </ul>
-                  <div className="my-1 h-px bg-gray-50" />
+                  <div className="my-1 h-px bg-gray-100" />
                   <Button
                       onClick={handleOpenFilterPanel}
                       variant="ghost"
@@ -210,7 +214,7 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       <header className={cn(
         'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
-        'bg-white/80 backdrop-blur-md border-b border-gray-300',
+        'bg-white/80 backdrop-blur-md border-b border-gray-200',
         !isVisible && '-translate-y-full'
       )}>
         <div className={cn(
@@ -225,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={handleExitSearch}
                   variant="ghost"
                   size="icon"
-                  className="text-gray-600 rounded-xl shrink-0 -ml-2"
+                  className="text-gray-500 rounded-xl shrink-0 -ml-2"
                   aria-label="Exit search and clear filters"
               >
                   <ChevronLeftIcon className="w-6 h-6" />
@@ -274,13 +278,13 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
                           variant="ghost"
                           size="icon-xs"
-                          className="text-gray-600 hover:text-gray-600 rounded-full w-6 h-6"
+                          className="text-gray-400 rounded-full w-6 h-6"
                           aria-label="Open navigation menu"
                       >
                           <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
                       </Button>
                       {isNavDropdownOpen && (
-                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-50 z-50 p-1 animate-zoom-in origin-top">
+                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
                                {navItems.map(item => (
                                   <li key={item.view} className="list-none">
@@ -321,31 +325,50 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                   
                   {showViewSelector && (
-                      <div className="hidden sm:flex items-center bg-gray-50 rounded-xl p-0.5">
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-600")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
+                      <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
+                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
                                <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
                            </Button>
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-600")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
+                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
                                <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
                            </Button>
-                           <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", mainView === 'map' ? "bg-red-100 text-red-600" : "text-gray-600")} aria-label="Map View" title="Map View" aria-pressed={mainView === 'map'}>
+                           <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", mainView === 'map' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Map View" title="Map View" aria-pressed={mainView === 'map'}>
                                <MapPinIcon className="w-5 h-5" isFilled={mainView === 'map'} />
                            </Button>
                       </div>
                   )}
+
+                  {currentAccount && (
+                      <div className="relative">
+                          <Button 
+                              onClick={() => navigateTo('bag')}
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "!rounded-xl text-gray-600",
+                                  view === 'bag' && "text-red-600 bg-red-50"
+                              )}
+                              aria-label="Shopping Bag"
+                          >
+                              <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                              {bagCount > 0 && (
+                                  <span className={cn(
+                                      "absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white",
+                                      animateBagBadge ? "animate-badge-pop-in" : ""
+                                  )}>
+                                      {bagCount}
+                                  </span>
+                              )}
+                          </Button>
+                      </div>
+                  )}
+
                   <div className="relative">
                        {currentAccount ? (
                           <AccountMenu
-                              currentAccount={currentAccount}
                               activityCount={totalActivityCount}
-                              onOpenCreateModal={() => navigateTo('createPost')}
-                              navigateTo={navigateTo}
                               currentView={view}
                               handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
-                              onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}
-                              onOpenActivityPage={() => navigateTo('activity')}
-                              bagCount={bag.length}
-                              onOpenSubscriptionPage={() => navigateTo('subscription')}
                           />
                       ) : (
                           <div className="flex items-center gap-2">

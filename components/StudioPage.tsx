@@ -1,0 +1,175 @@
+
+import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigation } from '../contexts/NavigationContext';
+import { useActivity } from '../contexts/ActivityContext';
+import { useUI } from '../contexts/UIContext';
+import { 
+    PlusIcon, 
+    ChartBarIcon, 
+    BellIcon, 
+    DocumentIcon, 
+    PencilIcon, 
+    Cog6ToothIcon, 
+    ArchiveBoxIcon, 
+    ChatBubbleEllipsisIcon,
+    ChevronRightIcon,
+    UserIcon,
+    CashIcon
+} from './Icons';
+import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
+import { Avatar } from './Avatar';
+
+const StudioCard: React.FC<{
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+    badgeCount?: number;
+    className?: string;
+}> = ({ title, description, icon, onClick, badgeCount, className }) => (
+    <div 
+        onClick={onClick}
+        className={cn(
+            "bg-white rounded-xl border border-gray-200/80 p-5 flex items-center gap-4 cursor-pointer hover:border-gray-300 transition-colors group relative",
+            className
+        )}
+    >
+        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-700 group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+            {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">{title}</h3>
+            <p className="text-sm text-gray-600 truncate">{description}</p>
+        </div>
+        <div className="flex-shrink-0 flex items-center gap-2">
+            {badgeCount !== undefined && badgeCount > 0 && (
+                 <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                     {badgeCount > 99 ? '99+' : badgeCount}
+                 </span>
+            )}
+            <ChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+        </div>
+    </div>
+);
+
+export const StudioPage: React.FC = () => {
+    const { currentAccount } = useAuth();
+    const { navigateTo } = useNavigation();
+    const { totalActivityCount } = useActivity();
+    const { openModal } = useUI();
+
+    if (!currentAccount) return null;
+
+    const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(currentAccount.subscription.tier);
+    const canHaveCatalog = isPaidTier;
+    const isAdmin = currentAccount.role === 'admin';
+
+    const handleCreatePost = () => {
+        if (currentAccount.subscription.tier === 'Personal') {
+            navigateTo('subscription');
+        } else {
+            navigateTo('createPost');
+        }
+    };
+
+    return (
+        <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-24">
+            <div className="flex items-center gap-4 mb-8">
+                <Avatar 
+                    src={currentAccount.avatarUrl} 
+                    alt={currentAccount.name} 
+                    size="lg" 
+                    tier={currentAccount.subscription.tier}
+                    className="border-2 border-white shadow-sm"
+                />
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Studio</h1>
+                    <p className="text-gray-600">Manage your presence on Locale</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {isAdmin && (
+                    <StudioCard 
+                        title="Admin Panel" 
+                        description="Manage accounts, posts, and reports." 
+                        icon={<UserIcon className="w-6 h-6" />} 
+                        onClick={() => navigateTo('admin')}
+                        className="sm:col-span-2 border-slate-200 bg-slate-50"
+                    />
+                )}
+
+                {/* Primary Actions */}
+                <StudioCard 
+                    title="Create Post" 
+                    description="List a new item or service." 
+                    icon={<PlusIcon className="w-6 h-6" />} 
+                    onClick={handleCreatePost}
+                    className="border-red-100 bg-red-50/30"
+                />
+
+                <StudioCard 
+                    title="Create Discussion" 
+                    description="Start a topic in the forums." 
+                    icon={<ChatBubbleEllipsisIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('createForumPost')}
+                />
+
+                <StudioCard 
+                    title="Activity" 
+                    description="Notifications and alerts." 
+                    icon={<BellIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('activity')}
+                    badgeCount={totalActivityCount}
+                />
+
+                {isPaidTier && (
+                    <StudioCard 
+                        title="Analytics" 
+                        description="View performance insights." 
+                        icon={<ChartBarIcon className="w-6 h-6" />} 
+                        onClick={() => navigateTo('accountAnalytics', { account: currentAccount })}
+                    />
+                )}
+
+                {canHaveCatalog && (
+                    <StudioCard 
+                        title="Catalog" 
+                        description="Manage your product catalog." 
+                        icon={<DocumentIcon className="w-6 h-6" />} 
+                        onClick={() => navigateTo('manageCatalog', { account: currentAccount })}
+                    />
+                )}
+                
+                <StudioCard 
+                    title="Edit Profile" 
+                    description="Update bio, contact info, and more." 
+                    icon={<PencilIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('editProfile', { account: currentAccount })}
+                />
+                
+                <StudioCard 
+                    title="Subscription" 
+                    description="Manage your plan and billing." 
+                    icon={<CashIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('subscription')}
+                />
+
+                <StudioCard 
+                    title="Settings" 
+                    description="App preferences and account actions." 
+                    icon={<Cog6ToothIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('settings')}
+                />
+            </div>
+            
+            <div className="mt-8 pt-8 border-t border-gray-200/80 text-center">
+                 <Button variant="link" onClick={() => navigateTo('account', { account: currentAccount })} className="text-gray-500 text-sm">
+                    View Public Profile
+                 </Button>
+            </div>
+        </div>
+    );
+};

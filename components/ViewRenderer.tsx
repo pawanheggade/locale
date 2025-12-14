@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
@@ -21,6 +22,7 @@ const EditProfilePage = React.lazy(() => import('./EditProfilePage').then(module
 const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 const SettingsPage = React.lazy(() => import('./SettingsPage').then(module => ({ default: module.SettingsPage })));
+const StudioPage = React.lazy(() => import('./StudioPage').then(module => ({ default: module.StudioPage })));
 
 interface ViewRendererProps {
   view: AppView;
@@ -78,6 +80,8 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
          return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage /></Suspense>;
        case 'settings':
          return <Suspense fallback={<LoadingFallback />}><SettingsPage /></Suspense>;
+       case 'studio':
+         return <Suspense fallback={<LoadingFallback />}><StudioPage /></Suspense>;
       default:
         return null;
   }

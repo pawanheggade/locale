@@ -373,16 +373,6 @@ export const AccountView: React.FC = () => {
                  {/* Name and Info */}
                  <div className="flex-1 min-w-0 w-full">
                       <div className="flex flex-col items-start gap-0.5">
-                          {isOwnAccount && (
-                              <Button
-                                  onClick={() => navigateTo('subscription')}
-                                  variant="ghost"
-                                  size="xs"
-                                  className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 border-amber-200 rounded-xl px-2 mb-1.5"
-                              >
-                                  Subscription
-                              </Button>
-                          )}
                           <div className="flex items-center flex-wrap gap-x-2">
                               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                           </div>
@@ -459,6 +449,7 @@ export const AccountView: React.FC = () => {
                         onEditAccount={() => navigateTo('editProfile', { account })}
                         onOpenCatalog={() => navigateTo('manageCatalog', { account })}
                         onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
+                        onOpenStudio={() => navigateTo('studio')}
                         socialLinks={sortedSocialLinks}
                         onShare={handleShareProfile}
                         contactMethods={contactMethods}

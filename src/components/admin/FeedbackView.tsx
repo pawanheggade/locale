@@ -20,7 +20,8 @@ interface FeedbackViewProps {
     onBulkAction: (ids: string[], action: 'markRead' | 'archive' | 'unarchive' | 'delete') => void;
 }
 
-interface FeedbackWithUser extends Feedback {
+// Define using intersection to ensure properties are merged correctly if interface extension has issues in context
+type FeedbackWithUser = Feedback & {
     userName: string;
     userEmail: string;
 }
@@ -81,7 +82,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
         content: (a: FeedbackWithUser, b: FeedbackWithUser) => a.content.localeCompare(b.content),
     }), []);
 
-    const { items: sortedFeedback, requestSort, sortConfig } = useSort(filteredFeedback, { key: 'timestamp', direction: 'desc' }, customSorters);
+    const { items: sortedFeedback, requestSort, sortConfig } = useSort<FeedbackWithUser>(filteredFeedback, { key: 'timestamp', direction: 'desc' }, customSorters);
 
     const handleFeedbackClick = (item: FeedbackWithUser) => {
         setSelectedFeedback(item);
@@ -228,7 +229,13 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                             className="py-12"
                         />
                     ) : (
-                        <DataTable columns={columns} data={sortedFeedback} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort as any} />
+                        <DataTable<FeedbackWithUser> 
+                            columns={columns} 
+                            data={sortedFeedback} 
+                            renderRow={renderRow} 
+                            sortConfig={sortConfig} 
+                            requestSort={requestSort} 
+                        />
                     )}
                 </div>
             </div>
