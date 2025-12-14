@@ -110,7 +110,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            'text-red-400',
+            'text-red-600',
             coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {
