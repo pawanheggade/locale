@@ -66,9 +66,12 @@ export const Header: React.FC<HeaderProps> = ({
     if (!isTabletOrDesktop) {
       return false;
     }
+    // Don't show grid density controls on map view
+    if (view === 'all' && mainView === 'map') return false;
+
     const viewsWithGrid = ['all', 'likes', 'account', 'forums', 'nearbyPosts', 'activity'];
     return viewsWithGrid.includes(view);
-  }, [view, isTabletOrDesktop]);
+  }, [view, isTabletOrDesktop, mainView]);
   
   useClickOutside(filterDropdownRef, () => setIsFilterDropdownOpen(false), isFilterDropdownOpen);
   useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
@@ -124,9 +127,48 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const navItems = [
-    { view: 'all' as AppView, label: 'Markets', icon: <LogoIcon className="w-5 h-5" /> },
-    { view: 'forums' as AppView, label: 'Forums', icon: <ChatBubbleEllipsisIcon className="w-5 h-5" /> },
-    { view: 'likes' as AppView, label: 'Likes', icon: <HeartIcon className="w-5 h-5" /> },
+    { 
+      id: 'markets',
+      label: 'Markets', 
+      icon: <LogoIcon className="w-5 h-5" />,
+      isActive: view === 'all' && mainView === 'grid',
+      onClick: () => {
+        if (view !== 'all') navigateTo('all');
+        onMainViewChange('grid');
+        setIsNavDropdownOpen(false);
+      }
+    },
+    { 
+        id: 'maps',
+        label: 'Maps', 
+        icon: <MapPinIcon className="w-5 h-5" />,
+        isActive: view === 'all' && mainView === 'map',
+        onClick: () => {
+            if (view !== 'all') navigateTo('all');
+            onMainViewChange('map');
+            setIsNavDropdownOpen(false);
+        }
+    },
+    { 
+      id: 'forums',
+      label: 'Forums', 
+      icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
+      isActive: view === 'forums',
+      onClick: () => {
+          navigateTo('forums');
+          setIsNavDropdownOpen(false);
+      }
+    },
+    { 
+      id: 'likes',
+      label: 'Likes', 
+      icon: <HeartIcon className="w-5 h-5" />,
+      isActive: view === 'likes',
+      onClick: () => {
+          navigateTo('likes');
+          setIsNavDropdownOpen(false);
+      }
+    },
   ];
 
   const sortOptions = [
@@ -287,17 +329,17 @@ export const Header: React.FC<HeaderProps> = ({
                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
                                {navItems.map(item => (
-                                  <li key={item.view} className="list-none">
+                                  <li key={item.id} className="list-none">
                                       <Button
-                                          onClick={() => { navigateTo(item.view); setIsNavDropdownOpen(false); }}
+                                          onClick={item.onClick}
                                           variant="ghost"
                                           className={cn(
                                               "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
-                                              view === item.view ? "text-red-600 bg-red-50" : "text-gray-600"
+                                              item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: view === item.view, className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
                                       </Button>
