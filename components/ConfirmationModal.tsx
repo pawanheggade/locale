@@ -1,5 +1,4 @@
 
-
 import React, { useRef, useState } from 'react';
 import { ConfirmationModalData } from '../types';
 import ModalShell from './ModalShell';
@@ -52,7 +51,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       titleId="confirmation-modal-title"
     >
       <div className="p-6">
-        <p className="text-sm text-gray-800">{message}</p>
+        <p className="text-sm text-gray-900">{message}</p>
       </div>
     </ModalShell>
   );

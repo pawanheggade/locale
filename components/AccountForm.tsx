@@ -12,7 +12,7 @@ import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
 import { useLocationInput } from '../hooks/useLocationInput';
-import LocationInput from './LocationInput';
+import { LocationInput } from './LocationInput';
 import LocationPickerMap from './LocationPickerMap';
 import { FormField } from './FormField';
 import { cn } from '../lib/utils';
@@ -331,11 +331,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         <form id={formId} onSubmit={handleSubmit} className="space-y-4">
             {(step === 1 || !useSteps) && (
                 <div className="space-y-4">
-                     {useSteps && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 1: Required Information</h3>}
+                     {useSteps && <h3 className="text-base font-medium text-gray-900 border-b pb-2">Step 1: Required Information</h3>}
 
                     {!useSteps && (
                         <div>
-                             <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
+                             <h3 className="text-base font-medium text-gray-900">Profile Appearance</h3>
                             <div>
                                 <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
                                 <div 
@@ -376,15 +376,15 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         )}
                     </div>
                     <FormField id="account-email" label="Email" error={errors.email}>
-                        <InputWithIcon type="email" value={state.email} onChange={(e) => handleFieldChange('email', e.target.value)} onBlur={() => validate('email')} icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />} />
+                        <InputWithIcon type="email" value={state.email} onChange={(e) => handleFieldChange('email', e.target.value)} onBlur={() => validate('email')} icon={<EnvelopeIcon className="w-5 h-5 text-gray-600" />} />
                     </FormField>
 
                     <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
-                        <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
+                        <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-600" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                     </FormField>
                     <div>
                         <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
-                            <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
+                            <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-600" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
                         </FormField>
                         <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
                     </div>
@@ -393,20 +393,20 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         <>
                             <div>
                                 <FormField id="account-password" label="Password" error={errors.password}>
-                                    <InputWithIcon type="password" value={state.password} onChange={(e) => handleFieldChange('password', e.target.value)} onBlur={() => validate('password')} icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />} />
+                                    <InputWithIcon type="password" value={state.password} onChange={(e) => handleFieldChange('password', e.target.value)} onBlur={() => validate('password')} icon={<LockClosedIcon className="w-5 h-5 text-gray-600" />} />
                                 </FormField>
                                 <PasswordStrengthMeter password={state.password} />
                             </div>
                             <FormField id="account-confirm-password" label="Confirm Password" error={errors.confirmPassword}>
-                                <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />} />
+                                <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<LockClosedIcon className="w-5 h-5 text-gray-600" />} />
                             </FormField>
                         </>
                     )}
 
                     {isSeller && (useSteps ? isSellerSignup && step === 1 : true) && (
                          <div className="animate-fade-in-down space-y-4 pt-4 mt-4 border-t">
-                            {useSteps && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
-                            {!useSteps && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
+                            {useSteps && <h3 className="text-base font-medium text-gray-900">Business Information</h3>}
+                            {!useSteps && <h3 className="text-base font-medium text-gray-900">Business Information</h3>}
                              
                              <FormField id="account-business-name" label="Business Name" description="If different from your personal name." error={errors.businessName}>
                                 <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
@@ -443,11 +443,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             
             {(!useSteps || step === 2) && (
                 <div className={cn("space-y-4", useSteps && "animate-fade-in-down")}>
-                    {useSteps && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 2: Profile Details</h3>}
+                    {useSteps && <h3 className="text-base font-medium text-gray-900 border-b pb-2">Step 2: Profile Details</h3>}
 
                     {useSteps && (
                          <div className="space-y-4">
-                            <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
+                            <h3 className="text-base font-medium text-gray-900">Profile Appearance</h3>
                             <div>
                                 <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
                                 <div className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => bannerInputRef.current?.click()}>
@@ -470,7 +470,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     )}
                     
                     <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
-                        {!useSteps && <h3 className="text-base font-medium text-gray-800">Additional Info</h3>}
+                        {!useSteps && <h3 className="text-base font-medium text-gray-900">Additional Info</h3>}
                         
                         {isSeller && (
                             <>
@@ -502,7 +502,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                     { id: 'instagram', icon: InstagramIcon, placeholder: 'Instagram URL' },
                                 ].map(social => (
                                     <FormField key={social.id} id={`social-${social.id}`} label="" error={errors[`social-${social.id}`]}>
-                                        <InputWithIcon placeholder={social.placeholder} icon={<social.icon className="w-5 h-5 text-gray-400"/>} value={state.socials[social.id as SocialPlatform]} onChange={e => dispatch({ type: 'SET_SOCIAL', platform: social.id as SocialPlatform, value: e.target.value })} />
+                                        <InputWithIcon placeholder={social.placeholder} icon={<social.icon className="w-5 h-5 text-gray-600"/>} value={state.socials[social.id as SocialPlatform]} onChange={e => dispatch({ type: 'SET_SOCIAL', platform: social.id as SocialPlatform, value: e.target.value })} />
                                     </FormField>
                                 ))}
                             </div>

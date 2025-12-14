@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
-import LocationInput from './LocationInput';
+import { LocationInput } from './LocationInput';
 import { SpinnerIcon, XMarkIcon } from './Icons';
 import { suggestTagsForPost, suggestCategoriesForPost } from '../utils/gemini';
 import { toDateTimeLocal, fromDateTimeLocal } from '../utils/formatters';
@@ -374,7 +374,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
           />
           ) : (
           <div className="max-w-2xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-800 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
               <form id="create-post-form" onSubmit={handleSubmit} className="space-y-6">
                   {needsSellerDetails && (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in-down">
@@ -406,7 +406,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   
                   <div>
                       <Label>Media</Label>
-                      <p className="text-xs text-gray-500 mb-2">Add up to {maxFiles} images or videos. The first item will be the cover.</p>
+                      <p className="text-xs text-gray-600 mb-2">Add up to {maxFiles} images or videos. The first item will be the cover.</p>
                       <MediaUploader
                           mediaUploads={mediaUploads}
                           handleFiles={handleFiles}
@@ -552,7 +552,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                           {tags.map(tag => (
                               <div key={tag} className="flex items-center gap-1 bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded">
                                   <span>{tag}</span>
-                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-500">
+                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-600">
                                       <XMarkIcon className="w-4 h-4" />
                                   </button>
                               </div>

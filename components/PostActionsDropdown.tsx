@@ -76,7 +76,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
           reportItem(post);
           setIsOpen(false);
         }}
-        icon={<FlagIcon className="w-5 h-5 text-gray-500" />}
+        icon={<FlagIcon className="w-5 h-5 text-gray-600" />}
         label="Report"
       />
     );
@@ -93,7 +93,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         <DropdownMenuItem
           key="edit"
           onClick={handleAction(onEdit)}
-          icon={<PencilIcon className="w-5 h-5 text-gray-500" />}
+          icon={<PencilIcon className="w-5 h-5 text-gray-600" />}
           label="Edit"
         />
       );
@@ -136,8 +136,8 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
         aria-label="More options"
         title="More options"
         className={
-            variant === 'modal' ? 'text-gray-500' :
-            (variant === 'overlay' ? 'text-white' : 'text-gray-400')
+            variant === 'modal' ? 'text-gray-600' :
+            (variant === 'overlay' ? 'text-white' : 'text-gray-600')
         }
       >
         <EllipsisVerticalIcon className="w-5 h-5" aria-hidden="true" />

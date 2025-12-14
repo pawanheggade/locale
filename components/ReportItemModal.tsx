@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo, useReducer } from 'react';
 import { Post, ForumPost, ForumComment } from '../types';
 import ModalShell from './ModalShell';
@@ -65,7 +66,7 @@ const ReportItemModal: React.FC<ReportItemModalProps> = ({ item, onClose, onSubm
   return (
     <ModalShell panelRef={modalRef} onClose={onClose} title={title} footer={renderFooter()} panelClassName="w-full max-w-lg" titleId="report-item-title">
       <div className="p-6">
-        <p className="text-sm text-gray-800 mb-4">You are reporting the following content:</p>
+        <p className="text-sm text-gray-900 mb-4">You are reporting the following content:</p>
         <blockquote className="p-3 bg-gray-100 border-l-4 border-gray-300 rounded-r-md text-sm text-gray-600 italic truncate">
           "{contentPreview}"
         </blockquote>

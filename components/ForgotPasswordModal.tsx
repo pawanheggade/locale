@@ -72,7 +72,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
             titleId="forgot-password-title"
         >
             <div className="p-6">
-                <p className="text-sm text-gray-800 mb-4">Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
+                <p className="text-sm text-gray-900 mb-4">Enter the email address associated with your account, and we'll send you a link to reset your password.</p>
                 <form id="forgot-password-form" onSubmit={handleSubmit} className="space-y-2">
                     <FormField id="reset-email" label="Email Address" error={state.error}>
                         <InputWithIcon

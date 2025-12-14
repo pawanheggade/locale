@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Account, DisplayablePost, Notification } from '../types';
 import { timeSince } from '../utils/formatters';
@@ -93,12 +94,12 @@ export const ActivityPage: React.FC = () => {
             <li key={notification.id} className={`p-3 rounded-lg flex items-start gap-3 transition-colors ${notification.isRead ? 'bg-gray-50' : 'bg-gray-100'}`}>
                 <div className="flex-1">
                     <button onClick={() => onNotificationClick(notification)} className="text-left w-full">
-                        <p className="text-sm text-gray-800">{notification.message}</p>
+                        <p className="text-sm text-gray-900">{notification.message}</p>
                     </button>
                     <p className="text-xs text-gray-600 mt-1">{timeSince(notification.timestamp)}</p>
                 </div>
                 {!notification.isRead && (
-                    <Button onClick={() => onDismiss(notification.id)} size="xs" variant="ghost" className="h-6 w-6 p-0 text-gray-400" aria-label="Mark as read">
+                    <Button onClick={() => onDismiss(notification.id)} size="xs" variant="ghost" className="h-6 w-6 p-0 text-gray-600" aria-label="Mark as read">
                         <XMarkIcon className="w-4 h-4" />
                     </Button>
                 )}
@@ -168,7 +169,7 @@ export const ActivityPage: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 animate-fade-in-down max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Activity</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Activity</h1>
         <div className="border-b border-gray-200/80">
             <div className="flex space-x-6" role="tablist">
                 <TabButton onClick={() => setActiveTab('notifications')} isActive={activeTab === 'notifications'}>

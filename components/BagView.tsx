@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -69,13 +67,13 @@ const BagItemRow: React.FC<BagItemRowProps> = ({
           title={post.title}
           className={cn(
             '!p-0 !h-auto !justify-start !text-left !block !truncate font-semibold',
-            isChecked ? 'text-gray-500 line-through' : 'text-gray-800'
+            isChecked ? 'text-gray-500 line-through' : 'text-gray-900'
           )}
         >
           {post.title}
         </Button>
 
-        <p className={`text-sm text-gray-500 ${isChecked ? 'line-through' : ''}`}>
+        <p className={`text-sm text-gray-600 ${isChecked ? 'line-through' : ''}`}>
           {formatCurrency(post.salePrice ?? post.price)}
         </p>
 
@@ -286,12 +284,12 @@ export const BagView: React.FC = () => {
 
   return (
     <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Bag</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Bag</h1>
       
       {/* IN BAG SECTION */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Items ({totalInBagQuantity})</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Items ({totalInBagQuantity})</h2>
           {hasCheckedItems && (
             <Button onClick={handleClearChecked} disabled={isClearing} variant="overlay-dark" size="xs" className="gap-1 text-gray-600">
               {isClearing ? <SpinnerIcon className="w-4 h-4" /> : <TrashIcon className="w-4 h-4 text-red-500" />}
@@ -336,7 +334,7 @@ export const BagView: React.FC = () => {
             </ul>
             <div className="p-4 bg-gray-50 border-t border-gray-200/80 text-right">
               <p className="text-gray-600">Subtotal for active items:</p>
-              <p className="text-2xl font-bold text-gray-800">{formatCurrency(total)}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(total)}</p>
             </div>
           </div>
         )}
@@ -345,7 +343,7 @@ export const BagView: React.FC = () => {
       {/* SAVED LISTS SECTION */}
       <div>
         <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Lists</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Lists</h2>
             <Button variant="overlay-dark" size="sm" onClick={handleCreateListClick} className="gap-2">
                 <PlusIcon className="w-4 h-4" />
                 Create list
@@ -394,25 +392,25 @@ export const BagView: React.FC = () => {
                                 onKeyDown={(e) => { if(e.key === 'Enter') { renameSavedList(list.id, editingList.name); setEditingList(null); } }}
                                 onClick={(e) => e.stopPropagation()}
                                 autoFocus
-                                className="text-lg font-semibold text-gray-800 bg-gray-100 rounded w-full"
+                                className="text-lg font-semibold text-gray-900 bg-gray-100 rounded w-full"
                               />
                             ) : (
-                              <h3 className="text-lg font-semibold text-gray-800 truncate max-w-[200px] sm:max-w-xs">{list.name}</h3>
+                              <h3 className="text-lg font-semibold text-gray-900 truncate max-w-[200px] sm:max-w-xs">{list.name}</h3>
                             )}
-                            <span className="text-xs text-gray-500 font-normal mt-0.5">
+                            <span className="text-xs text-gray-600 font-normal mt-0.5">
                               {listTotalQuantity} item{listTotalQuantity !== 1 ? 's' : ''} • {formatCurrency(listTotalPrice)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             <Button variant="overlay-dark" size="icon-sm" onClick={(e) => { e.stopPropagation(); setEditingList({ id: list.id, name: list.name }); }} title="Rename list"><PencilIcon className="w-4 h-4" /></Button>
-                            <Button variant="overlay-dark" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleDeleteList(list); }} title="Delete list"><TrashIcon className="w-5 h-5 text-gray-500" /></Button>
+                            <Button variant="overlay-dark" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleDeleteList(list); }} title="Delete list"><TrashIcon className="w-5 h-5 text-gray-600" /></Button>
                             <Button variant="overlay-dark" size="sm" onClick={(e) => { e.stopPropagation(); handleAddListToBag(list); }}>Add to Bag</Button>
                           </div>
                         </div>
                     </AccordionTrigger>
                     <AccordionContent>
                         {itemsInList.length === 0 ? (
-                          <div className="px-4 py-8 text-center text-gray-500">This list is empty.</div>
+                          <div className="px-4 py-8 text-center text-gray-600">This list is empty.</div>
                         ) : (
                           <ul className="divide-y divide-gray-200/80 border-t border-gray-200/80">
                             {itemsInList.map((item) => {

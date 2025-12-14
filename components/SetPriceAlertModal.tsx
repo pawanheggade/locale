@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect, useReducer } from 'react';
 import { Post, PriceAlert } from '../types';
 import ModalShell from './ModalShell';
@@ -138,7 +137,7 @@ const SetPriceAlertModal: React.FC<SetPriceAlertModalProps> = ({ post, onClose, 
       <div className="p-6">
         <div className="text-center mb-4">
           <p className="text-sm text-gray-600">{post.title}</p>
-          <p className="text-lg font-medium text-gray-800">Current Price: <span className="font-bold">{formatCurrency(post.price)}</span></p>
+          <p className="text-lg font-medium text-gray-900">Current Price: <span className="font-bold">{formatCurrency(post.price)}</span></p>
         </div>
         <form onSubmit={(e) => { e.preventDefault(); handleSetAlert(); }} className="space-y-4">
            <FormField

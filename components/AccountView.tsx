@@ -35,12 +35,12 @@ const ForumPostRow: React.FC<ForumPostRowProps> = ({ post, onClick }) => (
         onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }}}
     >
         <div className="flex flex-col items-center text-center text-gray-600 w-12">
-            <div className="font-bold text-lg text-gray-800">{post.score}</div>
+            <div className="font-bold text-lg text-gray-900">{post.score}</div>
             <div className="text-xs">votes</div>
         </div>
         <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-800 truncate">{post.title}</h4>
-            <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+            <h4 className="font-semibold text-gray-900 truncate">{post.title}</h4>
+            <div className="flex items-center gap-4 text-xs text-gray-600 mt-1">
                 <span className="flex items-center gap-1.5"><ChatBubbleEllipsisIcon className="w-3 h-3" /> {post.commentCount}</span>
                 <span className="font-medium px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{post.category}</span>
             </div>
@@ -392,14 +392,14 @@ export const AccountView: React.FC = () => {
                              <SubscriptionBadge tier={account.subscription.tier} />
                           </div>
 
-                          <div className="flex flex-col items-start gap-1 text-sm text-gray-500 mt-1.5">
+                          <div className="flex flex-col items-start gap-1 text-sm text-gray-600 mt-1.5">
                               <div className="flex items-center gap-1.5">
-                                <CalendarIcon className="w-4 h-4 text-gray-400" />
+                                <CalendarIcon className="w-4 h-4 text-gray-600" />
                                 <span>Joined {formatMonthYear(account.joinDate)}</span>
                               </div>
                               {account.taxInfo && (
                                 <div className="flex items-center gap-1.5">
-                                    <DocumentIcon className="w-4 h-4 text-gray-400" />
+                                    <DocumentIcon className="w-4 h-4 text-gray-600" />
                                     <span>Tax ID: {account.taxInfo}</span>
                                 </div>
                               )}

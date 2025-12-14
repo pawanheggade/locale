@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
@@ -116,7 +117,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <div className="pl-1 shrink-0">{leftAccessory}</div>
             ) : !hideSearchIcon ? (
               <div className="pl-4 flex items-center pointer-events-none shrink-0">
-                  <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  <SearchIcon className="h-5 w-5 text-gray-600" aria-hidden="true" />
               </div>
             ) : null }
             <input
@@ -140,7 +141,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             />
             <div className="pr-1 flex items-center flex-shrink-0 h-full gap-1">
                 {isAiSearching && (
-                    <SpinnerIcon className="h-5 w-5 text-gray-400" />
+                    <SpinnerIcon className="h-5 w-5 text-gray-600" />
                 )}
                 
                 {onCancelSearch && (
@@ -149,7 +150,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       onClick={onCancelSearch}
                       variant="ghost"
                       size="icon-sm"
-                      className="text-gray-500 rounded-xl"
+                      className="text-gray-600 rounded-xl"
                       aria-label={searchQuery ? "Clear search" : "Close search"}
                   >
                       <XMarkIcon className="w-5 h-5" />
@@ -179,7 +180,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2 px-4 py-2 flex-1">
-                    <ClockIcon className={`w-4 h-4 ${index === activeIndex ? 'text-white' : 'text-gray-400'}`} />
+                    <ClockIcon className={`w-4 h-4 ${index === activeIndex ? 'text-white' : 'text-gray-600'}`} />
                     <span>{search}</span>
                   </div>
                   <Button variant="overlay-dark" size="icon-sm" onClick={(e) => handleRemoveRecent(e, search)} aria-label={`Remove "${search}" from recent searches`} title="Remove">

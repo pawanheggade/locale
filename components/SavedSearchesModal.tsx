@@ -45,7 +45,7 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
             {savedSearches.map((search) => (
               <li key={search.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                    <span className="font-medium text-gray-800 truncate block">{search.name}</span>
+                    <span className="font-medium text-gray-900 truncate block">{search.name}</span>
                     <div className="text-xs text-gray-600 mt-1 truncate">
                         {search.filters.searchQuery ? `Query: "${search.filters.searchQuery}"` : 'No query'}
                         {search.filters.filterCategory !== 'all' ? ` • ${search.filters.filterCategory}` : ''}

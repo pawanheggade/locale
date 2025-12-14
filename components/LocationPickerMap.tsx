@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { reverseGeocode } from '../utils/geocoding';
 import { SpinnerIcon } from './Icons';
@@ -104,7 +103,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
                 <span>Identifying location...</span>
             </div>
           ) : (
-            <p className="font-semibold text-gray-800">{selectedAddress || 'Click on the map to select a location'}</p>
+            <p className="font-semibold text-gray-900">{selectedAddress || 'Click on the map to select a location'}</p>
           )}
         </div>
         <div className="flex justify-end gap-2 mt-2">

@@ -13,7 +13,7 @@ interface SettingsRowProps {
 
 export const SettingsRow: React.FC<SettingsRowProps> = ({ title, description, onClick, control, variant = 'default', className }) => {
   const variantClasses = {
-    default: { title: 'text-gray-800' },
+    default: { title: 'text-gray-900' },
     destructive: { title: 'text-red-600' },
     warning: { title: 'text-amber-700' },
   };
@@ -52,7 +52,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({ title, description, on
         
         {/* Bottom row for full-width description */}
         {description && (
-          <p className="text-sm text-gray-500 font-normal mt-1">
+          <p className="text-sm text-gray-600 font-normal mt-1">
             {description}
           </p>
         )}

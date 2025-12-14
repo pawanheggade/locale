@@ -110,7 +110,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            'text-red-600',
+            'text-red-400',
             coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {
@@ -192,7 +192,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             </div>
           )}
            <div className="absolute bottom-0 left-0 right-0 p-2 bg-white">
-              <h3 id={`post-title-${post.id}`} className="font-bold text-gray-800 text-sm line-clamp-2 leading-tight">
+              <h3 id={`post-title-${post.id}`} className="font-bold text-gray-900 text-sm line-clamp-2 leading-tight">
                   {post.title}
               </h3>
               <PriceDisplay 
@@ -236,7 +236,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                           onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }}
                           variant="overlay-dark"
                           size="icon-sm"
-                          className="flex-shrink-0 text-gray-500 active:scale-95"
+                          className="flex-shrink-0 text-gray-600 active:scale-95"
                           aria-label="Edit post"
                           title="Edit post"
                         >
@@ -250,7 +250,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         size="icon-sm"
                         className={cn(
                             "flex-shrink-0 active:scale-95",
-                            isAvailabilityAlertSet ? "text-red-600" : "text-gray-500"
+                            isAvailabilityAlertSet ? "text-red-600" : "text-gray-600"
                         )}
                         aria-label={isAvailabilityAlertSet ? "Remove availability alert" : "Notify when available"}
                         title={isAvailabilityAlertSet ? "Alert Set" : "Notify when available"}
@@ -272,7 +272,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             size="icon-sm"
                             className={cn(
                                 "flex-shrink-0 active:scale-95",
-                                isProfileLiked ? "text-red-600" : "text-gray-400"
+                                isProfileLiked ? "text-red-600" : "text-gray-600"
                             )}
                             iconClassName="w-5 h-5"
                             icon={UserPlusIcon}
@@ -311,7 +311,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           <h3
             id={`post-title-${post.id}`}
             className={cn(
-              'font-bold text-gray-800 line-clamp-2 leading-tight',
+              'font-bold text-gray-900 line-clamp-2 leading-tight',
               'text-lg'
             )}
           >
@@ -361,7 +361,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                 "h-8 w-8 p-0 rounded-full flex items-center justify-center",
                                 isPriceAlertSet
                                     ? "text-red-600"
-                                    : "text-gray-500"
+                                    : "text-gray-600"
                             )}
                             aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
                             title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
@@ -378,7 +378,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                               "h-8 w-8 p-0 rounded-full flex items-center justify-center",
                               isPostLiked
                                   ? "text-red-600"
-                                  : "text-gray-500"
+                                  : "text-gray-600"
                           )}
                           iconClassName="w-5 h-5"
                           aria-label={isPostLiked ? "Unlike post" : "Like post"}

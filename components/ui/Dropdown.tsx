@@ -92,7 +92,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           id={id}
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
-          className={cn('flex items-center justify-between w-full text-left text-sm text-gray-800', buttonStyles[variant])}
+          className={cn('flex items-center justify-between w-full text-left text-sm text-gray-900', buttonStyles[variant])}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listboxId : undefined}
@@ -100,7 +100,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
           {...props}
         >
           <span className="truncate">{selectedItem?.label || placeholder}</span>
-          <ChevronDownIcon className={cn('w-4 h-4 text-gray-400 transition-transform', isOpen && 'rotate-180')} />
+          <ChevronDownIcon className={cn('w-4 h-4 text-gray-600 transition-transform', isOpen && 'rotate-180')} />
         </button>
         {isOpen && (
           <ul
@@ -117,7 +117,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                 onClick={() => handleSelect(item.value)}
                 onKeyDown={(e) => handleItemKeyDown(e, item.value)}
                 className={cn(
-                  'px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap',
+                  'px-4 py-2 text-sm text-gray-900 cursor-pointer whitespace-nowrap',
                   index === activeIndex && 'bg-gray-100',
                   item.value === selectedValue && 'font-semibold bg-red-50 text-red-600'
                 )}

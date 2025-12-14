@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '../lib/utils';
 
 interface EmptyStateProps {
@@ -19,10 +19,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className={cn("flex flex-col items-center justify-center text-center py-12 px-4 animate-fade-in", className)}>
-      <div className="text-gray-400 mb-4 [&>svg]:w-16 [&>svg]:h-16">
+      <div className="text-gray-600 mb-4 [&>svg]:w-16 [&>svg]:h-16">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
+      <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
       {description && (
         <p className="text-gray-600 mt-2 max-w-md text-sm">{description}</p>
       )}

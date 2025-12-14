@@ -47,21 +47,21 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                     <SubscriptionBadge tier={author.subscription.tier} />
                 </div>
                 
-                <div className="flex flex-col items-start gap-1 text-xs text-gray-500 mt-1.5">
+                <div className="flex flex-col items-start gap-1 text-xs text-gray-600 mt-1.5">
                     <div className="flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3 text-gray-400" />
+                        <CalendarIcon className="w-3 h-3 text-gray-600" />
                         <span>Joined {formatMonthYear(author.joinDate)}</span>
                     </div>
                     {author.taxInfo && (
                         <div className="flex items-center gap-1">
-                            <DocumentIcon className="w-3 h-3 text-gray-400" />
+                            <DocumentIcon className="w-3 h-3 text-gray-600" />
                             <span>Tax ID: {author.taxInfo}</span>
                         </div>
                     )}
                 </div>
                 
                 {post && (
-                    <p className="text-xs text-gray-500 mt-2 bg-gray-50 px-2 py-1 rounded w-full truncate">regarding: "{post.title}"</p>
+                    <p className="text-xs text-gray-600 mt-2 bg-gray-50 px-2 py-1 rounded w-full truncate">regarding: "{post.title}"</p>
                 )}
             </div>
         </div>
@@ -88,7 +88,7 @@ export const ContactSellerModal: React.FC<ContactSellerModalProps> = ({ author, 
                       aria-label={method.label}
                     >
                       <Icon className="w-8 h-8 text-red-600 flex-shrink-0" />
-                      <p className="font-semibold text-gray-800">{method.label}</p>
+                      <p className="font-semibold text-gray-900">{method.label}</p>
                     </Button>
                 );
           })}
