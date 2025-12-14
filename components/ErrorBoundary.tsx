@@ -14,7 +14,7 @@ const ErrorFallback = ({ onReset }: { onReset: () => void }) => (
                 <p className="text-sm font-semibold text-red-800">
                     Something went wrong
                 </p>
-                <p className="mt-1 text-sm text-red-700">
+                <p className="mt-1 text-sm text-red-600">
                     An unexpected error occurred. Please try again.
                 </p>
                 <div className="mt-4">

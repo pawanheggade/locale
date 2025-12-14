@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost, PostCategory, Subscription, Report, AdminView, ForumPost, DisplayableForumPost, ForumComment, Feedback } from '../types';
 import { FlagIcon, UserIcon, HashtagIcon, ChartBarIcon, PencilIcon, ChevronDownIcon, ArchiveBoxIcon, ChatBubbleBottomCenterTextIcon, DocumentIcon } from './Icons';
@@ -120,7 +121,7 @@ export const AdminPanel: React.FC = () => {
               variant="ghost"
               className={cn(
                 'w-full justify-between px-4 py-2.5 text-sm font-semibold rounded-full',
-                view === item.id ? 'bg-red-100 text-red-700' : 'text-gray-600'
+                view === item.id ? 'bg-red-100 text-red-600' : 'text-gray-600'
               )}
             >
               <div className="flex items-center gap-3">

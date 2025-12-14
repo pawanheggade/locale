@@ -14,7 +14,7 @@ interface SettingsRowProps {
 export const SettingsRow: React.FC<SettingsRowProps> = ({ title, description, onClick, control, variant = 'default', className }) => {
   const variantClasses = {
     default: { title: 'text-gray-800' },
-    destructive: { title: 'text-red-700' },
+    destructive: { title: 'text-red-600' },
     warning: { title: 'text-amber-700' },
   };
 

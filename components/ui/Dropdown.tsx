@@ -119,7 +119,7 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
                 className={cn(
                   'px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap',
                   index === activeIndex && 'bg-gray-100',
-                  item.value === selectedValue && 'font-semibold bg-red-50 text-red-700'
+                  item.value === selectedValue && 'font-semibold bg-red-50 text-red-600'
                 )}
                 role="option"
                 aria-selected={item.value === selectedValue}

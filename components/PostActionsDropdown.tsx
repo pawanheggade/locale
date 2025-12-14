@@ -107,7 +107,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
           onClick={handleAction(deletePostPermanently)}
           icon={<TrashIcon className="w-5 h-5" />}
           label="Delete"
-          className="text-red-700"
+          className="text-red-600"
         />
       );
     }
