@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
-import LocationInput from './LocationInput';
+import { LocationInput } from './LocationInput';
 import { SpinnerIcon, XMarkIcon } from './Icons';
 import { suggestTagsForPost, suggestCategoriesForPost } from '../utils/gemini';
 import { toDateTimeLocal, fromDateTimeLocal } from '../utils/formatters';
@@ -252,8 +252,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         eventStartDate, hasExpiry, expiryDate,
     }, { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE });
     
-    if (needsSellerDetails && onUpdateCurrentAccountDetails && (sellerOptions.deliveryOptions.length === 0 || sellerOptions.paymentMethods.length === 0)) {
-        validationErrors.sellerOptions = "Please select at least one delivery and one payment option to continue.";
+    if (needsSellerDetails && onUpdateCurrentAccountDetails) {
+        if (sellerOptions.deliveryOptions.length === 0) {
+            validationErrors.deliveryOptions = "Please select at least one delivery option to continue.";
+        }
+        if (sellerOptions.paymentMethods.length === 0) {
+            validationErrors.paymentMethods = "Please select at least one payment method to continue.";
+        }
     }
 
     dispatch({ type: 'SET_ERRORS', payload: validationErrors });
@@ -328,12 +333,16 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       setField('isOnSale', checked);
                       if (checked && !price.trim() && !contactForPrice) {
                           dispatch({ type: 'SET_ERRORS', payload: { ...errors, price: 'Price is required when setting a sale.' } });
+                      } else if (errors.price === 'Price is required when setting a sale.') {
+                           const newErrors = { ...errors };
+                           delete newErrors.price;
+                           dispatch({ type: 'SET_ERRORS', payload: newErrors });
                       }
                   }}
                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                   disabled={contactForPrice}
               />
-              <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-700">
+              <label htmlFor="is-on-sale" className="ml-2 block text-sm font-medium text-gray-600">
                   Item on sale (Discount)
               </label>
           </div>
@@ -363,7 +372,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
           />
           ) : (
           <div className="max-w-2xl mx-auto">
-              <h1 className="text-3xl font-bold text-gray-800 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">{isEditing ? 'Edit Post' : 'Create Post'}</h1>
               <form id="create-post-form" onSubmit={handleSubmit} className="space-y-6">
                   {needsSellerDetails && (
                       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in-down">
@@ -378,7 +387,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                                   onDeliveryChange={(options) => setSellerOptions(prev => ({...prev, deliveryOptions: options}))}
                                   onContactChange={(options) => setSellerOptions(prev => ({...prev, contactOptions: options}))}
                                   isSeller={true}
-                                  error={errors.sellerOptions}
+                                  error={errors}
                               />
                           </div>
                       </div>
@@ -393,7 +402,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                   
                   <div>
                       <Label>Media</Label>
-                      <p className="text-xs text-gray-500 mb-2">Add up to {maxFiles} images or videos. The first item will be the cover.</p>
+                      <p className="text-xs text-gray-600 mb-2">Add up to {maxFiles} images or videos. The first item will be the cover.</p>
                       <MediaUploader
                           mediaUploads={mediaUploads}
                           handleFiles={handleFiles}
@@ -461,7 +470,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                                 }}
                                 className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                             />
-                            <label htmlFor="contact-for-price" className="ml-2 block text-sm font-medium text-gray-700">
+                            <label htmlFor="contact-for-price" className="ml-2 block text-sm font-medium text-gray-600">
                                 Contact for price
                             </label>
                         </div>
@@ -516,7 +525,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                                   onChange={e => setField('hasExpiry', e.target.checked)}
                                   className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                               />
-                              <label htmlFor="has-expiry" className="ml-2 block text-sm font-medium text-gray-700">
+                              <label htmlFor="has-expiry" className="ml-2 block text-sm font-medium text-gray-600">
                                   Set an expiry date
                               </label>
                           </div>
@@ -537,9 +546,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                       </div>
                       <div className="flex flex-wrap items-center gap-2 p-2 border border-gray-300 rounded-md">
                           {tags.map(tag => (
-                              <div key={tag} className="flex items-center gap-1 bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded">
+                              <div key={tag} className="flex items-center gap-1 bg-gray-300 text-gray-800 text-sm font-medium px-2 py-1 rounded">
                                   <span>{tag}</span>
-                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-500">
+                                  <button type="button" onClick={() => dispatch({ type: 'REMOVE_TAG', payload: tag })} className="text-gray-600">
                                       <XMarkIcon className="w-4 h-4" />
                                   </button>
                               </div>

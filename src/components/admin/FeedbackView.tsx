@@ -9,6 +9,7 @@ import { TrashIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, CheckIcon, ChatBubbleBot
 import ModalShell from '../ModalShell';
 import { cn } from '../../lib/utils';
 import { EmptyState } from '../EmptyState';
+import { useSwipeToNavigateTabs } from '../../hooks/useSwipeToNavigateTabs';
 
 interface FeedbackViewProps {
     feedbackList: Feedback[];
@@ -29,6 +30,28 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
     const [selectedFeedback, setSelectedFeedback] = useState<FeedbackWithUser | null>(null);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const modalRef = useRef<HTMLDivElement>(null);
+    const swipeRef = useRef<HTMLDivElement>(null);
+    
+    const tabs: ('inbox' | 'archived')[] = ['inbox', 'archived'];
+    const [animationClass, setAnimationClass] = useState('');
+    const prevTabRef = useRef(activeTab);
+
+    useEffect(() => {
+        const prevIndex = tabs.indexOf(prevTabRef.current);
+        const currentIndex = tabs.indexOf(activeTab);
+
+        if (prevIndex !== -1 && prevIndex !== currentIndex) {
+            setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
+        }
+        prevTabRef.current = activeTab;
+    }, [activeTab]);
+    
+    useSwipeToNavigateTabs({
+        tabs,
+        activeTab,
+        setActiveTab: (tabId) => setActiveTab(tabId as 'inbox' | 'archived'),
+        swipeRef
+    });
     
     const accountsById = useMemo(() => new Map(accounts.map(a => [a.id, a])), [accounts]);
 
@@ -124,7 +147,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                 />
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.userName}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.userEmail}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{item.userEmail}</td>
             <td className="px-6 py-4 whitespace-nowrap">
                 <Button
                     variant="ghost"
@@ -160,7 +183,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
 
     return (
         <div>
-            <div className="mb-4 border-b border-gray-200">
+            <div className="mb-4 border-b border-gray-300">
                 <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist">
                     <TabButton onClick={() => setActiveTab('inbox')} isActive={activeTab === 'inbox'}>Inbox</TabButton>
                     <TabButton onClick={() => setActiveTab('archived')} isActive={activeTab === 'archived'}>Archived</TabButton>
@@ -195,16 +218,20 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                 </div>
             )}
 
-            {filteredFeedback.length === 0 ? (
-                <EmptyState
-                    icon={<ChatBubbleBottomCenterTextIcon />}
-                    title=""
-                    description={`No ${activeTab} feedback.`}
-                    className="py-12"
-                />
-            ) : (
-                <DataTable<FeedbackWithUser> columns={columns} data={sortedFeedback} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort} />
-            )}
+            <div ref={swipeRef} className="relative overflow-x-hidden">
+                <div key={activeTab} className={animationClass}>
+                    {filteredFeedback.length === 0 ? (
+                        <EmptyState
+                            icon={<ChatBubbleBottomCenterTextIcon />}
+                            title=""
+                            description={`No ${activeTab} feedback.`}
+                            className="py-12"
+                        />
+                    ) : (
+                        <DataTable columns={columns} data={sortedFeedback} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort as any} />
+                    )}
+                </div>
+            </div>
             
             {selectedFeedback && (
                 <ModalShell
@@ -218,7 +245,7 @@ export const FeedbackView: React.FC<FeedbackViewProps> = ({ feedbackList, accoun
                     <div className="p-6 space-y-4">
                         <div>
                             <h4 className="text-sm font-semibold text-gray-600">User</h4>
-                            <p className="text-gray-900">{selectedFeedback.userName} <span className="text-gray-500 text-xs">({selectedFeedback.userEmail})</span></p>
+                            <p className="text-gray-900">{selectedFeedback.userName} <span className="text-gray-600 text-xs">({selectedFeedback.userEmail})</span></p>
                         </div>
                         <div>
                              <h4 className="text-sm font-semibold text-gray-600">Date</h4>

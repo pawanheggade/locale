@@ -79,7 +79,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ onClose }) =>
                             type="email"
                             value={state.email}
                             onChange={(e) => dispatch({ type: 'SET_EMAIL', payload: e.target.value })}
-                            icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
+                            icon={<EnvelopeIcon className="h-5 w-5 text-gray-600" />}
                             placeholder="you@example.com"
                             required
                             autoFocus

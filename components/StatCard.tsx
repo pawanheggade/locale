@@ -2,7 +2,7 @@
 import React from 'react';
 
 export const StatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <div className="bg-white p-6 rounded-lg border border-gray-200/80 flex items-center gap-4">
+    <div className="bg-white p-6 rounded-lg border border-gray-300/80 flex items-center gap-4">
         <div className="flex-shrink-0">
             {icon}
         </div>

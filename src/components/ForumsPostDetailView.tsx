@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,8 +15,11 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
+import { SEO } from './SEO';
 
-export const ForumsPostDetailView: React.FC = () => {
+interface ForumPostDetailViewProps {}
+
+export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
     const { getPostWithComments, toggleVote, updatePost, deletePost, setActiveCategory } = useForum();
     const { addToast } = useUI();
     const showConfirmation = useConfirmationModal();
@@ -96,11 +100,12 @@ export const ForumsPostDetailView: React.FC = () => {
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200/80 p-4 sm:p-6 lg:p-8 animate-fade-in-down">
+        <div className="bg-white rounded-xl border border-gray-300/80 p-4 sm:p-6 lg:p-8 animate-fade-in-down">
+            <SEO title={post.title} description={post.content.slice(0, 160)} type="article" />
             <div className="flex gap-4">
                 <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                         <CategoryBadge 
                             category={post.category} 
                             onClick={(e) => {
@@ -111,7 +116,9 @@ export const ForumsPostDetailView: React.FC = () => {
                             className="text-[10px] h-auto min-h-0"
                         />
                         <span>&bull;</span>
-                        <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm">@{post.author?.username || 'unknown'}</button></span>
+                        <span>Posted by <button onClick={() => navigateToAccount(post.authorId)} className="font-semibold text-gray-600 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#123456] rounded-sm">@{post.author?.username || 'unknown'}</button></span>
+                         <span className="hidden sm:inline">&bull;</span>
+                        <span className="hidden sm:inline">{timeSince(post.timestamp)}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{post.title}</h1>
                     {isEditingPost ? (
@@ -138,7 +145,7 @@ export const ForumsPostDetailView: React.FC = () => {
                                     onClick={handleShare} 
                                     variant="ghost"
                                     size="icon-sm"
-                                    className="text-gray-500"
+                                    className="text-gray-600"
                                     title="Share"
                                 >
                                     <PaperAirplaneIcon className="w-5 h-5" />
@@ -149,16 +156,15 @@ export const ForumsPostDetailView: React.FC = () => {
                                             onClick={() => setIsEditingPost(true)} 
                                             variant="ghost"
                                             size="icon-sm"
-                                            className="text-gray-500"
+                                            className="text-gray-600"
                                             title="Edit"
                                         >
                                             <PencilIcon className="w-5 h-5" />
                                         </Button>
                                         <Button 
                                             onClick={handleDeletePost} 
-                                            variant="ghost"
+                                            variant="overlay-red"
                                             size="icon-sm"
-                                            className="text-red-600"
                                             title="Delete"
                                         >
                                             <TrashIcon className="w-5 h-5" />
@@ -170,7 +176,7 @@ export const ForumsPostDetailView: React.FC = () => {
                                         onClick={() => reportItem(post)} 
                                         variant="ghost"
                                         size="icon-sm"
-                                        className="text-gray-400"
+                                        className="text-gray-600"
                                         title="Report"
                                     >
                                         <FlagIcon className="w-5 h-5" />
@@ -182,7 +188,7 @@ export const ForumsPostDetailView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200/80">
+            <div className="mt-8 pt-8 border-t border-gray-300/80">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <ChatBubbleEllipsisIcon className="w-6 h-6" />
                     {post.commentCount} Comments

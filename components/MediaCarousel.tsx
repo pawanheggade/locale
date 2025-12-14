@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Media } from '../types';
 import { useCarousel } from '../hooks/useCarousel';
@@ -30,9 +31,9 @@ const ImageWithLoader: React.FC<{ src: string; alt: string; className: string }>
 
     return (
         <div className="w-full h-full flex items-center justify-center relative">
-            {isLoading && <SpinnerIcon className="w-8 h-8 text-gray-400 absolute" />}
+            {isLoading && <SpinnerIcon className="w-8 h-8 text-gray-600 absolute" />}
             {hasError && (
-                <div className="absolute flex flex-col items-center text-gray-400">
+                <div className="absolute flex flex-col items-center text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span className="text-xs mt-1">Image Error</span>
                 </div>
@@ -174,7 +175,7 @@ export const MediaCarousel: React.FC<MediaCarouselProps> = ({
 
     if (!media || media.length === 0) {
         return (
-            <div className={`${aspectRatio} ${className} w-full flex items-center justify-center text-gray-500`}>
+            <div className={`${aspectRatio} ${className} w-full flex items-center justify-center text-gray-600`}>
                 No Media
             </div>
         );

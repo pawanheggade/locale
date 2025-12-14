@@ -1,3 +1,4 @@
+
 :root {
       --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -291,7 +292,7 @@
 
     /* --- Prose content styling for modals --- */
     .prose {
-        color: #374151; /* Tailwind gray-700 */
+        color: #4b5567; /* Tailwind gray-600 */
     }
     .prose h2 {
         font-size: 1.5rem;

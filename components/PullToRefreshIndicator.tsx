@@ -57,7 +57,7 @@ const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="text-gray-200"
+                className="text-gray-300"
               />
               <circle
                 cx="18"

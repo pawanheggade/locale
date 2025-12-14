@@ -94,17 +94,17 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
                 <p>{renderWithMentions(comment.content, allAccounts, navigateToAccount, onFilterByTag)}</p>
                 <div className="not-prose flex items-center gap-2 mt-2">
                     <VoteButtons score={comment.score} userVote={userVote} onVote={(vote) => toggleVote('comment', comment.id, vote)} orientation="horizontal" />
-                    <Button variant="ghost" size="sm" onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} className="gap-1 text-gray-500">
+                    <Button variant="ghost" size="sm" onClick={() => onSetReplyTarget(isReplying ? null : comment.id)} className="gap-1 text-gray-600">
                         <ChatBubbleEllipsisIcon className="w-4 h-4" /> Reply
                     </Button>
                     {canEditOrDelete && (
                          <>
-                            <Button variant="ghost" size="icon-sm" onClick={() => setIsEditing(true)} className="text-gray-400" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
-                            <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-gray-400" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
+                            <Button variant="ghost" size="icon-sm" onClick={() => setIsEditing(true)} className="text-gray-600" title="Edit"><PencilIcon className="w-4 h-4"/></Button>
+                            <Button variant="ghost" size="icon-sm" onClick={handleDelete} className="text-gray-600" title="Delete"><TrashIcon className="w-4 h-4"/></Button>
                          </>
                     )}
                     {!canEditOrDelete && (
-                        <Button variant="ghost" size="icon-sm" onClick={() => reportItem(comment)} className="text-gray-400" title="Report"><FlagIcon className="w-4 h-4"/></Button>
+                        <Button variant="ghost" size="icon-sm" onClick={() => reportItem(comment)} className="text-gray-600" title="Report"><FlagIcon className="w-4 h-4"/></Button>
                     )}
                 </div>
             </>
@@ -122,7 +122,7 @@ const CommentComponent: React.FC<CommentProps> = ({ comment, onSetReplyTarget, r
             />
           </div>
         )}
-        <div className="mt-6 space-y-6 pl-6 border-l-2 border-gray-100">
+        <div className="mt-6 space-y-6 pl-6 border-l-2 border-gray-50">
           {comment.replies.map(reply => (
             <CommentComponent key={reply.id} comment={reply} onSetReplyTarget={onSetReplyTarget} replyingToId={replyingToId} />
           ))}

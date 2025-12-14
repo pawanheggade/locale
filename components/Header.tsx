@@ -192,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
                           </li>
                       ))}
                   </ul>
-                  <div className="my-1 h-px bg-gray-100" />
+                  <div className="my-1 h-px bg-gray-50" />
                   <Button
                       onClick={handleOpenFilterPanel}
                       variant="ghost"
@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       <header className={cn(
         'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
-        'bg-white/80 backdrop-blur-md border-b border-gray-200',
+        'bg-white/80 backdrop-blur-md border-b border-gray-300',
         !isVisible && '-translate-y-full'
       )}>
         <div className={cn(
@@ -274,13 +274,13 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
                           variant="ghost"
                           size="icon-xs"
-                          className="text-gray-600 hover:text-gray-700 rounded-full w-6 h-6"
+                          className="text-gray-600 hover:text-gray-600 rounded-full w-6 h-6"
                           aria-label="Open navigation menu"
                       >
                           <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
                       </Button>
                       {isNavDropdownOpen && (
-                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-50 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
                                {navItems.map(item => (
                                   <li key={item.view} className="list-none">
@@ -321,7 +321,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                   
                   {showViewSelector && (
-                      <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
+                      <div className="hidden sm:flex items-center bg-gray-50 rounded-xl p-0.5">
                            <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-600")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
                                <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
                            </Button>

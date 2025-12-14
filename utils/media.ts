@@ -1,3 +1,4 @@
+
 import { Post } from '../types';
 import { formatCurrency } from './formatters';
 import { getBadgeSvg, TIER_STYLES, drawLogoOnCanvas } from '../lib/utils';
@@ -134,7 +135,7 @@ export const generatePostPreviewImage = async (post: Post): Promise<Blob | null>
         ctx.drawImage(postImg, 0, 0, postImg.width, postImg.height,
                       centerShift_x, centerShift_y, postImg.width * ratio, postImg.height * ratio);
     } else {
-        ctx.fillStyle = '#E5E7EB'; // gray-200
+        ctx.fillStyle = '#d1d5db'; // gray-300
         ctx.fillRect(0, 0, cardWidth, cardHeight);
     }
 

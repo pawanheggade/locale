@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { sanitizeHtml } from '../utils/security';
 import { Button } from './ui/Button';
@@ -25,7 +26,7 @@ const PageSection: React.FC<{
                 <Button
                     onClick={onEdit}
                     variant="overlay-dark"
-                    className="font-semibold text-gray-700 gap-2"
+                    className="font-semibold text-gray-600 gap-2"
                 >
                     <PencilIcon className="w-4 h-4" />
                     Edit

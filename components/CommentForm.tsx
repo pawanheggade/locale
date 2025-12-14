@@ -1,3 +1,4 @@
+
 import React, { useState, useReducer } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -67,7 +68,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ postId, parentId, onCo
                     className="w-full"
                 />
                 <div className="flex justify-end mt-1">
-                    <span className={`text-xs ${isOverLimit ? 'text-red-600' : 'text-gray-500'}`}>
+                    <span className={`text-xs ${isOverLimit ? 'text-red-600' : 'text-gray-600'}`}>
                         {content.length} / {COMMENT_MAX_LENGTH}
                     </span>
                 </div>

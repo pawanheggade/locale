@@ -223,7 +223,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
       {showHeader && (
-          <div className="p-3 border-b border-gray-200/80">
+          <div className="p-3 border-b border-gray-300/80">
             <PostAuthorInfo 
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}
@@ -436,14 +436,14 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 {post.author && (
                     <div className="mt-2 space-y-1">
                         {post.author.paymentMethods && post.author.paymentMethods.length > 0 && (
-                            <div className="flex items-center gap-1.5 text-xs text-gray-500" title="Payment Methods">
-                                <CashIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600" title="Payment Methods">
+                                <CashIcon className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
                                 <span className="truncate">{post.author.paymentMethods.join(', ')}</span>
                             </div>
                         )}
                         {post.author.deliveryOptions && post.author.deliveryOptions.length > 0 && (
-                            <div className="flex items-center gap-1.5 text-xs text-gray-500" title="Delivery Options">
-                                <ShoppingBagIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600" title="Delivery Options">
+                                <ShoppingBagIcon className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
                                 <span className="truncate">{post.author.deliveryOptions.join(', ')}</span>
                             </div>
                         )}
@@ -460,7 +460,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
 
           {/* Inline Action Footer - Only shown when expanded */}
           {isDescriptionExpanded && (
-            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between gap-2 animate-fade-in">
+            <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between gap-2 animate-fade-in">
                 {isOwnPost ? (
                     <>
                         <div className="flex-1 flex items-center gap-2">
@@ -480,11 +480,11 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             )}
                         </div>
                         {isEligibleToPin && !isArchived && (
-                            <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn("bg-gray-50", post.isPinned ? "text-red-600" : "text-gray-500")} title={post.isPinned ? 'Unpin' : 'Pin'}>
+                            <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn("bg-gray-50", post.isPinned ? "text-red-600" : "text-gray-600")} title={post.isPinned ? 'Unpin' : 'Pin'}>
                                 <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
                             </Button>
                         )}
-                        <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Share post">
+                        <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none bg-gray-50 rounded-xl text-gray-600" title="Share post">
                             <PaperAirplaneIcon className="w-5 h-5" />
                         </Button>
                     </>
@@ -513,7 +513,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                                             </Button>
                                         )}
                                         {isPurchasable && (
-                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-500" title="Contact seller">
+                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-600" title="Contact seller">
                                             <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
                                             <span className="sr-only">Contact</span>
                                         </Button>
@@ -526,7 +526,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         {/* Secondary actions on the right */}
                         {!isArchived && (
                         <div className="flex-shrink-0 flex items-center gap-1">
-                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 rounded-xl text-gray-500" title="Share post">
+                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 rounded-xl text-gray-600" title="Share post">
                                 <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>
                         </div>

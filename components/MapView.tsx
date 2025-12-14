@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { DisplayablePost, PostType } from '../types';
 import { formatCompactCurrency } from '../utils/formatters';
@@ -367,7 +368,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     }
   };
 
-  const whiteButtonClass = "bg-white text-gray-700 border border-gray-200";
+  const whiteButtonClass = "bg-white text-gray-600 border border-gray-300";
 
   return (
     <div className="h-full w-full relative animate-fade-in-down">

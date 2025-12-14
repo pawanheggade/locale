@@ -80,7 +80,7 @@ export const FindNearbyModal: React.FC<FindNearbyModalProps> = ({ onClose, onSea
               </Button>
             </div>
 
-            <Separator label="OR" lineClassName="border-gray-200/50" labelClassName="text-sm font-medium text-gray-600" />
+            <Separator label="OR" lineClassName="border-gray-300/50" labelClassName="text-sm font-medium text-gray-600" />
             
             <div className="space-y-4">
               <FormField

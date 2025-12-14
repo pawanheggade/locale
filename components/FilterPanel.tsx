@@ -146,7 +146,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   </Button>
               </div>
           </div>
-          <hr className="border-gray-200" />
+          <hr className="border-gray-300" />
           
           <FilterSection title="Distance" htmlFor="distance-filter" isActive={filterState.filterDistance > 0}>
             <div className={cn("flex items-center gap-3", !isLocationAvailable && "opacity-50")}>
@@ -159,10 +159,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   value={currentStepIndex}
                   onChange={handleDistanceSliderChange}
                   disabled={!isLocationAvailable}
-                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600 disabled:bg-gray-100 disabled:accent-gray-400"
+                  className="flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-red-600 disabled:bg-gray-50 disabled:accent-gray-400"
                   aria-valuetext={filterState.filterDistance > 0 ? `Within ${filterState.filterDistance} km` : 'Any Distance'}
                 />
-                <span className="font-semibold text-gray-800 w-28 text-center bg-gray-100 py-1 rounded-md text-sm shrink-0">
+                <span className="font-semibold text-gray-800 w-28 text-center bg-gray-50 py-1 rounded-md text-sm shrink-0">
                   {filterState.filterDistance > 0 ? `Within ${filterState.filterDistance} km` : 'Any Distance'}
                 </span>
             </div>
@@ -181,7 +181,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             )}
           </FilterSection>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-300" />
           
           <FilterSection title="Price Range" isActive={filterState.minPrice !== '' || filterState.maxPrice !== ''}>
             <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             />
           </FilterSection>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-300" />
 
           <FilterSection title="Status" isActive={filterState.filterExpiringSoon || filterState.filterShowExpired}>
             <div className="space-y-4 pt-2">

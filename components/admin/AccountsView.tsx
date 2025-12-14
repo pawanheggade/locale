@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Account, Subscription } from '../../types';
 import { PencilIcon, CheckIcon, XMarkIcon, ArrowUturnLeftIcon, ArchiveBoxIcon } from '../Icons';
@@ -52,7 +53,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         account.status === 'active' ? 'bg-green-100 text-green-800' :
                         account.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        account.status === 'archived' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
+                        account.status === 'archived' ? 'bg-gray-50 text-gray-800' : 'bg-red-100 text-red-800'
                     }`}>
                         {account.status}
                     </span>
@@ -102,5 +103,5 @@ export const AccountsView: React.FC<AccountsViewProps> = ({ accounts, onDeleteAc
         );
     };
 
-    return <DataTable columns={columns} data={sortedAccounts} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort as any} />;
+    return <DataTable<Account> columns={columns} data={sortedAccounts} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort} />;
 };

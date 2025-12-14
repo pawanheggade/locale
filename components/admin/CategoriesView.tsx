@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { PostCategory } from '../../types';
 import { Button, TabButton } from '../ui/Button';
@@ -68,7 +69,7 @@ export const CategoriesView: React.FC<CategoriesViewProps> = ({
 
     return (
         <div>
-            <div className="mb-4 border-b border-gray-200">
+            <div className="mb-4 border-b border-gray-300">
                 <nav className="flex space-x-6 px-2 overflow-x-auto hide-scrollbar" role="tablist">
                     <TabButton onClick={() => setActiveTab('markets')} isActive={activeTab === 'markets'}>Markets</TabButton>
                     <TabButton onClick={() => setActiveTab('forums')} isActive={activeTab === 'forums'}>Forums</TabButton>

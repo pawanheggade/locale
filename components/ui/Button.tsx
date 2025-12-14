@@ -8,7 +8,7 @@ const buttonVariants = {
     default: 'bg-red-600 text-white active:bg-red-800',
     destructive: 'bg-red-100 text-red-700 border border-red-200',
     outline: 'border border-gray-300 bg-white text-gray-600',
-    secondary: 'bg-gray-100 text-gray-600 border border-gray-200',
+    secondary: 'bg-gray-50 text-gray-600 border border-gray-300',
     ghost: 'border border-transparent bg-transparent text-gray-600',
     link: 'text-red-600 underline-offset-4',
     'pill-red': 'bg-red-600 text-white active:bg-red-500 border-transparent',
@@ -20,7 +20,7 @@ const buttonVariants = {
     'pill-slate': 'bg-slate-600 text-white active:bg-slate-500 border-transparent',
     // Overlay Variants
     overlay: 'bg-transparent text-white border-none shadow-none',
-    'overlay-dark': 'bg-transparent text-gray-700 border-none shadow-none',
+    'overlay-dark': 'bg-transparent text-gray-600 border-none shadow-none',
     'overlay-red': 'bg-transparent text-red-600 border-none shadow-none',
     'overlay-amber': 'bg-transparent text-amber-600 border-none shadow-none',
   },

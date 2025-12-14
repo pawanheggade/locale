@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -97,7 +98,7 @@ const DialogContent = React.forwardRef<
     <div
       ref={dialogRef}
       className={cn(
-        'bg-white border border-gray-200/60 flex flex-col m-0 overflow-hidden',
+        'bg-white border border-gray-300/60 flex flex-col m-0 overflow-hidden',
         panelPositionClasses[position],
         panelAnimation,
         className
@@ -113,11 +114,11 @@ const DialogContent = React.forwardRef<
 });
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("relative flex items-center justify-center p-4 py-4 border-b border-gray-200/50 min-h-16 h-auto", className)} {...props} />
+    <div ref={ref} className={cn("relative flex items-center justify-center p-4 py-4 border-b border-gray-300/50 min-h-16 h-auto", className)} {...props} />
 ));
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-4 bg-transparent border-t border-gray-200/50 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
+    <div ref={ref} className={cn("p-4 bg-transparent border-t border-gray-300/50 flex justify-end items-center gap-2 flex-shrink-0", className)} {...props} />
 ));
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (

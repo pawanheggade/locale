@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { ChevronDownIcon, SearchIcon } from '../Icons';
@@ -64,14 +65,14 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         <span className="truncate">
           {selectedValues.length > 0 ? `${selectedValues.length} selected` : placeholder}
         </span>
-        <ChevronDownIcon className={cn('w-4 h-4 text-gray-400 transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDownIcon className={cn('w-4 h-4 text-gray-600 transition-transform', isOpen && 'rotate-180')} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-max min-w-full bg-white border border-gray-200 rounded-md mt-1 animate-fade-in-up">
+        <div className="absolute z-10 w-max min-w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 animate-fade-in-up">
           <div className="p-2 border-b">
             <div className="relative">
-                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                 <Input
                     type="text"
                     value={searchQuery}
@@ -87,7 +88,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <li
                 key={item.value}
                 onClick={() => handleToggleItem(item.value)}
-                className="flex items-center px-4 py-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap"
+                className="flex items-center px-4 py-2 text-sm text-gray-600 cursor-pointer whitespace-nowrap"
                 role="option"
                 aria-selected={selectedValues.includes(item.value)}
               >

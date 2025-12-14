@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { AppView } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
@@ -20,7 +21,6 @@ const EditPageView = React.lazy(() => import('./EditPageView').then(module => ({
 const EditProfilePage = React.lazy(() => import('./EditProfilePage').then(module => ({ default: module.EditProfilePage })));
 const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
-// FIX: Lazy load the SettingsPage component.
 const SettingsPage = React.lazy(() => import('./SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 interface ViewRendererProps {
@@ -77,7 +77,6 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
          return <Suspense fallback={<LoadingFallback />}><ManageCatalogPage /></Suspense>;
        case 'createForumPost':
          return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage /></Suspense>;
-       // FIX: Add a case for the 'settings' view to render the SettingsPage component.
        case 'settings':
          return <Suspense fallback={<LoadingFallback />}><SettingsPage /></Suspense>;
       default:

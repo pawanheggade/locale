@@ -55,7 +55,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ title, categor
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
+        <div className="bg-white p-6 rounded-lg border border-gray-300">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Manage {title}</h3>
             
             <div className="flex gap-2 mb-6">

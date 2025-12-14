@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon } from './Icons';
@@ -42,7 +43,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ onClick, icon, label, badgeCount = 
       <div className="w-full flex items-center justify-end gap-2 p-2">
         <span className={cn(
           "text-sm font-bold whitespace-nowrap",
-          isActive ? "text-red-600" : "text-gray-700"
+          isActive ? "text-red-600" : "text-gray-600"
         )}>
           {label}
         </span>
@@ -50,7 +51,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ onClick, icon, label, badgeCount = 
             {React.cloneElement(icon, {
               className: cn(
                 icon.props.className,
-                isActive ? 'text-red-600' : 'text-gray-700'
+                isActive ? 'text-red-600' : 'text-gray-600'
               ),
             })}
             {badgeCount > 0 && (
@@ -120,7 +121,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                     "relative !rounded-xl border-none transition-colors",
                     isAccountMenuOpen
                         ? "!bg-red-100 !text-red-600"
-                        : "text-gray-700 hover:bg-gray-100"
+                        : "text-gray-600 hover:bg-gray-50"
                 )}
                 aria-label="Open account menu"
                 aria-haspopup="true"
@@ -142,7 +143,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
                 <div
                   id="account-menu-dropdown"
                   className={cn(
-                      "absolute right-0 mt-2 w-auto origin-top-right z-30 focus:outline-none shadow-xl rounded-xl border border-gray-200/60",
+                      "absolute right-0 mt-2 w-auto origin-top-right z-30 focus:outline-none shadow-xl rounded-xl border border-gray-300/60",
                       "bg-white",
                       isClosing ? 'animate-zoom-out' : 'animate-zoom-in'
                   )}
@@ -160,7 +161,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
 
                         {currentAccount.role === 'admin' && (
                             <>
-                                <div className="my-1.5 h-px bg-gray-200/50" />
+                                <div className="my-1.5 h-px bg-gray-300/50" />
                                 <div>
                                     <MenuItem onClick={() => handleMenuAction(() => navigateTo('admin'))} icon={<UserIcon className="w-5 h-5" />} label="Admin Panel" isActive={currentView === 'admin'} />
                                 </div>

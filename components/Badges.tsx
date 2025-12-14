@@ -69,7 +69,7 @@ const FilterBadge: React.FC<FilterBadgeProps> = ({ label, onClick, title, size =
         <button
             onClick={onClick}
             className={cn(
-                'uppercase font-bold tracking-wider text-gray-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
+                'uppercase font-bold tracking-wider text-gray-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500 rounded-sm',
                 sizeClasses, 
                 className
             )}

@@ -29,7 +29,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = '
   };
   
   const textColor = variant === 'overlay' ? 'text-white' : 'text-gray-900';
-  const subTextColor = variant === 'overlay' ? 'text-gray-200' : 'text-gray-600';
+  const subTextColor = variant === 'overlay' ? 'text-gray-300' : 'text-gray-600';
 
   return (
     <div className="flex items-center justify-between gap-3">

@@ -43,7 +43,7 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
         ) : (
           <ul className="space-y-3">
             {savedSearches.map((search) => (
-              <li key={search.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between gap-4">
+              <li key={search.id} className="p-3 bg-gray-50 border border-gray-300 rounded-lg flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                     <span className="font-medium text-gray-900 truncate block">{search.name}</span>
                     <div className="text-xs text-gray-600 mt-1 truncate">
@@ -56,7 +56,7 @@ const SavedSearchesModal: React.FC<SavedSearchesModalProps> = ({ savedSearches, 
                     variant={search.enableAlerts ? "pill-red" : "ghost"}
                     size="icon-sm"
                     onClick={() => toggleSavedSearchAlert(search.id)}
-                    className={search.enableAlerts ? "text-white" : "text-gray-400"}
+                    className={search.enableAlerts ? "text-white" : "text-gray-600"}
                     aria-label={search.enableAlerts ? "Disable alerts" : "Enable alerts"}
                     title={search.enableAlerts ? "Alerts enabled" : "Enable alerts"}
                   >

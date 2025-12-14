@@ -55,12 +55,12 @@ const AddToBagModal: React.FC<AddToBagModalProps> = ({ post, onClose, onSave, on
     >
       <div className="p-6">
         <div className="flex items-start gap-4">
-          {post.media.length > 0 && <img src={post.media[0].url} alt={post.title} className="w-24 h-24 rounded-md object-cover bg-gray-100" />}
+          {post.media.length > 0 && <img src={post.media[0].url} alt={post.title} className="w-24 h-24 rounded-md object-cover bg-gray-50" />}
           <div className="flex-1">
             <h3 className="font-semibold text-gray-800">{post.title}</h3>
             <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(post.price)}
-                <span className="text-sm font-normal text-gray-500">{priceUnitText}</span>
+                <span className="text-sm font-normal text-gray-600">{priceUnitText}</span>
             </p>
           </div>
         </div>

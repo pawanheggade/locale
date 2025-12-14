@@ -55,5 +55,5 @@ export const PostsView: React.FC<PostsViewProps> = ({ allPosts, onEditPost, onDe
         );
     };
 
-    return <DataTable<DisplayablePost> columns={columns} data={sortedPosts} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort} />;
+    return <DataTable columns={columns} data={sortedPosts} renderRow={renderRow} sortConfig={sortConfig} requestSort={requestSort as any} />;
 };

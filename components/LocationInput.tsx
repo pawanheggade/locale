@@ -81,7 +81,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                     />
                     {isVerifying && (
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <SpinnerIcon className="w-5 h-5 text-gray-400" />
+                            <SpinnerIcon className="w-5 h-5 text-gray-600" />
                         </div>
                     )}
                     {status === 'verified' && (
@@ -97,7 +97,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         disabled={isVerifying}
                         variant="ghost"
                         size="icon"
-                        className="flex-shrink-0 text-gray-600 border border-gray-200"
+                        className="flex-shrink-0 text-gray-600 border border-gray-300"
                         aria-label="Use my current location" 
                         title="Use my current location"
                     >
@@ -109,7 +109,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                     onClick={onOpenMapPicker} 
                     variant="ghost"
                     size="icon"
-                    className="flex-shrink-0 text-gray-600 border border-gray-200"
+                    className="flex-shrink-0 text-gray-600 border border-gray-300"
                     aria-label="Select location on maps" 
                     title="Select location on maps"
                 >

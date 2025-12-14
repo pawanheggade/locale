@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Post } from '../types';
 import ModalShell from './ModalShell';
@@ -95,16 +96,16 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
       titleId="share-post-title"
     >
       <div className="p-6">
-        <div className="w-full aspect-[16/9] bg-gray-100 rounded-lg overflow-hidden mb-6 relative">
+        <div className="w-full aspect-[16/9] bg-gray-50 rounded-lg overflow-hidden mb-6 relative">
             {isGenerating ? (
-                <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                     <SpinnerIcon className="w-8 h-8" />
                     <p className="mt-2 text-sm">Generating preview...</p>
                 </div>
             ) : previewImageUrl ? (
                 <img src={previewImageUrl} alt="Share preview" className="w-full h-full object-cover" />
             ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-gray-500">
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                     <p className="text-sm">Could not generate preview.</p>
                 </div>
             )}
@@ -116,7 +117,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
               type="text"
               readOnly
               value={shareUrl}
-              className="w-full px-3 py-2 text-sm text-gray-800 bg-gray-100 border border-gray-300 rounded-md focus:outline-none"
+              className="w-full px-3 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-md focus:outline-none"
               aria-label="Shareable link"
             />
             <Button

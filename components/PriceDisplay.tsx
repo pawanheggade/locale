@@ -42,7 +42,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price, salePrice, pr
     };
     const currentSize = sizeClasses[size];
     
-    const currentColors = { sale: 'text-amber-600', original: 'text-gray-600', normal: 'text-gray-800', expired: 'text-gray-400' };
+    const currentColors = { sale: 'text-amber-600', original: 'text-gray-600', normal: 'text-gray-800', expired: 'text-gray-600' };
     
     const unitText = priceUnit && priceUnit !== 'Fixed' ? <span className="text-sm font-normal text-gray-600 ml-1">/{priceUnit.toLowerCase()}</span> : null;
 

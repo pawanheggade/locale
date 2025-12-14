@@ -110,7 +110,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className={cn('relative', wrapperClassName)} ref={wrapperRef}>
         <div className={cn(
-            "relative flex items-center w-full h-10 bg-gray-100 border border-gray-200/80 rounded-xl",
+            "relative flex items-center w-full h-10 bg-gray-50 border border-gray-300/80 rounded-xl",
             "focus-within:bg-white focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/50"
         )}>
             {leftAccessory ? (
@@ -161,7 +161,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
         </div>
       {isDropdownVisible && (
-        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-down">
+        <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-down">
           {shouldShowRecent && (
             <>
               <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent Searches</li>
@@ -176,7 +176,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       onSearchSubmit(search);
                   }}
                   className={`flex items-center justify-between text-sm text-gray-600 cursor-pointer ${
-                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
+                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 px-4 py-2 flex-1">
@@ -188,7 +188,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   </Button>
                 </li>
               ))}
-              <li className="border-t border-gray-100 px-4 py-2 text-center">
+              <li className="border-t border-gray-50 px-4 py-2 text-center">
                 <Button variant="link" size="sm" onClick={handleClearAll} className="text-red-600 text-xs font-semibold">Clear All Searches</Button>
               </li>
             </>
@@ -210,7 +210,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     onSearchSubmit(suggestion);
                   }}
                   className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
-                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
+                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-300'
                   }`}
                 >
                   {before}
@@ -248,7 +248,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     onSearchSubmit(suggestion);
                   }}
                   className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
-                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-200'
+                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-300'
                   }`}
                 >
                   {suggestion}

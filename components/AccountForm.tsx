@@ -339,7 +339,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <div>
                                 <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
                                 <div 
-                                    className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
+                                    className="mt-1 relative w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden"
                                     onClick={() => bannerInputRef.current?.click()}
                                 >
                                     {state.bannerUrl ? (
@@ -354,7 +354,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 </div>
                             </div>
                             <div className="flex items-center gap-4 mt-4">
-                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-200 bg-gray-100" />
+                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-300 bg-gray-50" />
                                 <div>
                                     <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'avatar')} className="hidden" accept="image/png, image/jpeg, image/gif" />
                                     <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">Upload Avatar</Button>
@@ -362,7 +362,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             </div>
                         </div>
                     )}
-                    <div className={cn("pt-4 mt-4", !useSteps && "border-t border-gray-200")}>
+                    <div className={cn("pt-4 mt-4", !useSteps && "border-t border-gray-300")}>
                         <FormField id="account-name" label="Name" error={errors.name}>
                             <Input type="text" value={state.name} onChange={(e) => handleFieldChange('name', e.target.value)} onBlur={() => validate('name')} autoFocus />
                         </FormField>
@@ -450,7 +450,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <h3 className="text-base font-medium text-gray-900">Profile Appearance</h3>
                             <div>
                                 <span className="block text-sm font-medium text-gray-600 mb-1">Banner Image</span>
-                                <div className="mt-1 relative w-full h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => bannerInputRef.current?.click()}>
+                                <div className="mt-1 relative w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer overflow-hidden" onClick={() => bannerInputRef.current?.click()}>
                                     {state.bannerUrl ? (
                                         <img src={state.bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
                                     ) : (
@@ -460,7 +460,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-200 bg-gray-100" />
+                                <Avatar src={state.avatarUrl} alt="Profile avatar preview" size="xl" className="border-2 border-gray-300 bg-gray-50" />
                                 <div>
                                     <input type="file" ref={fileInputRef} onChange={(e) => handleFileChange(e, 'avatar')} className="hidden" accept="image/png, image/jpeg, image/gif" />
                                     <Button type="button" onClick={() => fileInputRef.current?.click()} variant="outline" size="sm">Upload Avatar</Button>
@@ -469,7 +469,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         </div>
                     )}
                     
-                    <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
+                    <div className="pt-4 mt-4 border-t border-gray-300 space-y-4">
                         {!useSteps && <h3 className="text-base font-medium text-gray-900">Additional Info</h3>}
                         
                         {isSeller && (

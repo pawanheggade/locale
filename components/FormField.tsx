@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { cn } from '../lib/utils';
 import { Label } from './ui/Label';
@@ -21,7 +20,7 @@ export const FormField: React.FC<FormFieldProps> = ({ id, label, error, descript
     <div className={cn(className)}>
       <div className="flex justify-between items-baseline mb-1">
         <Label htmlFor={id}>{label}</Label>
-        {description && <span className="text-xs text-gray-500">{description}</span>}
+        {description && <span className="text-xs text-gray-600">{description}</span>}
       </div>
       {React.cloneElement(child as React.ReactElement<any>, {
         id: id,

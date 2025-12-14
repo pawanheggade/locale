@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -52,7 +53,7 @@ export const SettingsPage: React.FC = () => {
                     />
                 
                     {settings.expiryAlertsEnabled && (
-                        <div className="pt-4 mt-4 border-t border-gray-200/80 animate-fade-in-down">
+                        <div className="pt-4 mt-4 border-t border-gray-300/80 animate-fade-in-down">
                             <label htmlFor="expiry-threshold" className="block text-sm font-medium text-gray-600">
                                 Notify me when an item will expire in:
                             </label>
@@ -64,9 +65,9 @@ export const SettingsPage: React.FC = () => {
                                 max="14"
                                 value={settings.expiryThresholdDays}
                                 onChange={(e) => onSettingsChange({ ...settings, expiryThresholdDays: parseInt(e.target.value, 10) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                                className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-red-600"
                                 />
-                                <span className="font-semibold text-gray-800 w-20 text-center bg-gray-100 py-1 rounded-md">
+                                <span className="font-semibold text-gray-800 w-20 text-center bg-gray-50 py-1 rounded-md">
                                 {settings.expiryThresholdDays} day{settings.expiryThresholdDays > 1 ? 's' : ''}
                                 </span>
                             </div>

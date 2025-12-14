@@ -95,7 +95,7 @@ export const LocationPickerMap: React.FC<LocationPickerMapProps> = ({ initialCoo
   return (
     <div className="h-[60vh] flex flex-col relative animate-fade-in-down">
       <div ref={mapRef} className="flex-grow w-full" />
-      <div className="p-3 bg-transparent border-t border-gray-200/50 flex-shrink-0">
+      <div className="p-3 bg-transparent border-t border-gray-300/50 flex-shrink-0">
         <div className="min-h-[40px]">
           {isLoading ? (
             <div className="flex items-center text-gray-600">

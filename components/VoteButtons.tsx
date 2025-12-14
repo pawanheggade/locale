@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from './Icons';
 import { cn } from '../lib/utils';
@@ -24,14 +25,14 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
           "rounded",
           userVote === 'up'
             ? 'text-red-600 bg-red-50'
-            : 'text-gray-400'
+            : 'text-gray-600'
         )}
         aria-pressed={userVote === 'up'}
         aria-label="Upvote"
       >
         <ArrowUpIcon className="w-5 h-5" />
       </Button>
-      <span className={cn('font-bold text-gray-700', scoreClasses)}>{score}</span>
+      <span className={cn('font-bold text-gray-600', scoreClasses)}>{score}</span>
       <Button
         onClick={(e) => { e.stopPropagation(); onVote('down'); }}
         variant="ghost"
@@ -40,7 +41,7 @@ export const VoteButtons: React.FC<VoteButtonsProps> = ({ score, userVote, onVot
           "rounded",
           userVote === 'down'
             ? 'text-red-600 bg-red-50'
-            : 'text-gray-400'
+            : 'text-gray-600'
         )}
         aria-pressed={userVote === 'down'}
         aria-label="Downvote"
