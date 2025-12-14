@@ -1,5 +1,4 @@
 
-
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -219,7 +218,8 @@ export type ModalState =
   | { type: 'feedback' }
   | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
   | { type: 'profileQR', data: Account }
-  | { type: 'viewPost', data: DisplayablePost };
+  | { type: 'viewPost', data: DisplayablePost }
+  | { type: 'editSocials' };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
 export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio';

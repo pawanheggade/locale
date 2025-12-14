@@ -1,10 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { PostCategory } from '../../types';
-import { Button, TabButton } from '../ui/Button';
+import { TabButton } from '../ui/Button';
 import { CategoryManager } from './CategoryManager';
 import { useSwipeToNavigateTabs } from '../../hooks/useSwipeToNavigateTabs';
-import { cn } from '../../lib/utils';
 
 interface CategoriesViewProps {
     categories: PostCategory[];

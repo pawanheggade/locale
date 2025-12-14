@@ -15,7 +15,8 @@ import {
     ChatBubbleEllipsisIcon,
     ChevronRightIcon,
     UserIcon,
-    CashIcon
+    CashIcon,
+    GlobeAltIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
@@ -148,6 +149,13 @@ export const StudioPage: React.FC = () => {
                     description="Update bio, contact info, and more." 
                     icon={<PencilIcon className="w-6 h-6" />} 
                     onClick={() => navigateTo('editProfile', { account: currentAccount })}
+                />
+
+                <StudioCard 
+                    title="Socials" 
+                    description="Manage your social media links." 
+                    icon={<GlobeAltIcon className="w-6 h-6" />} 
+                    onClick={() => openModal({ type: 'editSocials' })}
                 />
                 
                 <StudioCard 

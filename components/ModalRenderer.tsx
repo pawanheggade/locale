@@ -1,5 +1,4 @@
 
-
 import React, { useRef } from 'react';
 import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,6 +25,7 @@ import { FeedbackModal } from './FeedbackModal';
 import { SignInScreen } from './SignInScreen';
 import { ViewCatalogModal } from './ViewCatalogModal';
 import { ProfileQRModal } from './ProfileQRModal';
+import { EditSocialsModal } from './EditSocialsModal';
 import ModalShell from './ModalShell';
 import { Logo } from './Logo';
 import { PostCard } from './PostCard';
@@ -192,6 +192,8 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
           return <ViewCatalogModal catalog={activeModal.data.catalog} accountId={activeModal.data.accountId} onClose={closeModal} />;
       case 'profileQR':
           return <ProfileQRModal account={activeModal.data} onClose={closeModal} />;
+      case 'editSocials':
+          return <EditSocialsModal onClose={closeModal} />;
       case 'viewPost':
           return (
             <ModalShell

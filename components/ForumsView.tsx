@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -5,8 +6,7 @@ import { DisplayableForumPost } from '../types';
 import { timeSince } from '../utils/formatters';
 import { VoteButtons } from './VoteButtons';
 import { Button, TabButton } from './ui/Button';
-import { ChatBubbleEllipsisIcon, PencilIcon, PlusIcon } from './Icons';
-import { Avatar } from './Avatar';
+import { ChatBubbleEllipsisIcon, PlusIcon } from './Icons';
 import { CategoryBadge } from './Badges';
 import { EmptyState } from './EmptyState';
 import { useNavigation } from '../contexts/NavigationContext';

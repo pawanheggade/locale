@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, ModalState, PostType } from './types';
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from './types';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -424,7 +425,6 @@ export const App: React.FC = () => {
   return (
     <NavigationContext.Provider value={navigationContextValue}>
       <div className="h-screen flex flex-col">
-        {view === 'all' && <SEO title="Home" />}
         <Header
           onSearchSubmit={handleSearchSubmit}
           recentSearches={recentSearches}

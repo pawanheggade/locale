@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
-import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
-import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, YouTubeIcon, CheckIcon } from './Icons';
-import { validateAccountData, AccountValidationData, URL_REGEX } from '../utils/validation';
+import { Account, ContactOption } from '../types';
+import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, PhotoIcon, CheckIcon } from './Icons';
+import { validateAccountData, AccountValidationData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
 import { SellerOptionsForm, SellerOptionsState } from './SellerOptionsForm';
@@ -54,18 +54,12 @@ const initialState = {
         contactOptions: [] as ContactOption[],
     },
     referralCode: '',
-    socials: {
-        website: '',
-        instagram: '',
-        youtube: '',
-    } as Record<SocialPlatform, string>,
 };
 
 type FormState = typeof initialState;
 type Action = 
-    | { type: 'SET_FIELD'; field: keyof Omit<FormState, 'sellerOptions' | 'socials'>; value: any }
+    | { type: 'SET_FIELD'; field: keyof Omit<FormState, 'sellerOptions'>; value: any }
     | { type: 'SET_SELLER_OPTIONS'; payload: SellerOptionsState }
-    | { type: 'SET_SOCIAL'; platform: SocialPlatform; value: string }
     | { type: 'RESET'; payload: Partial<FormState> };
 
 const formReducer = (state: FormState, action: Action): FormState => {
@@ -74,8 +68,6 @@ const formReducer = (state: FormState, action: Action): FormState => {
             return { ...state, [action.field]: action.value };
         case 'SET_SELLER_OPTIONS':
             return { ...state, sellerOptions: action.payload };
-        case 'SET_SOCIAL':
-            return { ...state, socials: { ...state.socials, [action.platform]: action.value } };
         case 'RESET':
             return { ...state, ...action.payload };
         default:
@@ -104,11 +96,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     useEffect(() => {
         if (account) {
-            const socials = { ...initialState.socials };
-            account.socialLinks?.forEach(link => {
-                if (link.platform in socials) socials[link.platform] = link.url;
-            });
-
             const initialSellerOptions: SellerOptionsState = {
                 paymentMethods: account.paymentMethods || [],
                 deliveryOptions: account.deliveryOptions || [],
@@ -131,13 +118,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     appleMapsUrl: account.appleMapsUrl || '',
                     businessName: account.businessName || '',
                     sellerOptions: initialSellerOptions,
-                    socials,
                 }
             });
         }
     }, [account, isEditing, isSellerSignup]);
 
-    const handleFieldChange = (field: keyof Omit<FormState, 'sellerOptions' | 'socials'>, value: any) => {
+    const handleFieldChange = (field: keyof Omit<FormState, 'sellerOptions'>, value: any) => {
         dispatch({ type: 'SET_FIELD', field, value });
         if (errors[field as string]) {
             setErrors(prev => {
@@ -196,13 +182,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (isSeller && state.sellerOptions.deliveryOptions.length === 0) {
             validationErrors.deliveryOptions = 'As a seller, you must select at least one delivery option.';
         }
-
-        (Object.keys(state.socials) as SocialPlatform[]).forEach(platform => {
-            const url = state.socials[platform].trim();
-            if (url && !URL_REGEX.test(url)) {
-                validationErrors[`social-${platform}`] = 'Please enter a valid URL.';
-            }
-        });
         
         if (fieldToValidate) {
             setErrors(prev => ({ ...prev, [fieldToValidate]: validationErrors[fieldToValidate] }));
@@ -286,12 +265,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         if (!validate()) return;
         setErrors({});
 
-        const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram'];
-        const socialLinks: SocialLink[] = platformOrder
-            .filter(platform => state.socials[platform] && state.socials[platform].trim() !== '')
-            .map(platform => ({ platform, url: state.socials[platform].trim() }));
-
-        const { sellerOptions, socials, password, confirmPassword, referralCode, ...restOfState } = state;
+        const { sellerOptions, password, confirmPassword, referralCode, ...restOfState } = state;
 
         const submissionData: Partial<Account> = {
             ...restOfState,
@@ -302,7 +276,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             description: state.description.trim(),
             address: locationInput.location.trim(),
             coordinates: locationInput.coordinates,
-            socialLinks,
         };
 
         if (!isEditing) {
@@ -492,21 +465,6 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                                 <p className="mt-1 text-xs text-gray-600">This location helps calculate distance for others. It may be displayed publicly.</p>
                             </div>
                         )}
-
-                        <div className="pt-2">
-                            <span className="block text-sm font-medium text-gray-600 mb-2">Social Profiles</span>
-                            <div className="space-y-3">
-                                {[
-                                    { id: 'website', icon: GlobeAltIcon, placeholder: 'Website URL' },
-                                    { id: 'youtube', icon: YouTubeIcon, placeholder: 'YouTube URL' },
-                                    { id: 'instagram', icon: InstagramIcon, placeholder: 'Instagram URL' },
-                                ].map(social => (
-                                    <FormField key={social.id} id={`social-${social.id}`} label="" error={errors[`social-${social.id}`]}>
-                                        <InputWithIcon placeholder={social.placeholder} icon={<social.icon className="w-5 h-5 text-gray-600"/>} value={state.socials[social.id as SocialPlatform]} onChange={e => dispatch({ type: 'SET_SOCIAL', platform: social.id as SocialPlatform, value: e.target.value })} />
-                                    </FormField>
-                                ))}
-                            </div>
-                        </div>
 
                         {isSeller && (useSteps ? isSellerSignup && step === 2 : true) && (
                             <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
