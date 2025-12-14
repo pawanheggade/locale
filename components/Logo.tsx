@@ -36,7 +36,7 @@ export const Logo: React.FC<LogoProps> = ({ className, onClick }) => {
             className="absolute top-[75%] left-1/2 -translate-x-1/2 w-[0.6em] h-[0.6em] pointer-events-none"
         >
           <path d="M1.5 1.5L6 10.5L10.5 1.5H1.5Z" stroke="#111827" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M1 7H11" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M1 7H11" stroke="#ff3333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
       <span>cale</span>

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, Subscription } from '../types';
 import ModalShell from './ModalShell';
@@ -56,7 +55,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
   };
 
   const renderFooter = () => {
-    if (isMapPickerOpen || isCreating) return null;
+    if (isMapPickerOpen || isCreating || isUpgrading) return null;
 
     return (
       <>
@@ -94,6 +93,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({ mode, onClose, onCre
           formId="account-form"
           isSellerSignup={isSellerSignup || isUpgrading}
           onToggleMap={setIsMapPickerOpen}
+          isUpgrading={isUpgrading}
         />
         {!isMapPickerOpen && formError && (
           <div role="alert" className="mt-4 bg-red-50 border border-red-200 text-red-800 p-3 rounded-md flex items-center gap-2">

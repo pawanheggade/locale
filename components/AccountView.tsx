@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
@@ -410,7 +411,7 @@ export const AccountView: React.FC = () => {
             {/* Description, Location, and Actions */}
             <div className="space-y-6">
                 {account.description && (
-                    <p className="text-gray-700 sm:text-lg leading-relaxed whitespace-pre-wrap">{account.description}</p>
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{account.description}</p>
                 )}
                 
                 {account.address && (
@@ -418,12 +419,12 @@ export const AccountView: React.FC = () => {
                          {(account.googleMapsUrl || account.appleMapsUrl) && (
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Google Maps">
+                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Google Maps">
                                         <GoogleIcon className="w-4 h-4" />
                                     </a>
                                 )}
                                 {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Apple Maps">
+                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Apple Maps">
                                         <AppleIcon className="w-4 h-4" />
                                     </a>
                                 )}
@@ -440,7 +441,7 @@ export const AccountView: React.FC = () => {
                             }}
                             className={cn(
                                 "flex items-center gap-1.5 group min-w-0 transition-colors",
-                                account.coordinates ? "cursor-pointer text-[#123456] hover:text-[#0F2A4B] font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
+                                account.coordinates ? "cursor-pointer text-red-600 hover:text-red-700 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}
                         >
@@ -525,8 +526,8 @@ export const AccountView: React.FC = () => {
                                               setIsCategoryDropdownOpen(false);
                                           }}
                                           className={cn(
-                                              "w-full text-left px-4 py-2 text-sm whitespace-nowrap active:bg-gray-100 transition-colors",
-                                              activeTab === cat ? "text-[#123456] font-semibold bg-indigo-50" : "text-gray-700"
+                                              "w-full text-left px-4 py-2 text-sm whitespace-nowrap active:bg-gray-100 transition-colors hover:bg-red-600 hover:text-white",
+                                              activeTab === cat ? "text-white font-semibold bg-red-600" : "text-gray-700"
                                           )}
                                       >
                                           {cat}

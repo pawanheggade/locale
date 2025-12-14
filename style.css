@@ -262,7 +262,7 @@
         justify-content: center;
     }
     .marker-cluster-small {
-        background-color: rgba(254, 202, 202, 0.6); /* red-200 */
+        background-color: rgba(255, 204, 204, 0.6); /* red-200 replacement (#ffcccc) */
     }
     .marker-cluster-small div {
         background-color: rgba(239, 68, 68, 0.9); /* red-500 */
@@ -271,7 +271,7 @@
         height: 30px;
     }
     .marker-cluster-medium {
-        background-color: rgba(252, 165, 165, 0.6); /* red-300 */
+        background-color: rgba(255, 204, 204, 0.6); /* red-300 replacement (#ffcccc) */
     }
     .marker-cluster-medium div {
         background-color: rgba(220, 38, 38, 0.9); /* red-600 */
@@ -280,7 +280,7 @@
         height: 40px;
     }
     .marker-cluster-large {
-        background-color: rgba(248, 113, 113, 0.6); /* red-400 */
+        background-color: rgba(255, 204, 204, 0.6); /* red-400 replacement (#ffcccc) */
     }
     .marker-cluster-large div {
         background-color: rgba(185, 28, 28, 0.9); /* red-700 */

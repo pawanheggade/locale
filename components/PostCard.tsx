@@ -110,8 +110,8 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
      <div
         className={cn(
             "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
-            'text-red-400',
-            coordsToUse ? "cursor-pointer group active:scale-95 transition-transform origin-left" : ""
+            'text-red-600',
+            coordsToUse ? "cursor-pointer group" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -131,7 +131,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         title={coordsToUse ? "View on Map" : undefined}
      >
         <MapPinIcon className={cn("w-3.5 h-3.5 shrink-0")} />
-        <span className={cn("truncate text-xs", coordsToUse ? "group-hover:underline underline-offset-2" : "")}>
+        <span className={cn("truncate text-xs", coordsToUse ? "underline-offset-2" : "")}>
             {locationToDisplay}
         </span>
      </div>
@@ -156,7 +156,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       <Card
         ref={cardRef}
         className={cn(
-          'group cursor-pointer aspect-[4/5] active:scale-[0.98] transition-transform duration-100',
+          'group cursor-pointer aspect-[4/5]',
           enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
         )}
         style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
@@ -213,7 +213,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     <Card
       ref={cardRef}
       className={cn(
-        'group cursor-pointer active:scale-[0.99] transition-transform duration-100',
+        'group cursor-pointer',
         enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
       )}
       style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}

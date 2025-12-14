@@ -15,6 +15,7 @@ export interface AccountValidationData {
     messageNumber?: string;
     googleMapsUrl?: string;
     address?: string;
+    businessName?: string;
 }
 
 type FieldToValidate = keyof AccountValidationData;
@@ -38,7 +39,7 @@ export const validateAccountData = (
     isSeller: boolean = false
 ): Record<string, string | undefined> => {
     const errors: Record<string, string | undefined> = {};
-    const { name, username, email, password, confirmPassword, mobile, messageNumber, googleMapsUrl, address } = formData;
+    const { name, username, email, password, confirmPassword, mobile, messageNumber, googleMapsUrl, address, businessName } = formData;
 
     const validators: Record<FieldToValidate, () => string | undefined> = {
         name: () => {
@@ -94,6 +95,9 @@ export const validateAccountData = (
             }
             return undefined;
         },
+        businessName: () => {
+            return undefined;
+        }
     };
 
     if (fieldToValidate) {

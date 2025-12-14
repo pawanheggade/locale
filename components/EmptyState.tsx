@@ -24,7 +24,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </div>
       <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
       {description && (
-        <p className="text-gray-600 mt-2 max-w-md text-sm sm:text-base">{description}</p>
+        <p className="text-gray-600 mt-2 max-w-md text-sm">{description}</p>
       )}
       {action && (
         <div className="mt-6">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption, SocialLink, SocialPlatform } from '../types';
 import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, SpinnerIcon, PhotoIcon, GlobeAltIcon, InstagramIcon, YouTubeIcon, CheckIcon } from './Icons';
@@ -28,6 +29,7 @@ interface AccountFormProps {
     isSubmitting?: boolean;
     isSellerSignup?: boolean;
     onToggleMap?: (isOpen: boolean) => void;
+    isUpgrading?: boolean;
 }
 
 // Initial state for the reducer
@@ -81,7 +83,7 @@ const formReducer = (state: FormState, action: Action): FormState => {
     }
 };
 
-export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, allAccounts, onSubmit, formId, isSubmitting, isSellerSignup = false, onToggleMap }) => {
+export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, allAccounts, onSubmit, formId, isSubmitting, isSellerSignup = false, onToggleMap, isUpgrading = false }) => {
     const { currentAccount } = useAuth();
     const [state, dispatch] = useReducer(formReducer, initialState);
     const [step, setStep] = useState(1);
@@ -96,7 +98,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
+    
     const isCreating = !isEditing;
+    const useSteps = isCreating || isUpgrading;
 
     useEffect(() => {
         if (account) {
@@ -170,7 +174,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
             mobile: state.mobile, 
             messageNumber: state.messageNumber, 
             googleMapsUrl: state.googleMapsUrl, 
-            address: locationInput.location 
+            address: locationInput.location,
+            businessName: state.businessName,
         };
         
         const validationErrors = validateAccountData(
@@ -244,14 +249,14 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     const handleNext = () => {
         setErrors({});
-        const fieldsToValidate: (keyof AccountValidationData | 'contactOptions' | 'paymentMethods' | 'deliveryOptions')[] = ['name', 'username', 'email', 'password', 'confirmPassword'];
+        const fieldsToValidate: (keyof AccountValidationData | 'contactOptions' | 'paymentMethods' | 'deliveryOptions')[] = ['name', 'username', 'email', 'password', 'confirmPassword', 'mobile', 'messageNumber'];
         if (isSellerSignup) {
-            fieldsToValidate.push('googleMapsUrl', 'address', 'contactOptions', 'paymentMethods', 'deliveryOptions');
+            fieldsToValidate.push('googleMapsUrl', 'address', 'contactOptions', 'paymentMethods', 'deliveryOptions', 'businessName');
         }
 
         if (!validate()) {
             // Re-validate to get all errors, then filter for step 1
-            const allErrors = validateAccountData({ ...state, address: locationInput.location }, allAccounts, false, undefined, undefined, isSellerSignup);
+            const allErrors = validateAccountData({ ...state, address: locationInput.location }, allAccounts, isEditing, account?.id, undefined, isSellerSignup);
             if (isSellerSignup) {
                 if (state.sellerOptions.contactOptions.length === 0) allErrors.contactOptions = 'At least one contact method is required.';
                 if (state.sellerOptions.paymentMethods.length === 0) allErrors.paymentMethods = 'At least one payment method is required.';
@@ -324,11 +329,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
 
     return (
         <form id={formId} onSubmit={handleSubmit} className="space-y-4">
-            {(step === 1 || !isCreating) && (
+            {(step === 1 || !useSteps) && (
                 <div className="space-y-4">
-                     {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">{isSellerSignup ? 'Step 1: Required Information' : 'Step 1: Required Information'}</h3>}
+                     {useSteps && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 1: Required Information</h3>}
 
-                    {!isCreating && (
+                    {!useSteps && (
                         <div>
                              <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
                             <div>
@@ -357,7 +362,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             </div>
                         </div>
                     )}
-                    <div className="pt-4 mt-4 border-t border-gray-200">
+                    <div className={cn("pt-4 mt-4", !useSteps && "border-t border-gray-200")}>
                         <FormField id="account-name" label="Name" error={errors.name}>
                             <Input type="text" value={state.name} onChange={(e) => handleFieldChange('name', e.target.value)} onBlur={() => validate('name')} autoFocus />
                         </FormField>
@@ -374,6 +379,16 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         <InputWithIcon type="email" value={state.email} onChange={(e) => handleFieldChange('email', e.target.value)} onBlur={() => validate('email')} icon={<EnvelopeIcon className="w-5 h-5 text-gray-400" />} />
                     </FormField>
 
+                    <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
+                        <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
+                    </FormField>
+                    <div>
+                        <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
+                            <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
+                        </FormField>
+                        <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
+                    </div>
+
                     {!isEditing && (
                         <>
                             <div>
@@ -385,29 +400,18 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <FormField id="account-confirm-password" label="Confirm Password" error={errors.confirmPassword}>
                                 <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<LockClosedIcon className="w-5 h-5 text-gray-400" />} />
                             </FormField>
-                            <div className="pt-4 border-t">
-                                <FormField id="referral-code" label="Referral Code (Optional)">
-                                    <Input type="text" value={state.referralCode} onChange={(e) => handleFieldChange('referralCode', e.target.value)} placeholder="e.g. PRIYA7582" />
-                                </FormField>
-                            </div>
                         </>
                     )}
 
-                    {isSeller && (isCreating ? isSellerSignup && step === 1 : true) && (
+                    {isSeller && (useSteps ? isSellerSignup && step === 1 : true) && (
                          <div className="animate-fade-in-down space-y-4 pt-4 mt-4 border-t">
-                            {isCreating && isSellerSignup && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
-                            {!isCreating && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
+                            {useSteps && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
+                            {!useSteps && <h3 className="text-base font-medium text-gray-800">Business Information</h3>}
                              
-                             {!isCreating && (
-                                <>
-                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
-                                     <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
-                                 </FormField>
-                                 <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
-                                     <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
-                                 </FormField>
-                                </>
-                             )}
+                             <FormField id="account-business-name" label="Business Name" description="If different from your personal name." error={errors.businessName}>
+                                <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
+                             </FormField>
+
                               <div>
                                 <FormField id="account-google-maps" label="Google Maps Location" error={errors.googleMapsUrl}>
                                     <Input type="url" value={state.googleMapsUrl} onChange={(e) => handleFieldChange('googleMapsUrl', e.target.value)} onBlur={() => validate('googleMapsUrl')} placeholder="https://maps.app.goo.gl/..." />
@@ -437,11 +441,11 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                 </div>
             )}
             
-            {(!isCreating || step === 2) && (
-                <div className={cn("space-y-4", isCreating && "animate-fade-in-down")}>
-                    {isCreating && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 2: Optional Information</h3>}
+            {(!useSteps || step === 2) && (
+                <div className={cn("space-y-4", useSteps && "animate-fade-in-down")}>
+                    {useSteps && <h3 className="text-base font-medium text-gray-800 border-b pb-2">Step 2: Profile Details</h3>}
 
-                    {isCreating && (
+                    {useSteps && (
                          <div className="space-y-4">
                             <h3 className="text-base font-medium text-gray-800">Profile Appearance</h3>
                             <div>
@@ -466,13 +470,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     )}
                     
                     <div className="pt-4 mt-4 border-t border-gray-200 space-y-4">
-                        {!isCreating && <h3 className="text-base font-medium text-gray-800">Additional Info</h3>}
+                        {!useSteps && <h3 className="text-base font-medium text-gray-800">Additional Info</h3>}
                         
-                        {isCreating && isSellerSignup && (
+                        {isSeller && (
                             <>
-                                <FormField id="account-business-name" label="Business Name (Optional)" description="If different from your personal name.">
-                                     <Input type="text" value={state.businessName} onChange={(e) => handleFieldChange('businessName', e.target.value)} placeholder="e.g., The Vintage Corner" />
-                                 </FormField>
                                  <FormField id="account-tax-info" label="Tax Info (Optional)" description="Provide your 15-digit GSTIN.">
                                      <Input type="text" value={state.taxInfo} onChange={(e) => handleFieldChange('taxInfo', e.target.value)} placeholder="e.g., GSTIN" maxLength={15} />
                                  </FormField>
@@ -482,17 +483,8 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         <FormField id="account-description" label="Bio" description={`${state.description.length} / ${DESCRIPTION_MAX_LENGTH}`}>
                             <Textarea rows={3} value={state.description} onChange={(e) => handleFieldChange('description', e.target.value)} maxLength={DESCRIPTION_MAX_LENGTH} placeholder="Tell others a little about yourself or what you sell." />
                         </FormField>
-                        <FormField id="account-mobile" label="Mobile Number" error={errors.mobile}>
-                            <InputWithIcon type="tel" value={state.mobile} onChange={(e) => handlePhoneChange(e, 'mobile')} onBlur={() => validate('mobile')} icon={<PhoneIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
-                        </FormField>
-                        <div>
-                            <FormField id="account-message" label="Message Number" error={errors.messageNumber}>
-                                <InputWithIcon type="tel" value={state.messageNumber} onChange={(e) => handlePhoneChange(e, 'messageNumber')} onBlur={() => validate('messageNumber')} icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-400" />} placeholder="e.g. 9876543210" maxLength={10} inputMode="numeric" />
-                            </FormField>
-                            <p className="mt-1 text-xs text-gray-600">Number for messaging apps like WhatsApp.</p>
-                        </div>
 
-                        {isCreating && !isSellerSignup && (
+                        {useSteps && !isSellerSignup && (
                            <div>
                                 <FormField id="account-address" label="Location (Optional)" error={errors.address || locationInput.error}>
                                     <LocationInput value={locationInput.location} onValueChange={locationInput.setLocation} onSuggestionSelect={locationInput.selectSuggestion} onVerify={locationInput.verify} onOpenMapPicker={() => handleMapToggle(true)} suggestions={locationInput.suggestions} status={locationInput.status} placeholder="e.g., 123 Main St, Mumbai" />
@@ -516,16 +508,24 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             </div>
                         </div>
 
-                        {isSeller && (isCreating ? isSellerSignup && step === 2 : true) && (
+                        {isSeller && (useSteps ? isSellerSignup && step === 2 : true) && (
                             <FormField id="account-apple-maps" label="Apple Maps Location (Optional)">
                                 <Input type="url" value={state.appleMapsUrl} onChange={(e) => handleFieldChange('appleMapsUrl', e.target.value)} placeholder="https://maps.apple.com/?q=..." />
                             </FormField>
+                        )}
+
+                        {!isEditing && (
+                            <div className="pt-4 border-t">
+                                <FormField id="referral-code" label="Referral Code (Optional)">
+                                    <Input type="text" value={state.referralCode} onChange={(e) => handleFieldChange('referralCode', e.target.value)} placeholder="e.g. PRIYA7582" />
+                                </FormField>
+                            </div>
                         )}
                     </div>
                 </div>
             )}
             
-            {isCreating && (
+            {useSteps && (
                 <div className="mt-6 pt-4 border-t flex justify-end gap-2">
                     {step === 1 && (
                         <Button type="button" onClick={handleNext} variant="pill-red" className="w-full">
@@ -535,7 +535,9 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                     {step === 2 && (
                         <>
                             <Button type="button" variant="overlay-dark" onClick={() => setStep(1)} className="mr-auto">Back</Button>
-                            <Button type="submit" isLoading={isSubmitting} variant="pill-red" className="w-36">Create Account</Button>
+                            <Button type="submit" isLoading={isSubmitting} variant="pill-red" className="w-40">
+                                {isUpgrading ? 'Submit for Review' : 'Create Account'}
+                            </Button>
                         </>
                     )}
                 </div>
