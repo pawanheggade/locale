@@ -4,8 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -50,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
-  const { navigateTo } = useNavigation();
+  const { navigateTo, handleBack } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -173,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'popularity-desc', label: 'Trending' },
+    { value: 'popularity-desc', label: 'Popular' },
     { value: 'date-desc', label: 'Recent' },
   ];
 
@@ -251,6 +250,8 @@ export const Header: React.FC<HeaderProps> = ({
         )}
     </div>
   );
+
+  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
 
   return (
     <>
@@ -354,17 +355,6 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Right Section: Tools & Account */}
               <div className="flex items-center gap-2 flex-1 justify-end">
-                  <div className="sm:hidden">
-                      {view === 'all' && mainView === 'map' ? (
-                          <Button onClick={() => onMainViewChange('grid')} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Grid View" title="Grid View">
-                              <PostCardIcon className="w-6 h-6" />
-                          </Button>
-                      ) : (
-                          <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="overlay-dark" size="icon" className="!rounded-xl" aria-label="Map View" title="Map View">
-                              <MapPinIcon className="w-6 h-6" />
-                          </Button>
-                      )}
-                  </div>
                   
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
@@ -374,16 +364,19 @@ export const Header: React.FC<HeaderProps> = ({
                            <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
                                <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
                            </Button>
-                           <Button onClick={() => { if (view !== 'all') { onClearFilters(); navigateTo('all'); } onMainViewChange('map'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", mainView === 'map' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Map View" title="Map View" aria-pressed={mainView === 'map'}>
-                               <MapPinIcon className="w-5 h-5" isFilled={mainView === 'map'} />
-                           </Button>
                       </div>
                   )}
 
                   {currentAccount && (
                       <div className="relative">
                           <Button 
-                              onClick={() => navigateTo('bag')}
+                              onClick={() => {
+                                  if (view === 'bag') {
+                                      handleBack();
+                                  } else {
+                                      navigateTo('bag');
+                                  }
+                              }}
                               variant="ghost"
                               size="icon"
                               className={cn(
@@ -407,11 +400,29 @@ export const Header: React.FC<HeaderProps> = ({
 
                   <div className="relative">
                        {currentAccount ? (
-                          <AccountMenu
-                              activityCount={totalActivityCount}
-                              currentView={view}
-                              handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
-                          />
+                          <Button
+                              onClick={() => {
+                                  if (isProfileActive) {
+                                      handleBack();
+                                  } else {
+                                      navigateTo('account', { account: currentAccount });
+                                  }
+                              }}
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "!rounded-xl text-gray-600",
+                                  isProfileActive && "text-red-600 bg-red-50"
+                              )}
+                              aria-label="My Profile"
+                          >
+                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
+                              {totalActivityCount > 0 && (
+                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
+                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
+                                  </span>
+                              )}
+                          </Button>
                       ) : (
                           <div className="flex items-center gap-2">
                               <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
