@@ -287,7 +287,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}>
           
           {isSearchOpen ? (
-            <div className="flex-1 flex items-center gap-2">
+            <div className="flex-1 flex items-center gap-2 animate-search-expand">
               <Button
                   type="button"
                   onClick={handleExitSearch}

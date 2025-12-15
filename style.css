@@ -158,6 +158,23 @@
       animation: slide-in-from-left 0.25s var(--ease-out-quad) forwards;
     }
 
+    /* Search expand animation */
+    @keyframes search-expand {
+      0% {
+        opacity: 0;
+        transform: scaleX(0.95) translateX(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: scaleX(1) translateX(0);
+      }
+    }
+    .animate-search-expand {
+      transform-origin: left center;
+      animation: search-expand 0.3s var(--ease-out-quart) forwards;
+      will-change: transform, opacity;
+    }
+
 
     /* User Location Marker */
     .user-location-marker {
