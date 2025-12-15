@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -83,7 +84,7 @@ export const ForumsView: React.FC = () => {
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
     
-    const [sortOption, setSortOption] = useState<'newest' | 'top' | 'oldest'>('newest');
+    const [sortOption, setSortOption] = useState<'latest' | 'trending' | 'oldest'>('latest');
 
     const swipeRef = useRef<HTMLDivElement>(null);
     const tabs = useMemo(() => ['All', ...categories], [categories]);
@@ -118,9 +119,9 @@ export const ForumsView: React.FC = () => {
             if (!a.isPinned && b.isPinned) return 1;
             
             switch (sortOption) {
-                case 'top': return b.score - a.score;
+                case 'trending': return b.score - a.score;
                 case 'oldest': return a.timestamp - b.timestamp;
-                case 'newest': 
+                case 'latest': 
                 default: return b.timestamp - a.timestamp;
             }
         });
@@ -174,8 +175,8 @@ export const ForumsView: React.FC = () => {
                     className="w-28 sm:w-32"
                     variant="overlay"
                 >
-                    <option value="newest">Latest</option>
-                    <option value="top">Trending</option>
+                    <option value="latest">Latest</option>
+                    <option value="trending">Trending</option>
                     <option value="oldest">Oldest</option>
                 </Select>
             </div>

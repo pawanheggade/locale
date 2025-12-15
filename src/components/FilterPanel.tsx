@@ -81,13 +81,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       dispatchFilterAction({ type: 'SET_FILTER_DISTANCE', payload: DISTANCE_STEPS[stepIndex] });
   };
 
-  // FIX: Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
-    { value: 'relevance-desc', label: 'Recommended' },
+    { value: 'relevance-desc', label: 'Relevant' },
     { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Latest' },
   ], []);
 
+  // FIX: Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
   const granularSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
     { value: 'price-asc', label: 'Price: Low to High' },
     { value: 'price-desc', label: 'Price: High to Low' },

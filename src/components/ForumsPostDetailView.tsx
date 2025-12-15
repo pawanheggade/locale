@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,7 +31,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editedPostContent, setEditedPostContent] = useState('');
-    const [commentSort, setCommentSort] = useState<'top' | 'newest' | 'oldest'>('top');
+    const [commentSort, setCommentSort] = useState<'trending' | 'latest' | 'oldest'>('trending');
     
     const post = getPostWithComments(postId!);
 
@@ -52,9 +53,9 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
         
         return comments.sort((a, b) => {
              switch (commentSort) {
-                case 'newest': return b.timestamp - a.timestamp;
+                case 'latest': return b.timestamp - a.timestamp;
                 case 'oldest': return a.timestamp - b.timestamp;
-                case 'top': return b.score - a.score;
+                case 'trending': return b.score - a.score;
                 default: return 0;
             }
         });
@@ -213,8 +214,8 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                         onChange={(e) => setCommentSort(e.target.value as any)}
                         className="w-32 h-9 text-sm"
                     >
-                        <option value="top">Trending</option>
-                        <option value="newest">Latest</option>
+                        <option value="trending">Trending</option>
+                        <option value="latest">Latest</option>
                         <option value="oldest">Oldest</option>
                     </Select>
                 </div>

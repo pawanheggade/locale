@@ -4,10 +4,9 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useClickOutside } from '../hooks/useClickOutside';
@@ -47,7 +46,6 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
   const { currentAccount, bag } = useAuth();
-  const { totalActivityCount } = useActivity();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
   const { navigateTo, handleBack } = useNavigation();
 
@@ -76,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
   useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
   useEffect(() => {
-    if (isSearchOpen) {
+    if (isSearchOpen && !isTabletOrDesktop) {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           setIsSearchOpen(false);
@@ -88,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [isSearchOpen]);
+  }, [isSearchOpen, isTabletOrDesktop]);
   
   const handleSortChange = (sortOption: string) => {
     dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });
@@ -125,60 +123,86 @@ export const Header: React.FC<HeaderProps> = ({
       setIsSearchOpen(false);
   };
 
-  const navItems = [
-    { 
-      id: 'markets',
-      label: 'Markets', 
-      icon: <LogoIcon className="w-5 h-5" />,
-      isActive: view === 'all' && mainView === 'grid',
-      onClick: () => {
-        if (view !== 'all') navigateTo('all');
-        onMainViewChange('grid');
-        setIsNavDropdownOpen(false);
-      }
-    },
-    { 
+  const navItems = useMemo(() => {
+    const baseItems: {
+        id: AppView | 'maps';
+        label: string;
+        icon: React.ReactNode;
+        isActive: boolean;
+        onClick: () => void;
+    }[] = [
+      {
+        id: 'all',
+        label: 'Markets',
+        icon: <LogoIcon className="w-5 h-5" />,
+        isActive: view === 'all' && mainView === 'grid',
+        onClick: () => {
+          if (view !== 'all') navigateTo('all');
+          onMainViewChange('grid');
+          setIsNavDropdownOpen(false);
+        }
+      },
+      {
         id: 'maps',
-        label: 'Maps', 
+        label: 'Maps',
         icon: <MapPinIcon className="w-5 h-5" />,
         isActive: view === 'all' && mainView === 'map',
         onClick: () => {
-            if (view !== 'all') navigateTo('all');
-            onMainViewChange('map');
-            setIsNavDropdownOpen(false);
+          if (view !== 'all') navigateTo('all');
+          onMainViewChange('map');
+          setIsNavDropdownOpen(false);
         }
-    },
-    { 
-      id: 'forums',
-      label: 'Forums', 
-      icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
-      isActive: view === 'forums',
-      onClick: () => {
+      },
+      {
+        id: 'forums',
+        label: 'Forums',
+        icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
+        isActive: view === 'forums',
+        onClick: () => {
           navigateTo('forums');
           setIsNavDropdownOpen(false);
-      }
-    },
-    { 
-      id: 'likes',
-      label: 'Likes', 
-      icon: <HeartIcon className="w-5 h-5" />,
-      isActive: view === 'likes',
-      onClick: () => {
-          navigateTo('likes');
-          setIsNavDropdownOpen(false);
-      }
-    },
-    { 
-      id: 'activity',
-      label: 'Activity', 
-      icon: <BellIcon className="w-5 h-5" />,
-      isActive: view === 'activity',
-      onClick: () => {
-          navigateTo('activity');
-          setIsNavDropdownOpen(false);
-      }
-    },
-  ];
+        }
+      },
+    ];
+
+    if (currentAccount) {
+        const loggedInItems = [
+            {
+              id: 'likes' as const,
+              label: 'Likes', 
+              icon: <HeartIcon className="w-5 h-5" />,
+              isActive: view === 'likes',
+              onClick: () => {
+                  navigateTo('likes');
+                  setIsNavDropdownOpen(false);
+              }
+            },
+            {
+              id: 'activity' as const,
+              label: 'Activity', 
+              icon: <BellIcon className="w-5 h-5" />,
+              isActive: view === 'activity',
+              onClick: () => {
+                  navigateTo('activity');
+                  setIsNavDropdownOpen(false);
+              }
+            },
+            {
+              id: 'studio' as const,
+              label: 'Studio',
+              icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+              isActive: view === 'studio',
+              onClick: () => {
+                navigateTo('studio');
+                setIsNavDropdownOpen(false);
+              }
+            }
+        ];
+        return [...baseItems, ...loggedInItems];
+    }
+    
+    return baseItems;
+  }, [view, mainView, currentAccount, navigateTo, onMainViewChange]);
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
@@ -229,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-fade-in-down">
                 <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
@@ -261,8 +285,6 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
-  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
-
   return (
     <>
       <header className={cn(
@@ -274,8 +296,113 @@ export const Header: React.FC<HeaderProps> = ({
             'px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-all duration-300',
             isScrolled ? 'h-14' : 'h-16'
         )}>
-          
-          {isSearchOpen ? (
+          {isTabletOrDesktop ? (
+            // --- DESKTOP LAYOUT ---
+            <>
+              {/* Left Section: Logo, Nav, Back */}
+              <div className="flex items-center gap-4 shrink-0">
+                  {onBack && (
+                      <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
+                          <ChevronLeftIcon className="w-6 h-6" />
+                      </Button>
+                  )}
+                  <Logo onClick={handleLogoClick} />
+                  <div className="relative" ref={navDropdownRef}>
+                      <Button
+                          onClick={() => setIsNavDropdownOpen(prev => !prev)}
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-gray-400 rounded-full w-6 h-6"
+                          aria-label="Open navigation menu"
+                      >
+                          <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                      </Button>
+                      {isNavDropdownOpen && (
+                          <div className="absolute top-full left-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                              <ul className="flex flex-col gap-0.5">
+                                  {navItems.map(item => (
+                                      <li key={item.id} className="list-none">
+                                          <Button
+                                              onClick={item.onClick}
+                                              variant="ghost"
+                                              className={cn(
+                                                  "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                                  item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
+                                              )}
+                                          >
+                                              <div className="flex items-center gap-3">
+                                                  {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                                  {item.label}
+                                              </div>
+                                          </Button>
+                                      </li>
+                                  ))}
+                              </ul>
+                          </div>
+                      )}
+                  </div>
+              </div>
+
+              {/* Center Section: Search Bar */}
+              <div className="flex-1 flex justify-center min-w-0">
+                  <SearchBar
+                      searchQuery={filterState.searchQuery}
+                      onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                      onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
+                      placeholder={placeholder}
+                      wrapperClassName="w-full max-w-lg"
+                      suggestions={[]}
+                      recentSearches={recentSearches}
+                      onRemoveRecentSearch={onRemoveRecentSearch}
+                      onClearRecentSearches={onClearRecentSearches}
+                      onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                      isAiSearching={filterState.isAiSearching}
+                      onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
+                      aiButton={renderAiButton()}
+                      leftAccessory={renderFilterButton()}
+                      hideSearchIcon={true}
+                  />
+              </div>
+
+              {/* Right Section: Toggles, Bag, Sign In */}
+              <div className="flex items-center gap-2 shrink-0 justify-end">
+                  {showViewSelector && (
+                      <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
+                          <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
+                              <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
+                          </Button>
+                          <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
+                              <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
+                          </Button>
+                      </div>
+                  )}
+                  {currentAccount && (
+                      <div className="relative">
+                          <Button 
+                              onClick={() => { view === 'bag' ? handleBack() : navigateTo('bag'); }}
+                              variant="ghost"
+                              size="icon"
+                              className={cn("!rounded-xl text-gray-600", view === 'bag' && "text-red-600 bg-red-50")}
+                              aria-label="Shopping Bag"
+                          >
+                              <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                              {bagCount > 0 && (
+                                  <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
+                                      {bagCount}
+                                  </span>
+                              )}
+                          </Button>
+                      </div>
+                  )}
+                  {!currentAccount && (
+                      <div className="flex items-center gap-2">
+                          <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                      </div>
+                  )}
+              </div>
+            </>
+          ) : isSearchOpen ? (
+            // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
               <Button
                   type="button"
@@ -307,9 +434,9 @@ export const Header: React.FC<HeaderProps> = ({
               {renderFilterButton()}
             </div>
           ) : (
+            // --- MOBILE DEFAULT VIEW ---
             <>
-              {/* --- DEFAULT HEADER VIEW (Mobile & Desktop Collapsed) --- */}
-              {/* Left Section: Back, Search, Filter */}
+              {/* Left Section: Back, Search */}
               <div className="flex items-center gap-2 sm:gap-4 flex-1">
                   {onBack && (
                     <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
@@ -319,7 +446,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
                      <SearchIcon className="w-6 h-6" />
                   </Button>
-                  {renderFilterButton()}
               </div>
 
               {/* Center Section: Logo & Nav */}
@@ -365,80 +491,29 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Right Section: Tools & Account */}
               <div className="flex items-center gap-2 flex-1 justify-end">
-                  
-                  {showViewSelector && (
-                      <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
-                               <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
-                           </Button>
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
-                               <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
-                           </Button>
-                      </div>
-                  )}
-
                   {currentAccount && (
                       <div className="relative">
                           <Button 
-                              onClick={() => {
-                                  if (view === 'bag') {
-                                      handleBack();
-                                  } else {
-                                      navigateTo('bag');
-                                  }
-                              }}
+                              onClick={() => { view === 'bag' ? handleBack() : navigateTo('bag'); }}
                               variant="ghost"
                               size="icon"
-                              className={cn(
-                                  "!rounded-xl text-gray-600",
-                                  view === 'bag' && "text-red-600 bg-red-50"
-                              )}
+                              className={cn("!rounded-xl text-gray-600", view === 'bag' && "text-red-600 bg-red-50")}
                               aria-label="Shopping Bag"
                           >
                               <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
                               {bagCount > 0 && (
-                                  <span className={cn(
-                                      "absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white",
-                                      animateBagBadge ? "animate-badge-pop-in" : ""
-                                  )}>
+                                  <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
                                       {bagCount}
                                   </span>
                               )}
                           </Button>
                       </div>
                   )}
-
-                  <div className="relative">
-                       {currentAccount ? (
-                          <Button
-                              onClick={() => {
-                                  if (isProfileActive) {
-                                      handleBack();
-                                  } else {
-                                      navigateTo('account', { account: currentAccount });
-                                  }
-                              }}
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "!rounded-xl text-gray-600",
-                                  isProfileActive && "text-red-600 bg-red-50"
-                              )}
-                              aria-label="My Profile"
-                          >
-                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
-                              {totalActivityCount > 0 && (
-                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
-                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
-                                  </span>
-                              )}
-                          </Button>
-                      ) : (
-                          <div className="flex items-center gap-2">
-                              <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
-                          </div>
-                      )}
-                  </div>
+                  {!currentAccount && (
+                      <div className="flex items-center gap-2">
+                          <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                      </div>
+                  )}
               </div>
             </>
           )}
