@@ -363,7 +363,10 @@ export const Header: React.FC<HeaderProps> = ({
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { 
+                                                  isFilled: item.id === 'studio' ? false : item.isActive, 
+                                                  className: "w-5 h-5" 
+                                              })}
                                               {item.label}
                                           </div>
                                           {item.badgeCount > 0 && (
