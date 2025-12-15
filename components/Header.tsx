@@ -169,16 +169,6 @@ export const Header: React.FC<HeaderProps> = ({
       }
     },
     { 
-      id: 'studio',
-      label: 'Studio', 
-      icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-      isActive: view === 'studio',
-      onClick: () => {
-          navigateTo('studio');
-          setIsNavDropdownOpen(false);
-      }
-    },
-    { 
       id: 'activity',
       label: 'Activity', 
       icon: <BellIcon className="w-5 h-5" />,
@@ -188,6 +178,16 @@ export const Header: React.FC<HeaderProps> = ({
           setIsNavDropdownOpen(false);
       },
       badgeCount: totalActivityCount,
+    },
+    { 
+      id: 'studio',
+      label: 'Studio', 
+      icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+      isActive: view === 'studio',
+      onClick: () => {
+          navigateTo('studio');
+          setIsNavDropdownOpen(false);
+      }
     },
   ];
 
@@ -271,6 +271,8 @@ export const Header: React.FC<HeaderProps> = ({
         )}
     </div>
   );
+
+  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
 
   return (
     <>
