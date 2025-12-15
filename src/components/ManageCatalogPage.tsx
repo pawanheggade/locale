@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, DragEvent } from 'react';
 import { Account, CatalogItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';

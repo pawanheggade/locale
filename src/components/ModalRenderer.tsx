@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,9 +25,11 @@ import { FeedbackModal } from './FeedbackModal';
 import { SignInScreen } from './SignInScreen';
 import { ViewCatalogModal } from './ViewCatalogModal';
 import { ProfileQRModal } from './ProfileQRModal';
+import { EditSocialsModal } from './EditSocialsModal';
 import ModalShell from './ModalShell';
 import { Logo } from './Logo';
 import { PostCard } from './PostCard';
+import { SEO } from './SEO';
 
 interface ModalRendererProps {
     activeModal: ModalState | null;
@@ -67,8 +70,8 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     };
 
     const handleSaveSearch = (name: string) => {
-        const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags } = filterState;
-        const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags };
+        const { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags, filterOnSale } = filterState;
+        const filtersToSave: SavedSearchFilters = { searchQuery, filterType, filterCategory, sortOption, minPrice, maxPrice, filterTags, filterOnSale };
         addSavedSearch({ id: `saved-${Date.now()}`, name, filters: filtersToSave });
     };
 
@@ -189,6 +192,8 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
           return <ViewCatalogModal catalog={activeModal.data.catalog} accountId={activeModal.data.accountId} onClose={closeModal} />;
       case 'profileQR':
           return <ProfileQRModal account={activeModal.data} onClose={closeModal} />;
+      case 'editSocials':
+          return <EditSocialsModal onClose={closeModal} />;
       case 'viewPost':
           return (
             <ModalShell
@@ -198,6 +203,12 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
                 panelClassName="w-full max-w-md bg-transparent border-0 shadow-none"
                 titleId="view-post-title"
             >
+                <SEO 
+                    title={activeModal.data.title}
+                    description={activeModal.data.description.slice(0, 160)}
+                    image={activeModal.data.media?.[0]?.url}
+                    type="article"
+                />
                 <PostCard
                     post={activeModal.data}
                     currentAccount={currentAccount}
