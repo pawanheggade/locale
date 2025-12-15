@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from './types';
 import { Header } from './components/Header';
@@ -115,20 +116,23 @@ export const App: React.FC = () => {
 
   const navigateTo = useCallback((
       newView: AppView,
-      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView } = {}
+      options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, mainView?: 'grid' | 'map' } = {}
   ) => {
       if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
           openModal({ type: 'login' });
           return;
       }
+      
+      const targetMainView = options.mainView || mainView;
 
       const isSameView = view === newView;
+      const isSameMainView = mainView === targetMainView;
       const isSamePost = viewingPostId === (options.postId || null);
       const isSameAccount = viewingAccount?.id === (options.account?.id || null);
       const isSameForumPost = viewingForumPostId === (options.forumPostId || null);
       const isSamePageKey = editingAdminPageKey === (options.pageKey || null);
 
-      if (isSameView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey) return;
+      if (isSameView && isSameMainView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey) return;
 
       if (newView === 'createPost' && currentAccount?.subscription.tier === 'Personal') {
           navigateTo('subscription');
@@ -167,13 +171,14 @@ export const App: React.FC = () => {
       pushHistoryState();
 
       setView(newView);
+      setMainView(targetMainView);
       setViewingPostId(options.postId || null);
       setViewingAccount(options.account || null);
       setViewingForumPostId(options.forumPostId || null);
       setEditingAdminPageKey(options.pageKey || null);
       
       if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-  }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState, openModal]);
+  }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState, openModal]);
 
   const navigateToAccount = useCallback((accountId: string) => {
     const account = accountsById.get(accountId);
@@ -242,13 +247,9 @@ export const App: React.FC = () => {
 
   const handleGoHome = useCallback(() => {
     onClearFilters();
-    if (mainView === 'map') {
-      setMainView('grid');
-    }
-  
     setHistory([]);
-
     setView('all');
+    setMainView('grid');
     setViewingPostId(null);
     setViewingAccount(null);
     setViewingForumPostId(null);
@@ -259,18 +260,13 @@ export const App: React.FC = () => {
     }
     
     handleRefresh();
-  }, [onClearFilters, mainView, handleRefresh]);
+  }, [onClearFilters, handleRefresh]);
 
   useEffect(() => {
     if (!currentAccount && PROTECTED_VIEWS.includes(view)) {
       handleGoHome();
     }
   }, [currentAccount, view, handleGoHome]);
-
-  const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
-      pushHistoryState();
-      setMainView(newMainView);
-  }, [pushHistoryState]);
 
   const showOnMap = useCallback((target: string | Account) => {
     const isPostId = typeof target === 'string';
@@ -291,21 +287,10 @@ export const App: React.FC = () => {
       setLocationToFocus({ coords: account.coordinates, name: account.name });
     }
     
-    // Save state BEFORE clearing current view data
-    pushHistoryState();
-
-    // Critical: Clean up any conflicting view state to force the app back to the main view
-    setViewingAccount(null);
-    setViewingForumPostId(null);
-    setEditingAdminPageKey(null);
-    setNearbyPostsResult(null);
-    setIsFindingNearby(false);
-
-    // Switch to map view
-    setView('all');
-    setMainView('map');
-
-  }, [findPostById, addToast, pushHistoryState]);
+    // Use the unified navigateTo function
+    navigateTo('all', { mainView: 'map' });
+    
+  }, [findPostById, addToast, navigateTo]);
 
   const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
     setIsFindingNearby(true);
@@ -437,7 +422,6 @@ export const App: React.FC = () => {
           onBack={showBackButton ? backAction : undefined}
           view={view}
           mainView={mainView}
-          onMainViewChange={handleMainViewChange}
         />
         <main
           ref={mainContentRef}

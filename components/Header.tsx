@@ -28,7 +28,6 @@ interface HeaderProps {
   onBack?: () => void;
   view: AppView;
   mainView: 'grid' | 'map';
-  onMainViewChange: (view: 'grid' | 'map') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,13 +43,12 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   view,
   mainView,
-  onMainViewChange,
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
-  const { navigateTo, handleBack } = useNavigation();
+  const { navigateTo } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -140,8 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
         icon: <LogoIcon className="w-5 h-5" />,
         isActive: view === 'all' && mainView === 'grid',
         onClick: () => {
-          if (view !== 'all') navigateTo('all');
-          onMainViewChange('grid');
+          navigateTo('all', { mainView: 'grid' });
           setIsNavDropdownOpen(false);
         }
       },
@@ -151,8 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
         icon: <MapPinIcon className="w-5 h-5" />,
         isActive: view === 'all' && mainView === 'map',
         onClick: () => {
-          if (view !== 'all') navigateTo('all');
-          onMainViewChange('map');
+          navigateTo('all', { mainView: 'map' });
           setIsNavDropdownOpen(false);
         }
       },
@@ -205,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
     
     return baseItems;
-  }, [view, mainView, currentAccount, navigateTo, onMainViewChange]);
+  }, [view, mainView, currentAccount, navigateTo]);
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
@@ -489,10 +485,10 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-2 justify-end flex-shrink-0">
                 {showViewSelector && (
                     <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
-                         <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
+                         <Button onClick={() => { if (mainView === 'map') navigateTo(view, { mainView: 'grid' }); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
                              <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
                          </Button>
-                         <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
+                         <Button onClick={() => { if (mainView === 'map') navigateTo(view, { mainView: 'grid' }); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
                              <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
                          </Button>
                     </div>

@@ -3,7 +3,7 @@ import { AppView, Account, ActivityTab, AdminView, DisplayablePost } from '../ty
 
 // --- Navigation Context ---
 interface NavigationContextType {
-  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView }) => void;
+  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, mainView?: 'grid' | 'map' }) => void;
   navigateToAccount: (accountId: string) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
