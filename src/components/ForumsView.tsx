@@ -114,7 +114,7 @@ export const ForumsView: React.FC = () => {
              filtered = filtered.filter(p => p.category === activeCategory);
         }
         
-        return filtered.sort((a, b) => {
+        return [...filtered].sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
             

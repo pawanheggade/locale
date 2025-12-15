@@ -212,8 +212,9 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                     <Select
                         value={commentSort}
                         onChange={(e) => setCommentSort(e.target.value as any)}
-                        className="w-auto text-sm"
                         variant="overlay"
+                        fullWidth={false}
+                        menuAlign="right"
                     >
                         <option value="top">Top</option>
                         <option value="newest">Newest</option>

@@ -309,7 +309,7 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               {/* --- DEFAULT HEADER VIEW (Mobile & Desktop Collapsed) --- */}
-              {/* Left Section: Back, Search, Filter */}
+              {/* Left Section: Back, Search */}
               <div className="flex items-center gap-2 sm:gap-4 flex-1">
                   {onBack && (
                     <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
@@ -319,7 +319,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
                      <SearchIcon className="w-6 h-6" />
                   </Button>
-                  {renderFilterButton()}
               </div>
 
               {/* Center Section: Logo & Nav */}

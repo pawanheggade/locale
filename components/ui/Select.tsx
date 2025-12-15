@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { Dropdown, DropdownItem } from './Dropdown';
@@ -7,12 +8,14 @@ interface SelectProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>
   onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   variant?: 'default' | 'overlay';
   children: React.ReactNode;
+  fullWidth?: boolean;
+  menuAlign?: 'left' | 'right';
 }
 
 const Select = React.forwardRef<
   HTMLButtonElement, // Ref is now for the button inside Dropdown
   SelectProps
->(({ className, children, value, onChange, variant = 'default', ...props }, ref) => {
+>(({ className, children, value, onChange, variant = 'default', fullWidth, menuAlign, ...props }, ref) => {
   const items: DropdownItem[] = React.Children.map(children, child => {
     if (React.isValidElement(child) && child.type === 'option') {
       const option = child as React.ReactElement<React.OptionHTMLAttributes<HTMLOptionElement>>;
@@ -44,6 +47,8 @@ const Select = React.forwardRef<
       onSelect={handleSelect}
       variant={variant}
       className={className}
+      fullWidth={fullWidth}
+      menuAlign={menuAlign}
       {...props}
     />
   );

@@ -16,10 +16,12 @@ interface DropdownProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElemen
   placeholder?: string;
   variant?: 'default' | 'overlay';
   className?: string;
+  fullWidth?: boolean;
+  menuAlign?: 'left' | 'right';
 }
 
 export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
-  ({ items, selectedValue, onSelect, placeholder = 'Select...', variant = 'default', className, id, ...props }, ref) => {
+  ({ items, selectedValue, onSelect, placeholder = 'Select...', variant = 'default', className, id, fullWidth = true, menuAlign = 'left', ...props }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -85,28 +87,35 @@ export const Dropdown = forwardRef<HTMLButtonElement, DropdownProps>(
     const activeDescendantId = isOpen && activeIndex >= 0 && id ? `${id}-option-${activeIndex}` : undefined;
 
     return (
-      <div className={cn('relative w-full', className)} ref={dropdownRef}>
+      <div className={cn('relative', fullWidth ? 'w-full' : 'inline-block', className)} ref={dropdownRef}>
         <button
           ref={ref}
           type="button"
           id={id}
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
-          className={cn('flex items-center justify-between w-full text-left text-sm text-gray-900', buttonStyles[variant])}
+          className={cn(
+            'flex items-center justify-between text-left text-sm text-gray-800', 
+            buttonStyles[variant],
+            fullWidth && 'w-full'
+          )}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-controls={isOpen ? listboxId : undefined}
           aria-activedescendant={activeDescendantId}
           {...props}
         >
-          <span className="truncate">{selectedItem?.label || placeholder}</span>
-          <ChevronDownIcon className={cn('w-4 h-4 text-gray-600 transition-transform', isOpen && 'rotate-180')} />
+          <span className={cn(fullWidth && "truncate")}>{selectedItem?.label || placeholder}</span>
+          <ChevronDownIcon className={cn('w-4 h-4 text-gray-600 transition-transform ml-2 shrink-0', isOpen && 'rotate-180')} />
         </button>
         {isOpen && (
           <ul
             ref={listRef}
             id={listboxId}
-            className="absolute z-10 w-max min-w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto animate-fade-in-up"
+            className={cn(
+              "absolute z-10 w-max min-w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto animate-fade-in-up",
+              menuAlign === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left'
+            )}
             role="listbox"
             tabIndex={-1}
           >
