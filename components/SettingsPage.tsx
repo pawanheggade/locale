@@ -6,33 +6,16 @@ import { useUI } from '../contexts/UIContext';
 import { SettingsSection } from './SettingsSection';
 import { SettingsRow } from './SettingsRow';
 import { Switch } from './ui/Switch';
-import { useConfirmationModal } from '../hooks/useConfirmationModal';
-import { useNavigation } from '../contexts/NavigationContext';
 
 // This component is now a self-contained View
 export const SettingsPage: React.FC = () => {
-  const { currentAccount, toggleAccountStatus, signOut } = useAuth();
+  const { currentAccount, toggleAccountStatus } = useAuth();
   const { settings, onSettingsChange } = useActivity();
   const { openModal } = useUI();
-  const { navigateTo } = useNavigation();
-  const showConfirmation = useConfirmationModal();
 
   if (!currentAccount) return null;
 
   const isSeller = currentAccount.subscription.tier !== 'Personal';
-  
-  const handleSignOutClick = () => {
-    showConfirmation({
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out?',
-      onConfirm: () => {
-          signOut();
-          navigateTo('all');
-      },
-      confirmText: 'Sign Out',
-      confirmClassName: 'bg-red-600 text-white',
-    });
-  };
 
   const handleArchiveAccount = () => {
     toggleAccountStatus(currentAccount.id, false);
@@ -82,12 +65,6 @@ export const SettingsPage: React.FC = () => {
             )}
 
             <SettingsSection title="Account">
-                <SettingsRow
-                    onClick={handleSignOutClick}
-                    title="Sign Out"
-                    description="End your session on this device."
-                    variant="destructive"
-                />
                 <SettingsRow
                     onClick={handleArchiveAccount}
                     title="Archive Account"
