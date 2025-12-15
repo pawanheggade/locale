@@ -369,10 +369,10 @@ export const Header: React.FC<HeaderProps> = ({
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
                            <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
-                               <PostCardIcon className="w-5 h-5" isFilled={gridView === 'default'} />
+                               <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
                            </Button>
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={gridView === 'compact'}>
-                               <Squares3X3Icon className="w-5 h-5" isFilled={gridView === 'compact'} />
+                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
+                               <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
                            </Button>
                       </div>
                   )}
@@ -380,7 +380,13 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentAccount && (
                       <div className="relative">
                           <Button 
-                              onClick={() => navigateTo('bag')}
+                              onClick={() => {
+                                  if (view === 'bag') {
+                                      handleBack();
+                                  } else {
+                                      navigateTo('bag');
+                                  }
+                              }}
                               variant="ghost"
                               size="icon"
                               className={cn(
