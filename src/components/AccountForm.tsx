@@ -5,7 +5,8 @@ import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon
 import { validateAccountData, AccountValidationData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
-import { SellerOptionsForm, SellerOptionsState } from './SellerOptionsForm';
+// FIX: Corrected import path
+import { SellerOptionsForm, SellerOptionsState } from '../../components/SellerOptionsForm';
 import { Input } from './ui/Input';
 import { Textarea } from './ui/Textarea';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
@@ -16,7 +17,8 @@ import { LocationInput } from './LocationInput';
 import LocationPickerMap from './LocationPickerMap';
 import { FormField } from './FormField';
 import { cn } from '../lib/utils';
-import { useAuth } from '../contexts/AuthContext';
+// FIX: Corrected import path
+import { useAuth } from '../../contexts/AuthContext';
 
 const DESCRIPTION_MAX_LENGTH = 150;
 
@@ -196,8 +198,10 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
         }
         
         if (fieldToValidate) {
-            setErrors(prev => ({ ...prev, [fieldToValidate]: validationErrors[fieldToValidate] }));
-            return validationErrors[fieldToValidate] === undefined;
+            // FIX: Explicitly cast fieldToValidate to string to handle potential 'symbol' key type error from compiler.
+            const key = fieldToValidate as string;
+            setErrors(prev => ({ ...prev, [key]: validationErrors[key] }));
+            return validationErrors[key] === undefined;
         } else {
             setErrors(validationErrors);
             return Object.keys(validationErrors).length === 0;

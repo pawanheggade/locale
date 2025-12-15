@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost } from '../types';
 import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
@@ -5,8 +6,10 @@ import { usePosts } from '../contexts/PostsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
-import { useNavigation } from '../contexts/NavigationContext';
-import { useAuth } from '../contexts/AuthContext';
+// FIX: Corrected import path to resolve module error.
+import { useNavigation } from '../../contexts/NavigationContext';
+// FIX: Corrected import path to resolve module error.
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;

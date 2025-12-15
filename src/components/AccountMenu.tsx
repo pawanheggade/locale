@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account, AppView } from '../types';
 import { XMarkIcon, PlusIcon, BellIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon } from './Icons';
@@ -6,7 +7,8 @@ import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { cn } from '../lib/utils';
-import { useNavigation } from '../contexts/NavigationContext';
+// FIX: Corrected import path to resolve module error.
+import { useNavigation } from '../../contexts/NavigationContext';
 
 interface AccountMenuProps {
     currentAccount: Account;

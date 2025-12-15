@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { DisplayablePost } from '../types';
-import { DataTable } from './admin/DataTable';
+// FIX: Corrected import path to resolve module error.
+import { DataTable } from '../../components/admin/DataTable';
 import { useSort } from '../../hooks/useSort';
 import { formatCurrency, formatFullDate } from '../utils/formatters';
 
