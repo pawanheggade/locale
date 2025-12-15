@@ -150,14 +150,6 @@ export const StudioPage: React.FC = () => {
                 />
 
                 <StudioCard 
-                    title="Activity" 
-                    description="Notifications and alerts." 
-                    icon={<BellIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('activity')}
-                    badgeCount={totalActivityCount}
-                />
-
-                <StudioCard 
                     title="Analytics" 
                     description="View performance insights." 
                     icon={<ChartBarIcon className="w-6 h-6" />} 

@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -168,6 +168,17 @@ export const Header: React.FC<HeaderProps> = ({
           setIsNavDropdownOpen(false);
       }
     },
+    { 
+      id: 'activity',
+      label: 'Activity', 
+      icon: <BellIcon className="w-5 h-5" />,
+      isActive: view === 'activity',
+      onClick: () => {
+          navigateTo('activity');
+          setIsNavDropdownOpen(false);
+      },
+      badgeCount: totalActivityCount,
+    },
   ];
 
   const sortOptions = [
@@ -326,16 +337,19 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                           <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
                       </Button>
+                      {currentAccount && totalActivityCount > 0 && !isNavDropdownOpen && (
+                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white" title={`${totalActivityCount} new activities`} />
+                      )}
                       {isNavDropdownOpen && (
                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
-                               {navItems.map(item => (
+                               {navItems.map((item: any) => (
                                   <li key={item.id} className="list-none">
                                       <Button
                                           onClick={item.onClick}
                                           variant="ghost"
                                           className={cn(
-                                              "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                              "w-full !justify-between px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
                                               item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
                                           )}
                                       >
@@ -343,6 +357,11 @@ export const Header: React.FC<HeaderProps> = ({
                                               {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
+                                          {item.badgeCount > 0 && (
+                                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                                  {item.badgeCount > 9 ? '9+' : item.badgeCount}
+                                              </span>
+                                          )}
                                       </Button>
                                   </li>
                                ))}
@@ -417,11 +436,6 @@ export const Header: React.FC<HeaderProps> = ({
                               aria-label="My Profile"
                           >
                               <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
-                              {totalActivityCount > 0 && (
-                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
-                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
-                                  </span>
-                              )}
                           </Button>
                       ) : (
                           <div className="flex items-center gap-2">

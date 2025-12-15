@@ -16,13 +16,13 @@ import { cn } from '../lib/utils';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
-  const { currentAccount, viewedPostIds } = useAuth();
+  const { currentAccount, viewedPostIds, accountsById } = useAuth();
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
   type ActivityTabType = 'notifications' | 'alerts' | 'history';
   const [activeTab, setActiveTab] = useState<ActivityTabType>(initialTab || 'notifications');
-  const { gridView, isTabletOrDesktop } = useUI();
+  const { gridView, isTabletOrDesktop, openModal } = useUI();
   
   const swipeRef = useRef<HTMLDivElement>(null);
   const tabs: ActivityTabType[] = ['notifications', 'alerts', 'history'];
@@ -61,9 +61,11 @@ export const ActivityPage: React.FC = () => {
     onDismiss(notification.id);
     if (notification.postId) {
         const post = findPostById(notification.postId);
-        if (post) navigateTo('all', { postId: notification.postId });
+        if (post) {
+            openModal({ type: 'viewPost', data: post });
+        }
     } else if (notification.relatedAccountId) {
-        const account = { id: notification.relatedAccountId } as Account;
+        const account = accountsById.get(notification.relatedAccountId);
         if (account) navigateTo('account', { account });
     } else if (notification.forumPostId) {
         navigateTo('forumPostDetail', { forumPostId: notification.forumPostId });
