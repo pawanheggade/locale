@@ -272,8 +272,6 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
-  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
-
   return (
     <>
       <header className={cn(
@@ -320,7 +318,7 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               {/* --- DEFAULT HEADER VIEW (Mobile & Desktop Collapsed) --- */}
-              {/* Left Section: Back, Search, Filter */}
+              {/* Left Section: Back, Search */}
               <div className="flex items-center gap-2 sm:gap-4 flex-1">
                   {onBack && (
                     <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
@@ -330,7 +328,6 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
                      <SearchIcon className="w-6 h-6" />
                   </Button>
-                  {renderFilterButton()}
               </div>
 
               {/* Center Section: Logo & Nav */}
@@ -364,7 +361,7 @@ export const Header: React.FC<HeaderProps> = ({
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive && item.id !== 'studio', className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
                                           {item.badgeCount > 0 && (
@@ -427,32 +424,11 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                   )}
 
-                  <div className="relative">
-                       {currentAccount ? (
-                          <Button
-                              onClick={() => {
-                                  if (isProfileActive) {
-                                      handleBack();
-                                  } else {
-                                      navigateTo('account', { account: currentAccount });
-                                  }
-                              }}
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "!rounded-xl text-gray-600",
-                                  isProfileActive && "text-red-600 bg-red-50"
-                              )}
-                              aria-label="My Profile"
-                          >
-                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
-                          </Button>
-                      ) : (
-                          <div className="flex items-center gap-2">
-                              <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
-                          </div>
-                      )}
-                  </div>
+                  {!currentAccount && (
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                    </div>
+                  )}
               </div>
             </>
           )}
