@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -176,17 +176,6 @@ export const Header: React.FC<HeaderProps> = ({
       onClick: () => {
           navigateTo('activity');
           setIsNavDropdownOpen(false);
-      },
-      badgeCount: totalActivityCount,
-    },
-    { 
-      id: 'studio',
-      label: 'Studio', 
-      icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-      isActive: view === 'studio',
-      onClick: () => {
-          navigateTo('studio');
-          setIsNavDropdownOpen(false);
       }
     },
   ];
@@ -240,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
             <FunnelIcon className="w-6 h-6" isFilled={isAnyFilterActive} />
         </Button>
         {isFilterDropdownOpen && (
-            <div id="filter-dropdown-menu" className="absolute left-0 mt-2 w-auto origin-top-left bg-white rounded-xl shadow-lg border z-10 animate-zoom-in">
+            <div id="filter-dropdown-menu" className="absolute right-0 mt-2 w-auto origin-top-right bg-white rounded-xl shadow-lg border z-10 animate-fade-in-down">
                 <div className="p-1">
                   <ul>
                       {sortOptions.map(option => (
@@ -287,7 +276,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}>
           
           {isSearchOpen ? (
-            <div className="flex-1 flex items-center gap-2 animate-search-expand">
+            <div className="flex-1 flex items-center gap-2">
               <Button
                   type="button"
                   onClick={handleExitSearch}
@@ -320,7 +309,7 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <>
               {/* --- DEFAULT HEADER VIEW (Mobile & Desktop Collapsed) --- */}
-              {/* Left Section: Back, Search */}
+              {/* Left Section: Back, Search, Filter */}
               <div className="flex items-center gap-2 sm:gap-4 flex-1">
                   {onBack && (
                     <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
@@ -330,6 +319,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
                      <SearchIcon className="w-6 h-6" />
                   </Button>
+                  {renderFilterButton()}
               </div>
 
               {/* Center Section: Logo & Nav */}
@@ -346,34 +336,23 @@ export const Header: React.FC<HeaderProps> = ({
                       >
                           <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
                       </Button>
-                      {currentAccount && totalActivityCount > 0 && !isNavDropdownOpen && (
-                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-1 ring-white" title={`${totalActivityCount} new activities`} />
-                      )}
                       {isNavDropdownOpen && (
                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
                                <ul className="flex flex-col gap-0.5">
-                               {navItems.map((item: any) => (
+                               {navItems.map(item => (
                                   <li key={item.id} className="list-none">
                                       <Button
                                           onClick={item.onClick}
                                           variant="ghost"
                                           className={cn(
-                                              "w-full !justify-between px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                              "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
                                               item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { 
-                                                  isFilled: item.id === 'studio' ? false : item.isActive, 
-                                                  className: "w-5 h-5" 
-                                              })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
-                                          {item.badgeCount > 0 && (
-                                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
-                                                  {item.badgeCount > 9 ? '9+' : item.badgeCount}
-                                              </span>
-                                          )}
                                       </Button>
                                   </li>
                                ))}
@@ -429,11 +408,37 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                   )}
 
-                  {!currentAccount && (
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
-                    </div>
-                  )}
+                  <div className="relative">
+                       {currentAccount ? (
+                          <Button
+                              onClick={() => {
+                                  if (isProfileActive) {
+                                      handleBack();
+                                  } else {
+                                      navigateTo('account', { account: currentAccount });
+                                  }
+                              }}
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "!rounded-xl text-gray-600",
+                                  isProfileActive && "text-red-600 bg-red-50"
+                              )}
+                              aria-label="My Profile"
+                          >
+                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
+                              {totalActivityCount > 0 && (
+                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
+                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
+                                  </span>
+                              )}
+                          </Button>
+                      ) : (
+                          <div className="flex items-center gap-2">
+                              <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                          </div>
+                      )}
+                  </div>
               </div>
             </>
           )}
