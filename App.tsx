@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from './types';
 import { Header } from './components/Header';
@@ -35,7 +36,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings', 'studio'
 ];
 
 export const App: React.FC = () => {

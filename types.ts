@@ -1,4 +1,5 @@
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -56,7 +57,7 @@ export interface CatalogItem {
   downloads?: number;
 }
 
-export type SocialPlatform = 'website' | 'instagram' | 'youtube';
+export type SocialPlatform = 'website' | 'instagram' | 'youtube' | 'facebook' | 'twitter';
 
 export interface SocialLink {
   platform: SocialPlatform;

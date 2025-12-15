@@ -8,11 +8,9 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { 
     PlusIcon, 
     ChartBarIcon, 
-    BellIcon, 
     DocumentIcon, 
     PencilIcon, 
     Cog6ToothIcon, 
-    ArchiveBoxIcon, 
     ChatBubbleEllipsisIcon,
     ChevronRightIcon,
     UserIcon,
@@ -35,7 +33,7 @@ const StudioCard: React.FC<{
     <div 
         onClick={onClick}
         className={cn(
-            "bg-white rounded-xl border border-gray-200/80 p-5 flex items-center gap-4 cursor-pointer hover:border-gray-300 transition-colors group relative",
+            "bg-white rounded-xl border border-gray-200/80 p-5 flex items-center gap-4 cursor-pointer hover:border-gray-300 hover:bg-gray-50/50 active:scale-[0.99] transition-all group relative",
             className
         )}
     >
@@ -195,7 +193,7 @@ export const StudioPage: React.FC = () => {
             </div>
             
             <div className="mt-8 pt-8 border-t border-gray-200/80 flex flex-col items-center gap-4">
-                 <Button variant="link" onClick={() => navigateTo('account', { account: currentAccount })} className="text-gray-500 text-sm">
+                 <Button variant="link" onClick={() => navigateTo('account', { account: currentAccount })} className="text-gray-600 text-sm">
                     View Public Profile
                  </Button>
                  
@@ -206,3 +204,5 @@ export const StudioPage: React.FC = () => {
         </div>
     );
 };
+
+export default StudioPage;
