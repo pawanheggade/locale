@@ -77,6 +77,22 @@ export const StudioPage: React.FC = () => {
         }
     };
 
+    const handleAnalyticsClick = () => {
+        if (isPaidTier) {
+            navigateTo('accountAnalytics', { account: currentAccount });
+        } else {
+            navigateTo('subscription');
+        }
+    };
+
+    const handleCatalogClick = () => {
+        if (canHaveCatalog) {
+            navigateTo('manageCatalog', { account: currentAccount });
+        } else {
+            navigateTo('subscription');
+        }
+    };
+
     const handleSignOut = () => {
         showConfirmation({
             title: 'Sign Out',
@@ -141,23 +157,19 @@ export const StudioPage: React.FC = () => {
                     badgeCount={totalActivityCount}
                 />
 
-                {isPaidTier && (
-                    <StudioCard 
-                        title="Analytics" 
-                        description="View performance insights." 
-                        icon={<ChartBarIcon className="w-6 h-6" />} 
-                        onClick={() => navigateTo('accountAnalytics', { account: currentAccount })}
-                    />
-                )}
+                <StudioCard 
+                    title="Analytics" 
+                    description="View performance insights." 
+                    icon={<ChartBarIcon className="w-6 h-6" />} 
+                    onClick={handleAnalyticsClick}
+                />
 
-                {canHaveCatalog && (
-                    <StudioCard 
-                        title="Catalog" 
-                        description="Manage your product catalog." 
-                        icon={<DocumentIcon className="w-6 h-6" />} 
-                        onClick={() => navigateTo('manageCatalog', { account: currentAccount })}
-                    />
-                )}
+                <StudioCard 
+                    title="Catalog" 
+                    description="Manage your product catalog." 
+                    icon={<DocumentIcon className="w-6 h-6" />} 
+                    onClick={handleCatalogClick}
+                />
                 
                 <StudioCard 
                     title="Edit Profile" 
