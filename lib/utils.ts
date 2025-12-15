@@ -100,7 +100,6 @@ export const getBadgeSvg = (tier: Subscription['tier']): string => {
 
 export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number, y: number, variant: 'default' | 'white' = 'default') => {
     const textColor = variant === 'white' ? '#FFFFFF' : '#111827';
-    // FIX: Updated accent color from #DC2626 to #ff3333
     const accentColor = variant === 'white' ? '#FFFFFF' : '#ff3333';
 
     ctx.save();

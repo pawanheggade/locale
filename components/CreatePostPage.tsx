@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -252,8 +251,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
         eventStartDate, hasExpiry, expiryDate,
     }, { TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, MAX_PRICE });
     
-    // FIX: Replaced the single `sellerOptions` error with specific errors for each field (`paymentMethods`, `deliveryOptions`)
-    // This aligns with how `SellerOptionsForm` expects to receive and display errors.
     if (needsSellerDetails && onUpdateCurrentAccountDetails) {
         if (sellerOptions.deliveryOptions.length === 0) {
             validationErrors.deliveryOptions = "Please select at least one delivery option to continue.";
@@ -389,8 +386,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
                                   onDeliveryChange={(options) => setSellerOptions(prev => ({...prev, deliveryOptions: options}))}
                                   onContactChange={(options) => setSellerOptions(prev => ({...prev, contactOptions: options}))}
                                   isSeller={true}
-                                  // FIX: Pass the entire `errors` object to the `SellerOptionsForm` component.
-                                  // This allows the component to access specific errors for each checkbox group (e.g., `errors.paymentMethods`).
                                   error={errors}
                               />
                           </div>

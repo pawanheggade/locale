@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { SortConfig } from '../../hooks/useSort';
 import { SortableHeader } from './SortableHeader';
@@ -60,7 +59,6 @@ export function DataTable<T extends { id: string | number }>({
                                     label={col.header}
                                     sortKey={col.sortKey}
                                     sortConfig={sortConfig}
-                                    // FIX: 'sort' is not defined, should be 'requestSort'
                                     requestSort={requestSort}
                                     className={col.className}
                                 />

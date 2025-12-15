@@ -24,7 +24,6 @@ interface SellerOptionsFormProps {
     onDeliveryChange: (options: string[]) => void;
     onContactChange: (options: ContactOption[]) => void;
     isSeller: boolean;
-    // FIX: Changed 'error' prop to accept an object of errors instead of a single string.
     error?: Record<string, string | undefined>;
 }
 
@@ -45,7 +44,6 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                 options={PAYMENT_OPTIONS}
                 selectedOptions={paymentMethods}
                 onChange={onPaymentChange}
-                // FIX: Pass the specific error for paymentMethods.
                 error={error?.paymentMethods}
             />
             <CheckboxGroup
@@ -53,7 +51,6 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                 options={DELIVERY_OPTIONS}
                 selectedOptions={deliveryOptions}
                 onChange={onDeliveryChange}
-                // FIX: Pass the specific error for deliveryOptions.
                 error={error?.deliveryOptions}
             />
              {isSeller && (
@@ -64,7 +61,6 @@ export const SellerOptionsForm: React.FC<SellerOptionsFormProps> = ({
                         options={CONTACT_OPTIONS}
                         selectedOptions={contactOptions}
                         onChange={(payload) => onContactChange(payload as ContactOption[])}
-                        // FIX: Pass the specific error for contactOptions.
                         error={error?.contactOptions}
                     />
                 </div>

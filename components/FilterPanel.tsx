@@ -1,5 +1,3 @@
-
-
 import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';

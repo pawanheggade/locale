@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -105,7 +104,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
             <div className="flex gap-4">
                 <VoteButtons score={post.score} userVote={userVote} onVote={(vote) => toggleVote('post', post.id, vote)} />
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-gray-600 flex-wrap">
                         <CategoryBadge 
                             category={post.category} 
                             onClick={(e) => {
@@ -163,7 +162,6 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
                                         </Button>
                                         <Button 
                                             onClick={handleDeletePost} 
-                                            // FIX: Replaced invalid 'overlay-destructive' variant with 'overlay-red'.
                                             variant="overlay-red"
                                             size="icon-sm"
                                             title="Delete"
