@@ -7,12 +7,14 @@ import { SettingsSection } from './SettingsSection';
 import { SettingsRow } from './SettingsRow';
 import { Switch } from './ui/Switch';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { useNavigation } from '../contexts/NavigationContext';
 
 // This component is now a self-contained View
 export const SettingsPage: React.FC = () => {
   const { currentAccount, toggleAccountStatus, signOut } = useAuth();
   const { settings, onSettingsChange } = useActivity();
   const { openModal } = useUI();
+  const { navigateTo } = useNavigation();
   const showConfirmation = useConfirmationModal();
 
   if (!currentAccount) return null;
@@ -23,7 +25,10 @@ export const SettingsPage: React.FC = () => {
     showConfirmation({
       title: 'Sign Out',
       message: 'Are you sure you want to sign out?',
-      onConfirm: signOut,
+      onConfirm: () => {
+          signOut();
+          navigateTo('all');
+      },
       confirmText: 'Sign Out',
       confirmClassName: 'bg-red-600 text-white',
     });

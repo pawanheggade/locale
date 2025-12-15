@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { 
     PlusIcon, 
     ChartBarIcon, 
@@ -56,10 +57,11 @@ const StudioCard: React.FC<{
 );
 
 export const StudioPage: React.FC = () => {
-    const { currentAccount } = useAuth();
+    const { currentAccount, signOut } = useAuth();
     const { navigateTo } = useNavigation();
     const { totalActivityCount } = useActivity();
     const { openModal } = useUI();
+    const showConfirmation = useConfirmationModal();
 
     if (!currentAccount) return null;
 
@@ -73,6 +75,19 @@ export const StudioPage: React.FC = () => {
         } else {
             navigateTo('createPost');
         }
+    };
+
+    const handleSignOut = () => {
+        showConfirmation({
+            title: 'Sign Out',
+            message: 'Are you sure you want to sign out?',
+            onConfirm: () => {
+                signOut();
+                navigateTo('all');
+            },
+            confirmText: 'Sign Out',
+            confirmClassName: 'bg-red-600 text-white',
+        });
     };
 
     return (
@@ -173,9 +188,13 @@ export const StudioPage: React.FC = () => {
                 />
             </div>
             
-            <div className="mt-8 pt-8 border-t border-gray-200/80 text-center">
+            <div className="mt-8 pt-8 border-t border-gray-200/80 flex flex-col items-center gap-4">
                  <Button variant="link" onClick={() => navigateTo('account', { account: currentAccount })} className="text-gray-500 text-sm">
                     View Public Profile
+                 </Button>
+                 
+                 <Button variant="ghost" onClick={handleSignOut} className="text-red-600 text-sm hover:bg-red-50">
+                    Sign Out
                  </Button>
             </div>
         </div>
