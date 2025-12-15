@@ -1,5 +1,4 @@
 
-
 import { Post, DisplayablePost, Account, FiltersState, Subscription, PostType } from '../types';
 import { haversineDistance } from './geocoding';
 
@@ -23,77 +22,8 @@ export const getPostStatus = (expiryDate: number | null | undefined): { isExpire
   return { isExpired, isExpiringSoon, isExpiringThisWeek };
 };
 
-export const wasPostEdited = (post: { id: string; lastUpdated: number }): boolean => {
-    // A post is considered edited if lastUpdated is significantly later than its creation ID timestamp
-    // Using 60 seconds buffer to account for immediate creation glitches
-    return post.lastUpdated > parseInt(post.id, 10) + 60000;
-};
-
 export const isPostPurchasable = (post: { type: PostType; price?: number }): boolean => {
     return post.type === PostType.PRODUCT || (post.type === PostType.SERVICE && post.price !== undefined && post.price > 0);
-};
-
-// Extracts keywords from text, filtering out common stop words.
-const getKeywords = (text: string): Set<string> => {
-    const stopWords = new Set(['a', 'an', 'the', 'in', 'on', 'for', 'with', 'of', 'and', 'or', 'is', 'are', 'to']);
-    return new Set(
-        text
-            .toLowerCase()
-            .replace(/[^\w\s]/g, '') // remove punctuation
-            .split(/\s+/)
-            .filter(word => word.length > 2 && !stopWords.has(word))
-    );
-};
-
-export const findSimilarPosts = (
-  targetPost: DisplayablePost,
-  candidatePosts: DisplayablePost[],
-  limit: number = 3
-): DisplayablePost[] => {
-  const targetKeywords = getKeywords(`${targetPost.title} ${targetPost.description}`);
-  const targetTags = new Set(targetPost.tags.map(t => t.toLowerCase()));
-
-  const scoredPosts = candidatePosts
-    .filter(post => post.id !== targetPost.id) // Exclude self
-    .map(post => {
-      let score = 0;
-
-      // 1. Category match (high weight)
-      if (post.category === targetPost.category) {
-        score += 50;
-      }
-
-      // 2. Tag overlap
-      const postTags = new Set(post.tags.map(t => t.toLowerCase()));
-      const tagIntersection = new Set([...targetTags].filter(tag => postTags.has(tag)));
-      score += tagIntersection.size * 20;
-
-      // 3. Keyword overlap in title and description
-      const postKeywords = getKeywords(`${post.title} ${post.description}`);
-      const keywordIntersection = new Set([...targetKeywords].filter(kw => postKeywords.has(kw)));
-      score += keywordIntersection.size * 5;
-
-      // 4. Price proximity (for products with price)
-      if (post.type === 'PRODUCT' && targetPost.type === 'PRODUCT' && post.price && targetPost.price) {
-        const priceDifference = Math.abs(post.price - targetPost.price);
-        const priceRatio = priceDifference / Math.max(targetPost.price, 1);
-        if (priceRatio < 0.25) score += 20; // within 25%
-        else if (priceRatio < 0.5) score += 10; // within 50%
-      }
-      
-      // 5. Same author bonus (lower weight)
-      if (post.authorId === targetPost.authorId) {
-          score += 5;
-      }
-
-      return { ...post, score };
-    })
-    .filter(post => post.score > 0); // Only consider posts with any relevance score
-
-  // Sort by score (descending) and return top N
-  scoredPosts.sort((a, b) => b.score - a.score);
-
-  return scoredPosts.slice(0, limit);
 };
 
 export const isAccountEligibleToPin = (account: Account | null): boolean => {
@@ -233,58 +163,4 @@ export const sortFilteredPosts = (
   });
 
   return sorted;
-};
-
-export const generateHistoryBasedRecommendations = (
-  likedPosts: DisplayablePost[],
-  viewedPosts: DisplayablePost[],
-  allPosts: DisplayablePost[],
-  limit: number = 20
-): DisplayablePost[] => {
-  const seenPostIds = new Set([
-    ...likedPosts.map(p => p.id),
-    ...viewedPosts.map(p => p.id),
-  ]);
-
-  // Create a candidate pool of posts that are not expired. Pinned posts are filtered out here
-  // to prevent them from being recommended and appearing twice in the feed.
-  const candidatePosts = allPosts.filter(p => !p.isPinned && !getPostStatus(p.expiryDate).isExpired);
-
-  // Use all liked posts and up to 10 most recent viewed posts as the basis for recommendations
-  const historyPosts = [...likedPosts, ...viewedPosts.slice(0, 10)]; 
-
-  const recommendedPosts: Map<string, DisplayablePost & { score: number }> = new Map();
-
-  // For each post in history, find a few similar posts
-  for (const post of historyPosts) {
-    // We pass the filtered candidate pool to findSimilarPosts.
-    const similar = findSimilarPosts(post, candidatePosts, 5);
-    for (const similarPost of similar) {
-      if (!seenPostIds.has(similarPost.id)) {
-        const existing = recommendedPosts.get(similarPost.id);
-        // If it's a new recommendation, or this one is more relevant (higher score), add/update it.
-        if (!existing || (similarPost.score && (!existing.score || similarPost.score > existing.score))) {
-          recommendedPosts.set(similarPost.id, { ...similarPost, score: similarPost.score || 0 });
-        }
-      }
-    }
-  }
-
-  const recommendations = Array.from(recommendedPosts.values());
-  
-  // Sort by subscription tier, then similarity score, then date
-  recommendations.sort((a, b) => {
-    const tierA = a.author?.subscription?.tier ?? 'Personal';
-    const tierB = b.author?.subscription?.tier ?? 'Personal';
-
-    const tierComparison = (TIER_RANK[tierB] ?? 0) - (TIER_RANK[tierA] ?? 0);
-    if (tierComparison !== 0) return tierComparison;
-
-    const scoreComparison = (b.score || 0) - (a.score || 0);
-    if (scoreComparison !== 0) return scoreComparison;
-
-    return parseInt(b.id) - parseInt(a.id); // Newest first as a fallback
-  });
-
-  return recommendations.slice(0, limit);
 };

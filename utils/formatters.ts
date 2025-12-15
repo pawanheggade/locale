@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Account } from '../types';
 
@@ -16,32 +17,6 @@ const currencyFormatterStandard = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
 });
-
-export const formatTimeRemaining = (expiryDate: number): string => {
-  const now = Date.now();
-  const remainingMs = expiryDate - now;
-
-  if (remainingMs <= 0) {
-    return "Expired";
-  }
-  
-  const seconds = Math.floor(remainingMs / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-      // Intl will handle "tomorrow" vs "in X days"
-      return `Expires ${rtf.format(days, 'day')}`;
-  }
-  if (hours > 0) {
-      return `Expires ${rtf.format(hours, 'hour')}`;
-  }
-  if (minutes > 0) {
-      return `Expires ${rtf.format(minutes, 'minute')}`;
-  }
-  return "Expires soon";
-};
 
 export const formatCurrency = (price: number | undefined | null): string => {
   if (price === undefined || price === null) return 'Contact for Price';

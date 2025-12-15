@@ -186,17 +186,17 @@ export const StudioPage: React.FC = () => {
                 />
                 
                 <StudioCard 
-                    title="Subscription" 
-                    description="Manage your plan and billing." 
-                    icon={<CashIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('subscription')}
-                />
-
-                <StudioCard 
                     title="Settings" 
                     description="App preferences and account actions." 
                     icon={<Cog6ToothIcon className="w-6 h-6" />} 
                     onClick={() => navigateTo('settings')}
+                />
+
+                <StudioCard 
+                    title="Subscription" 
+                    description="Manage your plan and billing." 
+                    icon={<CashIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('subscription')}
                 />
             </div>
             

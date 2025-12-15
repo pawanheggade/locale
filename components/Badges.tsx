@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { PostType } from '../types';
 import { cn } from '../lib/utils';
 
 export const LocaleChoiceBadge: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -85,15 +84,6 @@ export const CategoryBadge: React.FC<{ category: string; onClick: (e: React.Mous
         label={category}
         onClick={onClick}
         title={`Filter by category: ${category}`}
-        {...props}
-    />
-);
-
-export const TypeBadge: React.FC<{ type: PostType; onClick: (e: React.MouseEvent<HTMLButtonElement>) => void; size?: 'small' | 'medium'; className?: string }> = ({ type, onClick, ...props }) => (
-    <FilterBadge
-        label={type}
-        onClick={onClick}
-        title={`Filter by type: ${type.toLowerCase()}`}
         {...props}
     />
 );

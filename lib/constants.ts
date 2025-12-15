@@ -12,7 +12,6 @@ export const STORAGE_KEYS = {
   FORUM_COMMENTS: 'localeAppForumComments',
   FORUM_CATEGORIES: 'localeAppForumCategories',
   FILTERS: 'localeAppFilters',
-  NOTIFICATIONS: 'localeAppNotifSettings',
   RECENT_SEARCHES: 'localeAppRecentSearches',
   SAVED_SEARCHES: 'localeAppSavedSearches',
   GRID_VIEW: 'localeAppGridView',

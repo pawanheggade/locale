@@ -12,17 +12,13 @@ const buttonVariants = {
     ghost: 'border border-transparent bg-transparent text-gray-600',
     link: 'text-red-600 underline-offset-4',
     'pill-red': 'bg-red-600 text-white active:bg-red-500 border-transparent',
-    'circular-red': 'bg-red-600 text-white active:bg-red-500 border-transparent',
     'pill-lightred': 'bg-red-400 text-white active:bg-red-300 border-transparent',
-    'circular-lightred': 'bg-red-400 text-white active:bg-red-300 border-transparent',
     'pill-amber': 'bg-amber-500 text-white active:bg-amber-400 border-transparent',
     'pill-dark': 'bg-gray-900 text-white active:bg-gray-700 border-transparent',
-    'pill-slate': 'bg-slate-600 text-white active:bg-slate-500 border-transparent',
     // Overlay Variants
     overlay: 'bg-transparent text-white border-none shadow-none',
     'overlay-dark': 'bg-transparent text-gray-600 border-none shadow-none',
     'overlay-red': 'bg-transparent text-red-600 border-none shadow-none',
-    'overlay-amber': 'bg-transparent text-amber-600 border-none shadow-none',
   },
   size: {
     default: 'h-10 px-4 py-2 text-sm',
