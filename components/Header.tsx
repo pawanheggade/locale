@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -76,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
   useClickOutside(navDropdownRef, () => setIsNavDropdownOpen(false), isNavDropdownOpen);
 
   useEffect(() => {
-    if (isSearchOpen) {
+    if (isSearchOpen && !isTabletOrDesktop) {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           setIsSearchOpen(false);
@@ -88,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
-  }, [isSearchOpen]);
+  }, [isSearchOpen, isTabletOrDesktop]);
   
   const handleSortChange = (sortOption: string) => {
     dispatchFilterAction({ type: 'SET_SORT_OPTION', payload: sortOption });
@@ -299,148 +300,229 @@ export const Header: React.FC<HeaderProps> = ({
             isScrolled ? 'h-14' : 'h-16'
         )}>
           
-          {isSearchOpen ? (
-            <div className="flex-1 flex items-center gap-2">
-              <Button
-                  type="button"
-                  onClick={handleExitSearch}
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-500 rounded-xl shrink-0 -ml-2"
-                  aria-label="Exit search and clear filters"
-              >
-                  <ChevronLeftIcon className="w-6 h-6" />
-              </Button>
-              <SearchBar 
-                  searchQuery={filterState.searchQuery}
-                  onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
-                  onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
-                  placeholder={placeholder}
-                  wrapperClassName="w-full"
-                  suggestions={[]}
-                  recentSearches={recentSearches}
-                  onRemoveRecentSearch={onRemoveRecentSearch}
-                  onClearRecentSearches={onClearRecentSearches}
-                  onAiSearchSubmit={handleAiSearchSubmitWithHistory}
-                  isAiSearching={filterState.isAiSearching}
-                  onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
-                  autoFocus
-                  aiButton={renderAiButton()}
-                  hideSearchIcon={true}
-              />
-              {renderFilterButton()}
-            </div>
-          ) : (
-            <>
-              {/* --- DEFAULT HEADER VIEW (Mobile & Desktop Collapsed) --- */}
-              {/* Left Section: Back, Search */}
-              <div className="flex items-center gap-2 sm:gap-4 flex-1">
-                  {onBack && (
-                    <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
-                      <ChevronLeftIcon className="w-6 h-6" />
-                    </Button>
-                  )}
-                  <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
-                     <SearchIcon className="w-6 h-6" />
-                  </Button>
+          {/* --- MOBILE HEADER --- */}
+          <div className="flex md:hidden w-full items-center">
+            {isSearchOpen ? (
+              <div className="flex-1 flex items-center gap-2">
+                <Button
+                    type="button"
+                    onClick={handleExitSearch}
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-500 rounded-xl shrink-0 -ml-2"
+                    aria-label="Exit search and clear filters"
+                >
+                    <ChevronLeftIcon className="w-6 h-6" />
+                </Button>
+                <SearchBar 
+                    searchQuery={filterState.searchQuery}
+                    onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                    onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
+                    placeholder={placeholder}
+                    wrapperClassName="w-full"
+                    suggestions={[]}
+                    recentSearches={recentSearches}
+                    onRemoveRecentSearch={onRemoveRecentSearch}
+                    onClearRecentSearches={onClearRecentSearches}
+                    onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                    isAiSearching={filterState.isAiSearching}
+                    onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
+                    autoFocus
+                    aiButton={renderAiButton()}
+                    hideSearchIcon={true}
+                />
+                {renderFilterButton()}
               </div>
-
-              {/* Center Section: Logo & Nav */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="flex items-center justify-center gap-1">
-                   <Logo onClick={handleLogoClick} />
-                   <div className="relative" ref={navDropdownRef}>
-                      <Button
-                          onClick={() => setIsNavDropdownOpen(prev => !prev)}
-                          variant="ghost"
-                          size="icon-xs"
-                          className="text-gray-400 rounded-full w-6 h-6"
-                          aria-label="Open navigation menu"
-                      >
-                          <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+            ) : (
+              <div className="w-full flex items-center justify-between gap-4">
+                {/* Left Section: Back, Search */}
+                <div className="flex items-center gap-2 sm:gap-4 flex-1">
+                    {onBack && (
+                      <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
+                        <ChevronLeftIcon className="w-6 h-6" />
                       </Button>
-                      {isNavDropdownOpen && (
-                           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
-                               <ul className="flex flex-col gap-0.5">
-                               {navItems.map(item => (
-                                  <li key={item.id} className="list-none">
-                                      <Button
-                                          onClick={item.onClick}
-                                          variant="ghost"
-                                          className={cn(
-                                              "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
-                                              item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
-                                          )}
-                                      >
-                                          <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
-                                              {item.label}
-                                          </div>
-                                      </Button>
-                                  </li>
-                               ))}
-                               </ul>
-                           </div>
-                      )}
+                    )}
+                    <Button onClick={() => setIsSearchOpen(true)} variant="ghost" size="icon" className="text-gray-600" aria-label="Search">
+                       <SearchIcon className="w-6 h-6" />
+                    </Button>
+                </div>
+
+                {/* Center Section: Logo & Nav */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <div className="flex items-center justify-center gap-1">
+                     <Logo onClick={handleLogoClick} />
+                     <div className="relative" ref={navDropdownRef}>
+                        <Button
+                            onClick={() => setIsNavDropdownOpen(prev => !prev)}
+                            variant="ghost"
+                            size="icon-xs"
+                            className="text-gray-400 rounded-full w-6 h-6"
+                            aria-label="Open navigation menu"
+                        >
+                            <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                        </Button>
+                        {isNavDropdownOpen && (
+                             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                                 <ul className="flex flex-col gap-0.5">
+                                 {navItems.map(item => (
+                                    <li key={item.id} className="list-none">
+                                        <Button
+                                            onClick={item.onClick}
+                                            variant="ghost"
+                                            className={cn(
+                                                "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                                item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                                {item.label}
+                                            </div>
+                                        </Button>
+                                    </li>
+                                 ))}
+                                 </ul>
+                             </div>
+                        )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Right Section: Tools & Account */}
+                <div className="flex items-center gap-2 flex-1 justify-end">
+                    {currentAccount && (
+                        <div className="relative">
+                            <Button 
+                                onClick={() => navigateTo('bag')}
+                                variant="ghost" size="icon"
+                                className={cn("!rounded-xl text-gray-600", view === 'bag' && "text-red-600 bg-red-50")}
+                                aria-label="Shopping Bag"
+                            >
+                                <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                                {bagCount > 0 && (
+                                    <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
+                                        {bagCount}
+                                    </span>
+                                )}
+                            </Button>
+                        </div>
+                    )}
+                    {!currentAccount && (
+                       <div className="flex items-center gap-2">
+                           <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                       </div>
+                    )}
+                </div>
               </div>
+            )}
+          </div>
 
-              {/* Right Section: Tools & Account */}
-              <div className="flex items-center gap-2 flex-1 justify-end">
-                  
-                  {showViewSelector && (
-                      <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
-                               <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
-                           </Button>
-                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
-                               <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
-                           </Button>
-                      </div>
-                  )}
+          {/* --- DESKTOP HEADER --- */}
+          <div className="hidden md:flex w-full items-center justify-between gap-6">
+            {/* Left Section */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+                {onBack && (
+                  <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
+                    <ChevronLeftIcon className="w-6 h-6" />
+                  </Button>
+                )}
+                <Logo onClick={handleLogoClick} />
+                <div className="relative" ref={navDropdownRef}>
+                    <Button
+                        onClick={() => setIsNavDropdownOpen(prev => !prev)}
+                        variant="ghost"
+                        size="icon-xs"
+                        className="text-gray-400 rounded-full w-6 h-6"
+                        aria-label="Open navigation menu"
+                    >
+                        <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                    </Button>
+                    {isNavDropdownOpen && (
+                        <div className="absolute top-full left-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
+                            <ul className="flex flex-col gap-0.5">
+                            {navItems.map(item => (
+                                <li key={item.id} className="list-none">
+                                    <Button
+                                        onClick={item.onClick}
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full !justify-start px-3 py-2 h-auto rounded-lg text-sm font-semibold whitespace-nowrap",
+                                            item.isActive ? "text-red-600 bg-red-50" : "text-gray-600"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                            {item.label}
+                                        </div>
+                                    </Button>
+                                </li>
+                            ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                  {currentAccount && (
-                      <div className="relative">
-                          <Button 
-                              onClick={() => {
-                                  if (view === 'bag') {
-                                      handleBack();
-                                  } else {
-                                      navigateTo('bag');
-                                  }
-                              }}
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "!rounded-xl text-gray-600",
-                                  view === 'bag' && "text-red-600 bg-red-50"
-                              )}
-                              aria-label="Shopping Bag"
-                          >
-                              <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
-                              {bagCount > 0 && (
-                                  <span className={cn(
-                                      "absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white",
-                                      animateBagBadge ? "animate-badge-pop-in" : ""
-                                  )}>
-                                      {bagCount}
-                                  </span>
-                              )}
-                          </Button>
-                      </div>
-                  )}
+            {/* Center Section */}
+            <div className="flex-1 min-w-0 flex justify-center">
+                <div className="w-full max-w-xl flex items-center gap-2">
+                    <SearchBar
+                        searchQuery={filterState.searchQuery}
+                        onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                        onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
+                        placeholder={placeholder}
+                        wrapperClassName="w-full"
+                        suggestions={[]}
+                        recentSearches={recentSearches}
+                        onRemoveRecentSearch={onRemoveRecentSearch}
+                        onClearRecentSearches={onClearRecentSearches}
+                        onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                        isAiSearching={filterState.isAiSearching}
+                        onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
+                        aiButton={renderAiButton()}
+                    />
+                    {renderFilterButton()}
+                </div>
+            </div>
 
-                  <div className="relative">
-                       {!currentAccount && (
-                          <div className="flex items-center gap-2">
-                              <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
-                          </div>
-                      )}
-                  </div>
-              </div>
-            </>
-          )}
+            {/* Right Section */}
+            <div className="flex items-center gap-2 justify-end flex-shrink-0">
+                {showViewSelector && (
+                    <div className="flex items-center bg-gray-100 rounded-xl p-0.5">
+                         <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
+                             <PostCardIcon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'default'} />
+                         </Button>
+                         <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={mainView === 'grid' && gridView === 'compact'}>
+                             <Squares3X3Icon className="w-5 h-5" isFilled={mainView === 'grid' && gridView === 'compact'} />
+                         </Button>
+                    </div>
+                )}
+
+                {currentAccount && (
+                    <div className="relative">
+                        <Button 
+                            onClick={() => navigateTo('bag')}
+                            variant="ghost"
+                            size="icon"
+                            className={cn("!rounded-xl text-gray-600", view === 'bag' && "text-red-600 bg-red-50")}
+                            aria-label="Shopping Bag"
+                        >
+                            <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                            {bagCount > 0 && (
+                                <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
+                                    {bagCount}
+                                </span>
+                            )}
+                        </Button>
+                    </div>
+                )}
+                
+                {!currentAccount && (
+                    <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
+                )}
+            </div>
+          </div>
+
         </div>
       </header>
     </>
