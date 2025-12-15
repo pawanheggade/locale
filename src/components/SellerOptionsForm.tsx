@@ -7,8 +7,8 @@ const PAYMENT_OPTIONS = ['UPI', 'Credit/Debit Card', 'Cash on Delivery'];
 const DELIVERY_OPTIONS = ['Local Pickup', 'Home Delivery'];
 const CONTACT_OPTIONS: { id: ContactOption, label: string }[] = [
     { id: 'email', label: 'Email' },
-    { id: 'mobile', label: 'Mobile (for calls)' },
-    { id: 'message', label: 'Message (e.g. WhatsApp)' }
+    { id: 'mobile', label: 'Mobile (Voice Call)' },
+    { id: 'message', label: 'Messaging (WhatsApp, etc.)' }
 ];
 
 export interface SellerOptionsState {

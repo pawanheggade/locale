@@ -4,8 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { AccountMenu } from './AccountMenu';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -50,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { currentAccount, bag } = useAuth();
   const { totalActivityCount } = useActivity();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
-  const { navigateTo } = useNavigation();
+  const { navigateTo, handleBack } = useNavigation();
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -169,6 +168,16 @@ export const Header: React.FC<HeaderProps> = ({
           setIsNavDropdownOpen(false);
       }
     },
+    { 
+      id: 'activity',
+      label: 'Activity', 
+      icon: <BellIcon className="w-5 h-5" />,
+      isActive: view === 'activity',
+      onClick: () => {
+          navigateTo('activity');
+          setIsNavDropdownOpen(false);
+      }
+    },
   ];
 
   const sortOptions = [
@@ -251,6 +260,8 @@ export const Header: React.FC<HeaderProps> = ({
         )}
     </div>
   );
+
+  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
 
   return (
     <>
@@ -354,12 +365,13 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Right Section: Tools & Account */}
               <div className="flex items-center gap-2 flex-1 justify-end">
+                  
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
-                           <Button onClick={() => setGridView('default')} variant="ghost" size="icon-sm" className={cn("!rounded-lg", gridView === 'default' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={gridView === 'default'}>
+                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
                                <PostCardIcon className="w-5 h-5" isFilled={gridView === 'default'} />
                            </Button>
-                           <Button onClick={() => setGridView('compact')} variant="ghost" size="icon-sm" className={cn("!rounded-lg", gridView === 'compact' ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={gridView === 'compact'}>
+                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('compact'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'compact') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Compact View" title="Compact View" aria-pressed={gridView === 'compact'}>
                                <Squares3X3Icon className="w-5 h-5" isFilled={gridView === 'compact'} />
                            </Button>
                       </div>
@@ -392,18 +404,29 @@ export const Header: React.FC<HeaderProps> = ({
 
                   <div className="relative">
                        {currentAccount ? (
-                          <AccountMenu
-                              currentAccount={currentAccount}
-                              activityCount={totalActivityCount}
-                              onOpenCreateModal={() => navigateTo('createPost')}
-                              navigateTo={navigateTo}
-                              currentView={view}
-                              handleAccountViewToggle={() => navigateTo('account', { account: currentAccount })}
-                              onEditProfile={() => navigateTo('editProfile', { account: currentAccount })}
-                              onOpenActivityPage={() => navigateTo('activity')}
-                              bagCount={bag.length}
-                              onOpenSubscriptionPage={() => navigateTo('subscription')}
-                          />
+                          <Button
+                              onClick={() => {
+                                  if (isProfileActive) {
+                                      handleBack();
+                                  } else {
+                                      navigateTo('account', { account: currentAccount });
+                                  }
+                              }}
+                              variant="ghost"
+                              size="icon"
+                              className={cn(
+                                  "!rounded-xl text-gray-600",
+                                  isProfileActive && "text-red-600 bg-red-50"
+                              )}
+                              aria-label="My Profile"
+                          >
+                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
+                              {totalActivityCount > 0 && (
+                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
+                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
+                                  </span>
+                              )}
+                          </Button>
                       ) : (
                           <div className="flex items-center gap-2">
                               <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
