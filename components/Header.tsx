@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -125,60 +125,86 @@ export const Header: React.FC<HeaderProps> = ({
       setIsSearchOpen(false);
   };
 
-  const navItems = [
-    { 
-      id: 'markets',
-      label: 'Markets', 
-      icon: <LogoIcon className="w-5 h-5" />,
-      isActive: view === 'all' && mainView === 'grid',
-      onClick: () => {
-        if (view !== 'all') navigateTo('all');
-        onMainViewChange('grid');
-        setIsNavDropdownOpen(false);
-      }
-    },
-    { 
+  const navItems = useMemo(() => {
+    const baseItems: {
+        id: AppView | 'maps';
+        label: string;
+        icon: React.ReactNode;
+        isActive: boolean;
+        onClick: () => void;
+    }[] = [
+      {
+        id: 'all',
+        label: 'Markets',
+        icon: <LogoIcon className="w-5 h-5" />,
+        isActive: view === 'all' && mainView === 'grid',
+        onClick: () => {
+          if (view !== 'all') navigateTo('all');
+          onMainViewChange('grid');
+          setIsNavDropdownOpen(false);
+        }
+      },
+      {
         id: 'maps',
-        label: 'Maps', 
+        label: 'Maps',
         icon: <MapPinIcon className="w-5 h-5" />,
         isActive: view === 'all' && mainView === 'map',
         onClick: () => {
-            if (view !== 'all') navigateTo('all');
-            onMainViewChange('map');
-            setIsNavDropdownOpen(false);
+          if (view !== 'all') navigateTo('all');
+          onMainViewChange('map');
+          setIsNavDropdownOpen(false);
         }
-    },
-    { 
-      id: 'forums',
-      label: 'Forums', 
-      icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
-      isActive: view === 'forums',
-      onClick: () => {
+      },
+      {
+        id: 'forums',
+        label: 'Forums',
+        icon: <ChatBubbleEllipsisIcon className="w-5 h-5" />,
+        isActive: view === 'forums',
+        onClick: () => {
           navigateTo('forums');
           setIsNavDropdownOpen(false);
-      }
-    },
-    { 
-      id: 'likes',
-      label: 'Likes', 
-      icon: <HeartIcon className="w-5 h-5" />,
-      isActive: view === 'likes',
-      onClick: () => {
-          navigateTo('likes');
-          setIsNavDropdownOpen(false);
-      }
-    },
-    { 
-      id: 'activity',
-      label: 'Activity', 
-      icon: <BellIcon className="w-5 h-5" />,
-      isActive: view === 'activity',
-      onClick: () => {
-          navigateTo('activity');
-          setIsNavDropdownOpen(false);
-      }
-    },
-  ];
+        }
+      },
+    ];
+
+    if (currentAccount) {
+        const loggedInItems = [
+            {
+              id: 'likes' as const,
+              label: 'Likes', 
+              icon: <HeartIcon className="w-5 h-5" />,
+              isActive: view === 'likes',
+              onClick: () => {
+                  navigateTo('likes');
+                  setIsNavDropdownOpen(false);
+              }
+            },
+            {
+              id: 'activity' as const,
+              label: 'Activity', 
+              icon: <BellIcon className="w-5 h-5" />,
+              isActive: view === 'activity',
+              onClick: () => {
+                  navigateTo('activity');
+                  setIsNavDropdownOpen(false);
+              }
+            },
+            {
+              id: 'studio' as const,
+              label: 'Studio',
+              icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+              isActive: view === 'studio',
+              onClick: () => {
+                navigateTo('studio');
+                setIsNavDropdownOpen(false);
+              }
+            }
+        ];
+        return [...baseItems, ...loggedInItems];
+    }
+    
+    return baseItems;
+  }, [view, mainView, currentAccount, navigateTo, onMainViewChange]);
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
@@ -260,8 +286,6 @@ export const Header: React.FC<HeaderProps> = ({
         )}
     </div>
   );
-
-  const isProfileActive = view === 'account' && viewingAccount?.id === currentAccount?.id;
 
   return (
     <>
@@ -408,31 +432,7 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
 
                   <div className="relative">
-                       {currentAccount ? (
-                          <Button
-                              onClick={() => {
-                                  if (isProfileActive) {
-                                      handleBack();
-                                  } else {
-                                      navigateTo('account', { account: currentAccount });
-                                  }
-                              }}
-                              variant="ghost"
-                              size="icon"
-                              className={cn(
-                                  "!rounded-xl text-gray-600",
-                                  isProfileActive && "text-red-600 bg-red-50"
-                              )}
-                              aria-label="My Profile"
-                          >
-                              <UserIcon className="w-6 h-6" isFilled={isProfileActive} />
-                              {totalActivityCount > 0 && (
-                                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white animate-badge-pop-in">
-                                      {totalActivityCount > 9 ? '9+' : totalActivityCount}
-                                  </span>
-                              )}
-                          </Button>
-                      ) : (
+                       {!currentAccount && (
                           <div className="flex items-center gap-2">
                               <Button onClick={() => openModal({ type: 'login' })} variant="pill-red" size="sm" className="px-4">Sign in</Button>
                           </div>

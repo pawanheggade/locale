@@ -145,7 +145,7 @@ export const ForumsView: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="mb-4 border-b border-gray-200/80 overflow-x-auto hide-scrollbar">
+            <div className="mb-2 border-b border-gray-200/80 overflow-x-auto hide-scrollbar">
                 <div className="flex space-x-2 pb-1">
                     <TabButton 
                         onClick={() => setActiveCategory('All')} 
@@ -167,7 +167,7 @@ export const ForumsView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-2">
                 <Select 
                     value={sortOption} 
                     onChange={(e) => setSortOption(e.target.value as any)}
