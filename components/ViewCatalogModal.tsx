@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { CatalogItem } from '../types';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
@@ -150,4 +150,3 @@ export const ViewCatalogModal: React.FC<ViewCatalogModalProps> = ({ catalog, acc
         </ModalShell>
     );
 };
-import { useState } from 'react';
