@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from './types';
 import { Header } from './components/Header';
@@ -21,7 +20,6 @@ import { useIsMounted } from './hooks/useIsMounted';
 import { LoadingFallback } from './components/ui/LoadingFallback';
 import { NavigationContext } from './contexts/NavigationContext';
 import { STORAGE_KEYS } from './lib/constants';
-import { SEO } from './components/SEO';
 
 interface HistoryItem {
     view: AppView;
@@ -109,7 +107,7 @@ export const App: React.FC = () => {
         viewingPostId, 
         viewingAccount, 
         viewingForumPostId, 
-        editingAdminPageKey,
+        editingAdminPageKey, 
         scrollPosition: currentScrollPosition,
         filters: filterState,
     }]);
