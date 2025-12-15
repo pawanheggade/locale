@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -16,6 +16,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { isShareAbortError } from '../lib/utils';
 import { SEO } from './SEO';
+import { Select } from './ui/Select';
 
 interface ForumPostDetailViewProps {}
 
@@ -30,6 +31,7 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const [isEditingPost, setIsEditingPost] = useState(false);
     const [editedPostContent, setEditedPostContent] = useState('');
+    const [commentSort, setCommentSort] = useState<'top' | 'newest' | 'oldest'>('top');
     
     const post = getPostWithComments(postId!);
 
@@ -45,6 +47,19 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
         navigateTo('all');
     };
 
+    const sortedComments = useMemo(() => {
+        if (!post) return [];
+        const comments = [...post.comments]; 
+        
+        return comments.sort((a, b) => {
+             switch (commentSort) {
+                case 'newest': return b.timestamp - a.timestamp;
+                case 'oldest': return a.timestamp - b.timestamp;
+                case 'top': return b.score - a.score;
+                default: return 0;
+            }
+        });
+    }, [post, commentSort]);
 
     if (!post) {
         return <div className="text-center py-20"><SpinnerIcon className="w-8 h-8 mx-auto" /></div>;
@@ -189,17 +204,29 @@ export const ForumsPostDetailView: React.FC<ForumPostDetailViewProps> = () => {
             </div>
 
             <div className="mt-8 pt-8 border-t border-gray-200/80">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <ChatBubbleEllipsisIcon className="w-6 h-6" />
-                    {post.commentCount} Comments
-                </h2>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <ChatBubbleEllipsisIcon className="w-6 h-6" />
+                        {post.commentCount} Comments
+                    </h2>
+                    <Select
+                        value={commentSort}
+                        onChange={(e) => setCommentSort(e.target.value as any)}
+                        className="w-auto text-sm"
+                        variant="overlay"
+                    >
+                        <option value="top">Top</option>
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                    </Select>
+                </div>
 
                 <div className="mb-6">
                     <CommentForm postId={post.id} parentId={null} onCommentAdded={() => {}} />
                 </div>
                 
                 <div className="space-y-6">
-                    {post.comments.map(comment => (
+                    {sortedComments.map(comment => (
                         <CommentComponent
                             key={comment.id}
                             comment={comment}

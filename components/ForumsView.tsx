@@ -13,6 +13,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 import { cn } from '../lib/utils';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
+import { Select } from './ui/Select';
 
 interface ForumPostCardProps {
     post: DisplayableForumPost;
@@ -83,6 +84,8 @@ export const ForumsView: React.FC = () => {
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
     
+    const [sortOption, setSortOption] = useState<'newest' | 'top' | 'oldest'>('newest');
+
     const swipeRef = useRef<HTMLDivElement>(null);
     const tabs = useMemo(() => ['All', ...categories], [categories]);
     const [animationClass, setAnimationClass] = useState('');
@@ -114,9 +117,15 @@ export const ForumsView: React.FC = () => {
         return filtered.sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
-            return b.timestamp - a.timestamp;
+            
+            switch (sortOption) {
+                case 'top': return b.score - a.score;
+                case 'oldest': return a.timestamp - b.timestamp;
+                case 'newest': 
+                default: return b.timestamp - a.timestamp;
+            }
         });
-    }, [posts, activeCategory]);
+    }, [posts, activeCategory, sortOption]);
 
     const handleCreatePost = () => {
         if (!currentAccount) {
@@ -128,12 +137,24 @@ export const ForumsView: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 pb-24">
-            <div className="flex items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
-                <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0">
-                    <PlusIcon className="w-5 h-5" />
-                    Discuss
-                </Button>
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <Select 
+                        value={sortOption} 
+                        onChange={(e) => setSortOption(e.target.value as any)}
+                        className="w-auto"
+                        variant="overlay"
+                    >
+                        <option value="newest">Newest</option>
+                        <option value="top">Top</option>
+                        <option value="oldest">Oldest</option>
+                    </Select>
+                    <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0 h-10">
+                        <PlusIcon className="w-5 h-5" />
+                        Discuss
+                    </Button>
+                </div>
             </div>
 
             <div className="mb-6 border-b border-gray-200/80 overflow-x-auto hide-scrollbar">
