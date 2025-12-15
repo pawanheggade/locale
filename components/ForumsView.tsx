@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForum } from '../contexts/ForumContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -175,8 +174,8 @@ export const ForumsView: React.FC = () => {
                     fullWidth={false}
                     menuAlign="right"
                 >
-                    <option value="newest">Newest</option>
-                    <option value="top">Top</option>
+                    <option value="newest">Latest</option>
+                    <option value="top">Trending</option>
                     <option value="oldest">Oldest</option>
                 </Select>
             </div>

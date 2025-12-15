@@ -208,8 +208,8 @@ export const Header: React.FC<HeaderProps> = ({
 
   const sortOptions = [
     { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'popularity-desc', label: 'Popular' },
-    { value: 'date-desc', label: 'Recent' },
+    { value: 'popularity-desc', label: 'Trending' },
+    { value: 'date-desc', label: 'Latest' },
   ];
 
   const placeholder = viewingAccount 

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
@@ -82,9 +83,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   // FIX: Add explicit types to mainSortOptions and granularSortOptions to include the optional 'disabled' property.
   const mainSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
-    { value: 'relevance-desc', label: 'Relevant' },
-    { value: 'popularity-desc', label: 'Popular' },
-    { value: 'date-desc', label: 'Recent' },
+    { value: 'relevance-desc', label: 'Recommended' },
+    { value: 'popularity-desc', label: 'Trending' },
+    { value: 'date-desc', label: 'Latest' },
   ], []);
 
   const granularSortOptions: { value: string; label: string; disabled?: boolean }[] = useMemo(() => [
