@@ -137,27 +137,16 @@ export const ForumsView: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 pb-24">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center justify-between gap-4 mb-6">
                 <h1 className="text-3xl font-bold text-gray-800">Forums</h1>
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <Select 
-                        value={sortOption} 
-                        onChange={(e) => setSortOption(e.target.value as any)}
-                        className="w-32"
-                        variant="overlay"
-                    >
-                        <option value="newest">Newest</option>
-                        <option value="top">Top</option>
-                        <option value="oldest">Oldest</option>
-                    </Select>
-                    <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0 h-10">
-                        <PlusIcon className="w-5 h-5" />
-                        Discuss
-                    </Button>
-                </div>
+                <Button onClick={handleCreatePost} variant="pill-red" className="gap-2 shrink-0 h-10 px-3 sm:px-4">
+                    <PlusIcon className="w-5 h-5" />
+                    <span className="hidden sm:inline">Discuss</span>
+                    <span className="sm:hidden">Post</span>
+                </Button>
             </div>
 
-            <div className="mb-6 border-b border-gray-200/80 overflow-x-auto hide-scrollbar">
+            <div className="mb-4 border-b border-gray-200/80 overflow-x-auto hide-scrollbar">
                 <div className="flex space-x-2 pb-1">
                     <TabButton 
                         onClick={() => setActiveCategory('All')} 
@@ -177,6 +166,19 @@ export const ForumsView: React.FC = () => {
                         </TabButton>
                     ))}
                 </div>
+            </div>
+
+            <div className="flex justify-end mb-4">
+                <Select 
+                    value={sortOption} 
+                    onChange={(e) => setSortOption(e.target.value as any)}
+                    className="w-28 sm:w-32"
+                    variant="overlay"
+                >
+                    <option value="newest">Newest</option>
+                    <option value="top">Top</option>
+                    <option value="oldest">Oldest</option>
+                </Select>
             </div>
 
             <div ref={swipeRef} className="relative overflow-x-hidden">
