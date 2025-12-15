@@ -12,7 +12,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
-import { cn } from '../lib/utils';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
