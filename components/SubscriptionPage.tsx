@@ -148,12 +148,21 @@ export const SubscriptionPage: React.FC = () => {
 
           if (!isCurrentPlan) {
             if (isUpgrade) {
-              if (plan.tier === 'Verified') {
-                  buttonVariant = 'pill-red';
-              } else if (plan.tier === 'Business' || plan.tier === 'Organisation') {
-                  buttonVariant = 'pill-amber';
-              } else if (plan.tier === 'Basic') {
-                  buttonVariant = 'pill-dark';
+              switch (plan.tier) {
+                  case 'Verified':
+                      buttonVariant = 'pill-slate';
+                      break;
+                  case 'Business':
+                      buttonVariant = 'pill-amber';
+                      break;
+                  case 'Organisation':
+                      buttonVariant = 'pill-amber-dark';
+                      break;
+                  case 'Basic':
+                      buttonVariant = 'pill-dark';
+                      break;
+                  default:
+                      buttonVariant = 'pill-red';
               }
             } else if (isDowngrade) {
               buttonVariant = 'destructive';

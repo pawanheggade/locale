@@ -139,7 +139,6 @@ export const StudioPage: React.FC = () => {
                     description="List a new item or service." 
                     icon={<PlusIcon className="w-6 h-6" />} 
                     onClick={handleCreatePost}
-                    className="border-red-100 bg-red-50/30"
                 />
 
                 <StudioCard 

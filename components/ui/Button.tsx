@@ -14,6 +14,8 @@ const buttonVariants = {
     'pill-red': 'bg-red-600 text-white active:bg-red-500 border-transparent',
     'pill-lightred': 'bg-red-400 text-white active:bg-red-300 border-transparent',
     'pill-amber': 'bg-amber-500 text-white active:bg-amber-400 border-transparent',
+    'pill-amber-dark': 'bg-amber-600 text-white active:bg-amber-500 border-transparent',
+    'pill-slate': 'bg-slate-600 text-white active:bg-slate-500 border-transparent',
     'pill-dark': 'bg-gray-900 text-white active:bg-gray-700 border-transparent',
     // Overlay Variants
     overlay: 'bg-transparent text-white border-none shadow-none',
