@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink, ContactOption } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -7,26 +6,17 @@ import { LikeButton } from './LikeButton';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { cn } from '../lib/utils';
 import { 
-    PencilIcon, 
-    DocumentIcon, 
-    ChartBarIcon, 
     GlobeAltIcon, 
     PaperAirplaneIcon, 
     InstagramIcon, 
     YouTubeIcon, 
     ChevronDownIcon,
-    UserPlusIcon,
-    BuildingStorefrontIcon
+    UserPlusIcon
 } from './Icons';
 
 interface ProfileActionsProps {
     account: Account;
     isOwnAccount: boolean;
-    canHaveCatalog: boolean;
-    onEditAccount: () => void;
-    onOpenCatalog: () => void;
-    onOpenAnalytics: () => void;
-    onOpenStudio: () => void;
     socialLinks: SocialLink[];
     onShare: () => void;
     contactMethods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[];
@@ -199,8 +189,7 @@ const PrimaryContactDropdown = ({
 }
 
 export const ProfileActions: React.FC<ProfileActionsProps> = ({ 
-    account, isOwnAccount, canHaveCatalog, onEditAccount, onOpenCatalog, onOpenAnalytics, onOpenStudio,
-    socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, onUpdateAccount
+    account, isOwnAccount, socialLinks, onShare, contactMethods, onContactAction, isLiked, onToggleLike, onUpdateAccount
 }) => {
     
     // This state now drives the UI and triggers saves.
@@ -217,8 +206,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
         // Persist the change.
         onUpdateAccount({ preferredContactMethod: key as ContactOption });
     };
-
-    const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
 
     // Calculate Primary Contact based on the current state.
     const primaryContact = 
@@ -275,21 +262,6 @@ export const ProfileActions: React.FC<ProfileActionsProps> = ({
                     onContactAction={onContactAction}
                 />
             </div>
-
-            {/* Right-aligned Owner Management Buttons - Replaced with Studio Button */}
-            {isOwnAccount && (
-                <div className="flex gap-2 w-full sm:w-auto items-center pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    <Button 
-                        onClick={onOpenStudio} 
-                        variant="overlay-dark" 
-                        size="sm"
-                        className="flex-1 sm:flex-none justify-center bg-gray-100 border-transparent text-gray-700 rounded-xl gap-2 px-4"
-                    >
-                        <BuildingStorefrontIcon className="w-5 h-5" />
-                        <span>Studio</span>
-                    </Button>
-                </div>
-            )}
         </div>
     );
 };

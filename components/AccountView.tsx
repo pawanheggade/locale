@@ -445,11 +445,6 @@ export const AccountView: React.FC = () => {
                     <ProfileActions
                         account={account}
                         isOwnAccount={isOwnAccount}
-                        canHaveCatalog={canHaveCatalog}
-                        onEditAccount={() => navigateTo('editProfile', { account })}
-                        onOpenCatalog={() => navigateTo('manageCatalog', { account })}
-                        onOpenAnalytics={() => navigateTo('accountAnalytics', { account })}
-                        onOpenStudio={() => navigateTo('studio')}
                         socialLinks={sortedSocialLinks}
                         onShare={handleShareProfile}
                         contactMethods={contactMethods}

@@ -17,7 +17,8 @@ import {
     ChevronRightIcon,
     UserIcon,
     CashIcon,
-    GlobeAltIcon
+    GlobeAltIcon,
+    BuildingStorefrontIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
@@ -114,7 +115,8 @@ export const StudioPage: React.FC = () => {
                     alt={currentAccount.name} 
                     size="lg" 
                     tier={currentAccount.subscription.tier}
-                    className="border-2 border-white shadow-sm"
+                    className="border-2 border-white shadow-sm cursor-pointer active:scale-95 transition-transform"
+                    onClick={() => navigateTo('account', { account: currentAccount })}
                 />
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Studio</h1>

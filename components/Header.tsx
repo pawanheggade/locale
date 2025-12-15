@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
@@ -165,6 +165,16 @@ export const Header: React.FC<HeaderProps> = ({
       isActive: view === 'likes',
       onClick: () => {
           navigateTo('likes');
+          setIsNavDropdownOpen(false);
+      }
+    },
+    { 
+      id: 'studio',
+      label: 'Studio', 
+      icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+      isActive: view === 'studio',
+      onClick: () => {
+          navigateTo('studio');
           setIsNavDropdownOpen(false);
       }
     },
@@ -354,7 +364,7 @@ export const Header: React.FC<HeaderProps> = ({
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive && item.id !== 'studio', className: "w-5 h-5" })}
                                               {item.label}
                                           </div>
                                           {item.badgeCount > 0 && (
