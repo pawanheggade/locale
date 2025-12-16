@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { XMarkIcon, ChevronLeftIcon } from '../Icons';
+import { ChevronLeftIcon } from '../Icons';
 import { Button } from './Button';
 import { useIsMounted } from '../../hooks/useIsMounted';
 

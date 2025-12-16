@@ -1,6 +1,5 @@
 
 import { Post } from '../types';
-import { formatCurrency } from './formatters';
 import { getBadgeSvg, TIER_STYLES, drawLogoOnCanvas } from '../lib/utils';
 
 export const fileToDataUrl = (file: File): Promise<string> => {
