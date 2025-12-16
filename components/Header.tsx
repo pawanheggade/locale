@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -205,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, [view, mainView, currentAccount, navigateTo, onMainViewChange]);
 
   const sortOptions = [
-    { value: 'relevance-desc', label: 'Relevant' },
+    { value: 'relevance-desc', label: 'Recommended' },
     { value: 'popularity-desc', label: 'Trending' },
     { value: 'date-desc', label: 'Latest' },
   ];
