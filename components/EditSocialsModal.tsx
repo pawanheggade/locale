@@ -1,11 +1,10 @@
-
 import React, { useState, useReducer, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ModalShell from './ModalShell';
 import { InputWithIcon } from './InputWithIcon';
 import { FormField } from './FormField';
 import { ModalFooter } from './ModalFooter';
-import { GlobeAltIcon, YouTubeIcon, InstagramIcon } from './Icons';
+import { GlobeAltIcon, YouTubeIcon, InstagramIcon, XIcon } from './Icons';
 import { SocialPlatform, SocialLink } from '../types';
 import { URL_REGEX } from '../utils/validation';
 
@@ -17,6 +16,7 @@ const initialState = {
     website: '',
     instagram: '',
     youtube: '',
+    x: '',
 };
 
 type FormState = typeof initialState;
@@ -40,7 +40,7 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
   if (currentAccount?.socialLinks) {
       currentAccount.socialLinks.forEach(link => {
           if (link.platform in initialSocials) {
-              initialSocials[link.platform] = link.url;
+              initialSocials[link.platform as keyof typeof initialSocials] = link.url;
           }
       });
   }
@@ -55,7 +55,7 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
 
     // Validate
     const newErrors: Record<string, string> = {};
-    (Object.keys(state) as SocialPlatform[]).forEach(platform => {
+    (Object.keys(state) as (keyof FormState)[]).forEach(platform => {
         const url = state[platform].trim();
         if (url && !URL_REGEX.test(url)) {
             newErrors[platform] = 'Please enter a valid URL.';
@@ -69,10 +69,10 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
 
     setIsSubmitting(true);
 
-    const platformOrder: SocialPlatform[] = ['website', 'youtube', 'instagram'];
+    const platformOrder: SocialPlatform[] = ['website', 'instagram', 'x', 'youtube'];
     const socialLinks: SocialLink[] = platformOrder
-        .filter(platform => state[platform] && state[platform].trim() !== '')
-        .map(platform => ({ platform, url: state[platform].trim() }));
+        .filter(platform => state[platform as keyof FormState] && state[platform as keyof FormState].trim() !== '')
+        .map(platform => ({ platform, url: state[platform as keyof FormState].trim() }));
 
     updateAccountDetails({ ...currentAccount, socialLinks });
     
@@ -124,6 +124,15 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
                     icon={<InstagramIcon className="w-5 h-5 text-gray-600"/>} 
                     value={state.instagram} 
                     onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', payload: e.target.value })} 
+                />
+            </FormField>
+            
+            <FormField id="social-x" label="" error={errors.x}>
+                <InputWithIcon 
+                    placeholder="X (formerly Twitter) URL" 
+                    icon={<XIcon className="w-5 h-5 text-gray-600"/>} 
+                    value={state.x} 
+                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'x', payload: e.target.value })} 
                 />
             </FormField>
         </form>
