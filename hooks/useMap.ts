@@ -35,8 +35,11 @@ export const useMap = (mapRef: React.RefObject<HTMLDivElement>, options: UseMapO
         zoomControl: memoizedOptions.zoomControl ?? true, // Default to true
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      // Using CartoDB Voyager tiles for a clean, professional, Mappls-like aesthetic
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
       }).addTo(map);
 
       mapInstanceRef.current = map;
