@@ -173,17 +173,17 @@ export const StudioPage: React.FC = () => {
                 />
                 
                 <StudioCard 
-                    title="Edit Profile" 
-                    description="Update bio, contact info, and more." 
-                    icon={<PencilIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('editProfile', { account: currentAccount })}
-                />
-
-                <StudioCard 
                     title="Socials" 
                     description="Manage your social media links." 
                     icon={<GlobeAltIcon className="w-6 h-6" />} 
                     onClick={() => openModal({ type: 'editSocials' })}
+                />
+                
+                <StudioCard 
+                    title="Edit Profile" 
+                    description="Update bio, contact info, and more." 
+                    icon={<PencilIcon className="w-6 h-6" />} 
+                    onClick={() => navigateTo('editProfile', { account: currentAccount })}
                 />
                 
                 <StudioCard 
