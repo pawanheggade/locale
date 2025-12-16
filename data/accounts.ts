@@ -130,6 +130,7 @@ export const mockAccounts: Account[] = [
     contactOptions: ['email', 'mobile', 'message'],
     socialLinks: [
         { platform: 'instagram', url: 'https://instagram.com/localeapp' },
+        { platform: 'x', url: 'https://x.com/localeapp' },
         { platform: 'website', url: 'https://locale.app' }
     ],
     likedAccountIds: [],

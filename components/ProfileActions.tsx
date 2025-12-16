@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Account, SocialPlatform, SocialLink, ContactOption } from '../types';
 import { Button, ButtonProps } from './ui/Button';
@@ -11,7 +10,8 @@ import {
     InstagramIcon, 
     YouTubeIcon, 
     ChevronDownIcon,
-    UserPlusIcon
+    UserPlusIcon,
+    XIcon
 } from './Icons';
 
 interface ProfileActionsProps {
@@ -32,6 +32,7 @@ const getSocialIcon = (platform: SocialPlatform) => {
         case 'instagram': return <InstagramIcon className={className} />;
         case 'youtube': return <YouTubeIcon className={className} />;
         case 'website': return <GlobeAltIcon className={className} />;
+        case 'x': return <XIcon className={className} />;
         default: return <GlobeAltIcon className={className} />;
     }
 };
