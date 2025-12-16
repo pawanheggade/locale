@@ -11,7 +11,7 @@ import { usePosts } from './contexts/PostsContext';
 import { usePersistentState } from './hooks/usePersistentState';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import ErrorBoundary from './components/ErrorBoundary';
-import { ModalRenderer } from './components/ModalRenderer';
+import { AppModals } from './components/AppModals';
 import { GuestPrompt } from './components/GuestPrompt';
 import { cn } from './lib/utils';
 import { reverseGeocode, haversineDistance } from './utils/geocoding';
@@ -472,10 +472,7 @@ export const App: React.FC = () => {
           </div>
         </main>
         
-        <ModalRenderer 
-          activeModal={activeModal} 
-          closeModal={closeModal}
-          openModal={openModal}
+        <AppModals 
           isFindingNearby={isFindingNearby}
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}

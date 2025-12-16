@@ -1,11 +1,10 @@
 
 import React, { useRef } from 'react';
-import { Account, Post, DisplayablePost, ForumPost, ForumComment, ModalState, SavedSearchFilters } from '../types';
+import { ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { usePosts } from '../contexts/PostsContext';
-import { useForum } from '../contexts/ForumContext';
-import { useFilters } from '../contexts/FiltersContext';
+import { useUI } from '../contexts/UIContext';
 import { useActivity } from '../contexts/ActivityContext';
+import { useFilters } from '../contexts/FiltersContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { ConfirmationModal } from './ConfirmationModal';
 import { FindNearbyModal } from './FindNearbyModal';
@@ -31,18 +30,14 @@ import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 import { SEO } from './SEO';
 
-interface ModalRendererProps {
-    activeModal: ModalState | null;
-    closeModal: () => void;
-    openModal: (modalState: ModalState) => void;
+interface AppModalsProps {
     isFindingNearby: boolean;
     handleFindNearby: (coords: { lat: number, lng: number }) => Promise<void>;
     userLocation: { lat: number; lng: number } | null;
     onEnableLocation: () => Promise<void>;
 }
 
-export const ModalRenderer: React.FC<ModalRendererProps> = ({ 
-    activeModal, closeModal, openModal, 
+export const AppModals: React.FC<AppModalsProps> = ({ 
     isFindingNearby, handleFindNearby, userLocation, onEnableLocation
 }) => {
     const { 
@@ -52,6 +47,8 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
         addToBag, removeBagItem, savedSearches, addSavedSearch, deleteSavedSearch, 
         addFeedback, termsContent, privacyContent,
     } = useAuth();
+    
+    const { activeModal, closeModal, openModal } = useUI();
     
     const { 
       priceAlerts, setPriceAlert, deletePriceAlert 
@@ -76,9 +73,47 @@ export const ModalRenderer: React.FC<ModalRendererProps> = ({
     };
 
     const publicModals = new Set(['login', 'createAccount', 'forgotPassword', 'termsOfService', 'privacyPolicy', 'filterPanel', 'findNearby', 'sharePost', 'viewCatalog', 'profileQR', 'viewPost']);
+    
+    // Redirect to login if a protected modal is requested without an account
     if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
-        openModal({ type: 'login' });
-        return null;
+        // We need to defer this slightly or ensure we don't cause a loop. 
+        // Ideally, the triggering component checks this, but this is a safety net.
+        // For render purity, we'll return null here and effect-based redirect would be better, 
+        // but typically openModal handles the state. 
+        // We'll render the Login modal instead.
+        return (
+             <ModalShell 
+                panelRef={modalRef} 
+                onClose={closeModal} 
+                title={
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
+                        <div className="flex justify-end">
+                            <Logo className="text-3xl sm:text-4xl" />
+                        </div>
+                        <div className="h-10 w-px bg-gray-900/10"></div>
+                        <div className="flex flex-col items-start justify-center">
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
+                        </div>
+                    </div>
+                }
+                panelClassName="w-full max-w-md" 
+                titleId="login-modal-title"
+            >
+                <div className="p-6">
+                    <SignInScreen
+                        accounts={accounts}
+                        onLogin={(account, rememberMe) => { login(account, rememberMe); closeModal(); }}
+                        onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
+                        onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
+                        onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
+                        onOpenSellerAccountModal={() => openModal({ type: 'createAccount', data: { isSeller: true } })}
+                        onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
+                        onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
+                    />
+                </div>
+            </ModalShell>
+        );
     }
 
     if (!activeModal) {
