@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -28,7 +27,8 @@ const StudioCard: React.FC<{
     onClick: () => void;
     badgeCount?: number;
     className?: string;
-}> = ({ title, description, icon, onClick, badgeCount, className }) => (
+    proFeature?: boolean;
+}> = ({ title, description, icon, onClick, badgeCount, className, proFeature }) => (
     <div 
         onClick={onClick}
         className={cn(
@@ -40,8 +40,15 @@ const StudioCard: React.FC<{
             {icon}
         </div>
         <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">{title}</h3>
-            <p className="text-sm text-gray-600 truncate">{description}</p>
+            <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-600 transition-colors">{title}</h3>
+                {proFeature && (
+                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full uppercase">
+                        Subscribe
+                    </span>
+                )}
+            </div>
+            <p className="text-sm text-gray-600 truncate mt-0.5">{description}</p>
         </div>
         <div className="flex-shrink-0 flex items-center gap-2">
             {badgeCount !== undefined && badgeCount > 0 && (
@@ -63,6 +70,7 @@ export const StudioPage: React.FC = () => {
 
     if (!currentAccount) return null;
 
+    const isPersonalTier = currentAccount.subscription.tier === 'Personal';
     const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(currentAccount.subscription.tier);
     const canHaveCatalog = isPaidTier;
     const isAdmin = currentAccount.role === 'admin';
@@ -138,6 +146,7 @@ export const StudioPage: React.FC = () => {
                     description="List a new item or service." 
                     icon={<PlusIcon className="w-6 h-6" />} 
                     onClick={handleCreatePost}
+                    proFeature={isPersonalTier}
                 />
 
                 <StudioCard 
@@ -152,6 +161,7 @@ export const StudioPage: React.FC = () => {
                     description="View performance insights." 
                     icon={<ChartBarIcon className="w-6 h-6" />} 
                     onClick={handleAnalyticsClick}
+                    proFeature={!isPaidTier}
                 />
 
                 <StudioCard 
@@ -159,6 +169,7 @@ export const StudioPage: React.FC = () => {
                     description="Manage your product catalog." 
                     icon={<DocumentIcon className="w-6 h-6" />} 
                     onClick={handleCatalogClick}
+                    proFeature={!canHaveCatalog}
                 />
                 
                 <StudioCard 

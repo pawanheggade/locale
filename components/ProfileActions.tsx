@@ -88,11 +88,11 @@ const ConnectDropdown = ({
                 size="icon"
                 title="More actions"
                 className={cn(
-                    "rounded-xl border-gray-300 text-gray-700",
+                    "rounded-xl border-black text-black",
                     isOpen ? 'bg-gray-100' : ''
                 )}
             >
-                <ChevronDownIcon className="w-5 h-5 text-gray-500" />
+                <ChevronDownIcon className="w-5 h-5 text-black" />
             </Button>
             {isOpen && (
                 <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-auto bg-white rounded-xl border border-gray-100 shadow-lg z-50 animate-zoom-in overflow-hidden origin-top-right sm:origin-top-left">
