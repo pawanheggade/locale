@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { SpinnerIcon, MapPinIcon, CrosshairsIcon } from './Icons';
+import { SpinnerIcon, CrosshairsIcon } from './Icons';
 import LocationPickerMap from './LocationPickerMap';
 import ModalShell from './ModalShell';
 import LocationInput from './LocationInput';

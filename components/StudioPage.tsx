@@ -16,7 +16,6 @@ import {
     UserIcon,
     CashIcon,
     GlobeAltIcon,
-    BuildingStorefrontIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';

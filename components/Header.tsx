@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, UserIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
