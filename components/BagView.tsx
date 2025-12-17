@@ -1,10 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
 import { TrashIcon, ShoppingBagIcon, PlusIcon, PencilIcon, DocumentIcon, SpinnerIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useUserData } from '../contexts/UserDataContext';
 import { Button } from './ui/Button';
 import { useUI } from '../contexts/UIContext';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/Accordion';
@@ -109,7 +108,7 @@ export const BagView: React.FC = () => {
     renameSavedList,
     addListToBag,
     deleteListAndMoveItems,
-  } = useAuth();
+  } = useUserData();
   const { findPostById } = usePosts();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();

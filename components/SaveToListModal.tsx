@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useUserData } from '../contexts/UserDataContext';
 import ModalShell from './ModalShell';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -12,7 +12,7 @@ interface SaveToListModalProps {
 }
 
 const SaveToListModal: React.FC<SaveToListModalProps> = ({ bagItemId, onClose }) => {
-  const { bag, savedLists, createSavedList, saveItemToLists } = useAuth();
+  const { bag, savedLists, createSavedList, saveItemToLists } = useUserData();
   const modalRef = useRef<HTMLDivElement>(null);
   
   const itemToSave = bag.find(item => item.id === bagItemId);
