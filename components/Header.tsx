@@ -294,14 +294,14 @@ export const Header: React.FC<HeaderProps> = ({
         !isVisible && '-translate-y-full'
       )}>
         <div className={cn(
-            'px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-all duration-300',
+            'px-4 sm:px-6 lg:px-8 flex items-center gap-4 transition-all duration-300',
             isScrolled ? 'h-14' : 'h-16'
         )}>
           {isTabletOrDesktop ? (
             // --- DESKTOP LAYOUT ---
-            <>
+            <div className="flex items-center w-full gap-4">
               {/* Left Section: Logo, Nav, Back */}
-              <div className="flex items-center gap-4 shrink-0">
+              <div className="flex flex-1 items-center gap-4 justify-start">
                   {onBack && (
                       <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
                           <ChevronLeftIcon className="w-6 h-6" />
@@ -345,7 +345,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Center Section: Search Bar */}
-              <div className="flex-1 flex justify-center min-w-0">
+              <div className="flex-shrink-0 flex justify-center">
                   <SearchBar
                       searchQuery={filterState.searchQuery}
                       onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
@@ -365,7 +365,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Right Section: Toggles, Bag, Sign In */}
-              <div className="flex items-center gap-2 shrink-0 justify-end">
+              <div className="flex flex-1 items-center gap-2 justify-end">
                   {showViewSelector && (
                       <div className="hidden sm:flex items-center bg-gray-100 rounded-xl p-0.5">
                           <Button onClick={() => { if (mainView === 'map') onMainViewChange('grid'); setGridView('default'); }} variant="ghost" size="icon-sm" className={cn("!rounded-lg", (mainView === 'grid' && gridView === 'default') ? "bg-red-100 text-red-600" : "text-gray-500")} aria-label="Default View" title="Default View" aria-pressed={mainView === 'grid' && gridView === 'default'}>
@@ -400,7 +400,7 @@ export const Header: React.FC<HeaderProps> = ({
                       </div>
                   )}
               </div>
-            </>
+            </div>
           ) : isSearchOpen ? (
             // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
