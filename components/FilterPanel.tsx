@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useMemo } from 'react';
 import { PostType, PostCategory, Account } from '../types';
 import { XCircleIcon, StarIcon, MapPinIcon } from './Icons';
@@ -231,13 +232,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           <hr className="border-gray-300" />
 
-          <FilterSection title="Status" isActive={filterState.filterExpiringSoon || filterState.filterShowExpired}>
+          <FilterSection title="Status" isActive={filterState.filterOnSale || filterState.filterExpiringSoon || filterState.filterShowExpired}>
             <div className="space-y-4 pt-2">
               {(
                 [
+                  { id: 'filter-on-sale', label: 'On Sale', checked: filterState.filterOnSale, action: 'SET_FILTER_ON_SALE' },
                   { id: 'filter-expiring-soon', label: 'Expiring Soon', checked: filterState.filterExpiringSoon, action: 'SET_FILTER_EXPIRING_SOON' },
                   { id: 'filter-show-expired', label: 'Show Expired', checked: filterState.filterShowExpired, action: 'SET_FILTER_SHOW_EXPIRED' },
-                ] as { id: string; label: string; checked: boolean; action: 'SET_FILTER_EXPIRING_SOON' | 'SET_FILTER_SHOW_EXPIRED' }[]
+                ] as { id: string; label: string; checked: boolean; action: 'SET_FILTER_ON_SALE' | 'SET_FILTER_EXPIRING_SOON' | 'SET_FILTER_SHOW_EXPIRED' }[]
               ).map(({id, label, checked, action}) => (
                 <div key={id} className="relative flex items-start">
                     <div className="flex h-6 items-center">
