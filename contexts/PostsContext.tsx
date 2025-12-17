@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Post, PostCategory, DisplayablePost } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -17,6 +16,8 @@ const initialPriceUnits = ['Fixed', 'Hour', 'Day', 'Week', 'Month', 'Session', '
 interface PostsContextType {
   posts: DisplayablePost[];
   archivedPosts: DisplayablePost[];
+  postsByAuthorId: Map<string, DisplayablePost[]>;
+  archivedPostsByAuthorId: Map<string, DisplayablePost[]>;
   categories: PostCategory[];
   allAvailableTags: string[];
   priceUnits: string[];
@@ -64,6 +65,27 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return rawArchivedPosts.map(p => ({ ...p, author: accountsById.get(p.authorId) }));
     }, [rawArchivedPosts, accountsById]);
 
+    const postsByAuthorId = useMemo(() => {
+        const map = new Map<string, DisplayablePost[]>();
+        posts.forEach(post => {
+            if (!post.authorId) return;
+            const authorPosts = map.get(post.authorId) || [];
+            authorPosts.push(post);
+            map.set(post.authorId, authorPosts);
+        });
+        return map;
+    }, [posts]);
+
+    const archivedPostsByAuthorId = useMemo(() => {
+        const map = new Map<string, DisplayablePost[]>();
+        archivedPosts.forEach(post => {
+            if (!post.authorId) return;
+            const authorPosts = map.get(post.authorId) || [];
+            authorPosts.push(post);
+            map.set(post.authorId, authorPosts);
+        });
+        return map;
+    }, [archivedPosts]);
 
     const { 
         addCategory, 
@@ -232,13 +254,13 @@ export const PostsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [findPostById, setRawPosts]);
     
     const value = useMemo(() => ({
-        posts, archivedPosts, categories, allAvailableTags, priceUnits,
+        posts, archivedPosts, postsByAuthorId, archivedPostsByAuthorId, categories, allAvailableTags, priceUnits,
         findPostById, refreshPosts, createPost, addPostSilently, updatePost, archivePost, unarchivePost, deletePostPermanently,
         togglePinPost,
         addCategory, updateCategory, deleteCategory,
         addPriceUnit, updatePriceUnit, deletePriceUnit,
     }), [
-        posts, archivedPosts, categories, allAvailableTags, priceUnits,
+        posts, archivedPosts, postsByAuthorId, archivedPostsByAuthorId, categories, allAvailableTags, priceUnits,
         findPostById, refreshPosts, createPost, addPostSilently, updatePost, archivePost, unarchivePost, deletePostPermanently,
         togglePinPost,
         addCategory, updateCategory, deleteCategory,

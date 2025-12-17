@@ -13,10 +13,9 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { LoadingFallback } from './components/ui/LoadingFallback';
 import { NavigationContext } from './contexts/NavigationContext';
 import { useAppNavigation } from './hooks/useAppNavigation';
-// FIX: Import 'useAuth' from './contexts/AuthContext' to resolve missing name error.
 import { useAuth } from './contexts/AuthContext';
-// FIX: Import 'usePullToRefresh' from './hooks/usePullToRefresh' to resolve missing name error.
 import { usePullToRefresh } from './hooks/usePullToRefresh';
+import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
 
 export const App: React.FC = () => {
   const { currentAccount } = useAuth(); // Still needed for GuestPrompt
@@ -38,7 +37,6 @@ export const App: React.FC = () => {
   } = useAppNavigation({ mainContentRef });
   
   const {
-    isFindingNearby,
     handleFindNearby,
     userLocation,
     handleEnableLocation,
@@ -59,6 +57,7 @@ export const App: React.FC = () => {
 
   return (
     <NavigationContext.Provider value={navigationContextValue}>
+      <GlobalLoadingIndicator />
       <div className="h-screen flex flex-col">
         <Header
           onSearchSubmit={navigationContextValue.handleSearchSubmit}
@@ -66,7 +65,6 @@ export const App: React.FC = () => {
           onRemoveRecentSearch={navigationContextValue.handleRemoveRecentSearch}
           onClearRecentSearches={navigationContextValue.handleClearRecentSearches}
           onGoHome={navigationContextValue.handleGoHome}
-          onRefresh={handleRefresh}
           viewingAccount={navigationContextValue.viewingAccount}
           isScrolled={isScrolled}
           isVisible={isHeaderVisible}
@@ -109,7 +107,6 @@ export const App: React.FC = () => {
         </main>
         
         <AppModals 
-          isFindingNearby={isFindingNearby}
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
           onEnableLocation={handleEnableLocation}

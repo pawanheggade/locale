@@ -196,6 +196,7 @@ export interface ConfirmationModalData {
   onConfirm: () => void | Promise<void>;
   confirmText?: string;
   confirmClassName?: string;
+  loadingKey?: string;
 }
 
 export type ModalState =
@@ -255,7 +256,6 @@ export interface FiltersState {
   filterLast7Days: boolean;
   filterDistance: number;
   isAiSearchEnabled: boolean;
-  isAiSearching: boolean;
   aiSmartFilterResults: Array<{ id: string; reasoning: string }> | null;
   filterOnSale: boolean;
 }
@@ -291,7 +291,6 @@ export type FilterAction =
   | { type: 'SET_FILTER_LAST_7_DAYS'; payload: boolean }
   | { type: 'SET_FILTER_DISTANCE'; payload: number }
   | { type: 'SET_AI_SEARCH_ENABLED'; payload: boolean }
-  | { type: 'SET_AI_SEARCHING'; payload: boolean }
   | { type: 'SET_AI_RESULTS'; payload: Array<{ id: string; reasoning: string }> | null }
   | { type: 'SET_FILTER_ON_SALE'; payload: boolean }
   | { type: 'CLEAR_FILTERS' }

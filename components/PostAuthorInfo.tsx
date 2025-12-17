@@ -48,7 +48,7 @@ export const PostAuthorInfo: React.FC<PostAuthorInfoProps> = ({ author, size = '
           <div className="truncate flex-1 flex flex-col">
             <div 
                 onClick={handleProfileClick} 
-                className="cursor-pointer group focus:outline-none"
+                className="cursor-pointer group focus:outline-none transition-opacity active:opacity-75"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleProfileClick(e as any)}

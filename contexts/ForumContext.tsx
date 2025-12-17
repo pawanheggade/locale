@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useContext, useMemo, useCallback, useState } from 'react';
 import { ForumPost, ForumComment, DisplayableForumPost, DisplayableForumComment } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -56,8 +54,28 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         shouldSort: true
     });
 
+    const commentsByPostId = useMemo(() => {
+        const map = new Map<string, ForumComment[]>();
+        comments.forEach(comment => {
+            const postComments = map.get(comment.postId) || [];
+            postComments.push(comment);
+            map.set(comment.postId, postComments);
+        });
+        return map;
+    }, [comments]);
+
+    const commentCountByPostId = useMemo(() => {
+        const map = new Map<string, number>();
+        commentsByPostId.forEach((postComments, postId) => {
+            map.set(postId, postComments.length);
+        });
+        return map;
+    }, [commentsByPostId]);
+
+    const rawPostsById = useMemo(() => new Map(rawPosts.map(p => [p.id, p])), [rawPosts]);
+
     const getPostComments = useCallback((postId: string): DisplayableForumComment[] => {
-        const postComments = comments.filter(c => c.postId === postId);
+        const postComments = commentsByPostId.get(postId) || [];
         
         const buildCommentTree = (parentId: string | null): DisplayableForumComment[] => {
             return postComments
@@ -76,20 +94,20 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
 
         return buildCommentTree(null);
-    }, [comments, accountsById]);
+    }, [commentsByPostId, accountsById]);
 
     const findForumPostById = useCallback((postId: string): ForumPost | undefined => {
-        return rawPosts.find(p => p.id === postId);
-    }, [rawPosts]);
+        return rawPostsById.get(postId);
+    }, [rawPostsById]);
 
     const getPostWithComments = useCallback((postId: string): DisplayableForumPost | null => {
-        const post = rawPosts.find(p => p.id === postId);
+        const post = rawPostsById.get(postId);
         if (!post) return null;
 
         const author = accountsById.get(post.authorId);
         const postComments = getPostComments(postId);
         const score = post.upvotes.length - post.downvotes.length;
-        const commentCount = comments.filter(c => c.postId === postId).length;
+        const commentCount = commentCountByPostId.get(postId) || 0;
 
         return {
             ...post,
@@ -98,7 +116,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             score,
             commentCount
         };
-    }, [rawPosts, comments, accountsById, getPostComments]);
+    }, [rawPostsById, accountsById, getPostComments, commentCountByPostId]);
     
     const posts = useMemo(() => {
         return rawPosts
@@ -141,7 +159,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         
         // --- Notification Logic ---
         const { postId, parentId } = commentData;
-        const post = rawPosts.find(p => p.id === postId);
+        const post = rawPostsById.get(postId);
         if (!post) return;
 
         if (parentId) {
@@ -166,7 +184,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 });
             }
         }
-    }, [currentAccount, setComments, openModal, addNotification, rawPosts, comments]);
+    }, [currentAccount, setComments, openModal, addNotification, rawPostsById, comments]);
 
     const updateVotes = <T extends ForumPost | ForumComment>(items: T[], id: string, vote: 'up' | 'down'): T[] => {
         if (!currentAccount) {
@@ -249,7 +267,7 @@ export const ForumProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateCategory,
         deleteCategory,
     }), [
-        posts, comments, categories, activeCategory,
+        posts, comments, categories, activeCategory, setActiveCategory,
         getPostWithComments, findForumPostById, getPostComments, addPost, addComment,
         toggleVote, updatePost, updateComment, deletePost, deleteComment,
         addCategory, updateCategory, deleteCategory,

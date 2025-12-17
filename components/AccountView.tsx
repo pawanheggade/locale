@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
@@ -53,7 +52,7 @@ export const AccountView: React.FC = () => {
   const { posts: allForumPosts } = useForum();
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
   const { currentAccount, toggleLikeAccount, updateAccountDetails } = useAuth();
-  const { posts, archivedPosts } = usePosts();
+  const { postsByAuthorId, archivedPostsByAuthorId } = usePosts();
   
   if (!account) {
     return <div className="p-8 text-center">Account not found.</div>;
@@ -63,9 +62,9 @@ export const AccountView: React.FC = () => {
   const isLiked = currentAccount?.likedAccountIds?.includes(account.id) ?? false;
 
   // --- DATA PREPARATION ---
-  const accountPosts = useMemo(() => posts.filter(post => post.authorId === account.id), [posts, account.id]);
+  const accountPosts = useMemo(() => postsByAuthorId.get(account.id) || [], [postsByAuthorId, account.id]);
   const userForumPosts = useMemo(() => allForumPosts.filter(post => post.authorId === account.id).sort((a, b) => b.timestamp - a.timestamp), [allForumPosts, account.id]);
-  const accountArchivedPosts = useMemo(() => isOwnAccount ? archivedPosts.filter(post => post.authorId === account.id) : [], [archivedPosts, account.id, isOwnAccount]);
+  const accountArchivedPosts = useMemo(() => isOwnAccount ? (archivedPostsByAuthorId.get(account.id) || []) : [], [archivedPostsByAuthorId, account.id, isOwnAccount]);
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
   const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   
@@ -430,7 +429,7 @@ export const AccountView: React.FC = () => {
                                 showOnMap(account); 
                             }}
                             className={cn(
-                                "flex items-center gap-1.5 group min-w-0 transition-colors",
+                                "flex items-center gap-1.5 group min-w-0",
                                 account.coordinates ? "cursor-pointer text-red-600 hover:text-red-700 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
                             )}
                             title={account.coordinates ? "Show on map" : "No map location available"}

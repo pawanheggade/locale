@@ -9,7 +9,7 @@ const buttonVariants = {
     destructive: 'bg-red-100 text-red-700 border border-red-200',
     outline: 'border border-gray-300 bg-white text-gray-600',
     secondary: 'bg-gray-50 text-gray-600 border border-gray-300',
-    ghost: 'border border-transparent bg-transparent text-gray-600',
+    ghost: 'border border-transparent bg-transparent text-gray-600 hover:bg-gray-100 active:bg-gray-200',
     link: 'text-red-600 underline-offset-4',
     'pill-red': 'bg-red-600 text-white active:bg-red-500 border-transparent',
     'pill-lightred': 'bg-red-400 text-white active:bg-red-300 border-transparent',
@@ -18,9 +18,9 @@ const buttonVariants = {
     'pill-slate': 'bg-slate-600 text-white active:bg-slate-500 border-transparent',
     'pill-dark': 'bg-gray-900 text-white active:bg-gray-700 border-transparent',
     // Overlay Variants
-    overlay: 'bg-transparent text-white border-none shadow-none',
-    'overlay-dark': 'bg-transparent text-gray-600 border-none shadow-none',
-    'overlay-red': 'bg-transparent text-red-600 border-none shadow-none',
+    overlay: 'bg-transparent text-white border-none shadow-none hover:bg-white/20 active:bg-white/30',
+    'overlay-dark': 'bg-transparent text-gray-600 border-none shadow-none hover:bg-black/5 active:bg-black/10',
+    'overlay-red': 'bg-transparent text-red-600 border-none shadow-none hover:bg-red-500/10 active:bg-red-500/20',
   },
   size: {
     default: 'h-10 px-4 py-2 text-sm',
@@ -51,7 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPro
     return (
       <Comp
         className={cn(
-          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 transition-transform duration-75',
+          'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-95 transition-all duration-75',
           'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500',
           buttonVariants.variant[variant],
           buttonVariants.size[size],

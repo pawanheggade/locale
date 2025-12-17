@@ -1,12 +1,11 @@
 
 
-
-
 import React, { createContext, useReducer, useContext, useMemo, useCallback, useEffect } from 'react';
 import { PostType, FilterAction, FiltersState, SavedSearchFilters } from '../types';
 import { performAiSearch } from '../utils/gemini';
 import { usePosts } from './PostsContext';
 import { STORAGE_KEYS } from '../lib/constants';
+import { useLoading } from './LoadingContext';
 
 export const initialFiltersState: FiltersState = {
   searchQuery: '',
@@ -21,7 +20,6 @@ export const initialFiltersState: FiltersState = {
   filterLast7Days: false,
   filterDistance: 0,
   isAiSearchEnabled: false,
-  isAiSearching: false,
   aiSmartFilterResults: null,
   filterOnSale: false,
 };
@@ -40,7 +38,6 @@ const filtersReducer = (state: FiltersState, action: FilterAction): FiltersState
     case 'SET_FILTER_LAST_7_DAYS': return { ...state, filterLast7Days: action.payload };
     case 'SET_FILTER_DISTANCE': return { ...state, filterDistance: action.payload };
     case 'SET_AI_SEARCH_ENABLED': return { ...state, isAiSearchEnabled: action.payload };
-    case 'SET_AI_SEARCHING': return { ...state, isAiSearching: action.payload };
     case 'SET_AI_RESULTS': return { ...state, aiSmartFilterResults: action.payload };
     case 'SET_FILTER_ON_SALE': return { ...state, filterOnSale: action.payload };
     case 'SET_ALL_FILTERS':
@@ -80,7 +77,6 @@ const initFilters = (defaultState: FiltersState): FiltersState => {
       return {
         ...defaultState,
         ...parsed,
-        isAiSearching: false,
         aiSmartFilterResults: null,
         isAiSearchEnabled: false,
       };
@@ -105,10 +101,11 @@ const FiltersContext = createContext<FiltersContextType | undefined>(undefined);
 export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [filterState, dispatchFilterAction] = useReducer(filtersReducer, initialFiltersState, initFilters);
   const { posts } = usePosts();
+  const { startLoading, stopLoading } = useLoading();
 
   // Persist filters to local storage whenever they change
   useEffect(() => {
-    const { isAiSearching, isAiSearchEnabled, aiSmartFilterResults, ...persistentState } = filterState;
+    const { isAiSearchEnabled, aiSmartFilterResults, ...persistentState } = filterState;
     try {
       window.localStorage.setItem(STORAGE_KEYS.FILTERS, JSON.stringify(persistentState));
     } catch (e) {
@@ -128,7 +125,7 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: null });
       return;
     }
-    dispatchFilterAction({ type: 'SET_AI_SEARCHING', payload: true });
+    startLoading('aiSearch');
     dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: null });
     try {
       const results = await performAiSearch(query, posts);
@@ -137,9 +134,9 @@ export const FiltersProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error(error);
       dispatchFilterAction({ type: 'SET_AI_RESULTS', payload: [] });
     } finally {
-      dispatchFilterAction({ type: 'SET_AI_SEARCHING', payload: false });
+      stopLoading('aiSearch');
     }
-  }, [posts]);
+  }, [posts, startLoading, stopLoading]);
 
   const handleToggleAiSearch = useCallback(() => {
     const isTurningOff = filterState.isAiSearchEnabled;

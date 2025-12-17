@@ -8,6 +8,7 @@ import { usePersistentState } from './usePersistentState';
 import { useIsMounted } from './useIsMounted';
 import { reverseGeocode, haversineDistance } from '../utils/geocoding';
 import { STORAGE_KEYS } from '../lib/constants';
+import { useLoading } from '../contexts/LoadingContext';
 
 interface HistoryItem {
     view: AppView;
@@ -35,6 +36,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const { openModal, closeModal, addToast } = useUI();
     const isMounted = useIsMounted();
     const { filterState, dispatchFilterAction, onClearFilters, isAnyFilterActive } = useFilters();
+    const { startLoading, stopLoading, isLoadingTask } = useLoading();
 
     const [view, setView] = useState<AppView>('all');
     const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
@@ -42,9 +44,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
     const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
     const [history, setHistory] = useState<HistoryItem[]>([]);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [isFindingNearby, setIsFindingNearby] = useState(false);
     const [viewingAccount, setViewingAccount] = useState<Account | null>(null);
     const [postToFocusOnMap, setPostToFocusOnMap] = useState<string | null>(null);
     const [locationToFocus, setLocationToFocus] = useState<{ coords: { lat: number; lng: number; }; name: string; } | null>(null);
@@ -56,6 +56,9 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
     const lastScrollTopRef = useRef(0);
     const rafRef = useRef<number | null>(null);
+
+    const isRefreshing = isLoadingTask('refreshing');
+    const isFindingNearby = isLoadingTask('findingNearby');
 
     useEffect(() => {
         if (viewingAccount && accountsById.has(viewingAccount.id)) {
@@ -151,10 +154,12 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
 
     const handleRefresh = useCallback(async () => {
         if (isRefreshing) return;
-        setIsRefreshing(true);
+        startLoading('refreshing');
         if (view === 'all') refreshPosts();
-        setTimeout(() => { if (isMounted()) setIsRefreshing(false); }, 800);
-    }, [isRefreshing, refreshPosts, isMounted, view]);
+        setTimeout(() => { 
+            stopLoading('refreshing');
+        }, 800);
+    }, [isRefreshing, startLoading, stopLoading, view, refreshPosts]);
 
     const handleBack = useCallback(() => {
         const lastHistoryItem = history.at(-1);
@@ -234,29 +239,34 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         setViewingForumPostId(null);
         setEditingAdminPageKey(null);
         setNearbyPostsResult(null);
-        setIsFindingNearby(false);
         setView('all');
         setMainView('map');
     }, [findPostById, addToast, pushHistoryState]);
 
     const handleFindNearby = useCallback(async (coords: { lat: number, lng: number }) => {
-        setIsFindingNearby(true);
+        startLoading('findingNearby');
         closeModal();
-        const locationName = await reverseGeocode(coords.lat, coords.lng);
-        const nearby = posts
-            .filter(post => {
-                const postCoords = post.coordinates || post.eventCoordinates;
-                if (!postCoords) return false;
-                return haversineDistance(coords, postCoords) <= 50;
-            })
-            .map(post => ({ ...post, distance: haversineDistance(coords, post.coordinates || post.eventCoordinates!) }));
+        try {
+            const locationName = await reverseGeocode(coords.lat, coords.lng);
+            const nearby = posts
+                .filter(post => {
+                    const postCoords = post.coordinates || post.eventCoordinates;
+                    if (!postCoords) return false;
+                    return haversineDistance(coords, postCoords) <= 50;
+                })
+                .map(post => ({ ...post, distance: haversineDistance(coords, post.coordinates || post.eventCoordinates!) }));
 
-        nearby.sort((a, b) => a.distance! - b.distance!);
+            nearby.sort((a, b) => a.distance! - b.distance!);
 
-        setNearbyPostsResult({ posts: nearby, locationName });
-        setIsFindingNearby(false);
-        navigateTo('nearbyPosts');
-    }, [posts, closeModal, navigateTo]);
+            setNearbyPostsResult({ posts: nearby, locationName });
+            navigateTo('nearbyPosts');
+        } catch (error) {
+            console.error(error);
+            addToast("Could not find nearby posts.", "error");
+        } finally {
+            stopLoading('findingNearby');
+        }
+    }, [posts, closeModal, navigateTo, startLoading, stopLoading, addToast]);
 
     const handleEnableLocation = async () => {
         if (!navigator.geolocation) {

@@ -1,4 +1,3 @@
-
 import React, { useRef, useCallback, useMemo } from 'react';
 import { PostCard } from './PostCard';
 import { SpinnerIcon, ArchiveBoxIcon } from './Icons';
@@ -27,15 +26,15 @@ interface PostListProps {
 
 const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, hideExpiry = false, enableEntryAnimation = false, variant: variantProp, authorId }) => {
   const { currentAccount, accounts } = useAuth();
-  const { posts: allDisplayablePosts, archivedPosts } = usePosts();
+  const { posts: allDisplayablePosts, archivedPosts, postsByAuthorId } = usePosts();
   const { gridView, isTabletOrDesktop } = useUI();
   
   const sourcePosts = useMemo(() => {
     if (postsProp) return postsProp;
     if (isArchived) return archivedPosts;
-    if (authorId) return allDisplayablePosts.filter(p => p.authorId === authorId);
+    if (authorId) return postsByAuthorId.get(authorId) || [];
     return allDisplayablePosts;
-  }, [postsProp, isArchived, authorId, allDisplayablePosts, archivedPosts]);
+  }, [postsProp, isArchived, authorId, allDisplayablePosts, archivedPosts, postsByAuthorId]);
 
   const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, isLoading);
   const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, Array.from(accounts.values()));

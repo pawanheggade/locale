@@ -410,16 +410,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         feedbackList, addFeedback, setFeedbackList,
         termsContent, setTermsContent, privacyContent, setPrivacyContent,
         incrementProfileViews
-        // FIX: Removed stable setter functions (setReports, setFeedbackList, setTermsContent, setPrivacyContent) from the dependency array.
-        // State setters from hooks like useState are guaranteed to be stable and don't need to be listed as dependencies.
     }), [
         accounts, currentAccount, accountsById, likedPostIds, login, signOut, socialLogin, createAccount, updateAccountDetails, upgradeToSeller, toggleLikeAccount, toggleAccountAlert, toggleLikePost, updateSubscription, toggleAccountStatus, deleteAccount, updateAccountRole, approveAccount, rejectAccount,
         addCatalogItems, removeCatalogItem, incrementCatalogView, incrementCatalogDownload,
         savedSearches, addSavedSearch, deleteSavedSearch, toggleSavedSearchAlert,
-        reports, reportItem, addReport, addForumReport,
-        feedbackList, addFeedback,
-        termsContent, privacyContent,
-        incrementProfileViews
+        reports, reportItem, addReport, addForumReport, setReports,
+        feedbackList, addFeedback, setFeedbackList,
+        termsContent, setTermsContent, privacyContent, setPrivacyContent,
+        incrementProfileViews, addReport, addFeedback
     ]);
 
     return (

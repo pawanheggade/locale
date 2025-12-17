@@ -112,9 +112,9 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const LocationElement = () => (
      <div
         className={cn(
-            "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md",
+            "flex items-center gap-1.5 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-md transition-opacity",
             'text-red-600',
-            coordsToUse ? "cursor-pointer group" : ""
+            coordsToUse ? "cursor-pointer group active:opacity-75" : ""
         )}
         onClick={(e) => {
             if (coordsToUse) {
@@ -428,7 +428,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         <button 
                             key={tag}
                             onClick={(e) => { e.stopPropagation(); dispatchFilterAction({ type: 'SET_FILTER_TAGS', payload: [tag] }); }}
-                            className="text-[10px] text-gray-600 cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm"
+                            className="text-[10px] text-gray-600 cursor-pointer truncate max-w-[80px] focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded-sm hover:text-red-600 active:opacity-75 transition-colors"
                         >
                             #{tag}
                         </button>
