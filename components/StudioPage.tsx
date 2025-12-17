@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
-import { useActivity } from '../contexts/ActivityContext';
 import { useUI } from '../contexts/UIContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { 
@@ -64,7 +63,6 @@ const StudioCard: React.FC<{
 export const StudioPage: React.FC = () => {
     const { currentAccount, signOut } = useAuth();
     const { navigateTo } = useNavigation();
-    const { totalActivityCount } = useActivity();
     const { openModal } = useUI();
     const showConfirmation = useConfirmationModal();
 

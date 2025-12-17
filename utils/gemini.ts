@@ -3,6 +3,7 @@
 
 
 
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Post } from '../types';
 import { handleApiError, withRetry } from './api';
@@ -85,27 +86,6 @@ export const performAiSearch = async (query: string, posts: Post[]): Promise<Arr
   
   return result || [];
 };
-
-export const generateSearchSuggestions = async (query: string): Promise<string[]> => {
-  if (query.trim().length < 2) return [];
-
-  const prompt = `
-    You are a search suggestion assistant for a hyperlocal markets app called "Locale".
-    Based on the user's current search query, generate 5 relevant and concise search query suggestions.
-    User's current query: "${query}"
-    Return a JSON array of strings.
-  `;
-  
-  const schema = {
-    type: Type.ARRAY,
-    items: { type: Type.STRING, description: "A relevant search query suggestion." }
-  };
-
-  // We propagate the error here so the UI can decide whether to show a toast or fail silently.
-  const result = await generateJsonContent<string[]>(prompt, schema, "generating search suggestions", "gemini-2.5-flash", 0.7);
-  return result || [];
-};
-
 
 export const suggestTagsForPost = async (title: string, description: string): Promise<string[]> => {
   const prompt = `

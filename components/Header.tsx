@@ -19,7 +19,6 @@ interface HeaderProps {
   onRemoveRecentSearch: (query: string) => void;
   onClearRecentSearches: () => void;
   onGoHome: () => void;
-  onRefresh: () => void;
   viewingAccount: Account | null;
   isScrolled: boolean;
   isVisible: boolean;
@@ -35,7 +34,6 @@ export const Header: React.FC<HeaderProps> = ({
   onRemoveRecentSearch,
   onClearRecentSearches,
   onGoHome,
-  onRefresh,
   viewingAccount,
   isScrolled,
   isVisible,

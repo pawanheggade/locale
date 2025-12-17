@@ -260,10 +260,6 @@ export interface FiltersState {
   filterOnSale: boolean;
 }
 
-export type ModalAction = 
-  | { type: 'OPEN_MODAL'; payload: ModalState }
-  | { type: 'CLOSE_MODAL' };
-
 export type UIAction =
     | { type: 'OPEN_MODAL'; payload: ModalState | null }
     | { type: 'CLOSE_MODAL' }
@@ -281,14 +277,6 @@ export type PostsAction =
   | { type: 'SET_POSTS'; payload: Post[] }
   | { type: 'SET_ARCHIVED_POSTS'; payload: Post[] }
   | { type: 'SET_CATEGORIES'; payload: PostCategory[] };
-
-export type BagAction =
-  | { type: 'SET_BAG', payload: BagItem[] };
-  
-export type NotificationsAction =
-  | { type: 'SET_PRICE_ALERTS', payload: PriceAlert[] }
-  | { type: 'SET_NOTIFICATIONS', payload: Notification[] }
-  | { type: 'SET_NOTIFIED_POST_IDS', payload: string[] };
 
 export type FilterAction =
   | { type: 'SET_SEARCH_QUERY'; payload: string }

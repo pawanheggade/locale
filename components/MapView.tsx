@@ -1,8 +1,9 @@
 
+
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { DisplayablePost, PostType } from '../types';
 import { formatCompactCurrency } from '../utils/formatters';
-import { SpinnerIcon, MapPinIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
+import { SpinnerIcon, SearchIcon, CrosshairsIcon, PlusIcon, MinusIcon } from './Icons';
 import { useMap } from '../hooks/useMap';
 import { Button } from './ui/Button';
 import { TIER_STYLES } from '../lib/utils';

@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useClickOutside } from './useClickOutside';
 
@@ -72,7 +73,6 @@ interface UseSearchSuggestionsProps {
   recentSearches: string[];
   isAiSearchEnabled: boolean;
   onSelectSuggestion: (suggestion: string) => void;
-  onError?: (error: Error) => void;
 }
 
 export const useSearchSuggestions = ({

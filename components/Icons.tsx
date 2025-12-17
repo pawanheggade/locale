@@ -149,14 +149,6 @@ export const PencilIcon = createIcon(<path strokeLinecap="round" strokeLinejoin=
 export const PinIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 2a5 5 0 0 0-5 5v2.5l-1.5 2V13h5.5v8l1 1 1-1v-8h5.5v-1.5l-1.5-2v-2.5A5 5 0 0 0 12 2z" />);
 export const BellIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />);
 export const XMarkIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />);
-export const ZoomInIcon = createIcon(<>
-    {MagnifyingGlassPath}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 7.5v6m3-3h-6" />
-</>);
-export const ZoomOutIcon = createIcon(<>
-    {MagnifyingGlassPath}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5h-6" />
-</>);
 export const SearchIcon = createIcon(<>{MagnifyingGlassPath}</>);
 export const PlusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />);
 export const MinusIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />);
@@ -180,7 +172,6 @@ export const YouTubeIcon = createIcon(
     <polygon points="9.75 15.02 15.75 11.75 9.75 8.48 9.75 15.02" fill="currentColor" stroke="none" />
   </>
 );
-export const FacebookIcon = createIcon(<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" strokeLinecap="round" strokeLinejoin="round" />);
 export const XIcon: React.FC<IconProps> = ({ className, title, isFilled = true, ...props }) => (
     <Icon className={className} title={title} isFilled={isFilled} {...props}>
         <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
