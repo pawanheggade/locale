@@ -11,15 +11,18 @@ import {
     YouTubeIcon, 
     ChevronDownIcon,
     UserPlusIcon,
-    XIcon
+    XIcon,
+    IconProps
 } from './Icons';
+
+type ContactMethod = { key: string; icon: React.FC<IconProps>; label: string; href: string; toast: string };
 
 interface ProfileActionsProps {
     account: Account;
     isOwnAccount: boolean;
     socialLinks: SocialLink[];
     onShare: () => void;
-    contactMethods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[];
+    contactMethods: ContactMethod[];
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void;
     isLiked: boolean;
     onToggleLike: () => void;
@@ -67,7 +70,7 @@ const ConnectDropdown = ({
     onShare, 
     onContactAction 
 }: { 
-    contacts: any[], 
+    contacts: ContactMethod[], 
     socialLinks: SocialLink[],
     onShare: () => void,
     onContactAction: (e: React.MouseEvent, method: { toast: string }) => void 
@@ -144,7 +147,7 @@ const PrimaryContactDropdown = ({
     primaryIcon: PrimaryIcon,
     onSelect
 }: { 
-    methods: { key: string; icon: React.FC<any>; label: string; href: string; toast: string }[],
+    methods: ContactMethod[],
     primaryLabel: string,
     primaryIcon: React.FC<any>,
     onSelect: (key: string) => void

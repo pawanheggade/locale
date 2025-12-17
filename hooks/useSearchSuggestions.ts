@@ -1,7 +1,6 @@
 
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useDebounce } from './useDebounce';
-import { generateSearchSuggestions } from '../utils/gemini';
 import { useClickOutside } from './useClickOutside';
 
 /**
@@ -82,22 +81,16 @@ export const useSearchSuggestions = ({
   recentSearches,
   isAiSearchEnabled,
   onSelectSuggestion,
-  onError,
 }: UseSearchSuggestionsProps) => {
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [isFetchingAiSuggestions, setIsFetchingAiSuggestions] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const debouncedQuery = useDebounce(searchQuery, 300);
-
   const shouldShowRecent = isFocused && !isAiSearchEnabled && searchQuery.length === 0 && recentSearches.length > 0;
   const shouldShowSuggestions = isFocused && !isAiSearchEnabled && searchQuery.length > 0 && filteredSuggestions.length > 0;
-  const shouldShowAiSuggestions = isFocused && isAiSearchEnabled && searchQuery.length > 1;
-
-  const isDropdownVisible = shouldShowRecent || shouldShowSuggestions || shouldShowAiSuggestions;
-  const currentSuggestions = shouldShowRecent ? recentSearches : (shouldShowSuggestions ? filteredSuggestions : aiSuggestions);
+  
+  const isDropdownVisible = shouldShowRecent || shouldShowSuggestions;
+  const currentSuggestions = shouldShowRecent ? recentSearches : filteredSuggestions;
 
   const { activeIndex, setActiveIndex, listRef, handleKeyDown } = useSuggestionKeyboardNav(
     currentSuggestions.length,
@@ -115,59 +108,11 @@ export const useSearchSuggestions = ({
 
   useEffect(() => {
     if (searchQuery) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      
-      const scoredAndFiltered = suggestions
-        .map((suggestion, index) => {
-          const lowercasedSuggestion = suggestion.toLowerCase();
-          let matchScore = 0;
-
-          if (lowercasedSuggestion.includes(lowercasedQuery)) {
-            matchScore = 100;
-            if (lowercasedSuggestion.startsWith(lowercasedQuery)) matchScore = 500;
-            if (lowercasedSuggestion === lowercasedQuery) matchScore = 1000;
-          } else {
-            return null;
-          }
-
-          const relevanceScore = suggestions.length - index;
-          const finalScore = matchScore + relevanceScore;
-
-          return { suggestion, score: finalScore };
-        })
-        .filter((item): item is { suggestion: string; score: number } => item !== null);
-
-      scoredAndFiltered.sort((a, b) => b.score - a.score);
-      const finalSuggestions = scoredAndFiltered.map(item => item.suggestion);
-
-      setFilteredSuggestions(finalSuggestions.slice(0, 7));
+      setFilteredSuggestions(suggestions.filter(s => s.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 7));
     } else {
       setFilteredSuggestions([]);
     }
   }, [searchQuery, suggestions]);
-
-  useEffect(() => {
-    if (isAiSearchEnabled && debouncedQuery.trim().length > 1) {
-      const fetchAiSuggestions = async () => {
-        setIsFetchingAiSuggestions(true);
-        try {
-            const newSuggestions = await generateSearchSuggestions(debouncedQuery);
-            // Only update if the query hasn't changed, to prevent race conditions
-            if (debouncedQuery === searchQuery) {
-                setAiSuggestions(newSuggestions);
-            }
-        } catch (error) {
-            setAiSuggestions([]);
-            if (onError) onError(error as Error);
-        } finally {
-            setIsFetchingAiSuggestions(false);
-        }
-      };
-      fetchAiSuggestions();
-    } else {
-      setAiSuggestions([]);
-    }
-  }, [debouncedQuery, isAiSearchEnabled, searchQuery, onError]);
   
   const handleSuggestionClick = (suggestion: string) => {
     onSelectSuggestion(suggestion);
@@ -178,10 +123,8 @@ export const useSearchSuggestions = ({
     isDropdownVisible,
     shouldShowRecent,
     shouldShowSuggestions,
-    shouldShowAiSuggestions,
+    isFocused,
     filteredSuggestions,
-    aiSuggestions,
-    isFetchingAiSuggestions,
     activeIndex,
     wrapperRef,
     listRef,

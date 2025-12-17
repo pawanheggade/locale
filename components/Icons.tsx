@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Generic base Icon component to reduce boilerplate
-interface IconProps extends React.SVGProps<SVGSVGElement> {
+export interface IconProps extends React.SVGProps<SVGSVGElement> {
     title?: string;
     isFilled?: boolean;
 }

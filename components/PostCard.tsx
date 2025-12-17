@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon } from './Icons';
@@ -19,6 +20,7 @@ import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { PostActionsDropdown } from './PostActionsDropdown';
+import { useUserData } from '../contexts/UserDataContext';
 
 interface PostCardProps {
   post: DisplayablePost;
@@ -35,7 +37,8 @@ interface PostCardProps {
 
 const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccount, isSearchResult = false, isArchived = false, hideAuthorInfo = false, hideExpiry = false, enableEntryAnimation = false, isInitiallyExpanded = false, variant = 'default' }) => {
   const { navigateTo, showOnMap } = useNavigation();
-  const { toggleLikePost, toggleLikeAccount, bag, addPostToViewHistory } = useAuth();
+  const { toggleLikePost, toggleLikeAccount } = useAuth();
+  const { bag, addPostToViewHistory } = useUserData();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
   const { openModal } = useUI();
   const { dispatchFilterAction } = useFilters();

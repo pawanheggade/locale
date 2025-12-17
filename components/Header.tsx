@@ -11,6 +11,7 @@ import { useNavigation } from '../contexts/NavigationContext';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
+import { useUserData } from '../contexts/UserDataContext';
 
 interface HeaderProps {
   onSearchSubmit: (query: string) => void;
@@ -44,7 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   onMainViewChange,
 }) => {
   const { filterState, dispatchFilterAction, isAnyFilterActive, handleToggleAiSearch, handleAiSearchSubmit, onClearFilters } = useFilters();
-  const { currentAccount, bag } = useAuth();
+  const { currentAccount } = useAuth();
+  const { bag } = useUserData();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
   const { navigateTo, handleBack } = useNavigation();
 
@@ -350,7 +352,6 @@ export const Header: React.FC<HeaderProps> = ({
                       onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
                       placeholder={placeholder}
                       wrapperClassName="w-full max-w-lg"
-                      suggestions={[]}
                       recentSearches={recentSearches}
                       onRemoveRecentSearch={onRemoveRecentSearch}
                       onClearRecentSearches={onClearRecentSearches}
@@ -419,7 +420,6 @@ export const Header: React.FC<HeaderProps> = ({
                   onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
                   placeholder={placeholder}
                   wrapperClassName="w-full"
-                  suggestions={[]}
                   recentSearches={recentSearches}
                   onRemoveRecentSearch={onRemoveRecentSearch}
                   onClearRecentSearches={onClearRecentSearches}

@@ -1,9 +1,11 @@
 
+
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
+import { useFilters } from '../contexts/FiltersContext';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -11,7 +13,6 @@ interface SearchBarProps {
   onSearchSubmit: (query: string) => void;
   placeholder: string;
   wrapperClassName?: string;
-  suggestions?: string[];
   recentSearches?: string[];
   onRemoveRecentSearch?: (query: string) => void;
   onClearRecentSearches?: () => void;
@@ -24,13 +25,18 @@ interface SearchBarProps {
   leftAccessory?: React.ReactNode;
 }
 
+const aiExamplePrompts = [
+    "vintage chairs in Mumbai",
+    "weekend workshops near me",
+    "handmade decor for living room",
+];
+
 const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   onSearchChange,
   onSearchSubmit,
   placeholder,
   wrapperClassName,
-  suggestions = [],
   recentSearches = [],
   onRemoveRecentSearch,
   onClearRecentSearches,
@@ -42,55 +48,45 @@ const SearchBar: React.FC<SearchBarProps> = ({
   hideSearchIcon = false,
   leftAccessory,
 }) => {
+  const { filterState } = useFilters();
 
   const {
     isDropdownVisible,
     shouldShowRecent,
     shouldShowSuggestions,
-    shouldShowAiSuggestions,
+    isFocused,
     filteredSuggestions,
-    aiSuggestions,
-    isFetchingAiSuggestions,
     activeIndex,
     wrapperRef,
     listRef,
     inputProps,
-    setActiveIndex,
     handleSuggestionClick,
   } = useSearchSuggestions({
     searchQuery,
-    suggestions,
+    suggestions: [],
     recentSearches,
-    isAiSearchEnabled: false, // AI enabled state is now managed externally
+    isAiSearchEnabled: filterState.isAiSearchEnabled,
     onSelectSuggestion: onSearchChange,
   });
+  
+  const shouldShowAiExamples = isFocused && filterState.isAiSearchEnabled && searchQuery.length === 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // If Enter is pressed...
     if (e.key === 'Enter') {
-      // And a suggestion is active...
+      const currentSuggestions = shouldShowRecent ? recentSearches : filteredSuggestions;
       if (activeIndex > -1 && isDropdownVisible) {
-        // Let the hook handle it to select the suggestion.
         inputProps.onKeyDown(e);
-        const selectedSuggestion = (shouldShowRecent ? recentSearches : (shouldShowSuggestions ? filteredSuggestions : aiSuggestions))[activeIndex];
+        const selectedSuggestion = (shouldShowAiExamples ? aiExamplePrompts : currentSuggestions)[activeIndex];
         onSearchSubmit(selectedSuggestion);
         return;
       }
-
-      // Otherwise, treat it as a search submission.
       e.preventDefault();
-      const query = searchQuery.trim();
-
-      if (query) {
-        onSearchSubmit(query);
+      if (searchQuery.trim()) {
+        onSearchSubmit(searchQuery.trim());
       }
-
-      // Blur the input to close any potential dropdown and signify submission.
       (e.target as HTMLInputElement).blur();
-      return; // Stop further processing
+      return;
     }
-    
-    // For other keys (like arrows), let the hook handle it.
     inputProps.onKeyDown(e);
   };
 
@@ -100,12 +96,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onRemoveRecentSearch?.(query);
   };
   
-  const showClearButton = onCancelSearch && searchQuery;
-
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClearRecentSearches?.();
   };
+
+  const currentDropdownVisible = isDropdownVisible || shouldShowAiExamples;
 
   return (
     <div className={cn('relative', wrapperClassName)} ref={wrapperRef}>
@@ -135,13 +131,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 autoComplete="off"
                 role="combobox"
                 aria-autocomplete="list"
-                aria-expanded={isDropdownVisible}
+                aria-expanded={currentDropdownVisible}
                 aria-controls="suggestions-listbox"
                 aria-activedescendant={activeIndex > -1 ? `suggestion-${activeIndex}` : undefined}
             />
             <div className="pr-1 flex items-center flex-shrink-0 h-full gap-1">
                 {isAiSearching && (
-                    <SpinnerIcon className="h-5 w-5 text-gray-600" />
+                    <div className="flex items-center gap-1 text-gray-600 text-sm">
+                        <SpinnerIcon className="h-4 w-4" />
+                        <span className="hidden sm:inline">AI is thinking...</span>
+                    </div>
                 )}
                 
                 {onCancelSearch && (
@@ -160,8 +159,33 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 {aiButton}
             </div>
         </div>
-      {isDropdownVisible && (
+      {currentDropdownVisible && (
         <ul ref={listRef} id="suggestions-listbox" role="listbox" className="absolute top-full mt-2 w-full bg-white border border-gray-300 rounded-lg max-h-80 overflow-y-auto z-10 animate-fade-in-down">
+          {shouldShowAiExamples && (
+            <>
+              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
+                <AIIcon className="w-4 h-4 text-red-500" />
+                Try asking...
+              </li>
+              {aiExamplePrompts.map((prompt, index) => (
+                 <li
+                    id={`suggestion-${index}`}
+                    key={prompt}
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    onClick={() => {
+                        handleSuggestionClick(prompt);
+                        onSearchSubmit(prompt);
+                    }}
+                    className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
+                        index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-300'
+                    }`}
+                >
+                  "{prompt}"
+                </li>
+              ))}
+            </>
+          )}
           {shouldShowRecent && (
             <>
               <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent Searches</li>
@@ -188,9 +212,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   </Button>
                 </li>
               ))}
-              <li className="border-t border-gray-50 px-4 py-2 text-center">
-                <Button variant="link" size="sm" onClick={handleClearAll} className="text-red-600 text-xs font-semibold">Clear All Searches</Button>
-              </li>
+              {onClearRecentSearches && (
+                <li className="border-t border-gray-50 px-4 py-2 text-center">
+                    <Button variant="link" size="sm" onClick={handleClearAll} className="text-red-600 text-xs font-semibold">Clear All Searches</Button>
+                </li>
+              )}
             </>
           )}
           {shouldShowSuggestions && (
@@ -221,40 +247,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 </li>
               );
             })
-          )}
-          {shouldShowAiSuggestions && (
-            <>
-              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-2">
-                <AIIcon className="w-4 h-4 text-red-500" />
-                AI Suggestions
-              </li>
-              {isFetchingAiSuggestions && (
-                <li className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600">
-                    <SpinnerIcon className="w-4 h-4" />
-                    <span>Generating ideas...</span>
-                </li>
-              )}
-              {!isFetchingAiSuggestions && aiSuggestions.length === 0 && (
-                <li className="px-4 py-2 text-sm text-gray-600">No suggestions found. Keep typing...</li>
-              )}
-              {aiSuggestions.map((suggestion, index) => (
-                <li
-                  id={`suggestion-${index}`}
-                  key={suggestion}
-                  role="option"
-                  aria-selected={index === activeIndex}
-                  onClick={() => {
-                    handleSuggestionClick(suggestion)
-                    onSearchSubmit(suggestion);
-                  }}
-                  className={`px-4 py-2 text-sm text-gray-600 cursor-pointer ${
-                    index === activeIndex ? 'bg-red-500 text-white' : 'active:bg-gray-300'
-                  }`}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </>
           )}
         </ul>
       )}
