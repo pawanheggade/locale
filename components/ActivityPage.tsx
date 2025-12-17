@@ -9,6 +9,7 @@ import { PostList } from './PostList';
 import { useUI } from '../contexts/UIContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useUserData } from '../contexts/UserDataContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
@@ -16,7 +17,8 @@ import { cn } from '../lib/utils';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
-  const { currentAccount, viewedPostIds, accountsById } = useAuth();
+  const { currentAccount, accountsById } = useAuth();
+  const { viewedPostIds } = useUserData();
   const { findPostById } = usePosts();
   const { navigateTo, activityInitialTab: initialTab } = useNavigation();
 
@@ -54,7 +56,7 @@ export const ActivityPage: React.FC = () => {
   }, [initialTab]);
   
   const viewedPosts = useMemo(() => {
-    return viewedPostIds.map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p);
+    return (viewedPostIds || []).map(id => findPostById(id)).filter((p): p is DisplayablePost => !!p);
   }, [viewedPostIds, findPostById]);
 
   const onNotificationClick = (notification: Notification) => {
