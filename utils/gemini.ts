@@ -1,9 +1,5 @@
 
 
-
-
-
-
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Post } from '../types';
 import { handleApiError, withRetry } from './api';
@@ -81,7 +77,7 @@ export const performAiSearch = async (query: string, posts: Post[]): Promise<Arr
   };
 
   const result = await generateJsonContent<Array<{id: string, reasoning: string}>>(
-      prompt, schema, "AI search", "gemini-2.5-flash", 0.1
+      prompt, schema, "AI search", "gemini-3-flash-preview", 0.1
   );
   
   return result || [];
@@ -101,7 +97,7 @@ export const suggestTagsForPost = async (title: string, description: string): Pr
     items: { type: Type.STRING, description: "A relevant, lowercase tag." },
   };
 
-  const result = await generateJsonContent<string[]>(prompt, schema, "AI tag suggestion", "gemini-2.5-flash", 0.4);
+  const result = await generateJsonContent<string[]>(prompt, schema, "AI tag suggestion", "gemini-3-flash-preview", 0.4);
   return result || [];
 };
 
@@ -121,6 +117,6 @@ export const suggestCategoriesForPost = async (title: string, description: strin
     items: { type: Type.STRING, description: "A relevant category." },
   };
 
-  const result = await generateJsonContent<string[]>(prompt, schema, "AI category suggestion", "gemini-2.5-flash", 0.3);
+  const result = await generateJsonContent<string[]>(prompt, schema, "AI category suggestion", "gemini-3-flash-preview", 0.3);
   return result || [];
 };

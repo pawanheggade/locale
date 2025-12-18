@@ -12,6 +12,7 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
 import { useUserData } from '../contexts/UserDataContext';
+import { useLoading } from '../contexts/LoadingContext';
 
 interface HeaderProps {
   onSearchSubmit: (query: string) => void;
@@ -47,6 +48,8 @@ export const Header: React.FC<HeaderProps> = ({
   const { bag } = useUserData();
   const { openModal, gridView, setGridView, isTabletOrDesktop } = useUI();
   const { navigateTo, handleBack } = useNavigation();
+  const { isLoadingTask } = useLoading();
+  const isAiSearching = isLoadingTask('aiSearch');
 
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -354,7 +357,7 @@ export const Header: React.FC<HeaderProps> = ({
                       onRemoveRecentSearch={onRemoveRecentSearch}
                       onClearRecentSearches={onClearRecentSearches}
                       onAiSearchSubmit={handleAiSearchSubmitWithHistory}
-                      isAiSearching={filterState.isAiSearching}
+                      isAiSearching={isAiSearching}
                       onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
                       aiButton={renderAiButton()}
                       leftAccessory={renderFilterButton()}
@@ -422,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onRemoveRecentSearch={onRemoveRecentSearch}
                   onClearRecentSearches={onClearRecentSearches}
                   onAiSearchSubmit={handleAiSearchSubmitWithHistory}
-                  isAiSearching={filterState.isAiSearching}
+                  isAiSearching={isAiSearching}
                   onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
                   autoFocus
                   aiButton={renderAiButton()}

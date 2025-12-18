@@ -1,4 +1,5 @@
 
+
 import React, { useRef } from 'react';
 import { ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,6 +30,7 @@ import ModalShell from './ModalShell';
 import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 import { SEO } from './SEO';
+import { useUserData } from '../contexts/UserDataContext';
 
 interface AppModalsProps {
     isFindingNearby: boolean;
@@ -41,12 +43,13 @@ export const AppModals: React.FC<AppModalsProps> = ({
     isFindingNearby, handleFindNearby, userLocation, onEnableLocation
 }) => {
     const { 
-        currentAccount, accounts, bag, 
+        currentAccount, accounts, 
         login, socialLogin, createAccount, upgradeToSeller, 
         addReport, addForumReport, 
-        addToBag, removeBagItem, savedSearches, addSavedSearch, deleteSavedSearch, 
+        savedSearches, addSavedSearch, deleteSavedSearch, 
         addFeedback, termsContent, privacyContent,
     } = useAuth();
+    const { bag, addToBag, removeBagItem } = useUserData();
     
     const { activeModal, closeModal, openModal } = useUI();
     

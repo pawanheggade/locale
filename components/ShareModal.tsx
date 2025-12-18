@@ -1,27 +1,39 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Post } from '../types';
+// FIX: Changed Post to DisplayablePost to correctly type the post prop, which includes author information.
+import { DisplayablePost } from '../types';
 import ModalShell from './ModalShell';
-import { WhatsAppIcon, DocumentDuplicateIcon, CheckIcon, SpinnerIcon, PaperAirplaneIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon } from './Icons';
+import { SpinnerIcon, ArrowDownTrayIcon } from './Icons';
 import { generatePostPreviewImage } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { isShareAbortError } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ShareModalProps {
-  post: Post;
+  post: DisplayablePost;
   onClose: () => void;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClose }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const imageUrlRef = useRef<string | null>(null);
+  const { accountsById } = useAuth();
+  
   const [isCopied, setIsCopied] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const isMounted = useIsMounted();
   
+  // Ensure the post has the author object for postcard generation
+  const post = {
+      ...initialPost,
+      author: initialPost.author || accountsById.get(initialPost.authorId)
+  };
+
   const shareUrl = `${window.location.origin}?post=${post.id}`;
   const shareText = `Check out this ${post.type.toLowerCase()} on Locale: "${post.title}"`;
 
@@ -76,15 +88,32 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
         }
     }
   };
+  
+  const handleDownload = async () => {
+    if (!previewImageUrl) return;
+    setIsDownloading(true);
+    try {
+        const link = document.createElement('a');
+        link.href = previewImageUrl;
+        const safeTitle = post.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        link.download = `locale-post-${safeTitle}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Download failed:', error);
+    } finally {
+        setIsDownloading(false);
+    }
+  };
 
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedText = encodeURIComponent(shareText);
   
   const socialLinks = [
-    { name: 'Email', icon: EnvelopeIcon, url: `mailto:?subject=${encodedText}&body=${encodedUrl}` },
-    { name: 'Message', icon: ChatBubbleBottomCenterTextIcon, url: `sms:?&body=${encodedText}%20${encodedUrl}` },
-    { name: 'WhatsApp', icon: WhatsAppIcon, url: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}` }
+    { name: 'Message', url: `sms:?&body=${encodedText}%20${encodedUrl}` },
+    { name: 'WhatsApp', url: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}` }
   ];
 
   return (
@@ -96,14 +125,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
       titleId="share-post-title"
     >
       <div className="p-6">
-        <div className="w-full aspect-[16/9] bg-gray-50 rounded-lg overflow-hidden mb-6 relative">
+        <div className="w-full aspect-square bg-gray-50 rounded-lg overflow-hidden mb-6 relative">
             {isGenerating ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                     <SpinnerIcon className="w-8 h-8" />
                     <p className="mt-2 text-sm">Generating preview...</p>
                 </div>
             ) : previewImageUrl ? (
-                <img src={previewImageUrl} alt="Share preview" className="w-full h-full object-cover" />
+                <img src={previewImageUrl} alt="Share preview" className="w-full h-full object-contain" />
             ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                     <p className="text-sm">Could not generate preview.</p>
@@ -126,13 +155,23 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
               className="w-28 flex-shrink-0 text-red-600 border-red-200"
               aria-label={isCopied ? 'Link copied' : 'Copy link'}
             >
-              {isCopied ? <CheckIcon className="w-5 h-5" /> : <DocumentDuplicateIcon className="w-5 h-5" />}
-              <span className="ml-2">{isCopied ? 'Copied!' : 'Copy'}</span>
+              {isCopied ? 'Copied!' : 'Copy'}
             </Button>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            {socialLinks.map(({ name, icon: Icon, url }) => (
+             <Button
+                onClick={handleDownload}
+                isLoading={isDownloading}
+                disabled={isGenerating || isDownloading}
+                variant="outline"
+                className="flex items-center justify-center w-full h-auto py-2.5"
+                aria-label="Download postcard image"
+              >
+                {!isDownloading && <ArrowDownTrayIcon className="w-5 h-5 mr-1" />}
+                <span>Download</span>
+              </Button>
+            {socialLinks.map(({ name, url }) => (
               <Button
                 as="a"
                 key={name}
@@ -140,10 +179,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 variant="outline"
-                className="flex items-center justify-center gap-2 w-full h-auto py-2.5"
+                className="flex items-center justify-center w-full h-auto py-2.5"
                 aria-label={`Share on ${name}`}
               >
-                <Icon className="w-5 h-5" />
                 <span>{name}</span>
               </Button>
             ))}
@@ -154,14 +192,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post, onClose }) => {
               onClick={handleNativeShare}
               isLoading={isSharing}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 h-12 text-base"
+              className="w-full flex items-center justify-center h-12 text-base"
               aria-label="Share via system dialog"
             >
               {!isSharing && (
-                <>
-                  <PaperAirplaneIcon className="w-5 h-5" />
-                  <span>More Options...</span>
-                </>
+                <span>More Options...</span>
               )}
             </Button>
           )}

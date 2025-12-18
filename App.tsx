@@ -40,6 +40,7 @@ export const App: React.FC = () => {
     handleFindNearby,
     userLocation,
     handleEnableLocation,
+    isFindingNearby,
   } = navigationContextValue;
 
   const { pullPosition, touchHandlers, isPulling, pullThreshold } = usePullToRefresh({ 
@@ -107,6 +108,7 @@ export const App: React.FC = () => {
         </main>
         
         <AppModals 
+          isFindingNearby={isFindingNearby}
           handleFindNearby={handleFindNearby}
           userLocation={userLocation}
           onEnableLocation={handleEnableLocation}

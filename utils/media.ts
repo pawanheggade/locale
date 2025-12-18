@@ -1,6 +1,7 @@
 
-import { Post } from '../types';
+import { Post, DisplayablePost } from '../types';
 import { getBadgeSvg, TIER_STYLES, drawLogoOnCanvas } from '../lib/utils';
+import { formatCurrency } from './formatters';
 
 export const fileToDataUrl = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -63,6 +64,7 @@ const wrapText = (
   y: number,
   maxWidth: number,
   lineHeight: number,
+  maxLines: number = 2
 ) => {
     const words = text.split(' ');
     let line = '';
@@ -79,80 +81,149 @@ const wrapText = (
     }
     lines.push(line);
 
-    const finalLines = lines.slice(0, 2);
-    if (lines.length > 2) {
-        finalLines[1] = finalLines[1].trim().slice(0, -3) + '...';
+    let finalLines = lines.slice(0, maxLines);
+    if (lines.length > maxLines) {
+        // Find the last line and truncate it with an ellipsis
+        let lastLine = finalLines[maxLines - 1];
+        while (context.measureText(lastLine + '...').width > maxWidth && lastLine.length > 0) {
+            lastLine = lastLine.slice(0, -1);
+        }
+        finalLines[maxLines - 1] = lastLine.trim() + '...';
     }
     
     for (let k = 0; k < finalLines.length; k++) {
-        const currentLine = finalLines[finalLines.length - 1 - k];
-        context.fillText(currentLine.trim(), x, y - (k * lineHeight));
+        context.fillText(finalLines[k].trim(), x, y + (k * lineHeight));
     }
 };
 
 
-export const generatePostPreviewImage = async (post: Post): Promise<Blob | null> => {
+export const generatePostPreviewImage = async (post: DisplayablePost): Promise<Blob | null> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const scale = 2;
-    const cardWidth = 400;
-    const cardHeight = 210; // ~16:9
+    const scale = 3;
+    const cardWidth = 350;
+    const imageHeight = 200;
+    const detailsHeight = 250;
+    const cardHeight = imageHeight + detailsHeight;
+    const padding = 20;
 
     canvas.width = cardWidth * scale;
     canvas.height = cardHeight * scale;
     ctx.scale(scale, scale);
 
-    // White Background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, cardWidth, cardHeight);
+    // --- Asset Loading ---
+    const imagePromises: Promise<any>[] = [];
 
-    // Load and draw post image
     const postImg = new Image();
     postImg.crossOrigin = 'anonymous';
-    let imageLoaded = false;
     if (post.media.length > 0 && post.media[0].type === 'image') {
         postImg.src = post.media[0].url;
-        try {
-            await new Promise((resolve, reject) => {
-                postImg.onload = resolve;
-                postImg.onerror = reject;
-            });
-            imageLoaded = true;
-        } catch (e) {
-            console.error("Failed to load post image for preview");
-        }
-    }
-    
-    if (imageLoaded) {
-        const hRatio = cardWidth / postImg.width;
-        const vRatio = cardHeight / postImg.height;
-        const ratio = Math.max(hRatio, vRatio);
-        const centerShift_x = (cardWidth - postImg.width * ratio) / 2;
-        const centerShift_y = (cardHeight - postImg.height * ratio) / 2;
-        ctx.drawImage(postImg, 0, 0, postImg.width, postImg.height,
-                      centerShift_x, centerShift_y, postImg.width * ratio, postImg.height * ratio);
-    } else {
-        ctx.fillStyle = '#d1d5db'; // gray-300
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
+        imagePromises.push(new Promise((resolve, reject) => {
+            postImg.onload = resolve;
+            postImg.onerror = resolve; // Don't reject, just continue without the image
+        }));
     }
 
-    // Gradient overlay for text
-    const gradient = ctx.createLinearGradient(0, cardHeight, 0, cardHeight - 80);
-    gradient.addColorStop(0, 'rgba(0,0,0,0.7)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, cardWidth, cardHeight);
+    const authorImg = new Image();
+    authorImg.crossOrigin = 'anonymous';
+    if (post.author?.avatarUrl) {
+        authorImg.src = post.author.avatarUrl;
+        imagePromises.push(new Promise((resolve, reject) => {
+            authorImg.onload = resolve;
+            authorImg.onerror = resolve;
+        }));
+    }
+
+    const tierStyles = TIER_STYLES[post.author?.subscription.tier || 'Personal'];
+    const qrColor = tierStyles.hex.substring(1);
+    const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(`${window.location.origin}?post=${post.id}`)}&size=200&margin=1&ecLevel=H&dark=${qrColor}`;
+    const qrImg = new Image();
+    qrImg.crossOrigin = 'anonymous';
+    qrImg.src = qrCodeUrl;
+    imagePromises.push(new Promise((resolve, reject) => {
+        qrImg.onload = resolve;
+        qrImg.onerror = resolve;
+    }));
     
-    // Text Content
-    const padding = 16;
+    await Promise.all(imagePromises);
+
+    // --- Drawing ---
+
+    // 1. White background
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 22px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom';
-    
-    wrapText(ctx, post.title, padding, cardHeight - padding, cardWidth - padding * 2, 26);
+    ctx.fillRect(0, 0, cardWidth, cardHeight);
 
-    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/jpeg', 0.9));
+    // 2. Post image
+    if (postImg.complete && postImg.naturalHeight !== 0) {
+        const hRatio = cardWidth / postImg.width;
+        const vRatio = imageHeight / postImg.height;
+        const ratio = Math.max(hRatio, vRatio);
+        const centerShiftX = (cardWidth - postImg.width * ratio) / 2;
+        const centerShiftY = (imageHeight - postImg.height * ratio) / 2;
+        ctx.drawImage(postImg, 0, 0, postImg.width, postImg.height, centerShiftX, centerShiftY, postImg.width * ratio, postImg.height * ratio);
+    } else {
+        ctx.fillStyle = '#F3F4F6'; // gray-100
+        ctx.fillRect(0, 0, cardWidth, imageHeight);
+    }
+    
+    // --- Details Section ---
+    const detailsY = imageHeight + padding;
+
+    // 3. Author Info
+    const avatarSize = 40;
+    if (post.author) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(padding + avatarSize / 2, detailsY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip();
+        if (authorImg.complete && authorImg.naturalHeight !== 0) {
+            ctx.drawImage(authorImg, padding, detailsY, avatarSize, avatarSize);
+        } else {
+            ctx.fillStyle = '#E5E7EB'; // gray-200
+            ctx.fillRect(padding, detailsY, avatarSize, avatarSize);
+        }
+        ctx.restore();
+
+        ctx.fillStyle = '#111827'; // gray-900
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(post.author.name, padding + avatarSize + 12, detailsY + 4);
+
+        ctx.fillStyle = '#6B7280'; // gray-500
+        ctx.font = '12px sans-serif';
+        ctx.fillText(`@${post.author.username}`, padding + avatarSize + 12, detailsY + 22);
+    }
+
+    // 4. Title & Price
+    const titleY = detailsY + avatarSize + 20;
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 20px sans-serif';
+    wrapText(ctx, post.title, padding, titleY, cardWidth - padding * 2, 24, 2);
+
+    const priceY = titleY + 60;
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(formatCurrency(post.salePrice ?? post.price), padding, priceY);
+    if (post.salePrice) {
+        const salePriceWidth = ctx.measureText(formatCurrency(post.salePrice)).width;
+        ctx.fillStyle = '#9CA3AF'; // gray-400
+        ctx.font = '16px sans-serif';
+        ctx.fillText(formatCurrency(post.price), padding + salePriceWidth + 8, priceY);
+    }
+
+    // 5. QR Code & Logo
+    const qrSize = 64;
+    const qrY = cardHeight - qrSize - padding;
+    if (qrImg.complete && qrImg.naturalHeight !== 0) {
+        ctx.drawImage(qrImg, cardWidth - qrSize - padding, qrY, qrSize, qrSize);
+    }
+
+    await drawLogoOnCanvas(ctx, padding + 40, qrY + (qrSize / 2));
+    
+    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png', 0.95));
 };

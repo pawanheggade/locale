@@ -1,5 +1,6 @@
 
 
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -202,7 +203,8 @@ export interface ConfirmationModalData {
 export type ModalState =
   | { type: 'login' }
   | { type: 'findNearby' }
-  | { type: 'sharePost', data: Post }
+  // FIX: Changed data type from Post to DisplayablePost to support author property.
+  | { type: 'sharePost', data: DisplayablePost }
   | { type: 'reportItem', data: { item: Post | ForumPost | ForumComment } }
   | { type: 'filterPanel' }
   | { type: 'saveSearch' }

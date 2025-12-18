@@ -162,7 +162,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     }, [isRefreshing, startLoading, stopLoading, view, refreshPosts]);
 
     const handleBack = useCallback(() => {
-        const lastHistoryItem = history.at(-1);
+        const lastHistoryItem = history[history.length - 1];
         if (lastHistoryItem) {
             if (lastHistoryItem.filters) dispatchFilterAction({ type: 'SET_ALL_FILTERS', payload: lastHistoryItem.filters });
             setView(lastHistoryItem.view);
