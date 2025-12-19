@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // FIX: Changed Post to DisplayablePost to correctly type the post prop, which includes author information.
 import { DisplayablePost } from '../types';
 import ModalShell from './ModalShell';
-import { SpinnerIcon, ArrowDownTrayIcon } from './Icons';
+import { SpinnerIcon, ArrowDownTrayIcon, PaperAirplaneIcon } from './Icons';
 import { generatePostPreviewImage } from '../utils/media';
 import { Button } from './ui/Button';
 import { useIsMounted } from '../hooks/useIsMounted';
@@ -22,6 +22,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
   
   const [isCopied, setIsCopied] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   const [isGenerating, setIsGenerating] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -41,6 +42,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
         setIsGenerating(true);
         const blob = await generatePostPreviewImage(post);
         if (isMounted() && blob) {
+            setImageBlob(blob);
             const url = URL.createObjectURL(blob);
             setPreviewImageUrl(url);
             imageUrlRef.current = url;
@@ -73,10 +75,23 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
   };
 
   const handleNativeShare = async () => {
+    if (isGenerating || isSharing || !imageBlob) return;
     setIsSharing(true);
     
     try {
-        await navigator.share({ title: post.title, text: shareText, url: shareUrl });
+        const file = new File([imageBlob], `${post.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.png`, { type: imageBlob.type });
+        const shareData: ShareData = {
+            title: post.title,
+            text: shareText,
+            url: shareUrl,
+        };
+
+        // Check if browser can share files
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            shareData.files = [file];
+        }
+
+        await navigator.share(shareData);
     } catch (error) {
         if (!isShareAbortError(error)) {
             console.error('Error sharing:', error);
@@ -108,15 +123,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
     }
   };
 
-
-  const encodedUrl = encodeURIComponent(shareUrl);
-  const encodedText = encodeURIComponent(shareText);
-  
-  const socialLinks = [
-    { name: 'Message', url: `sms:?&body=${encodedText}%20${encodedUrl}` },
-    { name: 'WhatsApp', url: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}` }
-  ];
-
   return (
     <ModalShell
       panelRef={modalRef}
@@ -141,66 +147,42 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
             )}
         </div>
         
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              readOnly
-              value={shareUrl}
-              className="w-full px-3 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-300 rounded-md focus:outline-none"
-              aria-label="Shareable link"
-            />
-            <Button
-              onClick={handleCopyLink}
-              variant="outline"
-              className="w-28 flex-shrink-0 text-red-600 border-red-200"
-              aria-label={isCopied ? 'Link copied' : 'Copy link'}
-            >
-              {isCopied ? 'Copied!' : 'Copy'}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-             <Button
-                onClick={handleDownload}
-                isLoading={isDownloading}
-                disabled={isGenerating || isDownloading}
-                variant="outline"
-                className="flex items-center justify-center w-full h-auto py-2.5"
-                aria-label="Download postcard image"
-              >
-                {!isDownloading && <ArrowDownTrayIcon className="w-5 h-5 mr-1" />}
-                <span>Download</span>
-              </Button>
-            {socialLinks.map(({ name, url }) => (
-              <Button
-                as="a"
-                key={name}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="outline"
-                className="flex items-center justify-center w-full h-auto py-2.5"
-                aria-label={`Share on ${name}`}
-              >
-                <span>{name}</span>
-              </Button>
-            ))}
-          </div>
-
+        <div className="space-y-3">
           {navigator.share && (
             <Button
               onClick={handleNativeShare}
               isLoading={isSharing}
-              variant="outline"
+              disabled={isGenerating || isSharing}
+              variant="pill-red"
               className="w-full flex items-center justify-center h-12 text-base"
-              aria-label="Share via system dialog"
+              aria-label="Share post"
             >
-              {!isSharing && (
-                <span>More Options...</span>
-              )}
+              {!isSharing && <PaperAirplaneIcon className="w-5 h-5 mr-2" />}
+              <span>{isSharing ? 'Sharing...' : 'Share'}</span>
             </Button>
           )}
+
+          <div className="grid grid-cols-2 gap-3">
+              <Button
+                  onClick={handleCopyLink}
+                  variant="outline"
+                  className="w-full"
+                  aria-label={isCopied ? 'Link copied' : 'Copy link'}
+              >
+                  {isCopied ? 'Copied!' : 'Copy Link'}
+              </Button>
+              <Button
+                  onClick={handleDownload}
+                  isLoading={isDownloading}
+                  disabled={isGenerating || isDownloading}
+                  variant="outline"
+                  className="flex items-center justify-center w-full gap-1.5"
+                  aria-label="Download postcard image"
+                >
+                  {!isDownloading && <ArrowDownTrayIcon className="w-5 h-5" />}
+                  <span>Download</span>
+                </Button>
+          </div>
         </div>
       </div>
     </ModalShell>
