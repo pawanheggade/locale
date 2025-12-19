@@ -75,10 +75,6 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({ price, salePrice, pr
                     </>
                 )}
             </div>
-
-            {onSale && showOriginalPriceOnSale && (
-                <SaleBadge percentage={salePercentage} size={size === 'small' || size === 'x-small' ? 'small' : 'medium'} />
-            )}
         </div>
     );
 };

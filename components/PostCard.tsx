@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon } from './Icons';
@@ -9,7 +10,7 @@ import { MediaCarousel } from './MediaCarousel';
 import { PostAuthorInfo } from './PostAuthorInfo';
 import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/ActivityContext';
-import { LocaleChoiceBadge, CategoryBadge } from './Badges';
+import { LocaleChoiceBadge, CategoryBadge, SaleBadge } from './Badges';
 import { PriceDisplay } from './PriceDisplay';
 import { Card, CardContent } from './ui/Card';
 import { cn } from '../lib/utils';
@@ -63,6 +64,9 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const isOwnPost = post.authorId === currentAccount?.id;
   const isEligibleToPin = isOwnPost && isAccountEligibleToPin(currentAccount);
   const isPurchasable = isPostPurchasable(post);
+
+  const onSale = post.price !== undefined && post.salePrice !== undefined && post.salePrice < post.price;
+  const salePercentage = onSale ? Math.round(((post.price! - post.salePrice!) / post.price!) * 100) : 0;
 
   useEffect(() => {
     if (!enableEntryAnimation) {
@@ -176,6 +180,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
               aspectRatio={'aspect-[4/5]'}
             />
           )}
+          {onSale && salePercentage > 0 && <SaleBadge percentage={salePercentage} className="absolute top-2 right-2 z-10" size="small" />}
           {showHeader && (
             <div className="absolute top-0 left-0 right-0 bg-white p-2">
               <PostAuthorInfo
@@ -310,21 +315,44 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       
       <CardContent className={'p-4'}>
         <div className="flex-grow">
-          {/* Post Title */}
-          <h3
-            id={`post-title-${post.id}`}
-            className={cn(
-              'font-bold text-gray-900 line-clamp-2 leading-tight',
-              'text-lg'
-            )}
-          >
-            <button
-              onClick={(e) => handleExpandToggle(e)}
-              className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2"
+          <div className="flex items-start justify-between gap-2">
+            {/* Post Title */}
+            <h3
+              id={`post-title-${post.id}`}
+              className={cn(
+                'font-bold text-gray-900 line-clamp-2 leading-tight flex-grow',
+                'text-lg'
+              )}
             >
-              {post.title}
-            </button>
-          </h3>
+              <button
+                onClick={(e) => handleExpandToggle(e)}
+                className="text-left w-full focus:outline-none focus:underline decoration-2 underline-offset-2"
+              >
+                {post.title}
+              </button>
+            </h3>
+            
+            {/* Like Button */}
+            {!isOwnPost && !isExpired && !isArchived && (
+                <div className="flex items-center gap-1 flex-shrink-0 pt-1">
+                    <LikeButton
+                        isLiked={isPostLiked}
+                        onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "h-8 w-8 p-0 rounded-full flex items-center justify-center",
+                            isPostLiked
+                                ? "text-red-600"
+                                : "text-gray-600"
+                        )}
+                        iconClassName="w-5 h-5"
+                        aria-label={isPostLiked ? "Unlike post" : "Like post"}
+                        title={isPostLiked ? "Unlike post" : "Like post"}
+                    />
+                </div>
+            )}
+          </div>
 
           {/* AI Insight (if available from search) */}
           {post.aiReasoning && (
@@ -345,49 +373,10 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 showOriginalPriceOnSale={true} 
               />
               
-              {/* Explicit check to allow rendering for non-authors on valid items */}
-              {!isOwnPost && !isExpired && !isArchived && (
-                  <div className="flex items-center gap-1">
-                      {isPurchasable && (
-                          <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!currentAccount) {
-                                    openModal({ type: 'login' });
-                                    return;
-                                }
-                                openModal({ type: 'setPriceAlert', data: post });
-                            }}
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                                "h-8 w-8 p-0 rounded-full flex items-center justify-center",
-                                isPriceAlertSet
-                                    ? "text-red-600"
-                                    : "text-gray-600"
-                            )}
-                            aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
-                            title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
-                          >
-                            <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
-                          </Button>
-                      )}
-                      <LikeButton
-                          isLiked={isPostLiked}
-                          onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                              "h-8 w-8 p-0 rounded-full flex items-center justify-center",
-                              isPostLiked
-                                  ? "text-red-600"
-                                  : "text-gray-600"
-                          )}
-                          iconClassName="w-5 h-5"
-                          aria-label={isPostLiked ? "Unlike post" : "Like post"}
-                          title={isPostLiked ? "Unlike post" : "Like post"}
-                      />
-                  </div>
+              {onSale && salePercentage > 0 && (
+                <div className="flex-shrink-0">
+                  <SaleBadge percentage={salePercentage} size="small" />
+                </div>
               )}
           </div>
 
@@ -529,6 +518,25 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                         {/* Secondary actions on the right */}
                         {!isArchived && (
                         <div className="flex-shrink-0 flex items-center gap-1">
+                            {isPurchasable && !isExpired && (
+                                <Button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                        openModal({ type: 'setPriceAlert', data: post });
+                                    }}
+                                    variant="overlay-dark"
+                                    size="icon-sm"
+                                    className={cn(
+                                        "bg-gray-50 rounded-xl",
+                                        isPriceAlertSet ? "text-red-600" : "text-gray-600"
+                                    )}
+                                    title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
+                                    aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
+                                >
+                                    <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
+                                </Button>
+                            )}
                             <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 rounded-xl text-gray-600" title="Share post">
                                 <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>

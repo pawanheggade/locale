@@ -66,6 +66,46 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
+
+    const drawSaleBadge = (ctx: CanvasRenderingContext2D, x: number, y: number, percentage: number) => {
+        ctx.save();
+        
+        const badgeHeight = 22;
+        const paddingX = 8;
+        const arrowWidth = 8;
+        const holeRadius = 2.5;
+        const borderRadius = 4;
+        const text = `${percentage}% OFF`;
+        const font = 'bold 12px sans-serif';
+
+        ctx.font = font;
+        const textWidth = ctx.measureText(text).width;
+        const badgeWidth = textWidth + paddingX * 2;
+        
+        ctx.fillStyle = '#fef3c7'; // amber-100
+        ctx.beginPath();
+        ctx.moveTo(x, y + badgeHeight / 2);
+        ctx.lineTo(x + arrowWidth, y);
+        ctx.lineTo(x + arrowWidth + badgeWidth - borderRadius, y);
+        ctx.arcTo(x + arrowWidth + badgeWidth, y, x + arrowWidth + badgeWidth, y + borderRadius, borderRadius);
+        ctx.lineTo(x + arrowWidth + badgeWidth, y + badgeHeight - borderRadius);
+        ctx.arcTo(x + arrowWidth + badgeWidth, y + badgeHeight, x + arrowWidth + badgeWidth - borderRadius, y + badgeHeight, borderRadius);
+        ctx.lineTo(x + arrowWidth, y + badgeHeight);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x + arrowWidth, y + badgeHeight / 2, holeRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = '#92400e'; // amber-800
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + arrowWidth + badgeWidth / 2, y + badgeHeight / 2 + 1);
+
+        ctx.restore();
+    };
     
     // --- Height Calculation ---
     const scale = 2;
@@ -96,7 +136,14 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
 
     // Title Height
     const titleLineHeight = 30;
-    const titleLines = calculateLines(post.title, 'bold 24px sans-serif', cardWidth - padding * 2, 2);
+    let titleLines = calculateLines(post.title, 'bold 24px sans-serif', cardWidth - padding * 2, 2);
+    
+    const onSale = post.price !== undefined && post.salePrice !== undefined && post.salePrice < post.price;
+    if (onSale) {
+        // Add potential extra line height for the sale badge if it wraps, simplifies height calculation
+        titleLines += 1;
+    }
+    
     requiredHeight += titleLines * titleLineHeight;
 
     // Price Height
@@ -239,13 +286,70 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
         return linesDrawn;
     };
 
-    // 3. Title
+    // 3. Title & Sale Badge
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 24px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    const titleLinesDrawn = wrapText(post.title, padding, currentY, cardWidth - padding * 2, titleLineHeight, 2);
-    currentY += (titleLinesDrawn * titleLineHeight);
+    
+    const salePercentage = onSale ? Math.round(((post.price! - post.salePrice!) / post.price!) * 100) : 0;
+    
+    const badgeHeight = 22;
+    const badgeText = `${salePercentage}% OFF`;
+    const badgeFont = 'bold 12px sans-serif';
+    ctx.font = badgeFont;
+    const badgeTextWidth = ctx.measureText(badgeText).width;
+    const badgeFullWidth = badgeTextWidth + 8 * 2 + 8; // paddingX*2 + arrowWidth
+    const badgeGap = 8;
+    ctx.font = 'bold 24px sans-serif';
+
+    const maxLines = 2;
+    const words = post.title.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine + words[i] + ' ';
+        if (ctx.measureText(testLine).width > (cardWidth - padding * 2) && i > 0) {
+            lines.push(currentLine.trim());
+            currentLine = words[i] + ' ';
+        } else {
+            currentLine = testLine;
+        }
+    }
+    lines.push(currentLine.trim());
+
+    if (lines.length > maxLines) {
+        lines.length = maxLines;
+        let lastLine = lines[maxLines - 1];
+        let truncatedLine = lastLine;
+        while (ctx.measureText(truncatedLine + '...').width > (cardWidth - padding * 2)) {
+            truncatedLine = truncatedLine.slice(0, -1);
+        }
+        lines[maxLines - 1] = truncatedLine + '...';
+    }
+
+    let extraHeightForBadge = 0;
+    lines.forEach((line, index) => {
+        const isLastLine = index === lines.length - 1;
+        const lineY = currentY + (index * titleLineHeight);
+        
+        if (isLastLine && onSale) {
+            const lineWidth = ctx.measureText(line).width;
+            if (lineWidth + badgeGap + badgeFullWidth <= (cardWidth - padding * 2)) {
+                ctx.fillText(line, padding, lineY);
+                drawSaleBadge(ctx, padding + lineWidth + badgeGap, lineY + (titleLineHeight - badgeHeight) / 2, salePercentage);
+            } else {
+                ctx.fillText(line, padding, lineY);
+                drawSaleBadge(ctx, padding, lineY + titleLineHeight, salePercentage);
+                extraHeightForBadge = titleLineHeight;
+            }
+        } else {
+            ctx.fillText(line, padding, lineY);
+        }
+    });
+    currentY += (lines.length * titleLineHeight) + extraHeightForBadge;
+
 
     // 4. Price
     currentY += 10;
