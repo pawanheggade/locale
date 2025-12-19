@@ -1,5 +1,4 @@
 
-
 import React, { Suspense, useRef } from 'react';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
@@ -91,7 +90,6 @@ export const App: React.FC = () => {
               transform: `translateY(${pullPosition}px)`,
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
-            className="h-full"
           >
             <div className={cn(
               'relative z-0 w-full', 

@@ -45,7 +45,7 @@ export const compressImage = (file: File, options: { maxWidth: number; quality: 
               type: 'image/jpeg',
               lastModified: Date.now(),
             });
-            resolve(compressedFile.size > file.size ? file : compressedFile);
+            resolve(compressedFile);
           },
           'image/jpeg',
           options.quality
@@ -57,173 +57,326 @@ export const compressImage = (file: File, options: { maxWidth: number; quality: 
   });
 };
 
-const wrapText = (
-  context: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-  maxLines: number = 2
-) => {
-    const words = text.split(' ');
-    let line = '';
-    const lines = [];
-    for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = context.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-            lines.push(line);
-            line = words[n] + ' ';
-        } else {
-            line = testLine;
-        }
-    }
-    lines.push(line);
-
-    let finalLines = lines.slice(0, maxLines);
-    if (lines.length > maxLines) {
-        // Find the last line and truncate it with an ellipsis
-        let lastLine = finalLines[maxLines - 1];
-        while (context.measureText(lastLine + '...').width > maxWidth && lastLine.length > 0) {
-            lastLine = lastLine.slice(0, -1);
-        }
-        finalLines[maxLines - 1] = lastLine.trim() + '...';
-    }
-    
-    for (let k = 0; k < finalLines.length; k++) {
-        context.fillText(finalLines[k].trim(), x, y + (k * lineHeight));
-    }
-};
-
-
 export const generatePostPreviewImage = async (post: DisplayablePost): Promise<Blob | null> => {
+    if (!post.author) {
+        console.error("Author information is required to generate a post preview.");
+        return null;
+    }
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
+    
+    // --- Height Calculation ---
+    const scale = 2;
+    const cardWidth = 400;
+    const padding = 24;
+    const imageHeight = 250;
+    const footerHeight = 80;
+    let requiredHeight = imageHeight + padding; // Start with image and top padding
 
-    const scale = 3;
-    const cardWidth = 350;
-    const imageHeight = 200;
-    const detailsHeight = 250;
-    const cardHeight = imageHeight + detailsHeight;
-    const padding = 20;
+    const calculateLines = (text: string, font: string, maxWidth: number, maxLines = Infinity) => {
+        if (!text) return 0;
+        ctx.font = font;
+        const words = text.split(' ');
+        let line = '';
+        let lineCount = 0;
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+                lineCount++;
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
+        if (line.trim()) lineCount++;
+        return Math.min(lineCount, maxLines);
+    };
 
+    // Title Height
+    const titleLineHeight = 30;
+    const titleLines = calculateLines(post.title, 'bold 24px sans-serif', cardWidth - padding * 2, 2);
+    requiredHeight += titleLines * titleLineHeight;
+
+    // Price Height
+    requiredHeight += 10; // margin after title
+    if (post.price !== undefined) {
+        requiredHeight += 40; // approx height for price section
+    }
+
+    // Description Height
+    requiredHeight += 20; // margin before description
+    const descLineHeight = 20;
+    const maxDescLines = 15; // Cap description to prevent extremely tall images
+    const descLines = calculateLines(post.description, '14px sans-serif', cardWidth - padding * 2, maxDescLines);
+    requiredHeight += descLines * descLineHeight;
+
+    // Tags Height
+    if (post.tags && post.tags.length > 0) {
+        requiredHeight += 15; // margin before tags
+        ctx.font = '500 12px sans-serif';
+        const tagLineHeight = 22;
+        let currentX = padding;
+        let tagLines = 1;
+        for (const tag of post.tags) {
+            const tagText = `#${tag}`;
+            const tagWidth = ctx.measureText(tagText).width + 15;
+            if (currentX + tagWidth > cardWidth - padding) {
+                if (tagLines >= 2) break;
+                tagLines++;
+                currentX = padding;
+            }
+            currentX += tagWidth;
+        }
+        requiredHeight += tagLines * tagLineHeight;
+    }
+
+    requiredHeight += 15; // padding before footer
+    requiredHeight += footerHeight;
+
+    const minCardHeight = 600;
+    const cardHeight = Math.max(minCardHeight, requiredHeight);
+
+    // --- Canvas Setup ---
     canvas.width = cardWidth * scale;
     canvas.height = cardHeight * scale;
     ctx.scale(scale, scale);
 
     // --- Asset Loading ---
-    const imagePromises: Promise<any>[] = [];
+    const postImgPromise = new Promise<HTMLImageElement>(resolve => {
+        if (post.media && post.media.length > 0 && post.media[0].type === 'image') {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = (e) => {
+                console.warn("Failed to load post image for canvas", e);
+                resolve(img);
+            };
+            img.src = post.media[0].url;
+        } else {
+            resolve(new Image());
+        }
+    });
 
-    const postImg = new Image();
-    postImg.crossOrigin = 'anonymous';
-    if (post.media.length > 0 && post.media[0].type === 'image') {
-        postImg.src = post.media[0].url;
-        imagePromises.push(new Promise((resolve, reject) => {
-            postImg.onload = resolve;
-            postImg.onerror = resolve; // Don't reject, just continue without the image
-        }));
-    }
+    const postUrl = `${window.location.origin}/?post=${post.id}`;
+    const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${100 * scale}&data=${encodeURIComponent(postUrl)}&bgcolor=ffffff&color=111827&qzone=1&margin=0`;
 
-    const authorImg = new Image();
-    authorImg.crossOrigin = 'anonymous';
-    if (post.author?.avatarUrl) {
-        authorImg.src = post.author.avatarUrl;
-        imagePromises.push(new Promise((resolve, reject) => {
-            authorImg.onload = resolve;
-            authorImg.onerror = resolve;
-        }));
-    }
-
-    const tierStyles = TIER_STYLES[post.author?.subscription.tier || 'Personal'];
-    const qrColor = tierStyles.hex.substring(1);
-    const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(`${window.location.origin}?post=${post.id}`)}&size=200&margin=1&ecLevel=H&dark=${qrColor}`;
-    const qrImg = new Image();
-    qrImg.crossOrigin = 'anonymous';
-    qrImg.src = qrCodeUrl;
-    imagePromises.push(new Promise((resolve, reject) => {
-        qrImg.onload = resolve;
-        qrImg.onerror = resolve;
-    }));
+    const qrImgPromise = new Promise<HTMLImageElement>(resolve => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = (e) => {
+            console.warn("Could not load QR code for canvas", e);
+            resolve(img);
+        };
+        img.src = qrCodeApiUrl;
+    });
     
-    await Promise.all(imagePromises);
+    const [postImg, qrImg] = await Promise.all([postImgPromise, qrImgPromise]);
 
     // --- Drawing ---
 
-    // 1. White background
+    // 1. White Background
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, cardWidth, cardHeight);
 
-    // 2. Post image
+    // 2. Post Media
     if (postImg.complete && postImg.naturalHeight !== 0) {
-        const hRatio = cardWidth / postImg.width;
-        const vRatio = imageHeight / postImg.height;
-        const ratio = Math.max(hRatio, vRatio);
-        const centerShiftX = (cardWidth - postImg.width * ratio) / 2;
-        const centerShiftY = (imageHeight - postImg.height * ratio) / 2;
-        ctx.drawImage(postImg, 0, 0, postImg.width, postImg.height, centerShiftX, centerShiftY, postImg.width * ratio, postImg.height * ratio);
+        const imgAspectRatio = postImg.width / postImg.height;
+        const canvasAspectRatio = cardWidth / imageHeight;
+        let sx = 0, sy = 0, sWidth = postImg.width, sHeight = postImg.height;
+
+        if (imgAspectRatio > canvasAspectRatio) {
+            sWidth = postImg.height * canvasAspectRatio;
+            sx = (postImg.width - sWidth) / 2;
+        } else {
+            sHeight = postImg.width / canvasAspectRatio;
+            sy = (postImg.height - sHeight) / 2;
+        }
+        ctx.drawImage(postImg, sx, sy, sWidth, sHeight, 0, 0, cardWidth, imageHeight);
     } else {
-        ctx.fillStyle = '#F3F4F6'; // gray-100
+        ctx.fillStyle = '#E5E7EB';
         ctx.fillRect(0, 0, cardWidth, imageHeight);
     }
     
-    // --- Details Section ---
-    const detailsY = imageHeight + padding;
+    let currentY = imageHeight + padding;
 
-    // 3. Author Info
-    const avatarSize = 40;
-    if (post.author) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(padding + avatarSize / 2, detailsY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.clip();
-        if (authorImg.complete && authorImg.naturalHeight !== 0) {
-            ctx.drawImage(authorImg, padding, detailsY, avatarSize, avatarSize);
-        } else {
-            ctx.fillStyle = '#E5E7EB'; // gray-200
-            ctx.fillRect(padding, detailsY, avatarSize, avatarSize);
+    const wrapText = (text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number = Infinity): number => {
+        if (!text) return 0;
+        const words = text.split(' ');
+        let line = '';
+        let linesDrawn = 0;
+        let currentTextY = y;
+
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                if (linesDrawn + 1 < maxLines) {
+                    ctx.fillText(line.trim(), x, currentTextY);
+                    currentTextY += lineHeight;
+                    linesDrawn++;
+                    line = words[n] + ' ';
+                } else {
+                    let truncatedLine = line.trim();
+                    while (ctx.measureText(truncatedLine + '...').width > maxWidth) {
+                        truncatedLine = truncatedLine.slice(0, -1);
+                    }
+                    ctx.fillText(truncatedLine + '...', x, currentTextY);
+                    linesDrawn++;
+                    return linesDrawn;
+                }
+            } else {
+                line = testLine;
+            }
         }
-        ctx.restore();
+        
+        if (line.trim().length > 0) {
+            ctx.fillText(line.trim(), x, currentTextY);
+            linesDrawn++;
+        }
+        return linesDrawn;
+    };
 
-        ctx.fillStyle = '#111827'; // gray-900
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-        ctx.fillText(post.author.name, padding + avatarSize + 12, detailsY + 4);
-
-        ctx.fillStyle = '#6B7280'; // gray-500
-        ctx.font = '12px sans-serif';
-        ctx.fillText(`@${post.author.username}`, padding + avatarSize + 12, detailsY + 22);
-    }
-
-    // 4. Title & Price
-    const titleY = detailsY + avatarSize + 20;
-    ctx.fillStyle = '#111827';
-    ctx.font = 'bold 20px sans-serif';
-    wrapText(ctx, post.title, padding, titleY, cardWidth - padding * 2, 24, 2);
-
-    const priceY = titleY + 60;
+    // 3. Title
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 24px sans-serif';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(formatCurrency(post.salePrice ?? post.price), padding, priceY);
-    if (post.salePrice) {
-        const salePriceWidth = ctx.measureText(formatCurrency(post.salePrice)).width;
-        ctx.fillStyle = '#9CA3AF'; // gray-400
-        ctx.font = '16px sans-serif';
-        ctx.fillText(formatCurrency(post.price), padding + salePriceWidth + 8, priceY);
-    }
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    const titleLinesDrawn = wrapText(post.title, padding, currentY, cardWidth - padding * 2, titleLineHeight, 2);
+    currentY += (titleLinesDrawn * titleLineHeight);
 
-    // 5. QR Code & Logo
-    const qrSize = 64;
-    const qrY = cardHeight - qrSize - padding;
-    if (qrImg.complete && qrImg.naturalHeight !== 0) {
-        ctx.drawImage(qrImg, cardWidth - qrSize - padding, qrY, qrSize, qrSize);
+    // 4. Price
+    currentY += 10;
+    if (post.price !== undefined) {
+        const priceString = formatCurrency(post.salePrice ?? post.price);
+        ctx.font = 'bold 28px sans-serif';
+        ctx.fillStyle = post.salePrice ? '#CA8A04' : '#1F2937';
+        ctx.textBaseline = 'top';
+        const priceMetrics = ctx.measureText(priceString);
+        ctx.fillText(priceString, padding, currentY);
+        
+        if (post.salePrice && post.price) {
+            const originalPriceString = formatCurrency(post.price);
+            ctx.font = '500 18px sans-serif';
+            ctx.fillStyle = '#6B7280';
+            ctx.fillText(originalPriceString, padding + priceMetrics.width + 10, currentY + 6);
+            
+            const originalPriceMetrics = ctx.measureText(originalPriceString);
+            const textHeight = originalPriceMetrics.actualBoundingBoxAscent + originalPriceMetrics.actualBoundingBoxDescent;
+            ctx.strokeStyle = '#6B7280';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding + priceMetrics.width + 10, currentY + 6 + textHeight / 1.5);
+            ctx.lineTo(padding + priceMetrics.width + 10 + originalPriceMetrics.width, currentY + 6 + textHeight / 1.5);
+            ctx.stroke();
+        }
     }
+    currentY += 40;
 
-    await drawLogoOnCanvas(ctx, padding + 40, qrY + (qrSize / 2));
+    // 5. Description
+    currentY += 20;
+    ctx.fillStyle = '#374151';
+    ctx.font = '14px sans-serif';
+    const descLinesDrawn = wrapText(post.description, padding, currentY, cardWidth - padding * 2, descLineHeight, maxDescLines);
+    currentY += descLinesDrawn * descLineHeight;
+
+    // 6. Tags
+    currentY += 15;
+    if (post.tags && post.tags.length > 0) {
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '500 12px sans-serif';
+        let currentX = padding;
+        const tagLineHeight = 22;
+        let tagLines = 1;
+        
+        for (const tag of post.tags) {
+            const tagText = `#${tag}`;
+            const tagWidth = ctx.measureText(tagText).width + 15;
+            
+            if (currentX + tagWidth > cardWidth - padding) {
+                if (tagLines >= 2) break;
+                currentY += tagLineHeight;
+                currentX = padding;
+                tagLines++;
+            }
+            ctx.fillText(tagText, currentX, currentY);
+            currentX += tagWidth;
+        }
+        currentY += tagLineHeight;
+    }
     
-    return new Promise(resolve => canvas.toBlob(blob => resolve(blob), 'image/png', 0.95));
+    // 7. Footer info
+    const footerY = cardHeight - 80;
+    ctx.strokeStyle = '#F3F4F6'; // gray-100
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, footerY);
+    ctx.lineTo(cardWidth - padding, footerY);
+    ctx.stroke();
+
+    const footerContentY = footerY + (cardHeight - footerY) / 2; // Vertical center of footer area
+    
+    // Draw @username and badge on the left, upper part of footer
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillStyle = '#111827'; // gray-900
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+
+    const usernameText = `@${post.author.username}`;
+    const usernameWidth = ctx.measureText(usernameText).width;
+    const tier = post.author.subscription.tier;
+    const hasBadge = ['Verified', 'Business', 'Organisation'].includes(tier);
+    const badgeSize = 18;
+    const gap = 5;
+
+    const usernameY = footerY + 25; // Position in upper part of footer
+    ctx.fillText(usernameText, padding, usernameY);
+
+    if (hasBadge) {
+        const badgeSvg = getBadgeSvg(tier);
+        if (badgeSvg) {
+            const badgeImg = new Image();
+            const badgeDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(badgeSvg)}`;
+            badgeImg.src = badgeDataUrl;
+
+            await new Promise<void>((resolve) => {
+                badgeImg.onload = () => resolve();
+                badgeImg.onerror = (e) => {
+                    console.warn("Could not load badge for canvas", e);
+                    resolve();
+                };
+            });
+
+            if (badgeImg.complete && badgeImg.naturalHeight > 0) {
+                const badgeX = padding + usernameWidth + gap;
+                const badgeY = usernameY - (badgeSize / 2);
+                ctx.drawImage(badgeImg, badgeX, badgeY, badgeSize, badgeSize);
+            }
+        }
+    }
+    
+    // Draw Logo below username, aligned left
+    ctx.save();
+    const logoFontSize = 28; // From drawLogoOnCanvas implementation
+    ctx.font = `bold ${logoFontSize}px "Comfortaa", sans-serif`;
+    const logoWidth = ctx.measureText("locale").width;
+    ctx.restore();
+
+    const logoCenterX = padding + (logoWidth / 2);
+    const logoCenterY = footerY + 58; // Position in lower part of footer
+    await drawLogoOnCanvas(ctx, logoCenterX, logoCenterY);
+
+    // Draw QR code on the right, vertically centered in the footer area
+    const qrSize = 60;
+    if (qrImg.complete && qrImg.naturalHeight !== 0) {
+        ctx.drawImage(qrImg, cardWidth - padding - qrSize, footerContentY - qrSize / 2, qrSize, qrSize);
+    }
+
+    return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+            resolve(blob);
+        }, 'image/png');
+    });
 };

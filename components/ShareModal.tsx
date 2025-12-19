@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef } from 'react';
 // FIX: Changed Post to DisplayablePost to correctly type the post prop, which includes author information.
 import { DisplayablePost } from '../types';
@@ -93,17 +92,29 @@ export const ShareModal: React.FC<ShareModalProps> = ({ post: initialPost, onClo
     if (!previewImageUrl) return;
     setIsDownloading(true);
     try {
+        // Fetch the local blob URL to get the Blob object
+        const response = await fetch(previewImageUrl);
+        const blob = await response.blob();
+        
+        // Create a new object URL from this blob. This is a more robust way to ensure download.
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
         const link = document.createElement('a');
-        link.href = previewImageUrl;
+        link.href = downloadUrl;
         const safeTitle = post.title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
         link.download = `locale-post-${safeTitle}.png`;
         document.body.appendChild(link);
         link.click();
+        
+        // Clean up by removing the link and revoking the object URL.
         document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
         console.error('Download failed:', error);
     } finally {
-        setIsDownloading(false);
+        if (isMounted()) {
+            setIsDownloading(false);
+        }
     }
   };
 
