@@ -152,11 +152,9 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     const descLines = calculateLines(post.description, '14px sans-serif', cardWidth - padding * 2, maxDescLines);
     requiredHeight += descLines * descLineHeight;
 
-    requiredHeight += 15; // padding before footer
     requiredHeight += footerHeight;
 
-    const minCardHeight = 600;
-    const cardHeight = Math.max(minCardHeight, requiredHeight);
+    const cardHeight = requiredHeight;
 
     // --- Canvas Setup ---
     canvas.width = cardWidth * scale;
@@ -353,7 +351,7 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     currentY += descLinesDrawn * descLineHeight;
 
     // 7. Footer info
-    const footerY = cardHeight - 80;
+    const footerY = cardHeight - footerHeight;
     ctx.strokeStyle = '#F3F4F6'; // gray-100
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -361,7 +359,7 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     ctx.lineTo(cardWidth - padding, footerY);
     ctx.stroke();
 
-    const footerContentY = footerY + (cardHeight - footerY) / 2; // Vertical center of footer area
+    const footerContentY = footerY + footerHeight / 2; // Vertical center of footer area
     
     // Draw @username and badge on the left, upper part of footer
     ctx.font = 'bold 16px sans-serif';
