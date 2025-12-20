@@ -137,13 +137,6 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     // Title Height
     const titleLineHeight = 30;
     let titleLines = calculateLines(post.title, 'bold 24px sans-serif', cardWidth - padding * 2, 2);
-    
-    const onSale = post.price !== undefined && post.salePrice !== undefined && post.salePrice < post.price;
-    if (onSale) {
-        // Add potential extra line height for the sale badge if it wraps, simplifies height calculation
-        titleLines += 1;
-    }
-    
     requiredHeight += titleLines * titleLineHeight;
 
     // Price Height
@@ -158,26 +151,6 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     const maxDescLines = 15; // Cap description to prevent extremely tall images
     const descLines = calculateLines(post.description, '14px sans-serif', cardWidth - padding * 2, maxDescLines);
     requiredHeight += descLines * descLineHeight;
-
-    // Tags Height
-    if (post.tags && post.tags.length > 0) {
-        requiredHeight += 15; // margin before tags
-        ctx.font = '500 12px sans-serif';
-        const tagLineHeight = 22;
-        let currentX = padding;
-        let tagLines = 1;
-        for (const tag of post.tags) {
-            const tagText = `#${tag}`;
-            const tagWidth = ctx.measureText(tagText).width + 15;
-            if (currentX + tagWidth > cardWidth - padding) {
-                if (tagLines >= 2) break;
-                tagLines++;
-                currentX = padding;
-            }
-            currentX += tagWidth;
-        }
-        requiredHeight += tagLines * tagLineHeight;
-    }
 
     requiredHeight += 15; // padding before footer
     requiredHeight += footerHeight;
@@ -207,7 +180,10 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     });
 
     const postUrl = `${window.location.origin}/?post=${post.id}`;
-    const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${100 * scale}&data=${encodeURIComponent(postUrl)}&bgcolor=ffffff&color=111827&qzone=1&margin=0`;
+    const tier = post.author.subscription.tier;
+    const tierStyles = TIER_STYLES[tier] || TIER_STYLES.Personal;
+    const qrColor = tierStyles.hex.substring(1); // Remove '#' for URL param
+    const qrCodeApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${100 * scale}&data=${encodeURIComponent(postUrl)}&bgcolor=ffffff&color=${qrColor}&qzone=1&margin=0`;
 
     const qrImgPromise = new Promise<HTMLImageElement>(resolve => {
         const img = new Image();
@@ -286,23 +262,12 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
         return linesDrawn;
     };
 
-    // 3. Title & Sale Badge
+    // 3. Title
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 24px sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     
-    const salePercentage = onSale ? Math.round(((post.price! - post.salePrice!) / post.price!) * 100) : 0;
-    
-    const badgeHeight = 22;
-    const badgeText = `${salePercentage}% OFF`;
-    const badgeFont = 'bold 12px sans-serif';
-    ctx.font = badgeFont;
-    const badgeTextWidth = ctx.measureText(badgeText).width;
-    const badgeFullWidth = badgeTextWidth + 8 * 2 + 8; // paddingX*2 + arrowWidth
-    const badgeGap = 8;
-    ctx.font = 'bold 24px sans-serif';
-
     const maxLines = 2;
     const words = post.title.split(' ');
     const lines: string[] = [];
@@ -329,52 +294,53 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
         lines[maxLines - 1] = truncatedLine + '...';
     }
 
-    let extraHeightForBadge = 0;
     lines.forEach((line, index) => {
-        const isLastLine = index === lines.length - 1;
         const lineY = currentY + (index * titleLineHeight);
-        
-        if (isLastLine && onSale) {
-            const lineWidth = ctx.measureText(line).width;
-            if (lineWidth + badgeGap + badgeFullWidth <= (cardWidth - padding * 2)) {
-                ctx.fillText(line, padding, lineY);
-                drawSaleBadge(ctx, padding + lineWidth + badgeGap, lineY + (titleLineHeight - badgeHeight) / 2, salePercentage);
-            } else {
-                ctx.fillText(line, padding, lineY);
-                drawSaleBadge(ctx, padding, lineY + titleLineHeight, salePercentage);
-                extraHeightForBadge = titleLineHeight;
-            }
-        } else {
-            ctx.fillText(line, padding, lineY);
-        }
+        ctx.fillText(line, padding, lineY);
     });
-    currentY += (lines.length * titleLineHeight) + extraHeightForBadge;
+    currentY += (lines.length * titleLineHeight);
 
 
-    // 4. Price
+    // 4. Price & Sale Badge
     currentY += 10;
     if (post.price !== undefined) {
+        let currentX = padding;
+        const onSale = post.price !== undefined && post.salePrice !== undefined && post.salePrice < post.price;
+
+        // Sale Price or Regular Price
         const priceString = formatCurrency(post.salePrice ?? post.price);
         ctx.font = 'bold 28px sans-serif';
-        ctx.fillStyle = post.salePrice ? '#CA8A04' : '#1F2937';
+        ctx.fillStyle = onSale ? '#CA8A04' : '#1F2937';
         ctx.textBaseline = 'top';
         const priceMetrics = ctx.measureText(priceString);
-        ctx.fillText(priceString, padding, currentY);
+        ctx.fillText(priceString, currentX, currentY);
+        currentX += priceMetrics.width + 10;
         
-        if (post.salePrice && post.price) {
+        // Original Price (Struck-through)
+        if (onSale && post.price) {
             const originalPriceString = formatCurrency(post.price);
             ctx.font = '500 18px sans-serif';
-            ctx.fillStyle = '#6B7280';
-            ctx.fillText(originalPriceString, padding + priceMetrics.width + 10, currentY + 6);
+            ctx.fillStyle = '#6B7280'; // gray-500
+            ctx.fillText(originalPriceString, currentX, currentY + 6);
             
             const originalPriceMetrics = ctx.measureText(originalPriceString);
             const textHeight = originalPriceMetrics.actualBoundingBoxAscent + originalPriceMetrics.actualBoundingBoxDescent;
             ctx.strokeStyle = '#6B7280';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(padding + priceMetrics.width + 10, currentY + 6 + textHeight / 1.5);
-            ctx.lineTo(padding + priceMetrics.width + 10 + originalPriceMetrics.width, currentY + 6 + textHeight / 1.5);
+            ctx.moveTo(currentX, currentY + 6 + textHeight / 1.5);
+            ctx.lineTo(currentX + originalPriceMetrics.width, currentY + 6 + textHeight / 1.5);
             ctx.stroke();
+            currentX += originalPriceMetrics.width + 10;
+        }
+
+        // Sale Badge
+        if (onSale) {
+            const salePercentage = Math.round(((post.price! - post.salePrice!) / post.price!) * 100);
+            const saleBadgeHeight = 22; // From drawSaleBadge
+            const mainPriceFontSize = 28;
+            // Vertically align badge with the main sale price text
+            drawSaleBadge(ctx, currentX, currentY + (mainPriceFontSize - saleBadgeHeight) / 2, salePercentage);
         }
     }
     currentY += 40;
@@ -386,31 +352,6 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
     const descLinesDrawn = wrapText(post.description, padding, currentY, cardWidth - padding * 2, descLineHeight, maxDescLines);
     currentY += descLinesDrawn * descLineHeight;
 
-    // 6. Tags
-    currentY += 15;
-    if (post.tags && post.tags.length > 0) {
-        ctx.fillStyle = '#6B7280';
-        ctx.font = '500 12px sans-serif';
-        let currentX = padding;
-        const tagLineHeight = 22;
-        let tagLines = 1;
-        
-        for (const tag of post.tags) {
-            const tagText = `#${tag}`;
-            const tagWidth = ctx.measureText(tagText).width + 15;
-            
-            if (currentX + tagWidth > cardWidth - padding) {
-                if (tagLines >= 2) break;
-                currentY += tagLineHeight;
-                currentX = padding;
-                tagLines++;
-            }
-            ctx.fillText(tagText, currentX, currentY);
-            currentX += tagWidth;
-        }
-        currentY += tagLineHeight;
-    }
-    
     // 7. Footer info
     const footerY = cardHeight - 80;
     ctx.strokeStyle = '#F3F4F6'; // gray-100
@@ -430,7 +371,6 @@ export const generatePostPreviewImage = async (post: DisplayablePost): Promise<B
 
     const usernameText = `@${post.author.username}`;
     const usernameWidth = ctx.measureText(usernameText).width;
-    const tier = post.author.subscription.tier;
     const hasBadge = ['Verified', 'Business', 'Organisation'].includes(tier);
     const badgeSize = 18;
     const gap = 5;

@@ -1,6 +1,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon } from './Icons';
@@ -363,21 +365,16 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           )}
 
           {/* Price & Alert Button - Moved above description */}
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2 flex items-center">
               <PriceDisplay 
                 price={post.price} 
                 salePrice={post.salePrice} 
                 priceUnit={post.priceUnit} 
                 size={'small'} 
                 isExpired={isExpired} 
-                showOriginalPriceOnSale={true} 
+                showOriginalPriceOnSale={true}
+                showSaleBadge={true}
               />
-              
-              {onSale && salePercentage > 0 && (
-                <div className="flex-shrink-0">
-                  <SaleBadge percentage={salePercentage} size="small" />
-                </div>
-              )}
           </div>
 
           {/* Description Snippet with Expand Link */}
