@@ -50,6 +50,21 @@ export const ChevronLeftIcon = createIcon(<path strokeLinecap="round" strokeLine
 export const ChevronRightIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />);
 export const ClockIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />);
 export const CloudSlashIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M9.172 9.172a4 4 0 015.656 0M12 12a9 9 0 009 9H5a9 9 0 00-5.292-1.708" />);
+export const VideoPostcardIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
+    <Icon className={className} title={title} isFilled={isFilled} {...props}>
+      {isFilled ? (
+          <>
+            <path d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" fill="currentColor" stroke="none" />
+            <path d="M9.75 8.25L15.75 12L9.75 15.75V8.25Z" fill="white" stroke="none" />
+          </>
+      ) : (
+          <>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
+            <path d="M9.75 8.25L15.75 12L9.75 15.75V8.25Z" fill="currentColor" stroke="none"/>
+          </>
+      )}
+    </Icon>
+);
 
 export const Cog6ToothIcon = createIcon(<><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></>);
 export const CrosshairsIcon = createIcon(<><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75a3 3 0 116 0 3 3 0 01-6 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-2.25m0-13.5V3M21 12h-2.25m-13.5 0H3" /></>);

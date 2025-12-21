@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform, Account } from '../types';
-import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
+import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon, VideoPostcardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
 import { useUI } from '../contexts/UIContext';
@@ -71,6 +71,7 @@ export const AccountView: React.FC = () => {
   const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   
   const salePosts = useMemo(() => isPaidTier ? accountPosts.filter(p => p.salePrice !== undefined && p.price && p.price > p.salePrice) : [], [isPaidTier, accountPosts]);
+  const videoPosts = useMemo(() => accountPosts.filter(p => p.media.some(m => m.type === 'video')), [accountPosts]);
   
   const postCategories = useMemo<string[]>(() => {
       if (isBusinessAccount) {
@@ -102,6 +103,11 @@ export const AccountView: React.FC = () => {
     // Posts Tab
     if (isOwnAccount || accountPosts.length > 0) {
         tabs.push({ id: 'all', label: 'Posts', icon: <PostCardIcon className="w-6 h-6" /> });
+    }
+    
+    // Videos Tab
+    if (isOwnAccount || videoPosts.length > 0) {
+        tabs.push({ id: 'videos', label: 'Videos', icon: <VideoPostcardIcon className="w-6 h-6" /> });
     }
     
     // Forums Tab
@@ -136,6 +142,7 @@ export const AccountView: React.FC = () => {
     accountPosts.length,
     userForumPosts.length,
     salePosts.length,
+    videoPosts.length,
     canHaveCatalog,
     hasCatalogContent,
     isBusinessAccount,
@@ -188,6 +195,7 @@ export const AccountView: React.FC = () => {
     if (!activeTab) return [];
     if (activeTab === 'catalogs' || activeTab === 'forums') return [];
     if (activeTab === 'sale') return salePosts;
+    if (activeTab === 'videos') return videoPosts;
     if (activeTab === 'archives') return accountArchivedPosts;
     if (activeTab === 'all') {
         return [...accountPosts].sort((a, b) => {
@@ -198,7 +206,7 @@ export const AccountView: React.FC = () => {
     }
     // Category filter
     return accountPosts.filter(p => p.category === activeTab);
-  }, [activeTab, salePosts, accountArchivedPosts, accountPosts, pinnedPosts]);
+  }, [activeTab, salePosts, videoPosts, accountArchivedPosts, accountPosts, pinnedPosts]);
 
   const handleContactAction = (e: React.MouseEvent, method: { toast: string }) => {
       if (!currentAccount) {
@@ -296,20 +304,30 @@ export const AccountView: React.FC = () => {
                             variant={isTabletOrDesktop ? gridView : 'default'}
                         />
                     ) : (
-                    (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale') && activeTab ? (
+                    (activeTab === 'all' || activeTab === 'archives' || activeTab === 'sale' || activeTab === 'videos') && activeTab ? (
                         <EmptyState
-                            icon={activeTab === 'archives' ? <ArchiveBoxIcon /> : <PostCardIcon />}
+                            icon={
+                                activeTab === 'archives' ? <ArchiveBoxIcon /> :
+                                activeTab === 'videos' ? <VideoPostcardIcon /> :
+                                <PostCardIcon />
+                            }
                             title={
                                 activeTab === 'archives' ? "No Archived Posts" :
-                                activeTab === 'sale' ? "No Items on Sale" : "No Posts Yet"
+                                activeTab === 'sale' ? "No Items on Sale" :
+                                activeTab === 'videos' ? "No Videos" :
+                                "No Posts Yet"
                             }
                             description={isOwnAccount 
                                 ? (
                                     activeTab === 'archives' ? "Posts you archive will appear here." :
-                                    activeTab === 'sale' ? "Items you put on sale will appear here." : "You haven't created any posts yet."
+                                    activeTab === 'sale' ? "Items you put on sale will appear here." :
+                                    activeTab === 'videos' ? "Your posts that contain videos will appear here." :
+                                    "You haven't created any posts yet."
                                   )
                                 : (
-                                    activeTab === 'sale' ? "This seller has no items on sale right now." : "This seller hasn't created any posts yet."
+                                    activeTab === 'sale' ? "This seller has no items on sale right now." :
+                                    activeTab === 'videos' ? "This user has no video posts." :
+                                    "This seller hasn't created any posts yet."
                                   )
                             }
                             className="py-20"
