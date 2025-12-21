@@ -8,6 +8,7 @@ import { useUI } from '../contexts/UIContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
+import { useTabAnimation } from '../hooks/useTabAnimation';
 
 type LikedTab = 'profiles' | 'posts';
 
@@ -19,20 +20,7 @@ export const LikesView: React.FC = () => {
 
   const swipeRef = useRef<HTMLDivElement>(null);
   const tabs: LikedTab[] = ['profiles', 'posts'];
-  
-  const [animationClass, setAnimationClass] = useState('');
-  const prevTabRef = useRef(activeTab);
-
-  useEffect(() => {
-    const tabsOrder = ['profiles', 'posts'];
-    const prevIndex = tabsOrder.indexOf(prevTabRef.current);
-    const currentIndex = tabsOrder.indexOf(activeTab);
-
-    if (prevIndex !== -1 && prevIndex !== currentIndex) {
-      setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
-    }
-    prevTabRef.current = activeTab;
-  }, [activeTab]);
+  const animationClass = useTabAnimation(activeTab, tabs);
   
   useSwipeToNavigateTabs({
       tabs,

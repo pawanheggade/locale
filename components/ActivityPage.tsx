@@ -14,6 +14,7 @@ import { usePosts } from '../contexts/PostsContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { cn } from '../lib/utils';
+import { useTabAnimation } from '../hooks/useTabAnimation';
 
 export const ActivityPage: React.FC = () => {
   const { notifications, markAsRead: onDismiss, markAllAsRead: onDismissAll } = useActivity();
@@ -28,19 +29,7 @@ export const ActivityPage: React.FC = () => {
   
   const swipeRef = useRef<HTMLDivElement>(null);
   const tabs: ActivityTabType[] = ['notifications', 'alerts', 'history'];
-  
-  const [animationClass, setAnimationClass] = useState('');
-  const prevTabRef = useRef(activeTab);
-
-  useEffect(() => {
-    const prevIndex = tabs.indexOf(prevTabRef.current);
-    const currentIndex = tabs.indexOf(activeTab);
-
-    if (prevIndex !== -1 && prevIndex !== currentIndex) {
-      setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
-    }
-    prevTabRef.current = activeTab;
-  }, [activeTab]);
+  const animationClass = useTabAnimation(activeTab, tabs);
 
   useSwipeToNavigateTabs({
       tabs,

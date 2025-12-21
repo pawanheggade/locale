@@ -14,6 +14,7 @@ import { useUI } from '../contexts/UIContext';
 import { cn } from '../lib/utils';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { Select } from './ui/Select';
+import { useTabAnimation } from '../hooks/useTabAnimation';
 
 interface ForumPostCardProps {
     post: DisplayableForumPost;
@@ -88,18 +89,7 @@ export const ForumsView: React.FC = () => {
 
     const swipeRef = useRef<HTMLDivElement>(null);
     const tabs = useMemo(() => ['All', ...categories], [categories]);
-    const [animationClass, setAnimationClass] = useState('');
-    const prevTabRef = useRef(activeCategory);
-
-    useEffect(() => {
-        const prevIndex = tabs.indexOf(prevTabRef.current);
-        const currentIndex = tabs.indexOf(activeCategory);
-
-        if (prevIndex !== -1 && prevIndex !== currentIndex) {
-            setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
-        }
-        prevTabRef.current = activeCategory;
-    }, [activeCategory, tabs]);
+    const animationClass = useTabAnimation(activeCategory, tabs);
 
     useSwipeToNavigateTabs({
         tabs,

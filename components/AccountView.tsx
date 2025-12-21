@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { DisplayableForumPost, SocialPlatform, Account } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon } from './Icons';
@@ -19,6 +20,7 @@ import { useClickOutside } from '../hooks/useClickOutside';
 import { usePosts } from '../contexts/PostsContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { SEO } from './SEO';
+import { useTabAnimation } from '../hooks/useTabAnimation';
 
 interface ForumPostRowProps {
     post: DisplayableForumPost;
@@ -147,19 +149,8 @@ export const AccountView: React.FC = () => {
   const allTabs = useMemo(() => {
       return [...availableTabs.map(t => t.id), ...categoryTabs];
   }, [availableTabs, categoryTabs]);
-
-  const [animationClass, setAnimationClass] = useState('');
-  const prevTabRef = useRef(activeTab);
-
-  useEffect(() => {
-    const prevIndex = allTabs.indexOf(prevTabRef.current);
-    const currentIndex = allTabs.indexOf(activeTab);
-
-    if (prevIndex !== -1 && prevIndex !== currentIndex) {
-      setAnimationClass(currentIndex > prevIndex ? 'animate-slide-in-from-right' : 'animate-slide-in-from-left');
-    }
-    prevTabRef.current = activeTab;
-  }, [activeTab, allTabs]);
+  
+  const animationClass = useTabAnimation(activeTab, allTabs);
   
   useSwipeToNavigateTabs({
       tabs: allTabs,
