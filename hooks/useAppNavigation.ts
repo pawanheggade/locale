@@ -1,10 +1,11 @@
+
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from '../types';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
-import { usePersistentState } from './usePersistentState';
+import { usePersistentState } from '../hooks/usePersistentState';
 import { useIsMounted } from './useIsMounted';
 import { reverseGeocode, haversineDistance } from '../utils/geocoding';
 import { STORAGE_KEYS } from '../lib/constants';
@@ -12,7 +13,7 @@ import { useLoading } from '../contexts/LoadingContext';
 
 interface HistoryItem {
     view: AppView;
-    mainView: 'grid' | 'map';
+    mainView: 'grid' | 'map' | 'videos';
     viewingPostId: string | null;
     viewingAccount: Account | null;
     viewingForumPostId: string | null;
@@ -39,7 +40,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const { startLoading, stopLoading, isLoadingTask } = useLoading();
 
     const [view, setView] = useState<AppView>('all');
-    const [mainView, setMainView] = useState<'grid' | 'map'>('grid');
+    const [mainView, setMainView] = useState<'grid' | 'map' | 'videos'>('grid');
     const [viewingPostId, setViewingPostId] = useState<string | null>(null);
     const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
     const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
@@ -193,7 +194,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
 
     const handleGoHome = useCallback(() => {
         onClearFilters();
-        if (mainView === 'map') setMainView('grid');
+        if (mainView !== 'grid') setMainView('grid');
         setHistory([]);
         setView('all');
         setViewingPostId(null);
@@ -210,7 +211,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         }
     }, [currentAccount, view, handleGoHome]);
 
-    const handleMainViewChange = useCallback((newMainView: 'grid' | 'map') => {
+    const handleMainViewChange = useCallback((newMainView: 'grid' | 'map' | 'videos') => {
         pushHistoryState();
         setMainView(newMainView);
     }, [pushHistoryState]);

@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon, VideoPostcardIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -25,8 +26,8 @@ interface HeaderProps {
   isVisible: boolean;
   onBack?: () => void;
   view: AppView;
-  mainView: 'grid' | 'map';
-  onMainViewChange: (view: 'grid' | 'map') => void;
+  mainView: 'grid' | 'map' | 'videos';
+  onMainViewChange: (view: 'grid' | 'map' | 'videos') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -65,8 +66,8 @@ export const Header: React.FC<HeaderProps> = ({
     if (!isTabletOrDesktop) {
       return false;
     }
-    // Don't show grid density controls on map view
-    if (view === 'all' && mainView === 'map') return false;
+    // Don't show grid density controls on map or videos view
+    if (view === 'all' && (mainView === 'map' || mainView === 'videos')) return false;
 
     const viewsWithGrid = ['all', 'likes', 'account', 'forums', 'nearbyPosts', 'activity'];
     return viewsWithGrid.includes(view);
@@ -127,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const navItems = useMemo(() => {
     const baseItems: {
-        id: AppView | 'maps';
+        id: AppView | 'maps' | 'videos';
         label: string;
         icon: React.ReactNode;
         isActive: boolean;
@@ -135,12 +136,23 @@ export const Header: React.FC<HeaderProps> = ({
     }[] = [
       {
         id: 'all',
-        label: 'Markets',
-        icon: <LogoIcon className="w-5 h-5" />,
+        label: 'Posts',
+        icon: <PostCardIcon className="w-5 h-5" />,
         isActive: view === 'all' && mainView === 'grid',
         onClick: () => {
           if (view !== 'all') navigateTo('all');
           onMainViewChange('grid');
+          setIsNavDropdownOpen(false);
+        }
+      },
+      {
+        id: 'videos',
+        label: 'Videos',
+        icon: <VideoPostcardIcon className="w-5 h-5" />,
+        isActive: view === 'all' && mainView === 'videos',
+        onClick: () => {
+          if (view !== 'all') navigateTo('all');
+          onMainViewChange('videos');
           setIsNavDropdownOpen(false);
         }
       },

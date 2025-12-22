@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { AppView } from '../types';
+import { AppView, DisplayablePost } from '../types';
 import { LoadingFallback } from './ui/LoadingFallback';
 
 // Lazy loaded components to reduce initial bundle size
@@ -26,8 +26,9 @@ const StudioPage = React.lazy(() => import('./StudioPage').then(module => ({ def
 
 interface ViewRendererProps {
   view: AppView;
-  mainView: 'grid' | 'map';
+  mainView: 'grid' | 'map' | 'videos';
   isInitialLoading: boolean;
+  videoPosts?: DisplayablePost[];
 }
 
 export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
@@ -37,11 +38,21 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
     
   switch (view) {
       case 'all':
-        return mainView === 'grid' ? (
-          <Suspense fallback={<LoadingFallback />}>
-            <PostList />
-          </Suspense>
-        ) : (
+        if (mainView === 'grid') {
+          return (
+            <Suspense fallback={<LoadingFallback />}>
+              <PostList />
+            </Suspense>
+          );
+        }
+        if (mainView === 'videos') {
+          return (
+            <Suspense fallback={<LoadingFallback />}>
+              <PostList posts={props.videoPosts} />
+            </Suspense>
+          );
+        }
+        return (
           <Suspense fallback={<LoadingFallback />}>
             <MapView />
           </Suspense>

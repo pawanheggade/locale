@@ -1,5 +1,5 @@
 
-import React, { Suspense, useRef } from 'react';
+import React, { Suspense, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
 import PullToRefreshIndicator from './components/PullToRefreshIndicator';
@@ -15,10 +15,12 @@ import { useAppNavigation } from './hooks/useAppNavigation';
 import { useAuth } from './contexts/AuthContext';
 import { usePullToRefresh } from './hooks/usePullToRefresh';
 import { GlobalLoadingIndicator } from './components/GlobalLoadingIndicator';
+import { usePosts } from './contexts/PostsContext';
 
 export const App: React.FC = () => {
   const { currentAccount } = useAuth(); // Still needed for GuestPrompt
   const { openModal } = useUI();
+  const { posts: allDisplayablePosts } = usePosts();
   
   const mainContentRef = useRef<HTMLDivElement>(null);
   
@@ -46,11 +48,13 @@ export const App: React.FC = () => {
     onRefresh: handleRefresh, 
     mainContentRef, 
     isRefreshing, 
-    disabled: !((view === 'all' && mainView === 'grid') || view === 'forums')
+    disabled: !((view === 'all' && (mainView === 'grid' || mainView === 'videos')) || view === 'forums')
   });
 
+  const videoPosts = useMemo(() => allDisplayablePosts.filter(p => p.media.some(m => m.type === 'video')), [allDisplayablePosts]);
+
   const viewRendererProps = {
-    view, mainView, isInitialLoading: false,
+    view, mainView, isInitialLoading: false, videoPosts
   };
 
   const isFullWidthView = view === 'account';
