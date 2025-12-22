@@ -299,6 +299,8 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
+  const exitAction = view !== 'all' ? (onBack || onGoHome) : handleExitSearch;
+
   return (
     <>
       <header className={cn(
@@ -320,7 +322,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <ChevronLeftIcon className="w-6 h-6" />
                       </Button>
                   )}
-                  <Logo onClick={handleLogoClick} />
+                  {view === 'all' && <Logo onClick={handleLogoClick} />}
                   <div className="relative" ref={navDropdownRef}>
                       <Button
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
@@ -414,16 +416,16 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
               </div>
             </div>
-          ) : isSearchOpen ? (
+          ) : (isSearchOpen || view !== 'all') ? (
             // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
               <Button
                   type="button"
-                  onClick={handleExitSearch}
+                  onClick={exitAction}
                   variant="ghost"
                   size="icon"
                   className="text-gray-500 rounded-xl shrink-0 -ml-2"
-                  aria-label="Exit search and clear filters"
+                  aria-label={view !== 'all' ? 'Go back' : "Exit search and clear filters"}
               >
                   <ChevronLeftIcon className="w-6 h-6" />
               </Button>
@@ -439,7 +441,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onAiSearchSubmit={handleAiSearchSubmitWithHistory}
                   isAiSearching={isAiSearching}
                   onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
-                  autoFocus
+                  autoFocus={isSearchOpen}
                   aiButton={renderAiButton()}
                   hideSearchIcon={true}
               />
