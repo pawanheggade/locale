@@ -224,9 +224,12 @@ export const Header: React.FC<HeaderProps> = ({
     { value: 'date-desc', label: 'Latest' },
   ];
 
-  const placeholder = viewingAccount 
-    ? `Search ${viewingAccount.name.split(' ')[0]}'s page...` 
-    : (filterState.isAiSearchEnabled ? "Ask Locale AI..." : "Search products, services, events…");
+  const placeholder = useMemo(() => {
+    if (view === 'forums') return 'Search forums...';
+    if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
+    if (filterState.isAiSearchEnabled) return 'Ask Locale AI...';
+    return 'Search products, services, events…';
+  }, [view, viewingAccount, filterState.isAiSearchEnabled]);
   
   const renderAiButton = (className?: string) => (
     <Button
@@ -322,7 +325,7 @@ export const Header: React.FC<HeaderProps> = ({
                           <ChevronLeftIcon className="w-6 h-6" />
                       </Button>
                   )}
-                  {view === 'all' && <Logo onClick={handleLogoClick} />}
+                  <Logo onClick={handleLogoClick} />
                   <div className="relative" ref={navDropdownRef}>
                       <Button
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
