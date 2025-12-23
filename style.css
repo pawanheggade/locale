@@ -1,4 +1,5 @@
 
+
 :root {
       --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -175,6 +176,10 @@
       will-change: transform, opacity;
     }
 
+    @keyframes fill-progress {
+        from { width: 0%; }
+        to { width: 100%; }
+    }
 
     /* User Location Marker */
     .user-location-marker {

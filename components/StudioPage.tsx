@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -14,6 +15,7 @@ import {
     UserIcon,
     CashIcon,
     GlobeAltIcon,
+    VideoPostcardIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
@@ -80,6 +82,14 @@ export const StudioPage: React.FC = () => {
             navigateTo('createPost');
         }
     };
+    
+    const handleCreateStory = () => {
+        if (currentAccount.subscription.tier === 'Personal') {
+            navigateTo('subscription');
+        } else {
+            navigateTo('createStoryPost');
+        }
+    };
 
     const handleAnalyticsClick = () => {
         if (isPaidTier) {
@@ -139,6 +149,13 @@ export const StudioPage: React.FC = () => {
                 )}
 
                 {/* Primary Actions */}
+                 <StudioCard 
+                    title="Create Story" 
+                    description="Post a 24-hour update." 
+                    icon={<VideoPostcardIcon className="w-6 h-6" />} 
+                    onClick={handleCreateStory}
+                    proFeature={isPersonalTier}
+                />
                 <StudioCard 
                     title="Create Post" 
                     description="List a new item or service." 

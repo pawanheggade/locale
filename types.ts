@@ -1,6 +1,8 @@
 
 
 
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -223,10 +225,11 @@ export type ModalState =
   | { type: 'viewCatalog', data: { catalog: CatalogItem[], accountId: string } }
   | { type: 'profileQR', data: Account }
   | { type: 'viewPost', data: DisplayablePost }
-  | { type: 'editSocials' };
+  | { type: 'editSocials' }
+  | { type: 'storyViewer', data: { usersWithStories: Account[], initialUserIndex: number, initialStoryId?: string } };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost';
 export type ActivityTab = 'notifications' | 'alerts' | 'history';
 
 export interface Toast {
@@ -335,4 +338,21 @@ export interface DisplayableForumPost extends ForumPost {
   score: number;
   commentCount: number;
   comments: DisplayableForumComment[];
+}
+
+// --- Story Types ---
+export interface StoryPost {
+  id: string;
+  authorId: string;
+  media: Media;
+  timestamp: number;
+  expiryTimestamp: number;
+  linkPostId?: string | null;
+  viewedBy: string[];
+  likedBy: string[];
+}
+
+export interface DisplayableStoryPost extends StoryPost {
+  author?: Account;
+  linkPost?: DisplayablePost;
 }

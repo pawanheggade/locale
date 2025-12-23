@@ -1,5 +1,4 @@
 
-
 import React, { useRef } from 'react';
 import { ModalState, SavedSearchFilters } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -31,6 +30,7 @@ import { Logo } from './Logo';
 import { PostCard } from './PostCard';
 import { SEO } from './SEO';
 import { useUserData } from '../contexts/UserDataContext';
+import { StoryViewerModal } from './StoryViewerModal';
 
 interface AppModalsProps {
     isFindingNearby: boolean;
@@ -80,7 +80,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
     // Redirect to login if a protected modal is requested without an account
     if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
         // We need to defer this slightly or ensure we don't cause a loop. 
-        // Ideally, the triggering component checks this, but this is a safety net.
+        // Ideally, the triggering component checks this, but this is a safety net. 
         // For render purity, we'll return null here and effect-based redirect would be better, 
         // but typically openModal handles the state. 
         // We'll render the Login modal instead.
@@ -256,6 +256,8 @@ export const AppModals: React.FC<AppModalsProps> = ({
                 />
             </ModalShell>
           );
+      case 'storyViewer':
+          return <StoryViewerModal usersWithStories={activeModal.data.usersWithStories} initialUserIndex={activeModal.data.initialUserIndex} onClose={closeModal} />;
       default:
         return null;
     }

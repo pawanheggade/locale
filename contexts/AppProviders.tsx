@@ -1,5 +1,7 @@
 
 
+
+
 import React from 'react';
 import { AuthProvider } from './AuthContext';
 import { PostsProvider } from './PostsContext';
@@ -9,6 +11,7 @@ import { ForumProvider } from './ForumContext';
 import { ActivityProvider } from './ActivityContext';
 import { UserDataProvider } from './UserDataContext';
 import { LoadingProvider } from './LoadingContext';
+import { StoryProvider } from './StoryContext';
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -18,11 +21,13 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           <UserDataProvider>
             <ActivityProvider>
               <PostsProvider>
-                <ForumProvider>
-                  <FiltersProvider>
-                    {children}
-                  </FiltersProvider>
-                </ForumProvider>
+                <StoryProvider>
+                  <ForumProvider>
+                    <FiltersProvider>
+                      {children}
+                    </FiltersProvider>
+                  </ForumProvider>
+                </StoryProvider>
               </PostsProvider>
             </ActivityProvider>
           </UserDataProvider>

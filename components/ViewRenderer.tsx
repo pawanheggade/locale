@@ -23,6 +23,8 @@ const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(mo
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 const SettingsPage = React.lazy(() => import('./SettingsPage').then(module => ({ default: module.SettingsPage })));
 const StudioPage = React.lazy(() => import('./StudioPage').then(module => ({ default: module.StudioPage })));
+const StoryReel = React.lazy(() => import('./StoryReel').then(module => ({ default: module.StoryReel })));
+const CreateStoryPostPage = React.lazy(() => import('./CreateStoryPostPage').then(module => ({ default: module.CreateStoryPostPage })));
 
 interface ViewRendererProps {
   view: AppView;
@@ -30,6 +32,12 @@ interface ViewRendererProps {
   isInitialLoading: boolean;
   videoPosts?: DisplayablePost[];
 }
+
+const PaddedView: React.FC<{children: React.ReactNode}> = ({ children }) => (
+    <div className="p-4 sm:p-6 lg:p-8">
+        <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+    </div>
+);
 
 export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
   const { 
@@ -40,47 +48,46 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
       case 'all':
         if (mainView === 'grid') {
           return (
-            <Suspense fallback={<LoadingFallback />}>
-              <PostList />
-            </Suspense>
+            <>
+              <Suspense fallback={null}><StoryReel /></Suspense>
+              <PaddedView><PostList /></PaddedView>
+            </>
           );
         }
         if (mainView === 'videos') {
           return (
-            <Suspense fallback={<LoadingFallback />}>
-              <PostList posts={props.videoPosts} />
-            </Suspense>
+            <PaddedView><PostList posts={props.videoPosts} /></PaddedView>
           );
         }
         return (
-          <Suspense fallback={<LoadingFallback />}>
-            <MapView />
-          </Suspense>
+          <Suspense fallback={<LoadingFallback />}><MapView /></Suspense>
         );
       case 'likes':
-        return <Suspense fallback={<LoadingFallback />}><LikesView /></Suspense>;
+        return <PaddedView><LikesView /></PaddedView>;
       case 'bag':
-        return <Suspense fallback={<LoadingFallback />}><BagView /></Suspense>;
+        return <PaddedView><BagView /></PaddedView>;
       case 'admin':
-        return <Suspense fallback={<LoadingFallback />}><AdminPanel /></Suspense>;
+        return <PaddedView><AdminPanel /></PaddedView>;
       case 'account':
         return <Suspense fallback={<LoadingFallback />}><AccountView /></Suspense>;
       case 'nearbyPosts':
-        return <Suspense fallback={<LoadingFallback />}><NearbyPostsView /></Suspense>;
+        return <PaddedView><NearbyPostsView /></PaddedView>;
        case 'forums':
-        return <Suspense fallback={<LoadingFallback />}><ForumsView /></Suspense>;
+        return <PaddedView><ForumsView /></PaddedView>;
        case 'forumPostDetail':
-        return <Suspense fallback={<LoadingFallback />}><ForumsPostDetailView /></Suspense>;
+        return <PaddedView><ForumsPostDetailView /></PaddedView>;
       case 'createPost':
         return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
       case 'editPost':
           return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
+       case 'createStoryPost':
+          return <Suspense fallback={<LoadingFallback />}><CreateStoryPostPage /></Suspense>;
       case 'subscription':
-        return <Suspense fallback={<LoadingFallback />}><SubscriptionPage /></Suspense>;
+        return <PaddedView><SubscriptionPage /></PaddedView>;
       case 'activity':
-        return <Suspense fallback={<LoadingFallback />}><ActivityPage /></Suspense>;
+        return <PaddedView><ActivityPage /></PaddedView>;
       case 'accountAnalytics':
-        return <Suspense fallback={<LoadingFallback />}><AccountAnalyticsView /></Suspense>;
+        return <PaddedView><AccountAnalyticsView /></PaddedView>;
        case 'editAdminPage':
          return <Suspense fallback={<LoadingFallback />}><EditPageView /></Suspense>;
        case 'editProfile':
@@ -90,9 +97,9 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
        case 'createForumPost':
          return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage /></Suspense>;
        case 'settings':
-         return <Suspense fallback={<LoadingFallback />}><SettingsPage /></Suspense>;
+         return <PaddedView><SettingsPage /></PaddedView>;
        case 'studio':
-         return <Suspense fallback={<LoadingFallback />}><StudioPage /></Suspense>;
+         return <PaddedView><StudioPage /></PaddedView>;
       default:
         return null;
   }

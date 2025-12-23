@@ -1,4 +1,5 @@
 
+
 import React, { Suspense, useRef, useMemo } from 'react';
 import { Header } from './components/Header';
 import { ViewRenderer } from './components/ViewRenderer';
@@ -57,8 +58,6 @@ export const App: React.FC = () => {
     view, mainView, isInitialLoading: false, videoPosts
   };
 
-  const isFullWidthView = view === 'account';
-
   return (
     <NavigationContext.Provider value={navigationContextValue}>
       <GlobalLoadingIndicator />
@@ -95,11 +94,7 @@ export const App: React.FC = () => {
               transition: !isPulling ? 'transform 0.3s ease-out' : 'none',
             }}
           >
-            <div className={cn(
-              'relative z-0 w-full', 
-              (mainView === 'map') && 'h-full',
-              !(mainView === 'map' || isFullWidthView) && 'p-4 sm:p-6 lg:p-8'
-            )}>
+            <div className={cn('relative z-0 w-full', (mainView === 'map') && 'h-full')}>
               <ErrorBoundary>
                 <Suspense fallback={<LoadingFallback />}>
                   <ViewRenderer {...viewRendererProps} />

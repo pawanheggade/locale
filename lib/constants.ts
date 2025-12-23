@@ -24,4 +24,5 @@ export const STORAGE_KEYS = {
   POST_DRAFT: 'locale_post_draft_v2',
   GUEST_PROMPT: 'localeGuestPromptDismissed',
   MEDIA_CAROUSEL_PREFIX: 'media-carousel-state-',
+  STORY_POSTS: 'localeAppStoryPosts',
 };
