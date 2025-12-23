@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
@@ -188,7 +187,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
           {shouldShowRecent && (
             <>
-              <li className="px-4 pt-3 pb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Recent Searches</li>
               {recentSearches.map((search, index) => (
                 <li
                   id={`suggestion-${index}`}
@@ -212,11 +210,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   </Button>
                 </li>
               ))}
-              {onClearRecentSearches && (
-                <li className="border-t border-gray-50 px-4 py-2 text-center">
-                    <Button variant="link" size="sm" onClick={handleClearAll} className="text-red-600 text-xs font-semibold">Clear All Searches</Button>
-                </li>
-              )}
             </>
           )}
           {shouldShowSuggestions && (
