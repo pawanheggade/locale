@@ -15,6 +15,8 @@ import { cn } from '../lib/utils';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { Select } from './ui/Select';
 import { useTabAnimation } from '../hooks/useTabAnimation';
+import { useFilters } from '../contexts/FiltersContext';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface ForumPostCardProps {
     post: DisplayableForumPost;
@@ -84,6 +86,8 @@ export const ForumsView: React.FC = () => {
     const { gridView, isTabletOrDesktop } = useUI();
     const { currentAccount } = useAuth();
     const { openModal } = useUI();
+    const { filterState } = useFilters();
+    const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
     
     const [sortOption, setSortOption] = useState<'latest' | 'trending' | 'oldest'>('latest');
 
@@ -100,10 +104,23 @@ export const ForumsView: React.FC = () => {
 
     const filteredPosts = useMemo(() => {
         let filtered = posts;
+
+        // 1. Filter by active category
         if (activeCategory && activeCategory !== 'All') {
              filtered = filtered.filter(p => p.category === activeCategory);
         }
+
+        // 2. Filter by search query
+        if (debouncedSearchQuery.trim()) {
+            const lowercasedQuery = debouncedSearchQuery.toLowerCase();
+            filtered = filtered.filter(post =>
+                post.title.toLowerCase().includes(lowercasedQuery) ||
+                post.content.toLowerCase().includes(lowercasedQuery) ||
+                (post.author?.username || '').toLowerCase().includes(lowercasedQuery)
+            );
+        }
         
+        // 3. Sort the results
         return [...filtered].sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
@@ -115,7 +132,7 @@ export const ForumsView: React.FC = () => {
                 default: return b.timestamp - a.timestamp;
             }
         });
-    }, [posts, activeCategory, sortOption]);
+    }, [posts, activeCategory, sortOption, debouncedSearchQuery]);
 
     const handleCreatePost = () => {
         if (!currentAccount) {
@@ -173,7 +190,7 @@ export const ForumsView: React.FC = () => {
 
             <div ref={swipeRef} className="relative overflow-x-hidden">
                 <div
-                    key={activeCategory} 
+                    key={activeCategory + debouncedSearchQuery} 
                     className={cn(
                         'grid gap-4',
                         isTabletOrDesktop && gridView === 'compact' ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1',
@@ -194,7 +211,7 @@ export const ForumsView: React.FC = () => {
                             <EmptyState 
                                 icon={<ChatBubbleEllipsisIcon />} 
                                 title="No discussions found" 
-                                description={activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!"}
+                                description={debouncedSearchQuery.trim() ? "Try adjusting your search query." : (activeCategory !== 'All' ? `There are no posts in the ${activeCategory} category yet.` : "Be the first to start a discussion!")}
                                 className="py-12"
                             />
                         </div>
