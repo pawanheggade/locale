@@ -200,17 +200,24 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
         </div>
       
         {footerContent && (
-             <div className="absolute bottom-6 left-4 right-4 z-20 flex flex-col items-center gap-4 animate-slide-in-up" onPointerDown={e => e.stopPropagation()} onPointerUp={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
-                {activeStory.description && (
-                    <p className="w-full bg-black/50 text-white text-sm px-4 py-3 rounded-xl backdrop-blur-md text-center">
-                        {activeStory.description}
-                    </p>
-                )}
-                {activeStory.linkPost && (
-                    <Button variant="overlay" onClick={handleViewPost} className="bg-white/20 backdrop-blur-md rounded-full px-6 py-3 font-semibold">
-                        View Post
-                    </Button>
-                )}
+             <div 
+                className="absolute bottom-0 left-0 right-0 z-20 bg-black/50 backdrop-blur-md animate-slide-in-up" 
+                onPointerDown={e => e.stopPropagation()} 
+                onPointerUp={e => e.stopPropagation()} 
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="p-4 flex flex-col items-center gap-3">
+                    {activeStory.description && (
+                        <p className="text-white text-sm text-center max-w-xl mx-auto">
+                            {activeStory.description}
+                        </p>
+                    )}
+                    {activeStory.linkPost && (
+                        <Button variant="overlay" onClick={handleViewPost} className="bg-white/20 backdrop-blur-md rounded-full px-6 py-3 font-semibold">
+                            View Post
+                        </Button>
+                    )}
+                </div>
             </div>
         )}
       
