@@ -23,18 +23,17 @@ const StoryReelItem: React.FC<{
         : 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500';
 
     return (
-        <div className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group" onClick={onClick}>
+        <div className="flex-shrink-0 cursor-pointer group" onClick={onClick}>
             <div className={cn("rounded-full p-0.5", ringClass)}>
                 <div className="bg-white p-0.5 rounded-full">
                     <Avatar 
                         src={author.avatarUrl} 
                         alt={author.name}
-                        size="2xl"
-                        className="w-16 h-16 group-active:scale-95 transition-transform"
+                        size="md"
+                        className="w-9 h-9 group-active:scale-95 transition-transform"
                     />
                 </div>
             </div>
-            <span className="text-xs font-medium text-gray-800 w-20 truncate text-center">{author.name}</span>
         </div>
     );
 };
@@ -71,14 +70,13 @@ export const StoryReel: React.FC = () => {
             <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar">
                 {/* Create Story Button */}
                 {(currentAccount.subscription.tier !== 'Personal') && (
-                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer group" onClick={handleCreateStory}>
-                         <div className="relative w-[72px] h-[72px] flex items-center justify-center">
-                            <Avatar src={currentAccount.avatarUrl} alt="Your Story" size="2xl" className="w-16 h-16 group-active:scale-95 transition-transform" />
-                            <div className="absolute bottom-1 right-1 bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-white border-2 border-white">
-                                <PlusIcon className="w-4 h-4" strokeWidth={3} />
+                    <div className="flex-shrink-0 cursor-pointer group" onClick={handleCreateStory}>
+                         <div className="relative w-11 h-11 flex items-center justify-center">
+                            <Avatar src={currentAccount.avatarUrl} alt="Your Story" size="md" className="w-9 h-9 group-active:scale-95 transition-transform" />
+                            <div className="absolute bottom-0 right-0 bg-red-600 rounded-full w-5 h-5 flex items-center justify-center text-white border-2 border-white">
+                                <PlusIcon className="w-3 h-3" strokeWidth={3} />
                             </div>
                         </div>
-                        <span className="text-xs font-medium text-gray-800 w-20 truncate text-center">Your Story</span>
                     </div>
                 )}
 
