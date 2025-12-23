@@ -5,6 +5,8 @@
 
 
 
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -231,7 +233,7 @@ export type ModalState =
   | { type: 'storyViewer', data: { usersWithStories: Account[], initialUserIndex: number, initialStoryId?: string } };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost' | 'editStory';
 export type ActivityTab = 'notifications' | 'alerts' | 'history';
 
 export interface Toast {

@@ -17,11 +17,14 @@ const MAX_FILE_SIZE_MB = 15;
 const DESCRIPTION_MAX_LENGTH = 200;
 
 export const CreateStoryPostPage: React.FC = () => {
-    const { handleBack, navigateTo } = useNavigation();
-    const { addStory } = useStory();
+    const { handleBack, navigateTo, viewingStoryId } = useNavigation();
+    const { addStory, findStoryById, updateStory } = useStory();
     const { postsByAuthorId } = usePosts();
     const { currentAccount } = useAuth();
     
+    const editingStory = viewingStoryId ? findStoryById(viewingStoryId) : null;
+    const isEditing = !!editingStory;
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [linkedPostId, setLinkedPostId] = useState<string | null>(null);
     const [description, setDescription] = useState('');
@@ -29,11 +32,26 @@ export const CreateStoryPostPage: React.FC = () => {
     
     const userPosts = currentAccount ? postsByAuthorId.get(currentAccount.id) || [] : [];
     
-    const { mediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({
+    const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({
         maxFiles: MAX_FILES,
         maxFileSizeMB: MAX_FILE_SIZE_MB,
         subscriptionTier: currentAccount?.subscription.tier,
     });
+
+    useEffect(() => {
+        if (isEditing && editingStory) {
+            setDescription(editingStory.description || '');
+            setLinkedPostId(editingStory.linkPostId || null);
+            setMediaUploads([{
+                id: `editing-${editingStory.id}-${editingStory.media.url}`,
+                previewUrl: editingStory.media.url,
+                finalUrl: editingStory.media.url,
+                progress: 100,
+                status: 'complete',
+                type: editingStory.media.type,
+            }]);
+        }
+    }, [isEditing, editingStory, setMediaUploads]);
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,23 +66,34 @@ export const CreateStoryPostPage: React.FC = () => {
         setIsSubmitting(true);
         const media: Media = { type: finalMedia.type, url: finalMedia.finalUrl! };
         
-        const newStory = addStory(media, linkedPostId, description.trim());
-        
-        if (newStory) {
-            navigateTo('all');
+        if (isEditing && editingStory) {
+            updateStory(editingStory.id, {
+                media,
+                description: description.trim(),
+                linkPostId: linkedPostId || undefined,
+            });
+            handleBack();
         } else {
-            setError('Failed to create story. Please try again.');
-            setIsSubmitting(false);
+            const newStory = addStory(media, linkedPostId, description.trim());
+            if (newStory) {
+                navigateTo('all');
+            } else {
+                setError('Failed to create story. Please try again.');
+                setIsSubmitting(false);
+            }
         }
     };
     
     if (!currentAccount) return null;
 
+    const pageTitle = isEditing ? 'Edit Story' : 'Create Story';
+    const submitButtonText = isEditing ? 'Save Changes' : 'Post Story';
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
                 <div className="max-w-2xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Create Story</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">{pageTitle}</h1>
                     <form id="create-story-form" onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <FormField id="story-media" label="Story Media" error={error}>
@@ -113,7 +142,7 @@ export const CreateStoryPostPage: React.FC = () => {
                 onCancel={handleBack}
                 submitFormId="create-story-form"
                 isLoading={isSubmitting}
-                submitText="Post Story"
+                submitText={submitButtonText}
                 submitDisabled={mediaUploads.length === 0 || mediaUploads.some(m => m.status !== 'complete')}
             />
         </div>

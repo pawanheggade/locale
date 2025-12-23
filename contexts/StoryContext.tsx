@@ -15,6 +15,8 @@ interface StoryContextType {
   addStory: (media: Media, linkPostId?: string | null, description?: string) => StoryPost | null;
   markStoryAsViewed: (storyId: string) => void;
   toggleLikeStory: (storyId: string) => void;
+  findStoryById: (storyId: string) => DisplayableStoryPost | undefined;
+  updateStory: (storyId: string, updates: Partial<Pick<StoryPost, 'media' | 'description' | 'linkPostId'>>) => void;
 }
 
 const StoryContext = createContext<StoryContextType | undefined>(undefined);
@@ -107,6 +109,19 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }));
     }, [currentAccount, setRawStories, openModal]);
 
+    const findStoryById = useCallback((storyId: string): DisplayableStoryPost | undefined => {
+        return stories.find(s => s.id === storyId);
+    }, [stories]);
+
+    const updateStory = useCallback((storyId: string, updates: Partial<Pick<StoryPost, 'media' | 'description' | 'linkPostId'>>) => {
+        setRawStories(prev => prev.map(story => {
+            if (story.id === storyId) {
+                return { ...story, ...updates };
+            }
+            return story;
+        }));
+    }, [setRawStories]);
+
     const value = useMemo(() => ({
         stories,
         activeStories,
@@ -114,7 +129,9 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addStory,
         markStoryAsViewed,
         toggleLikeStory,
-    }), [stories, activeStories, activeStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory]);
+        findStoryById,
+        updateStory,
+    }), [stories, activeStories, activeStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory, findStoryById, updateStory]);
 
     return (
         <StoryContext.Provider value={value}>

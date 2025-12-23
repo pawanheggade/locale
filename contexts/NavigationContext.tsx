@@ -1,9 +1,10 @@
+
 import { createContext, useContext } from 'react';
 import { AppView, Account, ActivityTab, AdminView, DisplayablePost } from '../types';
 
 // --- Navigation Context ---
 interface NavigationContextType {
-  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView }) => void;
+  navigateTo: (view: AppView, options?: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, storyId?: string }) => void;
   navigateToAccount: (accountId: string) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
@@ -11,6 +12,7 @@ interface NavigationContextType {
   viewingAccount: Account | null;
   viewingPostId: string | null;
   viewingForumPostId: string | null;
+  viewingStoryId: string | null;
   editingAdminPageKey: 'terms' | 'privacy' | null;
   activityInitialTab: ActivityTab;
   adminInitialView?: AdminView;

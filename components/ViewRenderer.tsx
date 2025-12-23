@@ -82,6 +82,8 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
           return <Suspense fallback={<LoadingFallback />}><CreatePostPage /></Suspense>;
        case 'createStoryPost':
           return <Suspense fallback={<LoadingFallback />}><CreateStoryPostPage /></Suspense>;
+       case 'editStory':
+          return <Suspense fallback={<LoadingFallback />}><CreateStoryPostPage /></Suspense>;
       case 'subscription':
         return <PaddedView><SubscriptionPage /></PaddedView>;
       case 'activity':

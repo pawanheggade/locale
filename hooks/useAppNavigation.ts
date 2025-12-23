@@ -18,13 +18,14 @@ interface HistoryItem {
     viewingAccount: Account | null;
     viewingForumPostId: string | null;
     editingAdminPageKey: 'terms' | 'privacy' | null;
+    viewingStoryId: string | null;
     scrollPosition: number;
     filters: FiltersState;
 }
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings', 'studio'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings', 'studio', 'createStoryPost', 'editStory'
 ];
 
 interface UseAppNavigationProps {
@@ -43,6 +44,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const [mainView, setMainView] = useState<'grid' | 'map' | 'videos'>('grid');
     const [viewingPostId, setViewingPostId] = useState<string | null>(null);
     const [viewingForumPostId, setViewingForumPostId] = useState<string | null>(null);
+    const [viewingStoryId, setViewingStoryId] = useState<string | null>(null);
     const [editingAdminPageKey, setEditingAdminPageKey] = useState<'terms' | 'privacy' | null>(null);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -88,14 +90,14 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const pushHistoryState = useCallback(() => {
         const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
         setHistory(h => [...h, {
-            view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey,
+            view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId,
             scrollPosition: currentScrollPosition, filters: filterState,
         }]);
-    }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, filterState, mainContentRef]);
+    }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, filterState, mainContentRef]);
 
     const navigateTo = useCallback((
         newView: AppView,
-        options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView } = {}
+        options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, storyId?: string } = {}
     ) => {
         if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
             openModal({ type: 'login' });
@@ -107,8 +109,9 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         const isSameAccount = viewingAccount?.id === (options.account?.id || null);
         const isSameForumPost = viewingForumPostId === (options.forumPostId || null);
         const isSamePageKey = editingAdminPageKey === (options.pageKey || null);
+        const isSameStory = viewingStoryId === (options.storyId || null);
 
-        if (isSameView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey) return;
+        if (isSameView && isSamePost && isSameAccount && isSameForumPost && isSamePageKey && isSameStory) return;
 
         if (newView === 'createPost' && currentAccount?.subscription.tier === 'Personal') {
             navigateTo('subscription');
@@ -143,10 +146,11 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         setViewingPostId(options.postId || null);
         setViewingAccount(options.account || null);
         setViewingForumPostId(options.forumPostId || null);
+        setViewingStoryId(options.storyId || null);
         setEditingAdminPageKey(options.pageKey || null);
 
         if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
-    }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, currentAccount, incrementProfileViews, pushHistoryState, openModal, mainContentRef]);
+    }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, currentAccount, incrementProfileViews, pushHistoryState, openModal, mainContentRef]);
 
     const navigateToAccount = useCallback((accountId: string) => {
         const account = accountsById.get(accountId);
@@ -171,6 +175,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
             setViewingPostId(lastHistoryItem.viewingPostId);
             setViewingAccount(lastHistoryItem.viewingAccount);
             setViewingForumPostId(lastHistoryItem.viewingForumPostId);
+            setViewingStoryId(lastHistoryItem.viewingStoryId);
             setEditingAdminPageKey(lastHistoryItem.editingAdminPageKey);
             setHistory(h => h.slice(0, -1));
 
@@ -200,6 +205,7 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         setViewingPostId(null);
         setViewingAccount(null);
         setViewingForumPostId(null);
+        setViewingStoryId(null);
         setEditingAdminPageKey(null);
         if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
         handleRefresh();
@@ -307,12 +313,12 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
 
     const navigationContextValue = useMemo(() => ({
         navigateTo, navigateToAccount, handleBack, showOnMap, saveHistoryState: pushHistoryState,
-        viewingAccount, viewingPostId, viewingForumPostId, editingAdminPageKey, activityInitialTab, adminInitialView,
+        viewingAccount, viewingPostId, viewingForumPostId, viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView,
         nearbyPostsResult, userLocation, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
         handleFindNearby, handleEnableLocation, recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,
     }), [
         navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState, viewingAccount, viewingPostId, viewingForumPostId,
-        editingAdminPageKey, activityInitialTab, adminInitialView, nearbyPostsResult, userLocation, isFindingNearby,
+        viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView, nearbyPostsResult, userLocation, isFindingNearby,
         postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete, handleFindNearby, handleEnableLocation,
         recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,
     ]);

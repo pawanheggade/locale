@@ -5,7 +5,7 @@ import { useStory } from '../contexts/StoryContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { Avatar } from './Avatar';
-import { XMarkIcon, PaperAirplaneIcon, HeartIcon } from './Icons';
+import { XMarkIcon, PaperAirplaneIcon, HeartIcon, PencilIcon } from './Icons';
 import { Button } from './ui/Button';
 import { timeSince } from '../utils/formatters';
 import { useIsMounted } from '../hooks/useIsMounted';
@@ -149,7 +149,14 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
   
   const isVideo = activeStory.media.type === 'video';
   const isLiked = currentAccount && activeStory.likedBy.includes(currentAccount.id);
+  const isOwnStory = currentAccount?.id === activeStory.authorId;
   const footerContent = activeStory.description || activeStory.linkPost;
+  
+  const handleEdit = () => {
+    if (!isOwnStory || !activeStory) return;
+    onClose();
+    navigateTo('editStory', { storyId: activeStory.id });
+  };
   
   return (
     <div className="fixed inset-0 z-[4000] bg-black/90 flex items-center justify-center animate-zoom-in" onClick={handleTap}>
@@ -176,6 +183,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
+                    {isOwnStory && <Button variant="overlay" size="icon-sm" onClick={handleEdit}><PencilIcon className="w-5 h-5"/></Button>}
                     {navigator.share && <Button variant="overlay" size="icon-sm" onClick={handleShare}><PaperAirplaneIcon className="w-5 h-5"/></Button>}
                     <LikeButton isLiked={!!isLiked} onToggle={() => toggleLikeStory(activeStory.id)} variant="overlay" size="icon-sm" />
                     <Button variant="overlay" size="icon-sm" onClick={onClose}><XMarkIcon className="w-6 h-6"/></Button>
