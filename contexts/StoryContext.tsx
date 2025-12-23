@@ -12,7 +12,7 @@ interface StoryContextType {
   stories: DisplayableStoryPost[];
   activeStories: DisplayableStoryPost[];
   activeStoriesByUser: Map<string, DisplayableStoryPost[]>;
-  addStory: (media: Media, linkPostId?: string | null) => StoryPost | null;
+  addStory: (media: Media, linkPostId?: string | null, description?: string) => StoryPost | null;
   markStoryAsViewed: (storyId: string) => void;
   toggleLikeStory: (storyId: string) => void;
 }
@@ -53,7 +53,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return map;
     }, [activeStories]);
 
-    const addStory = useCallback((media: Media, linkPostId?: string | null): StoryPost | null => {
+    const addStory = useCallback((media: Media, linkPostId?: string | null, description?: string): StoryPost | null => {
         if (!currentAccount) {
             openModal({ type: 'login' });
             return null;
@@ -65,6 +65,7 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             media,
             timestamp: Date.now(),
             expiryTimestamp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
+            description,
             linkPostId,
             viewedBy: [currentAccount.id], // The creator has "viewed" it
             likedBy: [],

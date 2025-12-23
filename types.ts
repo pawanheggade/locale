@@ -3,6 +3,8 @@
 
 
 
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -347,6 +349,7 @@ export interface StoryPost {
   media: Media;
   timestamp: number;
   expiryTimestamp: number;
+  description?: string;
   linkPostId?: string | null;
   viewedBy: string[];
   likedBy: string[];

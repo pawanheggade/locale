@@ -8,6 +8,7 @@ export const mockStoryPosts: StoryPost[] = [
     media: { type: 'image', url: 'https://picsum.photos/seed/story1_armchair/1080/1920' },
     timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
     expiryTimestamp: Date.now() + 22 * 60 * 60 * 1000, // Expires in 22 hours
+    description: 'A closer look at the beautiful teak wood grain on this restored armchair.',
     linkPostId: (Date.now() - 1 * 24 * 60 * 60 * 1000).toString(), // Links to 'Restored Mid-Century Modern Armchair'
     viewedBy: [],
     likedBy: [],
@@ -18,6 +19,7 @@ export const mockStoryPosts: StoryPost[] = [
     media: { type: 'video', url: 'https://www.w3schools.com/tags/movie.mp4' },
     timestamp: Date.now() - 1 * 60 * 60 * 1000, // 1 hour ago
     expiryTimestamp: Date.now() + 23 * 60 * 60 * 1000, // Expires in 23 hours
+    description: 'See this desk in action! So much space.',
     linkPostId: (Date.now() - 4 * 24 * 60 * 60 * 1000).toString(), // Links to 'Minimalist Solid Oak Desk'
     viewedBy: [],
     likedBy: [],
@@ -28,6 +30,7 @@ export const mockStoryPosts: StoryPost[] = [
     media: { type: 'image', url: 'https://picsum.photos/seed/story3_veggies/1080/1920' },
     timestamp: Date.now() - 5 * 60 * 60 * 1000, // 5 hours ago
     expiryTimestamp: Date.now() + 19 * 60 * 60 * 1000, // Expires in 19 hours
+    description: 'Fresh delivery this morning! Look at these colors.',
     linkPostId: (Date.now() - 12 * 60 * 60 * 1000).toString(), // Links to 'Weekly Organic Veggie Box'
     viewedBy: [],
     likedBy: [],

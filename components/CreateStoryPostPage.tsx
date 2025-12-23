@@ -10,9 +10,11 @@ import { FixedPageFooter } from './FixedPageFooter';
 import { FormField } from './FormField';
 import { Select } from './ui/Select';
 import { useStory } from '../contexts/StoryContext';
+import { Textarea } from './ui/Textarea';
 
 const MAX_FILES = 1;
 const MAX_FILE_SIZE_MB = 15;
+const DESCRIPTION_MAX_LENGTH = 200;
 
 export const CreateStoryPostPage: React.FC = () => {
     const { handleBack, navigateTo } = useNavigation();
@@ -22,6 +24,7 @@ export const CreateStoryPostPage: React.FC = () => {
     
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [linkedPostId, setLinkedPostId] = useState<string | null>(null);
+    const [description, setDescription] = useState('');
     const [error, setError] = useState('');
     
     const userPosts = currentAccount ? postsByAuthorId.get(currentAccount.id) || [] : [];
@@ -45,7 +48,7 @@ export const CreateStoryPostPage: React.FC = () => {
         setIsSubmitting(true);
         const media: Media = { type: finalMedia.type, url: finalMedia.finalUrl! };
         
-        const newStory = addStory(media, linkedPostId);
+        const newStory = addStory(media, linkedPostId, description.trim());
         
         if (newStory) {
             navigateTo('all');
@@ -76,6 +79,20 @@ export const CreateStoryPostPage: React.FC = () => {
                             </FormField>
                             <p className="text-xs text-gray-600 mt-2">Stories are visible for 24 hours.</p>
                         </div>
+                        
+                        <FormField 
+                            id="story-description" 
+                            label="Description (Optional)"
+                            description={`${description.length} / ${DESCRIPTION_MAX_LENGTH}`}
+                        >
+                          <Textarea 
+                              value={description}
+                              onChange={e => setDescription(e.target.value)}
+                              maxLength={DESCRIPTION_MAX_LENGTH}
+                              rows={3}
+                              placeholder="Add a caption to your story..."
+                          />
+                        </FormField>
 
                         {userPosts.length > 0 && (
                             <FormField id="link-post" label="Link to a Post (Optional)" description="Attach one of your posts to this story.">
