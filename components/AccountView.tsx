@@ -166,6 +166,13 @@ export const AccountView: React.FC = () => {
       swipeRef,
       disabled: allTabs.length <= 1,
   });
+
+  const activeTabLabel = useMemo(() => {
+    const tab = availableTabs.find(t => t.id === activeTab);
+    if (tab) return tab.label;
+    if (categoryTabs.includes(activeTab)) return `Category: ${activeTab}`;
+    return 'Profile Content';
+  }, [activeTab, availableTabs, categoryTabs]);
   
   useEffect(() => {
     const isStandardTab = availableTabs.some(t => t.id === activeTab);
@@ -347,144 +354,146 @@ export const AccountView: React.FC = () => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
+    <article className="pb-20 bg-gray-50 min-h-[calc(100vh-4rem)] animate-fade-in">
       <SEO 
         title={account.name}
         description={account.description || `Check out ${account.name}'s profile on Locale.`}
         image={account.avatarUrl}
         type="profile"
       />
-      {/* Banner Section */}
-      <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
-        {account.bannerUrl ? (
-          <img src={account.bannerUrl} alt="Cover" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
-        )}
-      </div>
+      <header>
+          {/* Banner Section */}
+          <div className="relative h-40 sm:h-60 w-full bg-gray-200 overflow-hidden">
+            {account.bannerUrl ? (
+              <img src={account.bannerUrl} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
+            )}
+          </div>
 
-      {/* Profile Header Section - Full Width */}
-      <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-            <div className="flex items-center gap-5 -mt-12 sm:-mt-16 mb-6">
-                 {/* Avatar */}
-                 <div className="shrink-0 relative z-20">
-                    <Avatar 
-                        src={account.avatarUrl} 
-                        alt={account.name} 
-                        tier={account.subscription.tier} 
-                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md active:scale-95 transition-transform"
-                        onClick={() => openModal({ type: 'profileQR', data: account })}
-                    />
-                 </div>
+          {/* Profile Header Section - Full Width */}
+          <div className="bg-white border-b border-gray-200/80 shadow-sm relative z-10">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+                <div className="flex items-center gap-5 -mt-12 sm:-mt-16 mb-6">
+                     {/* Avatar */}
+                     <div className="shrink-0 relative z-20">
+                        <Avatar 
+                            src={account.avatarUrl} 
+                            alt={account.name} 
+                            tier={account.subscription.tier} 
+                            className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white cursor-pointer bg-white rounded-full shadow-md active:scale-95 transition-transform"
+                            onClick={() => openModal({ type: 'profileQR', data: account })}
+                        />
+                     </div>
 
-                 {/* Name and Info */}
-                 <div className="flex-1 min-w-0 w-full">
-                      <div className="flex flex-col items-start gap-0.5">
-                          <div className="flex items-center flex-wrap gap-x-2">
-                              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 text-gray-600">
-                             <p className="font-medium text-sm">@{account.username}</p>
-                             <SubscriptionBadge tier={account.subscription.tier} />
-                          </div>
-
-                          <div className="flex flex-col items-start gap-1 text-sm text-gray-600 mt-1.5">
-                              <div className="flex items-center gap-1.5">
-                                <CalendarIcon className="w-4 h-4 text-gray-600" />
-                                <span>Joined {formatMonthYear(account.joinDate)}</span>
+                     {/* Name and Info */}
+                     <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col items-start gap-0.5">
+                              <div className="flex items-center flex-wrap gap-x-2">
+                                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{account.name}</h1>
                               </div>
-                              {account.taxInfo && (
-                                <div className="flex items-center gap-1.5">
-                                    <DocumentIcon className="w-4 h-4 text-gray-600" />
-                                    <span>Tax ID: {account.taxInfo}</span>
-                                </div>
-                              )}
-                          </div>
-                      </div>
-                 </div>
-            </div>
+                              
+                              <div className="flex items-center gap-2 text-gray-600">
+                                 <p className="font-medium text-sm">@{account.username}</p>
+                                 <SubscriptionBadge tier={account.subscription.tier} />
+                              </div>
 
-            {/* Description, Location, and Actions */}
-            <div className="space-y-6">
-                {account.description && (
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{account.description}</p>
-                )}
-                
-                {account.address && (
-                    <div className="flex items-center gap-3">
-                         {(account.googleMapsUrl || account.appleMapsUrl) && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                {account.googleMapsUrl && (
-                                    <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Google Maps">
-                                        <GoogleIcon className="w-4 h-4" />
-                                    </a>
-                                )}
-                                {account.appleMapsUrl && (
-                                    <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Apple Maps">
-                                        <AppleIcon className="w-4 h-4" />
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
-                            onClick={(e) => { 
-                                e.preventDefault();
-                                e.stopPropagation(); 
-                                showOnMap(account); 
-                            }}
-                            className={cn(
-                                "flex items-center gap-1.5 group min-w-0",
-                                account.coordinates ? "cursor-pointer text-red-600 hover:text-red-700 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
+                              <div className="flex flex-col items-start gap-1 text-sm text-gray-600 mt-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <CalendarIcon className="w-4 h-4 text-gray-600" />
+                                    <span>Joined {formatMonthYear(account.joinDate)}</span>
+                                  </div>
+                                  {account.taxInfo && (
+                                    <div className="flex items-center gap-1.5">
+                                        <DocumentIcon className="w-4 h-4 text-gray-600" />
+                                        <span>Tax ID: {account.taxInfo}</span>
+                                    </div>
+                                  )}
+                              </div>
+                          </div>
+                     </div>
+                </div>
+
+                {/* Description, Location, and Actions */}
+                <div className="space-y-6">
+                    {account.description && (
+                        <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">{account.description}</p>
+                    )}
+                    
+                    {account.address && (
+                        <div className="flex items-center gap-3">
+                             {(account.googleMapsUrl || account.appleMapsUrl) && (
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {account.googleMapsUrl && (
+                                        <a href={account.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Google Maps">
+                                            <GoogleIcon className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                    {account.appleMapsUrl && (
+                                        <a href={account.appleMapsUrl} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-700 p-1 -m-1 rounded-full transition-colors active:scale-90" title="Apple Maps">
+                                            <AppleIcon className="w-4 h-4" />
+                                        </a>
+                                    )}
+                                </div>
                             )}
-                            title={account.coordinates ? "Show on map" : "No map location available"}
-                        >
-                            <MapPinIcon className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{account.address}</span>
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showOnMap(account); } }}
+                                onClick={(e) => { 
+                                    e.preventDefault();
+                                    e.stopPropagation(); 
+                                    showOnMap(account); 
+                                }}
+                                className={cn(
+                                    "flex items-center gap-1.5 group min-w-0",
+                                    account.coordinates ? "cursor-pointer text-red-600 hover:text-red-700 font-medium active:scale-95 transition-transform origin-left" : "cursor-default text-gray-400"
+                                )}
+                                title={account.coordinates ? "Show on map" : "No map location available"}
+                            >
+                                <MapPinIcon className="w-4 h-4 shrink-0" />
+                                <span className="truncate">{account.address}</span>
+                            </div>
                         </div>
+                    )}
+                    
+                    <div>
+                        <ProfileActions
+                            account={account}
+                            isOwnAccount={isOwnAccount}
+                            socialLinks={sortedSocialLinks}
+                            onShare={handleShareProfile}
+                            contactMethods={contactMethods}
+                            onContactAction={handleContactAction}
+                            isLiked={isLiked}
+                            onToggleLike={() => {
+                                if (currentAccount) {
+                                    toggleLikeAccount(account.id);
+                                } else {
+                                    openModal({ type: 'login' });
+                                }
+                            }}
+                            onUpdateAccount={handleUpdateAccount}
+                        />
+                    </div>
+                </div>
+                
+                {isOwnAccount && account.subscription.tier !== 'Personal' && (
+                    <div className="mt-8 pt-6 border-t border-gray-100">
+                        <ReferralCard account={account} />
                     </div>
                 )}
-                
-                <div>
-                    <ProfileActions
-                        account={account}
-                        isOwnAccount={isOwnAccount}
-                        socialLinks={sortedSocialLinks}
-                        onShare={handleShareProfile}
-                        contactMethods={contactMethods}
-                        onContactAction={handleContactAction}
-                        isLiked={isLiked}
-                        onToggleLike={() => {
-                            if (currentAccount) {
-                                toggleLikeAccount(account.id);
-                            } else {
-                                openModal({ type: 'login' });
-                            }
-                        }}
-                        onUpdateAccount={handleUpdateAccount}
-                    />
-                </div>
             </div>
-            
-            {isOwnAccount && account.subscription.tier !== 'Personal' && (
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                    <ReferralCard account={account} />
-                </div>
-            )}
-        </div>
-      </div>
+          </div>
+      </header>
       
       {/* Content Section */}
       {(availableTabs.length > 0 || categoryTabs.length > 0) && (
         <>
           <div className="border-b border-gray-200/80 bg-white">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Profile content navigation">
               <div className="flex items-center justify-between">
-                  <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar">
+                  <div className="flex justify-around overflow-x-auto hide-scrollbar flex-1 py-0 no-scrollbar" role="tablist">
                       {availableTabs.map(tab => (
                           <TabButton
                               key={tab.id}
@@ -532,17 +541,18 @@ export const AccountView: React.FC = () => {
                       </div>
                   )}
               </div>
-            </div>
+            </nav>
           </div>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-6" aria-labelledby="profile-content-heading">
+            <h2 id="profile-content-heading" className="sr-only">{activeTabLabel}</h2>
             <div ref={swipeRef} className="min-h-[300px] relative overflow-x-hidden">
                 <div key={activeTab} className={animationClass}>
                     {renderContent()}
                 </div>
             </div>
-          </div>
+          </section>
         </>
       )}
-    </div>
+    </article>
   );
 };
