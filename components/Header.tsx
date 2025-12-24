@@ -302,7 +302,7 @@ export const Header: React.FC<HeaderProps> = ({
     </div>
   );
 
-  const exitAction = view !== 'all' ? (onBack || onGoHome) : handleExitSearch;
+  const exitAction = (view !== 'all' || mainView === 'map') ? (onBack || onGoHome) : handleExitSearch;
 
   return (
     <>
@@ -419,7 +419,7 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
               </div>
             </div>
-          ) : (isSearchOpen || view !== 'all') ? (
+          ) : (isSearchOpen || view !== 'all' || (view === 'all' && mainView === 'map')) ? (
             // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
               <Button
