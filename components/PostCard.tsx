@@ -5,6 +5,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon, ChevronDownIcon } from './Icons';
@@ -255,20 +257,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             <PencilIcon className="w-5 h-5" />
                         </Button>
                     )
-                ) : isExpired ? (
-                    <Button
-                        onClick={(e) => { e.stopPropagation(); if (currentAccount) toggleAvailabilityAlert(post.id); else openModal({ type: 'login' }); }}
-                        variant="ghost"
-                        size="icon-sm"
-                        className={cn(
-                            "flex-shrink-0 active:scale-95",
-                            isAvailabilityAlertSet ? "text-red-600" : "text-gray-600"
-                        )}
-                        aria-label={isAvailabilityAlertSet ? "Remove availability alert" : "Notify when available"}
-                        title={isAvailabilityAlertSet ? "Alert Set" : "Notify when available"}
-                    >
-                        <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
-                    </Button>
                 ) : (
                     <>
                         <PostActionsDropdown 
@@ -349,63 +337,80 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
           ) : (
               <>
                   <div className="flex items-center gap-2 flex-grow">
-                      {!isArchived && (
-                          isExpired ? (
-                              <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } toggleAvailabilityAlert(post.id); }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}>
-                                  <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
-                                  <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
+                      {!isArchived && !isExpired ? (
+                          <>
+                              <LikeButton
+                                  isLiked={isPostLiked}
+                                  onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                                  variant="overlay-dark"
+                                  size="icon-sm"
+                                  className={cn("rounded-xl", isPostLiked ? "text-red-600" : "text-gray-600")}
+                                  iconClassName="w-5 h-5"
+                                  aria-label={isPostLiked ? "Unlike post" : "Like post"}
+                                  title={isPostLiked ? "Unlike post" : "Like post"}
+                              />
+                              <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
+                                  <PaperAirplaneIcon className="w-5 h-5" />
                               </Button>
-                          ) : (
-                              <>
-                                  <LikeButton
-                                      isLiked={isPostLiked}
-                                      onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                              {isPurchasable && (
+                                  <Button
+                                      onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                          openModal({ type: 'setPriceAlert', data: post });
+                                      }}
                                       variant="overlay-dark"
                                       size="icon-sm"
-                                      className={cn("rounded-xl", isPostLiked ? "text-red-600" : "text-gray-600")}
-                                      iconClassName="w-5 h-5"
-                                      aria-label={isPostLiked ? "Unlike post" : "Like post"}
-                                      title={isPostLiked ? "Unlike post" : "Like post"}
-                                  />
-                                  <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
-                                      <PaperAirplaneIcon className="w-5 h-5" />
+                                      className={cn("rounded-xl", isPriceAlertSet ? "text-red-600" : "text-gray-600")}
+                                      title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
+                                      aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
+                                  >
+                                      <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
                                   </Button>
-                                  {isPurchasable && (
-                                      <Button
-                                          onClick={(e) => {
-                                              e.stopPropagation();
-                                              if (!currentAccount) { openModal({ type: 'login' }); return; }
-                                              openModal({ type: 'setPriceAlert', data: post });
-                                          }}
-                                          variant="overlay-dark"
-                                          size="icon-sm"
-                                          className={cn("rounded-xl", isPriceAlertSet ? "text-red-600" : "text-gray-600")}
-                                          title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
-                                          aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
-                                      >
-                                          <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
-                                      </Button>
-                                  )}
-                                  {isPurchasable && (
-                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none rounded-xl text-gray-600" title="Contact seller">
-                                      <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
-                                      <span className="sr-only">Contact</span>
+                              )}
+                              {isPurchasable && (
+                              <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none rounded-xl text-gray-600" title="Contact seller">
+                                  <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
+                                  <span className="sr-only">Contact</span>
+                              </Button>
+                              )}
+                              {isPurchasable ? (
+                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
+                                      <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
+                                      <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
                                   </Button>
-                                  )}
-                                  {isPurchasable ? (
-                                      <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
-                                          <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
-                                          <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
-                                      </Button>
-                                  ) : (
-                                      <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
-                                          <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
-                                          <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
-                                      </Button>
-                                  )}
-                              </>
-                          )
-                      )}
+                              ) : (
+                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
+                                      <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
+                                      <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
+                                  </Button>
+                              )}
+                          </>
+                      ) : !isArchived && isExpired ? (
+                        <>
+                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none rounded-xl text-gray-600" title="Contact seller">
+                                <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
+                                <span className="sr-only">Contact</span>
+                            </Button>
+                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
+                                <PaperAirplaneIcon className="w-5 h-5" />
+                            </Button>
+                            <Button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                    toggleAvailabilityAlert(post.id);
+                                }}
+                                variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"}
+                                size={"sm"}
+                                className={cn("flex-1 gap-1.5 text-xs font-semibold")}
+                                title={isAvailabilityAlertSet ? 'Remove notification' : 'Notify me when this or a similar item is available'}
+                            >
+                                <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
+                                <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify Me'}</span>
+                            </Button>
+                        </>
+                      ) : null }
                   </div>
               </>
           )}
