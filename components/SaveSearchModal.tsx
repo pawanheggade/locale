@@ -1,55 +1,40 @@
 
-import React, { useState, useRef, useReducer } from 'react';
+import React, { useRef } from 'react';
 import ModalShell from './ModalShell';
 import { FormField } from './FormField';
 import { Input } from './ui/Input';
 import { ModalFooter } from './ModalFooter';
+import { useFormState } from '../hooks/useFormState';
 
 interface SaveSearchModalProps {
   onSave: (name: string) => void;
   onClose: () => void;
 }
 
-const initialState = { name: '', error: '' };
-type State = typeof initialState;
-type Action =
-  | { type: 'SET_NAME'; payload: string }
-  | { type: 'SET_ERROR'; payload: string };
-
-function reducer(state: State, action: Action): State {
-    switch (action.type) {
-        case 'SET_NAME':
-            return { ...state, name: action.payload, error: '' };
-        case 'SET_ERROR':
-            return { ...state, error: action.payload };
-        default:
-            return state;
-    }
-}
-
 const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state, setField, errors, isSubmitting, handleSubmit } = useFormState({ name: '' });
   const modalRef = useRef<HTMLDivElement>(null);
-
-  const handleSave = () => {
-    const trimmedName = state.name.trim();
-    if (!trimmedName) {
-      dispatch({ type: 'SET_ERROR', payload: 'Please enter a name for your search.' });
-      return;
+  
+  const validate = (currentState: { name: string }) => {
+    if (!currentState.name.trim()) {
+      return { name: 'Please enter a name for your search.' };
     }
-    
-    setIsSubmitting(true);
-    onSave(trimmedName);
-    onClose();
+    return {};
   };
+
+  const handleSaveSearch = handleSubmit(async (currentState) => {
+    onSave(currentState.name.trim());
+    onClose();
+  }, validate);
 
   const renderFooter = () => (
     <ModalFooter
         onCancel={onClose}
-        onSubmit={handleSave}
+        // FIX: Pass form ID to trigger form submission instead of passing an incompatible event handler.
+        submitFormId="save-search-form"
         submitText="Save Search"
         isSubmitting={isSubmitting}
+        isSubmitDisabled={!state.name.trim()}
     />
   );
 
@@ -63,12 +48,12 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({ onSave, onClose }) =>
       titleId="save-search-title"
     >
       <div className="p-6">
-        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-1">
-          <FormField id="search-name" label="Search Name" error={state.error}>
+        <form id="save-search-form" onSubmit={handleSaveSearch} className="space-y-1">
+          <FormField id="search-name" label="Search Name" error={errors.name}>
               <Input
                 type="text"
                 value={state.name}
-                onChange={(e) => dispatch({ type: 'SET_NAME', payload: e.target.value })}
+                onChange={(e) => setField('name', e.target.value)}
                 className="bg-gray-50"
                 placeholder="e.g., 'Vintage furniture in SF'"
                 required

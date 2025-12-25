@@ -22,7 +22,7 @@ import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { SEO } from './SEO';
 import { useTabAnimation } from '../hooks/useTabAnimation';
 import { useStory } from '../contexts/StoryContext';
-import { LikedStoryCard } from './LikesView';
+import { StoryCard } from './StoryCard';
 
 interface ForumPostRowProps {
     post: DisplayableForumPost;
@@ -287,7 +287,7 @@ export const AccountView: React.FC = () => {
                             <h2 className="text-xl font-semibold text-gray-900 mb-4">Expired Stories</h2>
                             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                                 {userExpiredStories.map(story => (
-                                    <LikedStoryCard key={story.id} story={story} onClick={() => handleExpiredStoryClick(story)} />
+                                    <StoryCard key={story.id} story={story} onClick={() => handleExpiredStoryClick(story)} />
                                 ))}
                             </div>
                         </div>

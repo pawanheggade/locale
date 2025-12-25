@@ -1,4 +1,5 @@
-import React, { useState, useReducer, useRef } from 'react';
+
+import React, { useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ModalShell from './ModalShell';
 import { InputWithIcon } from './InputWithIcon';
@@ -7,6 +8,7 @@ import { ModalFooter } from './ModalFooter';
 import { GlobeAltIcon, YouTubeIcon, InstagramIcon, XIcon } from './Icons';
 import { SocialPlatform, SocialLink } from '../types';
 import { URL_REGEX } from '../utils/validation';
+import { useFormState } from '../hooks/useFormState';
 
 interface EditSocialsModalProps {
   onClose: () => void;
@@ -19,66 +21,44 @@ const initialState = {
     x: '',
 };
 
-type FormState = typeof initialState;
-type Action = { type: 'SET_FIELD'; field: keyof FormState; payload: string };
-
-function reducer(state: FormState, action: Action): FormState {
-    switch (action.type) {
-        case 'SET_FIELD':
-            return { ...state, [action.field]: action.payload };
-        default:
-            return state;
-    }
-}
-
 export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) => {
   const { currentAccount, updateAccountDetails } = useAuth();
   const modalRef = useRef<HTMLDivElement>(null);
   
-  // Initialize state from current account social links
-  const initialSocials = { ...initialState };
-  if (currentAccount?.socialLinks) {
-      currentAccount.socialLinks.forEach(link => {
-          if (link.platform in initialSocials) {
-              initialSocials[link.platform as keyof typeof initialSocials] = link.url;
-          }
-      });
-  }
+  const getInitialState = () => {
+    const initialSocials = { ...initialState };
+    if (currentAccount?.socialLinks) {
+        currentAccount.socialLinks.forEach(link => {
+            if (link.platform in initialSocials) {
+                initialSocials[link.platform as keyof typeof initialSocials] = link.url;
+            }
+        });
+    }
+    return initialSocials;
+  };
+  
+  const { state, setField, errors, isSubmitting, handleSubmit, setErrors } = useFormState(getInitialState());
 
-  const [state, dispatch] = useReducer(reducer, initialSocials);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSocialsSubmit = handleSubmit(async (currentState) => {
     if (!currentAccount) return;
 
-    // Validate
+    const platformOrder: SocialPlatform[] = ['website', 'instagram', 'x', 'youtube'];
+    const socialLinks: SocialLink[] = platformOrder
+        .filter(platform => currentState[platform as keyof typeof currentState] && currentState[platform as keyof typeof currentState].trim() !== '')
+        .map(platform => ({ platform, url: currentState[platform as keyof typeof currentState].trim() }));
+
+    updateAccountDetails({ ...currentAccount, socialLinks });
+    onClose();
+  }, (currentState) => {
     const newErrors: Record<string, string> = {};
-    (Object.keys(state) as (keyof FormState)[]).forEach(platform => {
-        const url = state[platform].trim();
+    (Object.keys(currentState) as (keyof typeof currentState)[]).forEach(platform => {
+        const url = currentState[platform].trim();
         if (url && !URL_REGEX.test(url)) {
             newErrors[platform] = 'Please enter a valid URL.';
         }
     });
-
-    if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-    }
-
-    setIsSubmitting(true);
-
-    const platformOrder: SocialPlatform[] = ['website', 'instagram', 'x', 'youtube'];
-    const socialLinks: SocialLink[] = platformOrder
-        .filter(platform => state[platform as keyof FormState] && state[platform as keyof FormState].trim() !== '')
-        .map(platform => ({ platform, url: state[platform as keyof FormState].trim() }));
-
-    updateAccountDetails({ ...currentAccount, socialLinks });
-    
-    setIsSubmitting(false);
-    onClose();
-  };
+    return newErrors;
+  });
 
   const renderFooter = () => (
     <ModalFooter
@@ -99,13 +79,13 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
       titleId="edit-socials-title"
     >
       <div className="p-6">
-        <form id="edit-socials-form" onSubmit={handleSubmit} className="space-y-4">
+        <form id="edit-socials-form" onSubmit={handleSocialsSubmit} className="space-y-4">
             <FormField id="social-website" label="" error={errors.website}>
                 <InputWithIcon 
                     placeholder="Website URL" 
                     icon={<GlobeAltIcon className="w-5 h-5 text-gray-600"/>} 
                     value={state.website} 
-                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'website', payload: e.target.value })} 
+                    onChange={e => setField('website', e.target.value)} 
                 />
             </FormField>
             
@@ -114,7 +94,7 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
                     placeholder="YouTube URL" 
                     icon={<YouTubeIcon className="w-5 h-5 text-gray-600"/>} 
                     value={state.youtube} 
-                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'youtube', payload: e.target.value })} 
+                    onChange={e => setField('youtube', e.target.value)} 
                 />
             </FormField>
 
@@ -123,7 +103,7 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
                     placeholder="Instagram URL" 
                     icon={<InstagramIcon className="w-5 h-5 text-gray-600"/>} 
                     value={state.instagram} 
-                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'instagram', payload: e.target.value })} 
+                    onChange={e => setField('instagram', e.target.value)} 
                 />
             </FormField>
             
@@ -132,7 +112,7 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
                     placeholder="X (formerly Twitter) URL" 
                     icon={<XIcon className="w-5 h-5 text-gray-600"/>} 
                     value={state.x} 
-                    onChange={e => dispatch({ type: 'SET_FIELD', field: 'x', payload: e.target.value })} 
+                    onChange={e => setField('x', e.target.value)} 
                 />
             </FormField>
         </form>
