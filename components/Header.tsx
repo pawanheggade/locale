@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -226,6 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const placeholder = useMemo(() => {
     if (view === 'forums') return 'Search forums...';
+    if (view === 'likes') return 'search your likes';
     if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
     if (filterState.isAiSearchEnabled) return 'Ask Locale AI...';
     return 'Search products, services, events…';

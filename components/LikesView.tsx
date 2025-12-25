@@ -13,6 +13,8 @@ import { useStory } from '../contexts/StoryContext';
 import { DisplayableStoryPost } from '../types';
 import { Avatar } from './Avatar';
 import { cn } from '../lib/utils';
+import { useFilters } from '../contexts/FiltersContext';
+import { useDebounce } from '../hooks/useDebounce';
 
 type LikedTab = 'profiles' | 'posts' | 'stories';
 
@@ -43,6 +45,8 @@ export const LikesView: React.FC = () => {
   const { posts: allPosts } = usePosts();
   const { activeStories } = useStory();
   const { openModal } = useUI();
+  const { filterState } = useFilters();
+  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
 
   const swipeRef = useRef<HTMLDivElement>(null);
   const tabs: LikedTab[] = ['profiles', 'posts', 'stories'];
@@ -75,6 +79,42 @@ export const LikesView: React.FC = () => {
       return activeStories.filter(story => story.likedBy.includes(currentAccount.id));
   }, [activeStories, currentAccount]);
 
+  const filteredLikedPosts = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return likedPosts;
+    const query = debouncedSearchQuery.toLowerCase();
+    return likedPosts.filter(post => 
+        post.title.toLowerCase().includes(query) ||
+        post.description.toLowerCase().includes(query) ||
+        post.category.toLowerCase().includes(query) ||
+        post.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        (post.author?.name || '').toLowerCase().includes(query) ||
+        (post.author?.username || '').toLowerCase().includes(query)
+    );
+  }, [likedPosts, debouncedSearchQuery]);
+
+  const filteredPostsFromLikedProfiles = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return postsFromLikedProfiles;
+    const query = debouncedSearchQuery.toLowerCase();
+    return postsFromLikedProfiles.filter(post => 
+        post.title.toLowerCase().includes(query) ||
+        post.description.toLowerCase().includes(query) ||
+        post.category.toLowerCase().includes(query) ||
+        post.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        (post.author?.name || '').toLowerCase().includes(query) ||
+        (post.author?.username || '').toLowerCase().includes(query)
+    );
+  }, [postsFromLikedProfiles, debouncedSearchQuery]);
+
+  const filteredLikedStories = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return likedStories;
+    const query = debouncedSearchQuery.toLowerCase();
+    return likedStories.filter(story => 
+        (story.description && story.description.toLowerCase().includes(query)) ||
+        (story.author?.name || '').toLowerCase().includes(query) ||
+        (story.author?.username || '').toLowerCase().includes(query)
+    );
+  }, [likedStories, debouncedSearchQuery]);
+
   const handleLikedStoryClick = (story: DisplayableStoryPost) => {
       if (!story.author) return;
       openModal({
@@ -88,25 +128,26 @@ export const LikesView: React.FC = () => {
   };
 
   const renderContent = () => {
+    const hasSearch = debouncedSearchQuery.trim().length > 0;
     switch (activeTab) {
         case 'profiles':
-            return postsFromLikedProfiles.length === 0 ? (
-                <EmptyState icon={<UserIcon />} title="No Posts from Liked Profiles" description="Posts from sellers you like will appear here. Like some profiles to get started!" className="py-20" />
+            return filteredPostsFromLikedProfiles.length === 0 ? (
+                <EmptyState icon={<UserIcon />} title={hasSearch ? "No Results Found" : "No Posts from Liked Profiles"} description={hasSearch ? "Try a different search query." : "Posts from sellers you like will appear here. Like some profiles to get started!"} className="py-20" />
             ) : (
-                <PostList posts={postsFromLikedProfiles} />
+                <PostList posts={filteredPostsFromLikedProfiles} />
             );
         case 'posts':
-            return likedPosts.length === 0 ? (
-                <EmptyState icon={<HeartIcon />} title="No Liked Posts Yet" description="Tap the heart on posts you love to save them here." className="py-20" />
+            return filteredLikedPosts.length === 0 ? (
+                <EmptyState icon={<HeartIcon />} title={hasSearch ? "No Results Found" : "No Liked Posts Yet"} description={hasSearch ? "Try a different search query." : "Tap the heart on posts you love to save them here."} className="py-20" />
             ) : (
-                <PostList posts={likedPosts} />
+                <PostList posts={filteredLikedPosts} />
             );
         case 'stories':
-            return likedStories.length === 0 ? (
-                <EmptyState icon={<VideoPostcardIcon />} title="No Liked Stories" description="Stories you like will appear here." className="py-20" />
+            return filteredLikedStories.length === 0 ? (
+                <EmptyState icon={<VideoPostcardIcon />} title={hasSearch ? "No Results Found" : "No Liked Stories"} description={hasSearch ? "Try a different search query." : "Stories you like will appear here."} className="py-20" />
             ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-                    {likedStories.map(story => (
+                    {filteredLikedStories.map(story => (
                         <LikedStoryCard key={story.id} story={story} onClick={() => handleLikedStoryClick(story)} />
                     ))}
                 </div>
