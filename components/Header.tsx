@@ -1,11 +1,12 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon, VideoPostcardIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, VideoPostcardIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -203,16 +204,6 @@ export const Header: React.FC<HeaderProps> = ({
                   setIsNavDropdownOpen(false);
               }
             },
-            {
-              id: 'studio' as const,
-              label: 'Studio',
-              icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-              isActive: view === 'studio',
-              onClick: () => {
-                navigateTo('studio');
-                setIsNavDropdownOpen(false);
-              }
-            }
         ];
         return [...baseItems, ...loggedInItems];
     }
