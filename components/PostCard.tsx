@@ -388,12 +388,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                           </>
                       ) : !isArchived && isExpired ? (
                         <>
+                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
+                                <PaperAirplaneIcon className="w-5 h-5" />
+                            </Button>
                             <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none rounded-xl text-gray-600" title="Contact seller">
                                 <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
                                 <span className="sr-only">Contact</span>
-                            </Button>
-                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
-                                <PaperAirplaneIcon className="w-5 h-5" />
                             </Button>
                             <Button
                                 onClick={(e) => {

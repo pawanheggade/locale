@@ -1,5 +1,6 @@
 
 
+
 import React, { useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -217,16 +218,23 @@ export const StudioPage: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-24">
-            <div className="flex items-center gap-4 mb-8">
+            <div 
+                className="flex items-center gap-4 mb-8 p-2 -m-2 rounded-lg cursor-pointer group hover:bg-gray-50 transition-colors"
+                onClick={() => navigateTo('account', { account: currentAccount })}
+                title="View your public profile"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateTo('account', { account: currentAccount }); }}}
+            >
                 <Avatar 
                     src={currentAccount.avatarUrl} 
                     alt={currentAccount.name} 
                     size="xl" 
                     tier={currentAccount.subscription.tier} 
-                    className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-white shadow-md"
+                    className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-white shadow-md transition-transform group-hover:scale-105"
                 />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Studio</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">Studio</h1>
                     <p className="text-gray-600 mt-1">Manage your presence on Locale.</p>
                 </div>
             </div>
