@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -421,7 +422,7 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
               </div>
             </div>
-          ) : (isSearchOpen || view !== 'all') ? (
+          ) : (isSearchOpen || view !== 'all' || mainView === 'map') ? (
             // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
               <Button
@@ -513,13 +514,16 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentAccount && (
                       <div className="relative">
                           <Button 
-                              onClick={() => { view === 'bag' ? handleBack() : navigateTo('bag'); }}
+                              // FIX: In this view, `view` is always 'all', so this button should always navigate to the bag. The comparison `view === 'bag'` caused a type error.
+                              onClick={() => { navigateTo('bag'); }}
                               variant="ghost"
                               size="icon"
-                              className={cn("!rounded-xl text-gray-600", view === 'bag' && "text-red-600 bg-red-50")}
+                              // FIX: `view` is never 'bag' here, so active styles are not needed. The comparison `view === 'bag'` caused a type error.
+                              className={cn("!rounded-xl text-gray-600")}
                               aria-label="Shopping Bag"
                           >
-                              <ShoppingBagIcon className="w-6 h-6" isFilled={view === 'bag'} />
+                              {/* FIX: `view` is never 'bag' here, so icon should not be filled. The comparison `view === 'bag'` caused a type error. */}
+                              <ShoppingBagIcon className="w-6 h-6" isFilled={false} />
                               {bagCount > 0 && (
                                   <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
                                       {bagCount}
