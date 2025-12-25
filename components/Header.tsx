@@ -18,7 +18,6 @@ import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
 import { useUserData } from '../contexts/UserDataContext';
 import { useLoading } from '../contexts/LoadingContext';
-import { Avatar } from './Avatar';
 
 interface HeaderProps {
   onSearchSubmit: (query: string) => void;

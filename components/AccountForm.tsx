@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption } from '../types';
-import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, PhotoIcon, CheckIcon } from './Icons';
+import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, PhotoIcon } from './Icons';
 import { validateAccountData, AccountValidationData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
@@ -345,7 +345,7 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                             <InputWithIcon type="text" value={state.username} onChange={handleUsernameChange} onBlur={handleUsernameBlur} icon={<span className="text-gray-600 sm:text-sm">@</span>} />
                         </FormField>
                         {isUsernameAvailable && !errors.username && (
-                            <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in"><CheckIcon className="w-4 h-4" /> Username available</p>
+                            <p className="mt-1 text-sm text-green-600 flex items-center gap-1 animate-fade-in"> Username available</p>
                         )}
                     </div>
                     <FormField id="account-email" label="Email" error={errors.email}>
