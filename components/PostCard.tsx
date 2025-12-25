@@ -47,7 +47,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const { toggleLikePost, toggleLikeAccount } = useAuth();
   const { bag, addPostToViewHistory } = useUserData();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
-  const { openModal } = useUI();
+  const { openModal, closeModal } = useUI();
   const { dispatchFilterAction } = useFilters();
   const { archivePost, unarchivePost, togglePinPost } = usePosts();
   
@@ -375,7 +375,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                               </Button>
                               )}
                               {isPurchasable ? (
-                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
+                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } if (isAddedToBag) { closeModal(); navigateTo('bag'); } else { openModal({ type: 'addToBag', data: post }); } }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
                                       <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
                                       <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
                                   </Button>
