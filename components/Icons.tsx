@@ -250,6 +250,9 @@ export const BuildingStorefrontIcon: React.FC<IconProps> = ({ className, title, 
     {...props}
   >
     {title && <title>{title}</title>}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349a3.001 3.001 0 0 0-3.722-2.832M3.75 9.349a3.001 3.001 0 0 1 3.722-2.832M6.11 6.498a3.001 3.001 0 0 1 3.722 0m5.132 0a3.001 3.001 0 0 1 3.722 0M3 21v-2.288a3.75 3.75 0 0 1 3.75-3.75h13.5A3.75 3.75 0 0 1 24 18.712V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21V12h10v9" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 21h16" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 12V6a2 2 0 012-2h12a2 2 0 012 2v6" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-3h14l2 3" />
   </svg>
 );
