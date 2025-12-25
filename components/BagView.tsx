@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Post, DisplayablePost, Account, SavedList } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -12,6 +13,8 @@ import { QuantitySelector } from './QuantitySelector';
 import { EmptyState } from './EmptyState';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { cn } from '../lib/utils';
+import { useFilters } from '../contexts/FiltersContext';
+import { useDebounce } from '../hooks/useDebounce';
 
 // --- Reusable Item Row Component ---
 interface BagItemRowProps {
@@ -112,6 +115,8 @@ export const BagView: React.FC = () => {
   const { findPostById } = usePosts();
   const { openModal } = useUI();
   const showConfirmation = useConfirmationModal();
+  const { filterState } = useFilters();
+  const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
   
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [editingList, setEditingList] = useState<{ id: string, name: string } | null>(null);
@@ -144,14 +149,41 @@ export const BagView: React.FC = () => {
 
   const [isClearing, setIsClearing] = useState(false);
 
-  const total = inBagItems
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
+
+  const filterItems = (items: typeof inBagItems) => {
+      if (!hasSearchQuery) return items;
+      const query = debouncedSearchQuery.toLowerCase();
+      return items.filter(item => {
+          const post = item.post;
+          return (
+              post.title.toLowerCase().includes(query) ||
+              post.description.toLowerCase().includes(query) ||
+              post.category.toLowerCase().includes(query) ||
+              post.tags.some(tag => tag.toLowerCase().includes(query)) ||
+              (post.author?.name || '').toLowerCase().includes(query) ||
+              (post.author?.username || '').toLowerCase().includes(query)
+          );
+      });
+  };
+
+  const filteredInBagItems = useMemo(() => filterItems(inBagItems), [inBagItems, debouncedSearchQuery]);
+
+  const filteredSavedItemsByList = useMemo(() => {
+    const newMap = new Map<string, (typeof itemsWithPostData[0])[]>();
+    savedItemsByList.forEach((items, listId) => {
+        newMap.set(listId, filterItems(items));
+    });
+    return newMap;
+  }, [savedItemsByList, debouncedSearchQuery, itemsWithPostData]);
+
+  const total = filteredInBagItems
     .filter(item => !item.isChecked)
     .reduce((sum, item) => sum + (item.post.salePrice ?? item.post.price) * item.quantity, 0);
 
-  // Calculate total items count based on quantity for the "Items" header
-  const totalInBagQuantity = inBagItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalInBagQuantity = filteredInBagItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const hasCheckedItems = inBagItems.some(item => item.isChecked);
+  const hasCheckedItems = filteredInBagItems.some(item => item.isChecked);
   
   const handleRemoveClick = (item: typeof itemsWithPostData[0]) => {
     showConfirmation({
@@ -269,6 +301,12 @@ export const BagView: React.FC = () => {
       confirmText: 'Delete List',
     });
   };
+
+  const listsToDisplay = savedLists.filter(list => {
+      if (!hasSearchQuery) return true;
+      const items = filteredSavedItemsByList.get(list.id);
+      return items && items.length > 0;
+  });
   
   if (itemsWithPostData.length === 0) {
     return (
@@ -297,17 +335,17 @@ export const BagView: React.FC = () => {
           )}
         </div>
 
-        {inBagItems.length === 0 ? (
+        {filteredInBagItems.length === 0 ? (
           <EmptyState
             icon={<ShoppingBagIcon className="text-gray-300" />}
-            title=""
-            description="No items in your bag."
+            title={hasSearchQuery ? "No Results Found" : ""}
+            description={hasSearchQuery ? "No items in your bag match your search." : "No items in your bag."}
             className="py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
           />
         ) : (
           <div className="bg-white rounded-xl overflow-hidden">
             <ul className="divide-y divide-gray-200/80">
-              {inBagItems.map((item) => {
+              {filteredInBagItems.map((item) => {
                 const { id, quantity } = item;
                 
                 return (
@@ -363,17 +401,17 @@ export const BagView: React.FC = () => {
             </form>
         )}
 
-        {savedLists.length === 0 && !showCreateListForm ? (
+        {listsToDisplay.length === 0 && !showCreateListForm ? (
             <EmptyState
                 icon={<DocumentIcon className="w-12 h-12 text-gray-300" />}
-                title=""
-                description="Create lists to organize items you want to save."
+                title={hasSearchQuery ? "No Results in Lists" : ""}
+                description={hasSearchQuery ? "No saved items match your search." : "Create lists to organize items you want to save."}
                 className="py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
             />
         ) : (
             <Accordion type="multiple" className="w-full space-y-2">
-            {savedLists.map(list => {
-                const itemsInList = savedItemsByList.get(list.id) || [];
+            {listsToDisplay.map(list => {
+                const itemsInList = filteredSavedItemsByList.get(list.id) || [];
                 const listTotalQuantity = itemsInList.reduce((sum, item) => sum + item.quantity, 0);
                 const listTotalPrice = itemsInList.reduce((sum, item) => sum + (item.post.salePrice ?? item.post.price) * item.quantity, 0);
                 
