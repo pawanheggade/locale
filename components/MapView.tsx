@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { DisplayablePost, PostType } from '../types';
 import { formatCompactCurrency } from '../utils/formatters';
@@ -12,6 +11,8 @@ import { useIsMounted } from '../hooks/useIsMounted';
 import { usePosts } from '../contexts/PostsContext';
 import { useUI } from '../contexts/UIContext';
 import { useNavigation } from '../contexts/NavigationContext';
+import { usePostFilters } from '../hooks/usePostFilters';
+import { useAuth } from '../contexts/AuthContext';
 
 // Declare Leaflet global object
 declare var L: any;
@@ -86,9 +87,12 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const isMounted = useIsMounted();
   
-  const { posts } = usePosts();
+  const { posts: allPosts } = usePosts();
   const { openModal } = useUI();
-
+  const { currentAccount, accounts } = useAuth();
+  
+  const filteredPosts = usePostFilters(allPosts, allPosts, userLocation, currentAccount, Array.from(accounts.values()));
+  
   const initialMapState = useMemo(() => {
     try {
       const savedStateJSON = localStorage.getItem(STORAGE_KEYS.MAP_STATE);
@@ -191,7 +195,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     const clusterGroup = clusterGroupRef.current;
     if (!map || !clusterGroup) return;
 
-    const postsWithCoords = posts.filter(post => post.coordinates || (post.type === PostType.EVENT && post.eventCoordinates));
+    const postsWithCoords = filteredPosts.filter(post => post.coordinates || (post.type === PostType.EVENT && post.eventCoordinates));
     
     const newPostIds = new Set<string>(postsWithCoords.map(p => p.id));
     const currentPostIds = displayedMarkerIdsRef.current;
@@ -246,7 +250,8 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     
     if (isInitialLoadRef.current && markersToAdd.length > 0) {
         if (markersToAdd.length > 1) {
-            map.fitBounds(clusterGroup.getBounds().pad(0.2));
+            // Do not fitBounds on initial load with filters, it can be jarring.
+            // map.fitBounds(clusterGroup.getBounds().pad(0.2));
         } else {
             const firstPostCoords = postsWithCoords[0].type === PostType.EVENT && postsWithCoords[0].eventCoordinates ? postsWithCoords[0].eventCoordinates : postsWithCoords[0].coordinates;
             if (firstPostCoords) {
@@ -255,7 +260,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
         }
         isInitialLoadRef.current = false;
     }
-  }, [posts, onViewPostDetails, mapInstanceRef, isMounted]);
+  }, [filteredPosts, onViewPostDetails, mapInstanceRef, isMounted]);
 
   useEffect(() => {
     Object.entries(markersRef.current).forEach(([postId, marker]) => {
@@ -305,7 +310,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     if (!postToFocusOnMap || !map || !clusterGroup) return;
 
     const markerToFocus = markersRef.current[postToFocusOnMap];
-    const postToView = posts.find(p => p.id === postToFocusOnMap);
+    const postToView = filteredPosts.find(p => p.id === postToFocusOnMap);
     
     if (markerToFocus && postToView) {
       clusterGroup.zoomToShowLayer(markerToFocus, () => {
@@ -317,7 +322,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
     
     onPostFocusComplete();
     
-  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, posts, isMounted]);
+  }, [postToFocusOnMap, onPostFocusComplete, mapInstanceRef, filteredPosts, isMounted]);
   
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -336,7 +341,7 @@ const MapViewComponent: React.FC<MapViewProps> = () => {
         });
 
         tempMarkerRef.current = L.marker(locationToFocus.coords, { icon: tempIcon }).addTo(map);
-        tempMarkerRef.current.bindPopup(`<b>${locationToFocus.name}'s Area</b>`).openPopup();
+        tempMarkerRef.current.bindPopup(`<b>${locationToFocus.name}</b>`).openPopup();
 
         const timer = setTimeout(() => {
             if (tempMarkerRef.current) {

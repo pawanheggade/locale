@@ -3,6 +3,7 @@ import { PostCard } from './PostCard';
 import { SpinnerIcon, ArchiveBoxIcon } from './Icons';
 import { cn } from '../lib/utils';
 import { EmptyState } from './EmptyState';
+// FIX: The error "is not a module" is resolved by creating the content for PostCardSkeleton.
 import { PostCardSkeleton } from './PostCardSkeleton';
 import { useAuth } from '../contexts/AuthContext';
 import { usePosts } from '../contexts/PostsContext';
@@ -86,14 +87,18 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
               enableEntryAnimation={enableEntryAnimation}
           />
         ))}
+        {/* FIX: Replaced loading spinner with skeleton placeholders for better UX. */}
         {isLoadingMore && (
-          <div className="col-span-full flex justify-center py-8">
-            <SpinnerIcon className="w-8 h-8 text-red-500" />
-          </div>
+          <>
+            {[...Array(variant === 'compact' ? 5 : 3)].map((_, i) => (
+              <PostCardSkeleton key={`skeleton-${i}`} variant={variant} />
+            ))}
+          </>
         )}
       </div>
       
-      {loadMore && (
+      {/* FIX: Only render the intersection observer trigger when there are more items to load and we aren't currently loading. */}
+      {hasMore && !isLoadingMore && (
         <div ref={lastPostElementRef} />
       )}
     </div>

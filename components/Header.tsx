@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -226,12 +225,13 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const placeholder = useMemo(() => {
+    if (view === 'all' && mainView === 'map') return 'Search map for items...';
     if (view === 'forums') return 'Search forums...';
     if (view === 'likes') return 'search your likes';
     if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
     if (filterState.isAiSearchEnabled) return 'Ask Locale AI...';
     return 'Search products, services, events…';
-  }, [view, viewingAccount, filterState.isAiSearchEnabled]);
+  }, [view, mainView, viewingAccount, filterState.isAiSearchEnabled]);
   
   const renderAiButton = (className?: string) => (
     <Button
@@ -421,7 +421,7 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
               </div>
             </div>
-          ) : (isSearchOpen || view !== 'all' || (view === 'all' && mainView === 'map')) ? (
+          ) : (isSearchOpen || view !== 'all') ? (
             // --- MOBILE SEARCH VIEW ---
             <div className="flex-1 flex items-center gap-2">
               <Button
@@ -450,7 +450,7 @@ export const Header: React.FC<HeaderProps> = ({
                   aiButton={renderAiButton()}
                   hideSearchIcon={true}
               />
-              {renderFilterButton()}
+              {view === 'all' && renderFilterButton()}
             </div>
           ) : (
             // --- MOBILE DEFAULT VIEW ---
