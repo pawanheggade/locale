@@ -17,6 +17,7 @@ interface StoryContextType {
   toggleLikeStory: (storyId: string) => void;
   findStoryById: (storyId: string) => DisplayableStoryPost | undefined;
   updateStory: (storyId: string, updates: Partial<Pick<StoryPost, 'media' | 'description' | 'linkPostId'>>) => void;
+  deleteStory: (storyId: string) => void;
 }
 
 const StoryContext = createContext<StoryContextType | undefined>(undefined);
@@ -122,6 +123,16 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }));
     }, [setRawStories]);
 
+    const deleteStory = useCallback((storyId: string) => {
+        if (!currentAccount) return;
+        setRawStories(prev => prev.filter(story => {
+            if (story.id === storyId && story.authorId === currentAccount.id) {
+                return false;
+            }
+            return true;
+        }));
+    }, [currentAccount, setRawStories]);
+
     const value = useMemo(() => ({
         stories,
         activeStories,
@@ -131,7 +142,8 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toggleLikeStory,
         findStoryById,
         updateStory,
-    }), [stories, activeStories, activeStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory, findStoryById, updateStory]);
+        deleteStory,
+    }), [stories, activeStories, activeStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory, findStoryById, updateStory, deleteStory]);
 
     return (
         <StoryContext.Provider value={value}>

@@ -5,13 +5,14 @@ import { useStory } from '../contexts/StoryContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { Avatar } from './Avatar';
-import { XMarkIcon, PaperAirplaneIcon, HeartIcon, PencilIcon } from './Icons';
+import { XMarkIcon, PaperAirplaneIcon, HeartIcon, PencilIcon, TrashIcon } from './Icons';
 import { Button } from './ui/Button';
 import { timeSince } from '../utils/formatters';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { cn, isShareAbortError } from '../lib/utils';
 import { useNavigation } from '../contexts/NavigationContext';
 import { LikeButton } from './LikeButton';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
 
 const STORY_DURATION = 5000; // 5 seconds per story
 
@@ -23,11 +24,12 @@ interface StoryViewerModalProps {
 }
 
 export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithStories, initialUserIndex, initialStoryId, onClose }) => {
-  const { activeStoriesByUser, markStoryAsViewed, toggleLikeStory } = useStory();
+  const { activeStoriesByUser, markStoryAsViewed, toggleLikeStory, deleteStory } = useStory();
   const { currentAccount } = useAuth();
   const { openModal } = useUI();
   const { navigateTo } = useNavigation();
   const isMounted = useIsMounted();
+  const showConfirmation = useConfirmationModal();
 
   const [currentUserIndex, setCurrentUserIndex] = useState(initialUserIndex);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
@@ -158,6 +160,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
     navigateTo('editStory', { storyId: activeStory.id });
   };
   
+  const handleDelete = () => {
+    if (!isOwnStory || !activeStory) return;
+    showConfirmation({
+        title: 'Delete Story',
+        message: 'Are you sure you want to permanently delete this story?',
+        onConfirm: () => {
+            deleteStory(activeStory.id);
+            goToNextStory();
+        },
+        confirmText: 'Delete',
+        confirmClassName: 'bg-red-600 text-white',
+    });
+  };
+  
   return (
     <div className="fixed inset-0 z-[4000] bg-black/90 flex items-center justify-center animate-zoom-in" onClick={handleTap}>
         <div className="absolute top-0 left-0 right-0 p-4 z-20" onPointerDown={e => e.stopPropagation()} onPointerUp={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
@@ -183,7 +199,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
-                    {isOwnStory && <Button variant="overlay" size="icon-sm" onClick={handleEdit}><PencilIcon className="w-5 h-5"/></Button>}
+                    {isOwnStory && <Button variant="overlay" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleEdit(); }}><PencilIcon className="w-5 h-5"/></Button>}
+                    {isOwnStory && <Button variant="overlay" size="icon-sm" onClick={(e) => { e.stopPropagation(); handleDelete(); }}><TrashIcon className="w-5 h-5"/></Button>}
                     {navigator.share && <Button variant="overlay" size="icon-sm" onClick={handleShare}><PaperAirplaneIcon className="w-5 h-5"/></Button>}
                     <LikeButton isLiked={!!isLiked} onToggle={() => toggleLikeStory(activeStory.id)} variant="overlay" size="icon-sm" />
                     <Button variant="overlay" size="icon-sm" onClick={onClose}><XMarkIcon className="w-6 h-6"/></Button>

@@ -11,6 +11,8 @@ import { FormField } from './FormField';
 import { Select } from './ui/Select';
 import { useStory } from '../contexts/StoryContext';
 import { Textarea } from './ui/Textarea';
+import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { Button } from './ui/Button';
 
 const MAX_FILES = 1;
 const MAX_FILE_SIZE_MB = 15;
@@ -18,9 +20,10 @@ const DESCRIPTION_MAX_LENGTH = 200;
 
 export const CreateStoryPostPage: React.FC = () => {
     const { handleBack, navigateTo, viewingStoryId } = useNavigation();
-    const { addStory, findStoryById, updateStory } = useStory();
+    const { addStory, findStoryById, updateStory, deleteStory } = useStory();
     const { postsByAuthorId } = usePosts();
     const { currentAccount } = useAuth();
+    const showConfirmation = useConfirmationModal();
     
     const editingStory = viewingStoryId ? findStoryById(viewingStoryId) : null;
     const isEditing = !!editingStory;
@@ -83,6 +86,21 @@ export const CreateStoryPostPage: React.FC = () => {
             }
         }
     };
+
+    const handleDelete = () => {
+        if (!isEditing || !editingStory) return;
+        
+        showConfirmation({
+            title: 'Delete Story',
+            message: 'Are you sure you want to permanently delete this story?',
+            onConfirm: () => {
+                deleteStory(editingStory.id);
+                handleBack();
+            },
+            confirmText: 'Delete',
+            confirmClassName: 'bg-red-600 text-white',
+        });
+    };
     
     if (!currentAccount) return null;
 
@@ -144,7 +162,18 @@ export const CreateStoryPostPage: React.FC = () => {
                 isLoading={isSubmitting}
                 submitText={submitButtonText}
                 submitDisabled={mediaUploads.length === 0 || mediaUploads.some(m => m.status !== 'complete')}
-            />
+            >
+                {isEditing && (
+                    <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={isSubmitting}
+                    >
+                        Delete
+                    </Button>
+                )}
+            </FixedPageFooter>
         </div>
     );
 };

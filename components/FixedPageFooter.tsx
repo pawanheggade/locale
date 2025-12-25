@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from './ui/Button';
@@ -10,6 +11,7 @@ interface FixedPageFooterProps {
   isLoading?: boolean;
   submitText: string;
   submitDisabled?: boolean;
+  children?: React.ReactNode;
 }
 
 export const FixedPageFooter: React.FC<FixedPageFooterProps> = ({ 
@@ -19,7 +21,8 @@ export const FixedPageFooter: React.FC<FixedPageFooterProps> = ({
     submitFormId, 
     isLoading, 
     submitText,
-    submitDisabled = false
+    submitDisabled = false,
+    children,
 }) => {
   // Use a portal to render the footer at the document body level.
   // This breaks it out of any parent containers that might have CSS transforms 
@@ -31,6 +34,7 @@ export const FixedPageFooter: React.FC<FixedPageFooterProps> = ({
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="py-3 flex items-center gap-3">
             <Button variant="overlay-dark" onClick={onCancel} className="mr-auto font-medium" disabled={isLoading}>{cancelText}</Button>
+            {children}
             <Button 
                 type={submitFormId ? 'submit' : 'button'} 
                 form={submitFormId} 
