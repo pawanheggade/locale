@@ -164,14 +164,6 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
         });
     }, [isMounted]);
 
-    const reset = useCallback(() => {
-        setLocation('');
-        setCoordinates(null);
-        setStatus('idle');
-        setError(null);
-        setSuggestions([]);
-    }, []);
-
     return {
         location,
         coordinates,
@@ -183,6 +175,5 @@ export const useLocationInput = (initialValue: string = '', initialCoords: { lat
         verify,
         selectFromMap,
         useMyLocation,
-        reset,
     };
 };

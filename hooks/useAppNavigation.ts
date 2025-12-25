@@ -312,12 +312,12 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     }, []);
 
     const navigationContextValue = useMemo(() => ({
-        navigateTo, navigateToAccount, handleBack, showOnMap, saveHistoryState: pushHistoryState,
+        navigateTo, navigateToAccount, handleBack, showOnMap,
         viewingAccount, viewingPostId, viewingForumPostId, viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView,
         nearbyPostsResult, userLocation, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
         handleFindNearby, handleEnableLocation, recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,
     }), [
-        navigateTo, navigateToAccount, handleBack, showOnMap, pushHistoryState, viewingAccount, viewingPostId, viewingForumPostId,
+        navigateTo, navigateToAccount, handleBack, showOnMap, viewingAccount, viewingPostId, viewingForumPostId,
         viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView, nearbyPostsResult, userLocation, isFindingNearby,
         postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete, handleFindNearby, handleEnableLocation,
         recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,

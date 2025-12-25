@@ -1,11 +1,10 @@
 
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, LogoIcon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon, VideoPostcardIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, BuildingStorefrontIcon, VideoPostcardIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -15,6 +14,7 @@ import { useBadgeAnimation } from '../hooks/useBadgeAnimation';
 import { cn } from '../lib/utils';
 import { useUserData } from '../contexts/UserDataContext';
 import { useLoading } from '../contexts/LoadingContext';
+import { Avatar } from './Avatar';
 
 interface HeaderProps {
   onSearchSubmit: (query: string) => void;
@@ -226,6 +226,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const placeholder = useMemo(() => {
+    if (view === 'studio') return 'Search your posts & content...';
     if (view === 'all' && mainView === 'map') return 'Search map for items...';
     if (view === 'forums') return 'Search forums...';
     if (view === 'likes') return 'search your likes';
@@ -306,6 +307,54 @@ export const Header: React.FC<HeaderProps> = ({
   );
 
   const exitAction = (view !== 'all' || mainView === 'map') ? (onBack || onGoHome) : handleExitSearch;
+
+  if (view === 'studio') {
+    if (!currentAccount) return null; // Should not happen if view is 'studio'
+  
+    return (
+      <header className={cn(
+        'fixed top-0 left-0 right-0 z-[2000] transition-transform duration-300 ease-in-out',
+        'bg-white/80 backdrop-blur-md border-b border-gray-200',
+        !isVisible && '-translate-y-full'
+      )}>
+        <div className={cn(
+            'px-4 sm:px-6 lg:px-8 flex items-center gap-4 transition-all duration-300',
+            isScrolled ? 'h-14' : 'h-16'
+        )}>
+          <div className="flex items-center w-full gap-2 sm:gap-4">
+            {onBack && (
+              <Button variant="overlay-dark" size="icon-sm" onClick={onBack} className="-ml-2 !rounded-xl" aria-label="Go back">
+                <ChevronLeftIcon className="w-6 h-6" />
+              </Button>
+            )}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateTo('account', { account: currentAccount })}>
+              <Avatar src={currentAccount.avatarUrl} alt={currentAccount.name} size="md" tier={currentAccount.subscription.tier} className="w-9 h-9 sm:w-10 sm:h-10 border-2 border-white shadow-sm"/>
+              <div className="hidden sm:block">
+                  <h1 className="text-xl font-bold text-gray-900">Studio</h1>
+                  <p className="text-xs text-gray-600 -mt-1">Manage your presence</p>
+              </div>
+            </div>
+  
+            <div className="flex-1 flex justify-end min-w-0">
+              <SearchBar
+                searchQuery={filterState.searchQuery}
+                onSearchChange={(q) => dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: q })}
+                onSearchSubmit={filterState.isAiSearchEnabled ? handleAiSearchSubmitWithHistory : handleFormSubmit}
+                placeholder={placeholder}
+                wrapperClassName="w-full max-w-md"
+                recentSearches={recentSearches}
+                onRemoveRecentSearch={onRemoveRecentSearch}
+                onClearRecentSearches={onClearRecentSearches}
+                onAiSearchSubmit={handleAiSearchSubmitWithHistory}
+                isAiSearching={isAiSearching}
+                onCancelSearch={filterState.searchQuery ? handleClearSearchText : undefined}
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <>

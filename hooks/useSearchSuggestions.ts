@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useClickOutside } from './useClickOutside';
 
@@ -132,7 +130,6 @@ export const useSearchSuggestions = ({
       onFocus: () => setIsFocused(true),
       onKeyDown: handleKeyDown,
     },
-    setActiveIndex,
     handleSuggestionClick,
   };
 };

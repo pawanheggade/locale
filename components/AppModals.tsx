@@ -110,7 +110,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
                         onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
                         onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
                         onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
-                        onOpenSellerAccountModal={() => openModal({ type: 'createAccount', data: { isSeller: true } })}
                         onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
                         onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
                     />
@@ -151,7 +150,6 @@ export const AppModals: React.FC<AppModalsProps> = ({
                         onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
                         onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
                         onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
-                        onOpenSellerAccountModal={() => openModal({ type: 'createAccount', data: { isSeller: true } })}
                         onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
                         onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
                     />

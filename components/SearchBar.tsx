@@ -95,11 +95,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onRemoveRecentSearch?.(query);
   };
   
-  const handleClearAll = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClearRecentSearches?.();
-  };
-
   const currentDropdownVisible = isDropdownVisible || shouldShowAiExamples;
 
   return (

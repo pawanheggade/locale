@@ -122,21 +122,6 @@ export const StudioPage: React.FC = () => {
 
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-24">
-            <div className="flex items-center gap-4 mb-8">
-                <Avatar 
-                    src={currentAccount.avatarUrl} 
-                    alt={currentAccount.name} 
-                    size="lg" 
-                    tier={currentAccount.subscription.tier}
-                    className="border-2 border-white shadow-sm cursor-pointer active:scale-95 transition-transform"
-                    onClick={() => navigateTo('account', { account: currentAccount })}
-                />
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Studio</h1>
-                    <p className="text-gray-600">Manage your presence on Locale</p>
-                </div>
-            </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {isAdmin && (
                     <StudioCard 

@@ -8,7 +8,6 @@ interface NavigationContextType {
   navigateToAccount: (accountId: string) => void;
   handleBack: () => void;
   showOnMap: (target: string | Account) => void;
-  saveHistoryState: () => void;
   viewingAccount: Account | null;
   viewingPostId: string | null;
   viewingForumPostId: string | null;

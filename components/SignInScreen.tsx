@@ -15,7 +15,6 @@ interface SignInScreenProps {
   onOpenCreateAccountModal: () => void;
   onOpenPasswordAssistanceModal: () => void;
   onSocialLogin: (provider: 'google' | 'apple') => void;
-  onOpenSellerAccountModal: () => void;
   onOpenTermsModal: () => void;
   onOpenPrivacyModal: () => void;
 }
@@ -46,7 +45,7 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, onOpenCreateAccountModal, onOpenPasswordAssistanceModal, onSocialLogin, onOpenSellerAccountModal, onOpenTermsModal, onOpenPrivacyModal }) => {
+export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, onOpenCreateAccountModal, onOpenPasswordAssistanceModal, onSocialLogin, onOpenTermsModal, onOpenPrivacyModal }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { identifier, password, rememberMe, error } = state;
   const [isLoading, setIsLoading] = useState(false);
