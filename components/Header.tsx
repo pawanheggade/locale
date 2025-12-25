@@ -229,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
   const placeholder = useMemo(() => {
     if (view === 'studio') return 'Search your posts & content...';
     if (view === 'all' && mainView === 'map') return 'Search map for items...';
-    if (view === 'forums') return 'Search forums...';
+    if (view === 'forums') return 'Search forum discussions...';
     if (view === 'likes') return 'search your likes';
     if (view === 'bag') return 'Search in bag...';
     if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
