@@ -3,9 +3,11 @@
 
 
 
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
-import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon } from './Icons';
+import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon, ChevronDownIcon } from './Icons';
 import { formatFullDate, formatFullDateTime } from '../utils/formatters';
 import { getPostStatus, isAccountEligibleToPin, isPostPurchasable } from '../utils/posts';
 import { MediaCarousel } from './MediaCarousel';
@@ -269,6 +271,12 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                     </Button>
                 ) : (
                     <>
+                        <PostActionsDropdown 
+                            post={post} 
+                            isArchived={isArchived} 
+                            currentAccount={currentAccount} 
+                            variant="card"
+                        />
                         <LikeButton
                             isLiked={isProfileLiked}
                             onToggle={() => {
@@ -288,12 +296,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             icon={UserPlusIcon}
                             aria-label={isProfileLiked ? "Unlike profile" : "Like profile"}
                             title={isProfileLiked ? "Liked" : "Like profile"}
-                        />
-                        <PostActionsDropdown 
-                            post={post} 
-                            isArchived={isArchived} 
-                            currentAccount={currentAccount} 
-                            variant="card"
                         />
                     </>
                 )}
@@ -315,6 +317,100 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
         {post.isLocaleChoice && isSearchResult && <LocaleChoiceBadge className="top-3 left-3" />}
       </div>
       
+      {/* Action Bar */}
+      <div className="p-3 border-t border-gray-200/80 flex items-center justify-between gap-2">
+          {isOwnPost ? (
+              <>
+                  <div className="flex-1 flex items-center gap-2">
+                      {isArchived ? (
+                          <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("flex-1 gap-1.5")} title="Unarchive">
+                              <ArrowUturnLeftIcon className="w-5 h-5" /> {'Unarchive'}
+                          </Button>
+                      ) : (
+                          <>
+                              <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={"sm"} className={cn("flex-1 gap-1.5")} title="Edit">
+                                  <PencilIcon className="w-5 h-5" /> {'Edit'}
+                              </Button>
+                              <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("text-amber-600", "flex-1 gap-1.5")} title="Archive">
+                                  <ArchiveBoxIcon className="w-5 h-5" /> {'Archive'}
+                              </Button>
+                          </>
+                      )}
+                  </div>
+                  {isEligibleToPin && !isArchived && (
+                      <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn(post.isPinned ? "text-red-600" : "text-gray-600")} title={post.isPinned ? 'Unpin' : 'Pin'}>
+                          <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
+                      </Button>
+                  )}
+                  <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none rounded-xl text-gray-600" title="Share post">
+                      <PaperAirplaneIcon className="w-5 h-5" />
+                  </Button>
+              </>
+          ) : (
+              <>
+                  <div className="flex items-center gap-2 flex-grow">
+                      {!isArchived && (
+                          isExpired ? (
+                              <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } toggleAvailabilityAlert(post.id); }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}>
+                                  <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
+                                  <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
+                              </Button>
+                          ) : (
+                              <>
+                                  <LikeButton
+                                      isLiked={isPostLiked}
+                                      onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
+                                      variant="overlay-dark"
+                                      size="icon-sm"
+                                      className={cn("rounded-xl", isPostLiked ? "text-red-600" : "text-gray-600")}
+                                      iconClassName="w-5 h-5"
+                                      aria-label={isPostLiked ? "Unlike post" : "Like post"}
+                                      title={isPostLiked ? "Unlike post" : "Like post"}
+                                  />
+                                  <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="rounded-xl text-gray-600" title="Share post">
+                                      <PaperAirplaneIcon className="w-5 h-5" />
+                                  </Button>
+                                  {isPurchasable && (
+                                      <Button
+                                          onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (!currentAccount) { openModal({ type: 'login' }); return; }
+                                              openModal({ type: 'setPriceAlert', data: post });
+                                          }}
+                                          variant="overlay-dark"
+                                          size="icon-sm"
+                                          className={cn("rounded-xl", isPriceAlertSet ? "text-red-600" : "text-gray-600")}
+                                          title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
+                                          aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
+                                      >
+                                          <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
+                                      </Button>
+                                  )}
+                                  {isPurchasable && (
+                                  <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none rounded-xl text-gray-600" title="Contact seller">
+                                      <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
+                                      <span className="sr-only">Contact</span>
+                                  </Button>
+                                  )}
+                                  {isPurchasable ? (
+                                      <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
+                                          <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
+                                          <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
+                                      </Button>
+                                  ) : (
+                                      <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
+                                          <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
+                                          <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
+                                      </Button>
+                                  )}
+                              </>
+                          )
+                      )}
+                  </div>
+              </>
+          )}
+      </div>
+      
       <CardContent className={'p-4'}>
         <div className="flex-grow">
           <div className="flex items-start justify-between gap-2">
@@ -333,27 +429,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                 {post.title}
               </button>
             </h3>
-            
-            {/* Like Button */}
-            {!isOwnPost && !isExpired && !isArchived && (
-                <div className="flex items-center gap-1 flex-shrink-0 pt-1">
-                    <LikeButton
-                        isLiked={isPostLiked}
-                        onToggle={() => { if (currentAccount) toggleLikePost(post.id); else openModal({ type: 'login' }); }}
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                            "h-8 w-8 p-0 rounded-full flex items-center justify-center",
-                            isPostLiked
-                                ? "text-red-600"
-                                : "text-gray-600"
-                        )}
-                        iconClassName="w-5 h-5"
-                        aria-label={isPostLiked ? "Unlike post" : "Like post"}
-                        title={isPostLiked ? "Unlike post" : "Like post"}
-                    />
-                </div>
-            )}
           </div>
 
           {/* AI Insight (if available from search) */}
@@ -390,10 +465,10 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
                             }
                             setIsDescriptionExpanded(true);
                         }}
-                        className="ml-1 font-medium text-red-600 focus:outline-none"
+                        className="ml-2 inline-block align-middle text-red-600 focus:outline-none active:scale-90 transition-transform focus-visible:ring-2 focus-visible:ring-red-500 rounded-full"
                         aria-label="Show full description"
                     >
-                        details
+                        <ChevronDownIcon className="w-5 h-5" />
                     </button>
                 </>
             ) : (
@@ -446,103 +521,6 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
             {!showHeader && <LocationElement />}
             {ExpiryElement}
           </div>
-
-          {/* Inline Action Footer - Only shown when expanded */}
-          {isDescriptionExpanded && (
-            <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between gap-2 animate-fade-in">
-                {isOwnPost ? (
-                    <>
-                        <div className="flex-1 flex items-center gap-2">
-                            {isArchived ? (
-                                <Button onClick={(e) => { e.stopPropagation(); unarchivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("bg-gray-50", "flex-1 gap-1.5")} title="Unarchive">
-                                    <ArrowUturnLeftIcon className="w-5 h-5" /> {'Unarchive'}
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button onClick={(e) => { e.stopPropagation(); navigateTo('editPost', { postId: post.id }); }} variant="overlay-dark" size={"sm"} className={cn("bg-gray-50", "flex-1 gap-1.5")} title="Edit">
-                                        <PencilIcon className="w-5 h-5" /> {'Edit'}
-                                    </Button>
-                                    <Button onClick={(e) => { e.stopPropagation(); archivePost(post.id); }} variant="overlay-dark" size={"sm"} className={cn("text-amber-600 bg-gray-50", "flex-1 gap-1.5")} title="Archive">
-                                        <ArchiveBoxIcon className="w-5 h-5" /> {'Archive'}
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-                        {isEligibleToPin && !isArchived && (
-                            <Button onClick={(e) => { e.stopPropagation(); togglePinPost(post.id); }} variant="overlay-dark" size="icon-sm" className={cn("bg-gray-50", post.isPinned ? "text-red-600" : "text-gray-600")} title={post.isPinned ? 'Unpin' : 'Pin'}>
-                                <PinIcon isFilled={!!post.isPinned} className="w-5 h-5" />
-                            </Button>
-                        )}
-                        <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="flex-none bg-gray-50 rounded-xl text-gray-600" title="Share post">
-                            <PaperAirplaneIcon className="w-5 h-5" />
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        {/* Primary actions on the left */}
-                        <div className="flex items-center gap-2 flex-grow">
-                            {!isArchived && (
-                                <>
-                                {isExpired ? (
-                                    <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } toggleAvailabilityAlert(post.id); }} variant={isAvailabilityAlertSet ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAvailabilityAlertSet ? 'Alert Set' : 'Notify when available'}>
-                                        <BellIcon className="w-5 h-5" isFilled={isAvailabilityAlertSet} />
-                                        <span className="truncate">{isAvailabilityAlertSet ? 'Alert Set' : 'Notify'}</span>
-                                    </Button>
-                                ) : (
-                                    <>
-                                        {isPurchasable ? (
-                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } isAddedToBag ? navigateTo('bag') : openModal({ type: 'addToBag', data: post }); }} variant={isAddedToBag ? "pill-lightred" : "pill-red"} size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={isAddedToBag ? 'Go to Bag' : 'Add to Bag'}>
-                                                <ShoppingBagIcon className="w-5 h-5" isFilled={isAddedToBag} />
-                                                <span className="truncate">{isAddedToBag ? 'Go to Bag' : 'Add to Bag'}</span>
-                                            </Button>
-                                        ) : (
-                                            <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } const prefilledMessage = post.type === PostType.SERVICE ? `Hi, I'm interested in your service: "${post.title}".` : undefined; openModal({ type: 'contactStore', data: { author: post.author!, post, prefilledMessage } }); }} variant="pill-red" size={"sm"} className={cn("flex-1 gap-1.5 text-xs font-semibold")} title={post.type === PostType.SERVICE ? 'Request' : 'Contact'}>
-                                                <ChatBubbleBottomCenterTextIcon className="w-5 h-5"/>
-                                                <span className="truncate">{post.type === PostType.SERVICE ? 'Request' : 'Contact'}</span>
-                                            </Button>
-                                        )}
-                                        {isPurchasable && (
-                                        <Button onClick={(e) => { e.stopPropagation(); if (!currentAccount) { openModal({ type: 'login' }); return; } openModal({ type: 'contactStore', data: { author: post.author!, post } }); }} variant="overlay-dark" size={"icon-sm"} className="flex-none bg-gray-50 rounded-xl text-gray-600" title="Contact seller">
-                                            <ChatBubbleBottomCenterTextIcon className="w-5 h-5" />
-                                            <span className="sr-only">Contact</span>
-                                        </Button>
-                                        )}
-                                    </>
-                                )}
-                                </>
-                            )}
-                        </div>
-                        {/* Secondary actions on the right */}
-                        {!isArchived && (
-                        <div className="flex-shrink-0 flex items-center gap-1">
-                            {isPurchasable && !isExpired && (
-                                <Button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (!currentAccount) { openModal({ type: 'login' }); return; }
-                                        openModal({ type: 'setPriceAlert', data: post });
-                                    }}
-                                    variant="overlay-dark"
-                                    size="icon-sm"
-                                    className={cn(
-                                        "bg-gray-50 rounded-xl",
-                                        isPriceAlertSet ? "text-red-600" : "text-gray-600"
-                                    )}
-                                    title={isPriceAlertSet ? "Price alert set" : "Set price alert"}
-                                    aria-label={isPriceAlertSet ? "Manage price alert" : "Set price alert"}
-                                >
-                                    <BellIcon className="w-5 h-5" isFilled={isPriceAlertSet} />
-                                </Button>
-                            )}
-                            <Button onClick={(e) => { e.stopPropagation(); openModal({ type: 'sharePost', data: post }); }} variant="overlay-dark" size="icon-sm" className="bg-gray-50 rounded-xl text-gray-600" title="Share post">
-                                <PaperAirplaneIcon className="w-5 h-5" />
-                            </Button>
-                        </div>
-                        )}
-                    </>
-                )}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
