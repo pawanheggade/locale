@@ -12,6 +12,8 @@ interface StoryContextType {
   stories: DisplayableStoryPost[];
   activeStories: DisplayableStoryPost[];
   activeStoriesByUser: Map<string, DisplayableStoryPost[]>;
+  allStoriesByUser: Map<string, DisplayableStoryPost[]>;
+  expiredStoriesByUser: Map<string, DisplayableStoryPost[]>;
   addStory: (media: Media, linkPostId?: string | null, description?: string) => StoryPost | null;
   markStoryAsViewed: (storyId: string) => void;
   toggleLikeStory: (storyId: string) => void;
@@ -55,6 +57,37 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
         return map;
     }, [activeStories]);
+
+    const allStoriesByUser = useMemo(() => {
+        const map = new Map<string, DisplayableStoryPost[]>();
+        stories.forEach(story => {
+            if (story.authorId) {
+                const userStories = map.get(story.authorId) || [];
+                map.set(story.authorId, [...userStories, story]);
+            }
+        });
+        map.forEach((userStories, userId) => {
+            map.set(userId, userStories.sort((a, b) => a.timestamp - b.timestamp));
+        });
+        return map;
+    }, [stories]);
+
+    const expiredStoriesByUser = useMemo(() => {
+        const map = new Map<string, DisplayableStoryPost[]>();
+        const now = Date.now();
+        const expiredStories = stories.filter(story => story.expiryTimestamp <= now);
+
+        expiredStories.forEach(story => {
+            if (story.authorId) {
+                const userStories = map.get(story.authorId) || [];
+                map.set(story.authorId, [...userStories, story]);
+            }
+        });
+        map.forEach((userStories, userId) => {
+            map.set(userId, userStories.sort((a, b) => b.timestamp - a.timestamp)); // Most recent expired first
+        });
+        return map;
+    }, [stories]);
 
     const addStory = useCallback((media: Media, linkPostId?: string | null, description?: string): StoryPost | null => {
         if (!currentAccount) {
@@ -137,13 +170,15 @@ export const StoryProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         stories,
         activeStories,
         activeStoriesByUser,
+        allStoriesByUser,
+        expiredStoriesByUser,
         addStory,
         markStoryAsViewed,
         toggleLikeStory,
         findStoryById,
         updateStory,
         deleteStory,
-    }), [stories, activeStories, activeStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory, findStoryById, updateStory, deleteStory]);
+    }), [stories, activeStories, activeStoriesByUser, allStoriesByUser, expiredStoriesByUser, addStory, markStoryAsViewed, toggleLikeStory, findStoryById, updateStory, deleteStory]);
 
     return (
         <StoryContext.Provider value={value}>

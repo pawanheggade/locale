@@ -231,7 +231,7 @@ export type ModalState =
   | { type: 'profileQR', data: Account }
   | { type: 'viewPost', data: DisplayablePost }
   | { type: 'editSocials' }
-  | { type: 'storyViewer', data: { usersWithStories: Account[], initialUserIndex: number, initialStoryId?: string } };
+  | { type: 'storyViewer', data: { usersWithStories: Account[], initialUserIndex: number, initialStoryId?: string, source?: 'active' | 'all' } };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
 export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost' | 'editStory';

@@ -18,7 +18,7 @@ import { useDebounce } from '../hooks/useDebounce';
 
 type LikedTab = 'profiles' | 'posts' | 'stories';
 
-const LikedStoryCard: React.FC<{ story: DisplayableStoryPost; onClick: () => void; }> = ({ story, onClick }) => (
+export const LikedStoryCard: React.FC<{ story: DisplayableStoryPost; onClick: () => void; }> = ({ story, onClick }) => (
     <div
         className="relative aspect-[9/16] bg-gray-100 rounded-xl overflow-hidden cursor-pointer group"
         onClick={onClick}

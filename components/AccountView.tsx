@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { DisplayableForumPost, SocialPlatform, Account } from '../types';
+import { DisplayableForumPost, SocialPlatform, Account, DisplayableStoryPost } from '../types';
 import { MapPinIcon, CalendarIcon, ArchiveBoxIcon, GoogleIcon, AppleIcon, DocumentIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, CashIcon, HashtagIcon, PostCardIcon, VideoPostcardIcon } from './Icons';
 import { formatMonthYear } from '../utils/formatters';
 import { SubscriptionBadge } from './SubscriptionBadge';
@@ -21,6 +21,8 @@ import { usePosts } from '../contexts/PostsContext';
 import { useSwipeToNavigateTabs } from '../hooks/useSwipeToNavigateTabs';
 import { SEO } from './SEO';
 import { useTabAnimation } from '../hooks/useTabAnimation';
+import { useStory } from '../contexts/StoryContext';
+import { LikedStoryCard } from './LikesView';
 
 interface ForumPostRowProps {
     post: DisplayableForumPost;
@@ -55,6 +57,7 @@ export const AccountView: React.FC = () => {
   const { navigateTo, showOnMap, viewingAccount: account } = useNavigation();
   const { currentAccount, toggleLikeAccount, updateAccountDetails } = useAuth();
   const { postsByAuthorId, archivedPostsByAuthorId } = usePosts();
+  const { expiredStoriesByUser } = useStory();
   
   if (!account) {
     return <div className="p-8 text-center">Account not found.</div>;
@@ -67,6 +70,11 @@ export const AccountView: React.FC = () => {
   const accountPosts = useMemo(() => postsByAuthorId.get(account.id) || [], [postsByAuthorId, account.id]);
   const userForumPosts = useMemo(() => allForumPosts.filter(post => post.authorId === account.id).sort((a, b) => b.timestamp - a.timestamp), [allForumPosts, account.id]);
   const accountArchivedPosts = useMemo(() => isOwnAccount ? (archivedPostsByAuthorId.get(account.id) || []) : [], [archivedPostsByAuthorId, account.id, isOwnAccount]);
+  const userExpiredStories = useMemo(() => {
+    if (!isOwnAccount) return [];
+    return expiredStoriesByUser.get(account.id) || [];
+  }, [expiredStoriesByUser, account.id, isOwnAccount]);
+
   const isBusinessAccount = account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
   const isPaidTier = ['Verified', 'Business', 'Organisation'].includes(account.subscription.tier);
   
@@ -121,7 +129,7 @@ export const AccountView: React.FC = () => {
     }
 
     // Archives Tab
-    if (isOwnAccount && accountArchivedPosts.length > 0) {
+    if (isOwnAccount && (accountArchivedPosts.length > 0 || userExpiredStories.length > 0)) {
         tabs.push({ id: 'archives', label: 'Archived', icon: <ArchiveBoxIcon className="w-6 h-6" /> });
     }
 
@@ -148,6 +156,7 @@ export const AccountView: React.FC = () => {
     isBusinessAccount,
     postCategories,
     accountArchivedPosts.length,
+    userExpiredStories.length
   ]);
 
   const [activeTab, setActiveTab] = useState<string>('');
@@ -200,10 +209,9 @@ export const AccountView: React.FC = () => {
 
   const displayedPosts = useMemo(() => {
     if (!activeTab) return [];
-    if (activeTab === 'catalogs' || activeTab === 'forums') return [];
+    if (activeTab === 'catalogs' || activeTab === 'forums' || activeTab === 'archives') return [];
     if (activeTab === 'sale') return salePosts;
     if (activeTab === 'videos') return videoPosts;
-    if (activeTab === 'archives') return accountArchivedPosts;
     if (activeTab === 'all') {
         return [...accountPosts].sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
@@ -213,7 +221,7 @@ export const AccountView: React.FC = () => {
     }
     // Category filter
     return accountPosts.filter(p => p.category === activeTab);
-  }, [activeTab, salePosts, videoPosts, accountArchivedPosts, accountPosts, pinnedPosts]);
+  }, [activeTab, salePosts, videoPosts, accountPosts, pinnedPosts]);
 
   const handleContactAction = (e: React.MouseEvent, method: { toast: string }) => {
       if (!currentAccount) {
@@ -246,8 +254,46 @@ export const AccountView: React.FC = () => {
       }
   };
 
+  const handleExpiredStoryClick = (story: DisplayableStoryPost) => {
+    if (!story.author) return;
+    openModal({
+        type: 'storyViewer',
+        data: {
+            usersWithStories: [story.author],
+            initialUserIndex: 0,
+            initialStoryId: story.id,
+            source: 'all',
+        },
+    });
+  };
+
   const renderContent = () => {
     switch (activeTab) {
+        case 'archives':
+            return (
+                <div className="space-y-8">
+                    {accountArchivedPosts.length > 0 && (
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Archived Posts</h2>
+                            <PostList 
+                                posts={accountArchivedPosts} 
+                                isArchived={true}
+                                variant={isTabletOrDesktop ? gridView : 'default'}
+                            />
+                        </div>
+                    )}
+                    {userExpiredStories.length > 0 && (
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Expired Stories</h2>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                                {userExpiredStories.map(story => (
+                                    <LikedStoryCard key={story.id} story={story} onClick={() => handleExpiredStoryClick(story)} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
         case 'catalogs':
             return (
                 <div className="space-y-4">

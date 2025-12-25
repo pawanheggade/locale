@@ -20,11 +20,12 @@ interface StoryViewerModalProps {
   usersWithStories: Account[];
   initialUserIndex: number;
   initialStoryId?: string;
+  source?: 'active' | 'all';
   onClose: () => void;
 }
 
-export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithStories, initialUserIndex, initialStoryId, onClose }) => {
-  const { activeStoriesByUser, markStoryAsViewed, toggleLikeStory, deleteStory } = useStory();
+export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithStories, initialUserIndex, initialStoryId, source = 'active', onClose }) => {
+  const { activeStoriesByUser, allStoriesByUser, markStoryAsViewed, toggleLikeStory, deleteStory } = useStory();
   const { currentAccount } = useAuth();
   const { openModal } = useUI();
   const { navigateTo } = useNavigation();
@@ -36,8 +37,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const storiesSource = source === 'all' ? allStoriesByUser : activeStoriesByUser;
   const currentUser = usersWithStories[currentUserIndex];
-  const userStories = currentUser ? activeStoriesByUser.get(currentUser.id) : [];
+  const userStories = currentUser ? storiesSource.get(currentUser.id) : [];
   const activeStory = userStories ? userStories[currentStoryIndex] : null;
 
   const goToNextStory = useCallback(() => {
@@ -61,17 +63,17 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
         if (currentUserIndex > 0) {
             setCurrentUserIndex(prev => prev - 1);
             // Go to the last story of the previous user
-            const prevUserStories = activeStoriesByUser.get(usersWithStories[currentUserIndex - 1].id) || [];
+            const prevUserStories = storiesSource.get(usersWithStories[currentUserIndex - 1].id) || [];
             setCurrentStoryIndex(prevUserStories.length - 1);
         }
     } else {
         // Go to prev story for same user
         setCurrentStoryIndex(prev => prev - 1);
     }
-  }, [currentStoryIndex, currentUserIndex, activeStoriesByUser, usersWithStories]);
+  }, [currentStoryIndex, currentUserIndex, storiesSource, usersWithStories]);
 
   useEffect(() => {
-    if (activeStory && !isPaused) {
+    if (activeStory && !isPaused && activeStory.expiryTimestamp > Date.now()) {
       timerRef.current = setTimeout(goToNextStory, STORY_DURATION);
       
       if (currentAccount && !activeStory.viewedBy.includes(currentAccount.id)) {
@@ -84,7 +86,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
   }, [activeStory, isPaused, goToNextStory, markStoryAsViewed, currentAccount]);
   
   useEffect(() => {
-      const initialUserStories = activeStoriesByUser.get(usersWithStories[initialUserIndex]?.id) || [];
+      const initialUserStories = storiesSource.get(usersWithStories[initialUserIndex]?.id) || [];
       let startIndex = 0;
       if (initialStoryId) { // Prioritize starting at a specific story
           const specificIndex = initialUserStories.findIndex(s => s.id === initialStoryId);
@@ -98,7 +100,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
           }
       }
       setCurrentStoryIndex(startIndex);
-  }, [initialUserIndex, initialStoryId, usersWithStories, activeStoriesByUser, currentAccount]);
+  }, [initialUserIndex, initialStoryId, usersWithStories, storiesSource, currentAccount]);
 
   const handlePointerDown = () => setIsPaused(true);
   const handlePointerUp = () => setIsPaused(false);
@@ -153,6 +155,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
   const isLiked = currentAccount && activeStory.likedBy.includes(currentAccount.id);
   const isOwnStory = currentAccount?.id === activeStory.authorId;
   const footerContent = activeStory.description || activeStory.linkPost;
+  const isExpired = activeStory.expiryTimestamp <= Date.now();
   
   const handleEdit = () => {
     if (!isOwnStory || !activeStory) return;
@@ -182,9 +185,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({ usersWithSto
                     <div key={story.id} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
                         <div className={cn("h-full bg-white transition-all duration-200", index < currentStoryIndex && "w-full", index > currentStoryIndex && "w-0")}
                              style={{
-                                 animation: (index === currentStoryIndex && !isPaused) ? `fill-progress ${STORY_DURATION}ms linear` : 'none',
+                                 animation: (index === currentStoryIndex && !isPaused && !isExpired) ? `fill-progress ${STORY_DURATION}ms linear` : 'none',
                                  animationPlayState: isPaused ? 'paused' : 'running',
-                                 width: index === currentStoryIndex ? undefined : (index < currentStoryIndex ? '100%' : '0%')
+                                 width: index === currentStoryIndex ? (isExpired ? '100%' : undefined) : (index < currentStoryIndex ? '100%' : '0%')
                              }}
                         />
                     </div>
