@@ -15,7 +15,6 @@ interface PostListProps {
   isSearchResult?: boolean;
   isArchived?: boolean;
   hideAuthorInfo?: boolean;
-  isLoading?: boolean;
   hideExpiry?: boolean;
   enableEntryAnimation?: boolean;
   variant?: 'default' | 'compact';
@@ -24,7 +23,7 @@ interface PostListProps {
   posts?: DisplayablePost[];
 }
 
-const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearchResult = false, isArchived = false, hideAuthorInfo = false, isLoading = false, hideExpiry = false, enableEntryAnimation = false, variant: variantProp, authorId }) => {
+const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearchResult = false, isArchived = false, hideAuthorInfo = false, hideExpiry = false, enableEntryAnimation = false, variant: variantProp, authorId }) => {
   const { currentAccount, accounts } = useAuth();
   const { posts: allDisplayablePosts, archivedPosts, postsByAuthorId } = usePosts();
   const { gridView, isTabletOrDesktop } = useUI();
@@ -36,7 +35,7 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
     return allDisplayablePosts;
   }, [postsProp, isArchived, authorId, allDisplayablePosts, archivedPosts, postsByAuthorId]);
 
-  const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, isLoading);
+  const { displayedItems, hasMore, loadMore, isLoadingMore } = useInfiniteScroll(sourcePosts, false);
   const filteredAndSortedPosts = usePostFilters(displayedItems, allDisplayablePosts, null, currentAccount, Array.from(accounts.values()));
 
   const posts = (postsProp || authorId) ? displayedItems : filteredAndSortedPosts;
@@ -55,19 +54,6 @@ const PostListComponent: React.FC<PostListProps> = ({ posts: postsProp, isSearch
   }, [isLoadingMore, hasMore, loadMore]);
   
   const variant = variantProp || (isTabletOrDesktop ? gridView : 'default');
-
-  if (isLoading) {
-    return (
-      <div className={cn(
-        'grid',
-        variant === 'compact' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6'
-      )}>
-        {Array.from({ length: 10 }).map((_, index) => (
-          <PostCardSkeleton key={index} index={index} />
-        ))}
-      </div>
-    );
-  }
 
   if (posts.length === 0 && !isLoadingMore) {
     return (

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { Notification, PriceAlert, AvailabilityAlert, Post, NotificationSettings } from '../types';
 import { usePersistentState } from '../hooks/usePersistentState';
@@ -18,7 +17,6 @@ interface ActivityContextType {
   addNotification: (notificationData: Omit<Notification, 'id' | 'timestamp' | 'isRead'>) => void;
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
-  clearAllNotifications: () => void;
   
   setPriceAlert: (postId: string, targetPrice: number) => void;
   deletePriceAlert: (postId: string) => void;
@@ -126,10 +124,6 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       notifications: notifications.map(n => ({ ...n, isRead: true }))
     });
   }, [notifications, updateUserData]);
-
-  const clearAllNotifications = useCallback(() => {
-    updateUserData({ notifications: [] });
-  }, [updateUserData]);
 
   // --- Settings ---
   const onSettingsChange = useCallback((newSettings: NotificationSettings) => {
@@ -282,7 +276,6 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addNotification,
     markAsRead,
     markAllAsRead,
-    clearAllNotifications,
     setPriceAlert,
     deletePriceAlert,
     setAvailabilityAlert,
@@ -293,7 +286,7 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     onSettingsChange,
   }), [
     notifications, priceAlerts, availabilityAlerts, settings, unreadCount, totalActivityCount,
-    addNotification, markAsRead, markAllAsRead, clearAllNotifications,
+    addNotification, markAsRead, markAllAsRead,
     setPriceAlert, deletePriceAlert, setAvailabilityAlert, deleteAvailabilityAlert,
     toggleAvailabilityAlert,
     checkAvailabilityAlerts,

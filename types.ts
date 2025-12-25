@@ -7,6 +7,8 @@
 
 
 
+
+
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -203,7 +205,6 @@ export interface ConfirmationModalData {
   onConfirm: () => void | Promise<void>;
   confirmText?: string;
   confirmClassName?: string;
-  loadingKey?: string;
 }
 
 export type ModalState =
