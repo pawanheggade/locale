@@ -230,7 +230,7 @@ export const Header: React.FC<HeaderProps> = ({
     if (view === 'studio') return 'Search your posts & content...';
     if (view === 'all' && mainView === 'map') return 'Search map for items...';
     if (view === 'forums') return 'Search forum discussions...';
-    if (view === 'likes') return 'search your likes';
+    if (view === 'likes') return 'Search your likes';
     if (view === 'bag') return 'Search in bag...';
     if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
     if (filterState.isAiSearchEnabled) return 'Ask Locale AI...';
