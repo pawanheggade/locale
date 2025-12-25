@@ -1,9 +1,11 @@
 
-import React from 'react';
+
+import React, { useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useUI } from '../contexts/UIContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
+import { useFilters } from '../contexts/FiltersContext';
 import { 
     PlusIcon, 
     ChartBarIcon, 
@@ -15,11 +17,13 @@ import {
     UserIcon,
     CashIcon,
     GlobeAltIcon,
-    VideoPostcardIcon
+    VideoPostcardIcon,
+    SearchIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import { Avatar } from './Avatar';
+import { EmptyState } from './EmptyState';
 
 const StudioCard: React.FC<{
     title: string;
@@ -67,6 +71,18 @@ export const StudioPage: React.FC = () => {
     const { navigateTo } = useNavigation();
     const { openModal } = useUI();
     const showConfirmation = useConfirmationModal();
+    
+    const { filterState, dispatchFilterAction } = useFilters();
+    const { searchQuery } = filterState;
+
+    useEffect(() => {
+        // Clear search when leaving the page to prevent it from affecting other views.
+        return () => {
+            if (searchQuery) {
+                dispatchFilterAction({ type: 'SET_SEARCH_QUERY', payload: '' });
+            }
+        };
+    }, [dispatchFilterAction, searchQuery]);
 
     if (!currentAccount) return null;
 
@@ -120,86 +136,124 @@ export const StudioPage: React.FC = () => {
         });
     };
 
+    const studioActions = useMemo(() => [
+        ...(isAdmin ? [{
+            title: "Admin Panel",
+            description: "Manage accounts, posts, and reports.",
+            icon: <UserIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('admin'),
+            className: "sm:col-span-2 border-slate-200 bg-slate-50"
+        }] : []),
+        {
+            title: "Create Story",
+            description: "Post a 24-hour update.",
+            icon: <VideoPostcardIcon className="w-6 h-6" />,
+            onClick: handleCreateStory,
+            proFeature: isPersonalTier
+        },
+        {
+            title: "Create Post",
+            description: "List a new item or service.",
+            icon: <PlusIcon className="w-6 h-6" />,
+            onClick: handleCreatePost,
+            proFeature: isPersonalTier
+        },
+        {
+            title: "Create Discussion",
+            description: "Start a topic in the forums.",
+            icon: <ChatBubbleEllipsisIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('createForumPost')
+        },
+        {
+            title: "Analytics",
+            description: "View performance insights.",
+            icon: <ChartBarIcon className="w-6 h-6" />,
+            onClick: handleAnalyticsClick,
+            proFeature: !isPaidTier
+        },
+        {
+            title: "Catalog",
+            description: "Manage your product catalog.",
+            icon: <DocumentIcon className="w-6 h-6" />,
+            onClick: handleCatalogClick,
+            proFeature: !canHaveCatalog
+        },
+        {
+            title: "Socials",
+            description: "Manage your social media links.",
+            icon: <GlobeAltIcon className="w-6 h-6" />,
+            onClick: () => openModal({ type: 'editSocials' })
+        },
+        {
+            title: "Edit Profile",
+            description: "Update bio, contact info, and more.",
+            icon: <PencilIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('editProfile', { account: currentAccount })
+        },
+        {
+            title: "Settings",
+            description: "App preferences and account actions.",
+            icon: <Cog6ToothIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('settings')
+        },
+        {
+            title: "Subscription",
+            description: "Manage your plan and billing.",
+            icon: <CashIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('subscription')
+        }
+    ], [isAdmin, isPersonalTier, canHaveCatalog, isPaidTier, currentAccount, navigateTo, openModal]);
+
+    const filteredActions = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return studioActions;
+        }
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        return studioActions.filter(action =>
+            action.title.toLowerCase().includes(lowerCaseQuery) ||
+            action.description.toLowerCase().includes(lowerCaseQuery)
+        );
+    }, [studioActions, searchQuery]);
+
     return (
         <div className="animate-fade-in-down p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-24">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {isAdmin && (
-                    <StudioCard 
-                        title="Admin Panel" 
-                        description="Manage accounts, posts, and reports." 
-                        icon={<UserIcon className="w-6 h-6" />} 
-                        onClick={() => navigateTo('admin')}
-                        className="sm:col-span-2 border-slate-200 bg-slate-50"
-                    />
-                )}
-
-                {/* Primary Actions */}
-                 <StudioCard 
-                    title="Create Story" 
-                    description="Post a 24-hour update." 
-                    icon={<VideoPostcardIcon className="w-6 h-6" />} 
-                    onClick={handleCreateStory}
-                    proFeature={isPersonalTier}
+            <div className="flex items-center gap-4 mb-8">
+                <Avatar 
+                    src={currentAccount.avatarUrl} 
+                    alt={currentAccount.name} 
+                    size="xl" 
+                    tier={currentAccount.subscription.tier} 
+                    className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-white shadow-md"
                 />
-                <StudioCard 
-                    title="Create Post" 
-                    description="List a new item or service." 
-                    icon={<PlusIcon className="w-6 h-6" />} 
-                    onClick={handleCreatePost}
-                    proFeature={isPersonalTier}
-                />
-
-                <StudioCard 
-                    title="Create Discussion" 
-                    description="Start a topic in the forums." 
-                    icon={<ChatBubbleEllipsisIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('createForumPost')}
-                />
-
-                <StudioCard 
-                    title="Analytics" 
-                    description="View performance insights." 
-                    icon={<ChartBarIcon className="w-6 h-6" />} 
-                    onClick={handleAnalyticsClick}
-                    proFeature={!isPaidTier}
-                />
-
-                <StudioCard 
-                    title="Catalog" 
-                    description="Manage your product catalog." 
-                    icon={<DocumentIcon className="w-6 h-6" />} 
-                    onClick={handleCatalogClick}
-                    proFeature={!canHaveCatalog}
-                />
-                
-                <StudioCard 
-                    title="Socials" 
-                    description="Manage your social media links." 
-                    icon={<GlobeAltIcon className="w-6 h-6" />} 
-                    onClick={() => openModal({ type: 'editSocials' })}
-                />
-                
-                <StudioCard 
-                    title="Edit Profile" 
-                    description="Update bio, contact info, and more." 
-                    icon={<PencilIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('editProfile', { account: currentAccount })}
-                />
-                
-                <StudioCard 
-                    title="Settings" 
-                    description="App preferences and account actions." 
-                    icon={<Cog6ToothIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('settings')}
-                />
-
-                <StudioCard 
-                    title="Subscription" 
-                    description="Manage your plan and billing." 
-                    icon={<CashIcon className="w-6 h-6" />} 
-                    onClick={() => navigateTo('subscription')}
-                />
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Studio</h1>
+                    <p className="text-gray-600 mt-1">Manage your presence on Locale.</p>
+                </div>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {filteredActions.map(action => (
+                    <StudioCard 
+                        key={action.title}
+                        title={action.title}
+                        description={action.description}
+                        icon={action.icon}
+                        onClick={action.onClick}
+                        className={action.className}
+                        proFeature={action.proFeature}
+                    />
+                ))}
+            </div>
+
+            {filteredActions.length === 0 && searchQuery && (
+                <div className="mt-8">
+                    <EmptyState
+                        icon={<SearchIcon />}
+                        title="No actions found"
+                        description={`Your search for "${searchQuery}" did not match any available actions.`}
+                    />
+                </div>
+            )}
             
             <div className="mt-8 pt-8 border-t border-gray-200/80 flex flex-col items-center gap-4">
                  <Button variant="link" onClick={() => navigateTo('account', { account: currentAccount })} className="text-gray-600 text-sm">

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { SearchIcon, SpinnerIcon, ClockIcon, XMarkIcon, AIIcon } from './Icons';
 import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
@@ -137,14 +138,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
                     </div>
                 )}
                 
-                {onCancelSearch && (
+                {onCancelSearch && searchQuery && (
                   <Button
                       type="button"
                       onClick={onCancelSearch}
                       variant="ghost"
                       size="icon-sm"
                       className="text-gray-600 rounded-xl"
-                      aria-label={searchQuery ? "Clear search" : "Close search"}
+                      aria-label="Clear search"
                   >
                       <XMarkIcon className="w-5 h-5" />
                   </Button>
