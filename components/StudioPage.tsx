@@ -1,6 +1,4 @@
 
-
-
 import React, { useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigation } from '../contexts/NavigationContext';
@@ -8,7 +6,7 @@ import { useUI } from '../contexts/UIContext';
 import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { useFilters } from '../contexts/FiltersContext';
 import { 
-    PlusIcon, 
+    PlusPostcardIcon, 
     ChartBarIcon, 
     DocumentIcon, 
     PencilIcon, 
@@ -155,7 +153,7 @@ export const StudioPage: React.FC = () => {
         {
             title: "Create Post",
             description: "List a new item or service.",
-            icon: <PlusIcon className="w-6 h-6" />,
+            icon: <PlusPostcardIcon className="w-6 h-6" />,
             onClick: handleCreatePost,
             proFeature: isPersonalTier
         },

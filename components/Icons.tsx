@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 
 // Generic base Icon component to reduce boilerplate
@@ -51,6 +50,23 @@ export const ChevronLeftIcon = createIcon(<path strokeLinecap="round" strokeLine
 export const ChevronRightIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />);
 export const ClockIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />);
 export const CloudSlashIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M9.172 9.172a4 4 0 015.656 0M12 12a9 9 0 009 9H5a9 9 0 00-5.292-1.708" />);
+
+export const PlusPostcardIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
+    <Icon className={className} title={title} isFilled={isFilled} {...props}>
+      {isFilled ? (
+          <>
+            <path d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" fill="currentColor" stroke="none" />
+            <path d="M12 9v6m-3-3h6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+      ) : (
+          <>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
+            <path d="M12 9v6m-3-3h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </>
+      )}
+    </Icon>
+);
+
 export const VideoPostcardIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
     <Icon className={className} title={title} isFilled={isFilled} {...props}>
       {isFilled ? (
@@ -213,7 +229,10 @@ export const PhotoIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="
 export const PostCardIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
     <Icon className={className} title={title} isFilled={isFilled} {...props}>
       {isFilled ? (
-          <path fillRule="evenodd" clipRule="evenodd" d="M2.25 4.5A2.25 2.25 0 0 1 4.5 2.25h15A2.25 2.25 0 0 1 21.75 4.5v15A2.25 2.25 0 0 1 19.5 21.75h-15A2.25 2.25 0 0 1 2.25 19.5v-15ZM4.5 9.75V4.5h15v5.25H4.5Z" />
+          <>
+            <path d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" fill="currentColor" stroke="none" />
+            <path d="M3.75 10.5h16.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </>
       ) : (
           <>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
