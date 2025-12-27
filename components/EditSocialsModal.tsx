@@ -50,7 +50,9 @@ export const EditSocialsModal: React.FC<EditSocialsModalProps> = ({ onClose }) =
     updateAccountDetails({ ...currentAccount, socialLinks });
     onClose();
   }, (currentState) => {
-    const newErrors: Record<string, string> = {};
+    // FIX: Changed the type of newErrors to correctly match the expected return type of the validation function,
+    // which expects keys to be of `keyof typeof currentState`, not just `string`. This resolves the indexing error.
+    const newErrors: Partial<Record<keyof typeof currentState, string>> = {};
     (Object.keys(currentState) as (keyof typeof currentState)[]).forEach(platform => {
         const url = currentState[platform].trim();
         if (url && !URL_REGEX.test(url)) {

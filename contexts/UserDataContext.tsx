@@ -1,13 +1,16 @@
+
 import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import { BagItem, SavedList } from '../types';
 import { useLargePersistentState } from '../hooks/useLargePersistentState';
 import { useAuth } from './AuthContext';
+import { useUI } from './UIContext';
 import { STORAGE_KEYS } from '../lib/constants';
 
 interface UserSpecificData {
     bag: BagItem[];
     savedLists: SavedList[];
     viewedPostIds: string[];
+    hiddenPostIds: string[];
 }
 
 type AllUsersData = Record<string, UserSpecificData>;
@@ -16,12 +19,16 @@ const initialUserSpecificData: UserSpecificData = {
     bag: [],
     savedLists: [],
     viewedPostIds: [],
+    hiddenPostIds: [],
 };
 
 interface UserDataContextType {
   bag: BagItem[];
   savedLists: SavedList[];
   viewedPostIds: string[];
+  hiddenPostIds: string[];
+  hidePost: (postId: string) => void;
+  unhidePost: (postId: string) => void;
   addToBag: (postId: string, quantity: number) => void;
   updateBagItem: (itemId: string, updates: Partial<{ quantity: number; isChecked: boolean; savedListIds: string[]; }>) => void;
   saveItemToLists: (itemId: string, listIds: string[]) => void;
@@ -38,13 +45,17 @@ const UserDataContext = createContext<UserDataContextType | undefined>(undefined
 
 export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currentAccount } = useAuth();
+    const { addToast } = useUI();
     const currentAccountId = currentAccount?.id;
 
     const [allUsersData, setAllUsersData] = useLargePersistentState<AllUsersData>(STORAGE_KEYS.USER_DATA, {});
     
     const currentUserData = useMemo(() => {
         if (currentAccountId && allUsersData[currentAccountId]) {
-            return allUsersData[currentAccountId];
+            return {
+                ...initialUserSpecificData,
+                ...allUsersData[currentAccountId]
+            };
         }
         return initialUserSpecificData;
     }, [currentAccountId, allUsersData]);
@@ -59,6 +70,23 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             }
         }));
     }, [currentAccountId, setAllUsersData]);
+
+    const unhidePost = useCallback((postId: string) => {
+        if (!currentAccountId) return;
+        const currentHidden = currentUserData.hiddenPostIds || [];
+        if (currentHidden.includes(postId)) {
+            updateCurrentUserSpecificData({ hiddenPostIds: currentHidden.filter(id => id !== postId) });
+        }
+    }, [currentAccountId, currentUserData.hiddenPostIds, updateCurrentUserSpecificData]);
+
+    const hidePost = useCallback((postId: string) => {
+        if (!currentAccountId) return;
+        const currentHidden = currentUserData.hiddenPostIds || [];
+        if (!currentHidden.includes(postId)) {
+            updateCurrentUserSpecificData({ hiddenPostIds: [...currentHidden, postId] });
+            addToast("Post hidden.", 'success', () => unhidePost(postId));
+        }
+    }, [currentAccountId, currentUserData.hiddenPostIds, updateCurrentUserSpecificData, addToast, unhidePost]);
 
     const addToBag = useCallback((postId: string, quantity: number) => {
         if (!currentAccountId) return;
@@ -205,6 +233,9 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         bag: currentUserData.bag, 
         savedLists: currentUserData.savedLists, 
         viewedPostIds: currentUserData.viewedPostIds,
+        hiddenPostIds: currentUserData.hiddenPostIds,
+        hidePost,
+        unhidePost,
         addToBag, 
         updateBagItem, 
         saveItemToLists, 
@@ -217,6 +248,8 @@ export const UserDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addPostToViewHistory,
     }), [
         currentUserData,
+        hidePost,
+        unhidePost,
         addToBag, 
         updateBagItem, 
         saveItemToLists, 

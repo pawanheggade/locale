@@ -1,13 +1,15 @@
 
 import React, { useState, useRef } from 'react';
 import { Account, DisplayablePost } from '../types';
-import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon } from './Icons';
+import { EllipsisVerticalIcon, TrashIcon, PencilIcon, FlagIcon, ChatBubbleBottomCenterTextIcon, XCircleIcon } from './Icons';
 import { usePosts } from '../contexts/PostsContext';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useUI } from '../contexts/UIContext';
+import { useUserData } from '../contexts/UserDataContext';
 
 interface PostActionsDropdownProps {
   post: DisplayablePost;
@@ -27,7 +29,7 @@ const DropdownMenuItem: React.FC<{
     <Button
       onClick={onClick}
       variant="ghost"
-      className={`w-full text-left justify-start font-normal h-auto flex items-center gap-3 px-4 py-2.5 rounded-none ${className}`}
+      className={`w-full text-left !justify-start font-normal h-auto flex items-center gap-3 px-4 py-2.5 rounded-none ${className}`}
     >
       {icon}
       {label}
@@ -50,6 +52,8 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
   const { deletePostPermanently } = usePosts();
   const { navigateTo } = useNavigation();
   const { reportItem } = useAuth();
+  const { openModal } = useUI();
+  const { hidePost } = useUserData();
 
   useClickOutside(menuRef, () => {
       if (isMounted()) setIsOpen(false);
@@ -66,6 +70,36 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
 
   const menuItems: React.ReactNode[] = [];
 
+  // Not Interested
+  if (!isOwnPost) {
+    menuItems.push(
+      <DropdownMenuItem
+        key="not-interested"
+        onClick={(e) => {
+          e.stopPropagation();
+          hidePost(post.id);
+          setIsOpen(false);
+        }}
+        icon={<XCircleIcon className="w-5 h-5 text-gray-600" />}
+        label="Not Interested"
+      />
+    );
+  }
+
+  // Send Feedback
+  menuItems.push(
+    <DropdownMenuItem
+      key="feedback"
+      onClick={(e) => {
+        e.stopPropagation();
+        openModal({ type: 'feedback' });
+        setIsOpen(false);
+      }}
+      icon={<ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-gray-600" />}
+      label="Send Feedback"
+    />
+  );
+
   // Report item
   if (!isOwnPost) {
     menuItems.push(
@@ -81,6 +115,7 @@ export const PostActionsDropdown: React.FC<PostActionsDropdownProps> = ({
       />
     );
   }
+
 
   // Admin/Owner items
   const adminItems: React.ReactNode[] = [];

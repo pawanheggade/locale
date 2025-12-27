@@ -7,6 +7,7 @@ import { useDebounce } from './useDebounce';
 import { applyFiltersToPosts, sortFilteredPosts } from '../utils/posts';
 import { haversineDistance } from '../utils/geocoding';
 import { usePostLikeCounts } from './usePostLikeCounts';
+import { useUserData } from '../contexts/UserDataContext';
 
 export const usePostFilters = (
   postsToFilter: DisplayablePost[],
@@ -16,6 +17,7 @@ export const usePostFilters = (
   allAccounts: Account[]
 ) => {
   const { filterState } = useFilters();
+  const { hiddenPostIds } = useUserData();
   const debouncedSearchQuery = useDebounce(filterState.searchQuery, 300);
   const likeCounts = usePostLikeCounts(allAccounts);
 
@@ -30,7 +32,7 @@ export const usePostFilters = (
   }, [postsToFilter, likeCounts, userLocation]);
 
   const filteredPosts = useMemo(() => {
-    return applyFiltersToPosts(
+    const initiallyFiltered = applyFiltersToPosts(
       enrichedPosts,
       allPosts,
       filterState,
@@ -38,7 +40,14 @@ export const usePostFilters = (
       userLocation,
       currentAccount
     );
-  }, [enrichedPosts, allPosts, filterState, debouncedSearchQuery, userLocation, currentAccount]);
+
+    if (!hiddenPostIds || hiddenPostIds.length === 0) {
+        return initiallyFiltered;
+    }
+    const hiddenSet = new Set(hiddenPostIds);
+    return initiallyFiltered.filter(post => !hiddenSet.has(post.id));
+
+  }, [enrichedPosts, allPosts, filterState, debouncedSearchQuery, userLocation, currentAccount, hiddenPostIds]);
 
   const sortedAndFilteredPosts = useMemo(() => {
     return sortFilteredPosts(filteredPosts, filterState);
