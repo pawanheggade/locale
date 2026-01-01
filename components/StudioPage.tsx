@@ -171,8 +171,8 @@ export const StudioPage: React.FC = () => {
             proFeature: !isPaidTier
         },
         {
-            title: "Catalog",
-            description: "Manage your product catalog.",
+            title: "Catalogs",
+            description: "Manage your product catalogs.",
             icon: <DocumentIcon className="w-6 h-6" />,
             onClick: handleCatalogClick,
             proFeature: !canHaveCatalog

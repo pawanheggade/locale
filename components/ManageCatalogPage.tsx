@@ -118,7 +118,7 @@ export const ManageCatalogPage: React.FC<ManageCatalogPageProps> = () => {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto animate-fade-in-down pb-28 p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Catalog</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">Manage Catalogs</h1>
           <div className="space-y-6">
             <div
               className={cn("border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer", isSubmitting && "opacity-50 pointer-events-none")}

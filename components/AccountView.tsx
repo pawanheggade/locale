@@ -322,7 +322,7 @@ export const AccountView: React.FC = () => {
                         <EmptyState
                             icon={<DocumentIcon />}
                             title="No Catalog Items"
-                            description={isOwnAccount ? "Add items to your catalog using the 'Manage Catalog' button in your profile header." : "This seller hasn't added any catalog items yet."}
+                            description={isOwnAccount ? "Add items to your catalog from your Studio." : "This seller hasn't added any catalog items yet."}
                             className="bg-white rounded-xl"
                         />
                     )}
