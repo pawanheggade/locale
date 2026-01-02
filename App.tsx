@@ -82,8 +82,8 @@ export const App: React.FC = () => {
           className={cn(
             'flex-1',
             (mainView === 'map' && view === 'all')
-              ? 'overflow-hidden pt-16' // map is below header, no scroll
-              : 'overflow-y-auto pt-16' // default for ALL other views
+              ? 'overflow-hidden pt-[60px]' // map is below header, no scroll
+              : 'overflow-y-auto pt-[60px]' // default for ALL other views
           )}
           {...touchHandlers}
         >

@@ -316,8 +316,7 @@ export const Header: React.FC<HeaderProps> = ({
         !isVisible && '-translate-y-full'
       )}>
         <div className={cn(
-            'px-4 sm:px-6 lg:px-8 flex items-center gap-4 transition-all duration-300',
-            isScrolled ? 'h-14' : 'h-16'
+            'px-4 sm:px-6 lg:px-8 flex items-center gap-4 h-[60px]'
         )}>
           {isTabletOrDesktop ? (
             // --- DESKTOP LAYOUT ---
