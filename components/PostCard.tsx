@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { PostType, DisplayablePost, Account } from '../types';
 import { MapPinIcon, ClockIcon, PencilIcon, PinIcon, BellIcon, AIIcon, CashIcon, ShoppingBagIcon, ArchiveBoxIcon, ArrowUturnLeftIcon, ChatBubbleBottomCenterTextIcon, PaperAirplaneIcon, UserPlusIcon, ChevronDownIcon } from './Icons';
@@ -47,7 +39,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const { toggleLikePost, toggleLikeAccount } = useAuth();
   const { bag, addPostToViewHistory } = useUserData();
   const { toggleAvailabilityAlert, availabilityAlerts, priceAlerts } = useActivity();
-  const { openModal, closeModal } = useUI();
+  const { openModal, closeModal, activeModal } = useUI();
   const { dispatchFilterAction } = useFilters();
   const { archivePost, unarchivePost, togglePinPost } = usePosts();
   
@@ -62,6 +54,8 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const [isInView, setIsInView] = useState(!enableEntryAnimation);
   const [hasAnimated, setHasAnimated] = useState(!enableEntryAnimation);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(isInitiallyExpanded);
+  
+  const isModalView = activeModal?.type === 'viewPost';
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -114,7 +108,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
   const handleCardClick = () => {
     if (variant === 'compact') {
         openModal({ type: 'viewPost', data: post });
-    } else {
+    } else if (!isModalView) { // Don't re-open the modal if already inside one
         handleExpandToggle();
     }
   };
@@ -227,8 +221,10 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     <Card
       ref={cardRef}
       className={cn(
-        'group cursor-pointer',
-        enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6')
+        'group',
+        !isModalView && 'cursor-pointer',
+        enableEntryAnimation && (hasAnimated ? 'animate-fade-in-down' : 'opacity-0 -translate-y-6'),
+        isModalView && 'border-0 rounded-none shadow-none'
       )}
       style={{ animationDelay: (enableEntryAnimation) ? `${Math.min(index * 75, 500)}ms` : '0ms' }}
       onClick={handleCardClick}
@@ -237,7 +233,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
     >
       {/* Header Section: Author Info, Location & Profile Like Button */}
       {showHeader && (
-          <div className="p-3 border-b border-gray-300/80">
+          <div className={cn("p-3", isModalView ? "border-b-0" : "border-b border-gray-300/80")}>
             <PostAuthorInfo 
                 author={post.author!} 
                 subscriptionBadgeIconOnly={true}

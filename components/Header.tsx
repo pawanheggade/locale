@@ -1,8 +1,4 @@
 
-
-
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
@@ -231,7 +227,7 @@ export const Header: React.FC<HeaderProps> = ({
   const placeholder = useMemo(() => {
     if (view === 'studio') return 'Search actions and settings...';
     if (view === 'all' && mainView === 'map') return 'Search map for items...';
-    if (view === 'forums') return 'Search forum discussions...';
+    if (view === 'forums' || view === 'forumPostDetail') return 'Search forum discussions...';
     if (view === 'likes') return 'Search your likes';
     if (view === 'bag') return 'Search in bag...';
     if (viewingAccount) return `Search ${viewingAccount.name.split(' ')[0]}'s page...`;
@@ -518,16 +514,13 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-2 flex-1 justify-end">
                   {currentAccount && (
                       <div className="relative">
-                          <Button 
-                              // FIX: In this view, `view` is always 'all', so this button should always navigate to the bag. The comparison `view === 'bag'` caused a type error.
-                              onClick={() => { navigateTo('bag'); }}
+                          <Button
+                              onClick={() => navigateTo('bag')}
                               variant="ghost"
                               size="icon"
-                              // FIX: `view` is never 'bag' here, so active styles are not needed. The comparison `view === 'bag'` caused a type error.
                               className={cn("!rounded-xl text-gray-600")}
                               aria-label="Shopping Bag"
                           >
-                              {/* FIX: `view` is never 'bag' here, so icon should not be filled. The comparison `view === 'bag'` caused a type error. */}
                               <ShoppingBagIcon className="w-6 h-6" isFilled={false} />
                               {bagCount > 0 && (
                                   <span className={cn("absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold border-2 border-white", animateBagBadge && "animate-badge-pop-in")}>
