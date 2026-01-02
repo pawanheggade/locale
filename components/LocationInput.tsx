@@ -1,7 +1,6 @@
 
-
 import React, { useEffect, useRef } from 'react';
-import { SpinnerIcon, MapPinIcon, CheckIcon, CrosshairsIcon } from './Icons';
+import { SpinnerIcon, MapPinIcon, CheckIcon } from './Icons';
 import { LocationStatus } from '../hooks/useLocationInput';
 import { useSuggestionKeyboardNav } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
@@ -15,7 +14,6 @@ interface LocationInputProps {
     onSuggestionSelect: (suggestion: string) => void;
     onVerify: () => void; // onBlur
     onOpenMapPicker: () => void;
-    onUseMyLocation?: () => void;
     placeholder?: string;
     required?: boolean;
     suggestions: string[];
@@ -24,7 +22,7 @@ interface LocationInputProps {
 }
 
 export const LocationInput: React.FC<LocationInputProps> = ({
-    id, value, onValueChange, onSuggestionSelect, onVerify, onOpenMapPicker, onUseMyLocation,
+    id, value, onValueChange, onSuggestionSelect, onVerify, onOpenMapPicker,
     placeholder, required, suggestions, status, className
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -90,20 +88,6 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         </div>
                     )}
                 </div>
-                {onUseMyLocation && (
-                    <Button 
-                        type="button" 
-                        onClick={onUseMyLocation} 
-                        disabled={isVerifying}
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 text-gray-600 border border-gray-300"
-                        aria-label="Use my current location" 
-                        title="Use my current location"
-                    >
-                        {status === 'geolocating' ? <SpinnerIcon className="w-5 h-5"/> : <CrosshairsIcon className="w-5 h-5"/>}
-                    </Button>
-                )}
                 <Button 
                     type="button" 
                     onClick={onOpenMapPicker} 
