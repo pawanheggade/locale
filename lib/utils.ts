@@ -101,7 +101,6 @@ export const getBadgeSvg = (tier: Subscription['tier']): string => {
 
 export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number, y: number, variant: 'default' | 'white' = 'default') => {
     const textColor = variant === 'white' ? '#FFFFFF' : '#111827';
-    const accentColor = variant === 'white' ? '#FFFFFF' : '#ff3333';
 
     ctx.save();
     ctx.textAlign = 'center';
@@ -113,59 +112,7 @@ export const drawLogoOnCanvas = async (ctx: CanvasRenderingContext2D, x: number,
     ctx.fillStyle = textColor;
     
     const text = "locale";
-    const totalWidth = ctx.measureText(text).width;
-    const startX = x - totalWidth / 2;
-    
-    const l_width = ctx.measureText("l").width;
-    const o_width = ctx.measureText("o").width;
-
-    // Draw "l"
-    ctx.fillText("l", startX + l_width / 2, y);
-
-    // Draw "o"
-    const o_x = startX + l_width + o_width / 2;
-    ctx.fillText("o", o_x, y);
-
-    // Draw "cale"
-    const cale_x = startX + l_width + o_width;
-    ctx.textAlign = 'left';
-    ctx.fillText("cale", cale_x, y);
-
-    // Draw SVG parts over 'o'
-    // Position adjusted to match HTML 'top-[75%]' and scaled SVG dimensions
-    const o_center_x = o_x;
-    const o_center_y = y; 
-    
-    const scale = 1.4; // Scale factor to match CSS 0.6em relative to font size
-    const verticalOffset = 10; // Push down to match top-[75%]
-
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    // Triangle Path: M1.5 1.5 L6 10.5 L10.5 1.5 H1.5 Z
-    // Scaled around center x
-    ctx.beginPath();
-    // Top Left
-    ctx.moveTo(o_center_x - (4.5 * scale), o_center_y + verticalOffset); 
-    // Bottom Tip (Tip at y + 9 relative to top, scaled)
-    ctx.lineTo(o_center_x, o_center_y + verticalOffset + (9 * scale));       
-    // Top Right
-    ctx.lineTo(o_center_x + (4.5 * scale), o_center_y + verticalOffset); 
-    ctx.closePath();
-    ctx.strokeStyle = textColor;
-    ctx.stroke();
-
-    // Horizontal Line: M1 7 H11
-    // Y=7 relative to top (5.5 units down from top of triangle)
-    const lineY = o_center_y + verticalOffset + (5.5 * scale);
-    const lineWidth = 5 * scale;
-
-    ctx.beginPath();
-    ctx.moveTo(o_center_x - lineWidth, lineY);
-    ctx.lineTo(o_center_x + lineWidth, lineY);
-    ctx.strokeStyle = accentColor;
-    ctx.stroke();
+    ctx.fillText(text, x, y);
 
     ctx.restore();
 };
