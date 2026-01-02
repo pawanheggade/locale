@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from '../types';
 import { useUI } from '../contexts/UIContext';
@@ -24,7 +25,7 @@ interface HistoryItem {
 
 const PROTECTED_VIEWS: AppView[] = [
   'likes', 'bag', 'admin', 'createPost', 'editPost', 'nearbyPosts', 'accountAnalytics', 
-  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings', 'store', 'createStoryPost', 'editStory'
+  'subscription', 'activity', 'editProfile', 'manageCatalog', 'createForumPost', 'settings', 'studio', 'createStoryPost', 'editStory'
 ];
 
 interface UseAppNavigationProps {

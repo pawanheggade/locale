@@ -22,7 +22,7 @@ const EditProfilePage = React.lazy(() => import('./EditProfilePage').then(module
 const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(module => ({ default: module.ManageCatalogPage })));
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 const SettingsPage = React.lazy(() => import('./SettingsPage').then(module => ({ default: module.SettingsPage })));
-const StorePage = React.lazy(() => import('./StudioPage').then(module => ({ default: module.StorePage })));
+const StudioPage = React.lazy(() => import('./StudioPage').then(module => ({ default: module.StudioPage })));
 const StoryReel = React.lazy(() => import('./StoryReel').then(module => ({ default: module.StoryReel })));
 const CreateStoryPostPage = React.lazy(() => import('./CreateStoryPostPage').then(module => ({ default: module.CreateStoryPostPage })));
 
@@ -100,8 +100,8 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
          return <Suspense fallback={<LoadingFallback />}><CreateForumPostPage /></Suspense>;
        case 'settings':
          return <PaddedView><SettingsPage /></PaddedView>;
-       case 'store':
-         return <PaddedView><StorePage /></PaddedView>;
+       case 'studio':
+         return <PaddedView><StudioPage /></PaddedView>;
       default:
         return null;
   }

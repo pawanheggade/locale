@@ -302,7 +302,7 @@ const PostCardComponent: React.FC<PostCardProps> = ({ post, index, currentAccoun
       </div>
       
       {/* Action Bar */}
-      <div className="p-3 border-t border-gray-200/80 flex items-center justify-between gap-2">
+      <div className="p-3 border-t border-b border-gray-200/80 flex items-center justify-between gap-2">
           {isOwnPost ? (
               <>
                   <div className="flex-1 flex items-center gap-2">
