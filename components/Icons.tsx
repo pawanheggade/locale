@@ -144,7 +144,7 @@ export const ShoppingBagIcon: React.FC<IconProps> = ({ className, title, isFille
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M8.25 10.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z"
+      d="M 5,9 C 5,8.25 5.25,7.5 6,7.5 H 18 C 18.75,7.5 19,8.25 19,9 V 20.5 C 19,21.328 18.328,22 17.5,22 H 6.5 C 5.672,22 5,21.328 5,20.5 Z"
       fill={isFilled ? "currentColor" : "none"}
       stroke={isFilled ? "none" : "currentColor"}
     />
