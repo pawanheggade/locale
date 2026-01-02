@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, VideoPostcardIcon, BuildingStorefrontIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, VideoPostcardIcon, StoreIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -202,12 +202,12 @@ export const Header: React.FC<HeaderProps> = ({
               }
             },
             {
-              id: 'studio' as const,
-              label: 'Studio',
-              icon: <BuildingStorefrontIcon className="w-5 h-5" />,
-              isActive: view === 'studio',
+              id: 'store' as const,
+              label: 'My Store',
+              icon: <StoreIcon className="w-5 h-5" />,
+              isActive: view === 'store',
               onClick: () => {
-                navigateTo('studio');
+                navigateTo('store');
                 setIsNavDropdownOpen(false);
               },
             },
@@ -225,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const placeholder = useMemo(() => {
-    if (view === 'studio') return 'Search actions and settings...';
+    if (view === 'store') return 'Search your store...';
     if (view === 'all' && mainView === 'map') return 'Search map for items...';
     if (view === 'forums' || view === 'forumPostDetail') return 'Search forum discussions...';
     if (view === 'likes') return 'Search your likes';

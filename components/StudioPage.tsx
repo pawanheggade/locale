@@ -65,7 +65,7 @@ const StudioCard: React.FC<{
     </div>
 );
 
-export const StudioPage: React.FC = () => {
+export const StorePage: React.FC = () => {
     const { currentAccount, signOut } = useAuth();
     const { navigateTo } = useNavigation();
     const { openModal } = useUI();
@@ -232,8 +232,8 @@ export const StudioPage: React.FC = () => {
                     className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-white shadow-md transition-transform group-hover:scale-105"
                 />
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">Studio</h1>
-                    <p className="text-gray-600 mt-1">Manage your presence on Locale.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">My Store</h1>
+                    <p className="text-gray-600 mt-1">Manage your store on Locale.</p>
                 </div>
             </div>
             
@@ -274,4 +274,4 @@ export const StudioPage: React.FC = () => {
     );
 };
 
-export default StudioPage;
+export default StorePage;
