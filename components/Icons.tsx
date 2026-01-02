@@ -259,19 +259,11 @@ export const UserCircleIconSolid = createIcon(<path fill="currentColor" stroke="
 export const DocumentIcon = createIcon(<path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />);
 
 export const BuildingStorefrontIcon: React.FC<IconProps> = ({ className, title, isFilled, ...props }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill={isFilled ? "currentColor" : "none"}
-    stroke="currentColor"
-    strokeWidth={1.5}
-    className={className}
-    {...props}
-  >
-    {title && <title>{title}</title>}
-    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21V12h10v9" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 21h16" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 12V6a2 2 0 012-2h12a2 2 0 012 2v6" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-3h14l2 3" />
-  </svg>
+    <Icon className={className} title={title} isFilled={isFilled} {...props}>
+      {isFilled ? (
+          <path d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
+      ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5A1.5 1.5 0 0 1 5.25 3h13.5A1.5 1.5 0 0 1 20.25 4.5v15a1.5 1.5 0 0 1-1.5 1.5H5.25A1.5 1.5 0 0 1 3.75 19.5v-15Z" />
+      )}
+    </Icon>
 );
