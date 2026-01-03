@@ -11,7 +11,7 @@ export const Logo: React.FC<LogoProps> = ({ className, onClick }) => {
   return (
     <div 
         className={cn(
-            "select-none font-['Comfortaa'] font-bold text-2xl sm:text-3xl text-gray-900 cursor-pointer active:scale-95 transition-transform",
+            "select-none font-['Comfortaa'] font-bold text-3xl sm:text-4xl text-gray-900 cursor-pointer active:scale-95 transition-transform",
             className
         )}
         onClick={onClick}

@@ -1,14 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
 export enum PostType {
   PRODUCT = 'PRODUCT',
   SERVICE = 'SERVICE',
@@ -234,7 +224,7 @@ export type ModalState =
   | { type: 'storyViewer', data: { usersWithStories: Account[], initialUserIndex: number, initialStoryId?: string, source?: 'active' | 'all' } };
 
 export type AdminView = 'accounts' | 'posts' | 'reports' | 'categories' | 'analytics' | 'pages' | 'feedback';
-export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost' | 'editStory';
+export type AppView = 'all' | 'likes' | 'bag' | 'admin' | 'account' | 'forums' | 'forumPostDetail' | 'createPost' | 'editPost' | 'nearbyPosts' | 'accountAnalytics' | 'subscription' | 'activity' | 'editAdminPage' | 'editProfile' | 'manageCatalog' | 'createForumPost' | 'settings' | 'studio' | 'createStoryPost' | 'editStory' | 'instagramImport';
 export type ActivityTab = 'notifications' | 'alerts' | 'history';
 
 export interface Toast {
@@ -361,4 +351,13 @@ export interface StoryPost {
 export interface DisplayableStoryPost extends StoryPost {
   author?: Account;
   linkPost?: DisplayablePost;
+}
+
+// --- Instagram Import Types ---
+export interface InstagramPost {
+  id: string;
+  media_url: string;
+  caption: string;
+  timestamp: string;
+  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
 }

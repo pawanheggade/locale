@@ -23,6 +23,7 @@ const ManageCatalogPage = React.lazy(() => import('./ManageCatalogPage').then(mo
 const CreateForumPostPage = React.lazy(() => import('./CreateForumPostPage').then(module => ({ default: module.CreateForumPostPage })));
 const SettingsPage = React.lazy(() => import('./SettingsPage').then(module => ({ default: module.SettingsPage })));
 const StudioPage = React.lazy(() => import('./StudioPage').then(module => ({ default: module.StudioPage })));
+const ImportPage = React.lazy(() => import('./importpage'));
 const StoryReel = React.lazy(() => import('./StoryReel').then(module => ({ default: module.StoryReel })));
 const CreateStoryPostPage = React.lazy(() => import('./CreateStoryPostPage').then(module => ({ default: module.CreateStoryPostPage })));
 
@@ -102,6 +103,8 @@ export const ViewRenderer: React.FC<ViewRendererProps> = (props) => {
          return <PaddedView><SettingsPage /></PaddedView>;
        case 'studio':
          return <PaddedView><StudioPage /></PaddedView>;
+       case 'instagramImport':
+        return <Suspense fallback={<LoadingFallback />}><ImportPage /></Suspense>;
       default:
         return null;
   }

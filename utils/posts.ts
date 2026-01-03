@@ -31,6 +31,19 @@ export const isAccountEligibleToPin = (account: Account | null): boolean => {
     return account.subscription.tier === 'Verified' || account.subscription.tier === 'Business' || account.subscription.tier === 'Organisation';
 };
 
+export const postMatchesQuery = (post: DisplayablePost, query: string): boolean => {
+    if (!query) return true;
+    const lowercasedQuery = query.toLowerCase();
+    return (
+      post.title.toLowerCase().includes(lowercasedQuery) ||
+      post.description.toLowerCase().includes(lowercasedQuery) ||
+      post.category.toLowerCase().includes(lowercasedQuery) ||
+      post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery)) ||
+      (post.author?.name || '').toLowerCase().includes(lowercasedQuery) ||
+      (post.author?.username || '').toLowerCase().includes(lowercasedQuery)
+    );
+};
+
 export const applyFiltersToPosts = (
   postsToFilter: DisplayablePost[],
   allPosts: DisplayablePost[],
@@ -89,13 +102,8 @@ export const applyFiltersToPosts = (
       if (post.distance > filterState.filterDistance) return false;
     }
 
-    if (lowercasedQuery) {
-      return (
-        post.title.toLowerCase().includes(lowercasedQuery) ||
-        post.description.toLowerCase().includes(lowercasedQuery) ||
-        post.category.toLowerCase().includes(lowercasedQuery) ||
-        post.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery))
-      );
+    if (lowercasedQuery && !postMatchesQuery(post, lowercasedQuery)) {
+      return false;
     }
     
     return true;

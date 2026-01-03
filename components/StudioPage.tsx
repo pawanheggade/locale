@@ -17,7 +17,8 @@ import {
     CashIcon,
     GlobeAltIcon,
     VideoPostcardIcon,
-    SearchIcon
+    SearchIcon,
+    InstagramIcon
 } from './Icons';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
@@ -155,6 +156,13 @@ export const StudioPage: React.FC = () => {
             description: "List a new item or service.",
             icon: <PlusPostcardIcon className="w-6 h-6" />,
             onClick: handleCreatePost,
+            proFeature: isPersonalTier
+        },
+        {
+            title: "Import Posts",
+            description: "Import posts from Instagram.",
+            icon: <InstagramIcon className="w-6 h-6" />,
+            onClick: () => navigateTo('instagramImport'),
             proFeature: isPersonalTier
         },
         {

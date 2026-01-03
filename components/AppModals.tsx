@@ -39,6 +39,45 @@ interface AppModalsProps {
     onEnableLocation: () => Promise<void>;
 }
 
+const LoginModal: React.FC = () => {
+    const { accounts, login, socialLogin } = useAuth();
+    const { closeModal, openModal } = useUI();
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    return (
+        <ModalShell 
+            panelRef={modalRef} 
+            onClose={closeModal} 
+            title={
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
+                    <div className="flex justify-end">
+                        <Logo />
+                    </div>
+                    <div className="h-10 w-px bg-gray-900/10"></div>
+                    <div className="flex flex-col items-start justify-center">
+                        <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
+                        <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
+                    </div>
+                </div>
+            }
+            panelClassName="w-full max-w-md" 
+            titleId="login-modal-title"
+        >
+            <div className="p-6">
+                <SignInScreen
+                    accounts={accounts}
+                    onLogin={(account, rememberMe) => { login(account, rememberMe); closeModal(); }}
+                    onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
+                    onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
+                    onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
+                    onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
+                    onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
+                />
+            </div>
+        </ModalShell>
+    );
+};
+
 export const AppModals: React.FC<AppModalsProps> = ({ 
     isFindingNearby, handleFindNearby, userLocation, onEnableLocation
 }) => {
@@ -79,43 +118,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
     
     // Redirect to login if a protected modal is requested without an account
     if (!currentAccount && activeModal && !publicModals.has(activeModal.type)) {
-        // We need to defer this slightly or ensure we don't cause a loop. 
-        // Ideally, the triggering component checks this, but this is a safety net. 
-        // For render purity, we'll return null here and effect-based redirect would be better, 
-        // but typically openModal handles the state. 
-        // We'll render the Login modal instead.
-        return (
-             <ModalShell 
-                panelRef={modalRef} 
-                onClose={closeModal} 
-                title={
-                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
-                        <div className="flex justify-end">
-                            <Logo className="text-3xl sm:text-4xl" />
-                        </div>
-                        <div className="h-10 w-px bg-gray-900/10"></div>
-                        <div className="flex flex-col items-start justify-center">
-                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
-                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
-                        </div>
-                    </div>
-                }
-                panelClassName="w-full max-w-md" 
-                titleId="login-modal-title"
-            >
-                <div className="p-6">
-                    <SignInScreen
-                        accounts={accounts}
-                        onLogin={(account, rememberMe) => { login(account, rememberMe); closeModal(); }}
-                        onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
-                        onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
-                        onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
-                        onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
-                        onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
-                    />
-                </div>
-            </ModalShell>
-        );
+        return <LoginModal />;
     }
 
     if (!activeModal) {
@@ -124,38 +127,7 @@ export const AppModals: React.FC<AppModalsProps> = ({
 
     switch (activeModal.type) {
       case 'login':
-        return (
-            <ModalShell 
-                panelRef={modalRef} 
-                onClose={closeModal} 
-                title={
-                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
-                        <div className="flex justify-end">
-                            <Logo className="text-3xl sm:text-4xl" />
-                        </div>
-                        <div className="h-10 w-px bg-gray-900/10"></div>
-                        <div className="flex flex-col items-start justify-center">
-                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
-                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
-                        </div>
-                    </div>
-                }
-                panelClassName="w-full max-w-md" 
-                titleId="login-modal-title"
-            >
-                <div className="p-6">
-                    <SignInScreen
-                        accounts={accounts}
-                        onLogin={(account, rememberMe) => { login(account, rememberMe); closeModal(); }}
-                        onSocialLogin={(provider) => { socialLogin(provider); closeModal(); }}
-                        onOpenCreateAccountModal={() => openModal({ type: 'createAccount' })}
-                        onOpenPasswordAssistanceModal={() => openModal({ type: 'forgotPassword' })}
-                        onOpenTermsModal={() => openModal({ type: 'termsOfService' })}
-                        onOpenPrivacyModal={() => openModal({ type: 'privacyPolicy' })}
-                    />
-                </div>
-            </ModalShell>
-        );
+        return <LoginModal />;
       case 'findNearby':
         return <FindNearbyModal onClose={closeModal} onSearch={handleFindNearby} isSearching={isFindingNearby} />;
       case 'sharePost':

@@ -15,6 +15,7 @@ import { useConfirmationModal } from '../hooks/useConfirmationModal';
 import { cn } from '../lib/utils';
 import { useFilters } from '../contexts/FiltersContext';
 import { useDebounce } from '../hooks/useDebounce';
+import { postMatchesQuery } from '../utils/posts';
 
 // --- Reusable Item Row Component ---
 interface BagItemRowProps {
@@ -153,18 +154,7 @@ export const BagView: React.FC = () => {
 
   const filterItems = (items: typeof inBagItems) => {
       if (!hasSearchQuery) return items;
-      const query = debouncedSearchQuery.toLowerCase();
-      return items.filter(item => {
-          const post = item.post;
-          return (
-              post.title.toLowerCase().includes(query) ||
-              post.description.toLowerCase().includes(query) ||
-              post.category.toLowerCase().includes(query) ||
-              post.tags.some(tag => tag.toLowerCase().includes(query)) ||
-              (post.author?.name || '').toLowerCase().includes(query) ||
-              (post.author?.username || '').toLowerCase().includes(query)
-          );
-      });
+      return items.filter(item => postMatchesQuery(item.post, debouncedSearchQuery));
   };
 
   const filteredInBagItems = useMemo(() => filterItems(inBagItems), [inBagItems, debouncedSearchQuery]);

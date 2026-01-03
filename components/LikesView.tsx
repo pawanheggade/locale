@@ -14,6 +14,7 @@ import { DisplayableStoryPost } from '../types';
 import { useFilters } from '../contexts/FiltersContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { StoryCard } from './StoryCard';
+import { postMatchesQuery } from '../utils/posts';
 
 type LikedTab = 'profiles' | 'posts' | 'stories';
 
@@ -60,28 +61,12 @@ export const LikesView: React.FC = () => {
 
   const filteredLikedPosts = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return likedPosts;
-    const query = debouncedSearchQuery.toLowerCase();
-    return likedPosts.filter(post => 
-        post.title.toLowerCase().includes(query) ||
-        post.description.toLowerCase().includes(query) ||
-        post.category.toLowerCase().includes(query) ||
-        post.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        (post.author?.name || '').toLowerCase().includes(query) ||
-        (post.author?.username || '').toLowerCase().includes(query)
-    );
+    return likedPosts.filter(post => postMatchesQuery(post, debouncedSearchQuery));
   }, [likedPosts, debouncedSearchQuery]);
 
   const filteredPostsFromLikedProfiles = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return postsFromLikedProfiles;
-    const query = debouncedSearchQuery.toLowerCase();
-    return postsFromLikedProfiles.filter(post => 
-        post.title.toLowerCase().includes(query) ||
-        post.description.toLowerCase().includes(query) ||
-        post.category.toLowerCase().includes(query) ||
-        post.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        (post.author?.name || '').toLowerCase().includes(query) ||
-        (post.author?.username || '').toLowerCase().includes(query)
-    );
+    return postsFromLikedProfiles.filter(post => postMatchesQuery(post, debouncedSearchQuery));
   }, [postsFromLikedProfiles, debouncedSearchQuery]);
 
   const filteredLikedStories = useMemo(() => {
