@@ -4,7 +4,7 @@ import { Account, AppView } from '../types';
 import { Button } from './ui/Button';
 import { Logo } from './Logo';
 import SearchBar from './SearchBar';
-import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, VideoPostcardIcon, BuildingStorefrontIcon } from './Icons';
+import { FunnelIcon, ChevronLeftIcon, SearchIcon, ChatBubbleEllipsisIcon, ChevronDownIcon, HeartIcon, MapPinIcon, PostCardIcon, Squares3X3Icon, ShoppingBagIcon, BellIcon, VideoPostcardIcon, StudioIcon } from './Icons';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
             {
               id: 'studio' as const,
               label: 'Studio',
-              icon: <BuildingStorefrontIcon className="w-5 h-5" />,
+              icon: <StudioIcon className="w-5 h-5" />,
               isActive: view === 'studio',
               onClick: () => {
                 navigateTo('studio');

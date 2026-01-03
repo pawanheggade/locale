@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback, useMemo, KeyboardEvent, useReducer } from 'react';
 import { Post, PostType, Media, PostCategory, Account } from '../types';
 import LocationPickerMap from './LocationPickerMap';
@@ -85,7 +86,8 @@ function formReducer(state: FormState, action: Action): FormState {
 
 
 export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
-  const { handleBack: onBack, navigateTo, viewingPostId: editingPostId } = useNavigation();
+  // FIX: Destructure `postPrefillData` from the navigation context.
+  const { handleBack: onBack, navigateTo, viewingPostId: editingPostId, postPrefillData } = useNavigation();
   const { createPost: onSubmitPost, updatePost: onUpdatePost, categories, findPostById, priceUnits } = usePosts();
   const { currentAccount, updateAccountDetails: onUpdateCurrentAccountDetails } = useAuth();
   
@@ -125,25 +127,33 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = () => {
   const { mediaUploads, setMediaUploads, handleFiles, removeMedia, reorderMedia } = useMediaUploader({ maxFiles, maxFileSizeMB, subscriptionTier: currentAccount?.subscription.tier });
 
   useEffect(() => {
-      if (!isEditing) {
-          try {
-              const savedDraft = localStorage.getItem(STORAGE_KEYS.POST_DRAFT);
-              if (savedDraft) {
-                  const draft = JSON.parse(savedDraft);
-                  dispatch({ type: 'RESET_FORM', payload: {
-                      title: draft.title || '',
-                      description: draft.description || '',
-                      type: draft.type || PostType.PRODUCT,
-                      category: draft.category || categories[0] || '',
-                      tags: draft.tags || [],
-                      price: draft.price || '',
-                      priceUnit: draft.priceUnit || 'Fixed',
-                  }});
-                  if(draft.media) setMediaUploads(draft.media.map((m: Media, i: number) => ({ id: `loaded-${i}`, previewUrl: m.url, finalUrl: m.url, progress: 100, status: 'complete', type: m.type })));
-              }
-          } catch (e) { console.error("Failed to load draft", e); }
-      }
-  }, [isEditing, categories, setMediaUploads]);
+    // FIX: Prioritize `postPrefillData` over saved draft when initializing the form.
+    if (!isEditing) {
+        try {
+            let dataToLoad = postPrefillData;
+
+            if (!dataToLoad) {
+                const savedDraft = localStorage.getItem(STORAGE_KEYS.POST_DRAFT);
+                if (savedDraft) {
+                    dataToLoad = JSON.parse(savedDraft);
+                }
+            }
+            
+            if (dataToLoad) {
+                dispatch({ type: 'RESET_FORM', payload: {
+                    title: dataToLoad.title || '',
+                    description: dataToLoad.description || '',
+                    type: dataToLoad.type || PostType.PRODUCT,
+                    category: dataToLoad.category || categories[0] || '',
+                    tags: dataToLoad.tags || [],
+                    price: dataToLoad.price?.toString() || '',
+                    priceUnit: dataToLoad.priceUnit || 'Fixed',
+                }});
+                if(dataToLoad.media) setMediaUploads(dataToLoad.media.map((m: Media, i: number) => ({ id: `loaded-${i}`, previewUrl: m.url, finalUrl: m.url, progress: 100, status: 'complete', type: m.type })));
+            }
+        } catch (e) { console.error("Failed to load draft", e); }
+    }
+  }, [isEditing, categories, setMediaUploads, postPrefillData]);
 
   useEffect(() => {
     if (!isEditing) {

@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, PostType } from '../types';
+// FIX: Import `Post` to be used for `prefillData`.
+import { Account, ActivityTab, AdminView, AppView, DisplayablePost, FiltersState, Post, PostType } from '../types';
 import { useUI } from '../contexts/UIContext';
 import { useFilters } from '../contexts/FiltersContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +22,8 @@ interface HistoryItem {
     viewingStoryId: string | null;
     scrollPosition: number;
     filters: FiltersState;
+    // FIX: Add `postPrefillData` to the history item type.
+    postPrefillData: Partial<Post> | null;
 }
 
 const PROTECTED_VIEWS: AppView[] = [
@@ -57,6 +60,8 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const [recentSearches, setRecentSearches] = usePersistentState<string[]>(STORAGE_KEYS.RECENT_SEARCHES, []);
     const [activityInitialTab, setActivityInitialTab] = useState<ActivityTab>('notifications');
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+    // FIX: Add state to hold prefill data.
+    const [postPrefillData, setPostPrefillData] = useState<Partial<Post> | null>(null);
     const lastScrollTopRef = useRef(0);
     const rafRef = useRef<number | null>(null);
 
@@ -90,14 +95,16 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
     const pushHistoryState = useCallback(() => {
         const currentScrollPosition = mainContentRef.current ? mainContentRef.current.scrollTop : 0;
         setHistory(h => [...h, {
-            view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId,
+            // FIX: Include `postPrefillData` in the history state.
+            view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, postPrefillData,
             scrollPosition: currentScrollPosition, filters: filterState,
         }]);
-    }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, filterState, mainContentRef]);
+    }, [view, mainView, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, filterState, mainContentRef, postPrefillData]);
 
     const navigateTo = useCallback((
         newView: AppView,
-        options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, storyId?: string } = {}
+        // FIX: Add `prefillData` to the options type.
+        options: { postId?: string; account?: Account, forumPostId?: string, pageKey?: 'terms' | 'privacy', activityTab?: ActivityTab, adminView?: AdminView, storyId?: string, prefillData?: Partial<Post> } = {}
     ) => {
         if (!currentAccount && PROTECTED_VIEWS.includes(newView)) {
             openModal({ type: 'login' });
@@ -148,6 +155,8 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         setViewingForumPostId(options.forumPostId || null);
         setViewingStoryId(options.storyId || null);
         setEditingAdminPageKey(options.pageKey || null);
+        // FIX: Set the `postPrefillData` state from the navigation options.
+        setPostPrefillData(options.prefillData || null);
 
         if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
     }, [view, viewingPostId, viewingAccount, viewingForumPostId, editingAdminPageKey, viewingStoryId, currentAccount, incrementProfileViews, pushHistoryState, openModal, mainContentRef]);
@@ -177,6 +186,8 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
             setViewingForumPostId(lastHistoryItem.viewingForumPostId);
             setViewingStoryId(lastHistoryItem.viewingStoryId);
             setEditingAdminPageKey(lastHistoryItem.editingAdminPageKey);
+            // FIX: Restore `postPrefillData` from history.
+            setPostPrefillData(lastHistoryItem.postPrefillData);
             setHistory(h => h.slice(0, -1));
 
             setTimeout(() => {
@@ -207,6 +218,8 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         setViewingForumPostId(null);
         setViewingStoryId(null);
         setEditingAdminPageKey(null);
+        // FIX: Clear `postPrefillData` when going home.
+        setPostPrefillData(null);
         if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
         handleRefresh();
     }, [onClearFilters, mainView, handleRefresh, mainContentRef]);
@@ -316,11 +329,15 @@ export const useAppNavigation = ({ mainContentRef }: UseAppNavigationProps) => {
         viewingAccount, viewingPostId, viewingForumPostId, viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView,
         nearbyPostsResult, userLocation, isFindingNearby, postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete,
         handleFindNearby, handleEnableLocation, recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,
+        // FIX: Expose `postPrefillData` in the context value.
+        postPrefillData,
     }), [
         navigateTo, navigateToAccount, handleBack, showOnMap, viewingAccount, viewingPostId, viewingForumPostId,
         viewingStoryId, editingAdminPageKey, activityInitialTab, adminInitialView, nearbyPostsResult, userLocation, isFindingNearby,
         postToFocusOnMap, onPostFocusComplete, locationToFocus, onLocationFocusComplete, handleFindNearby, handleEnableLocation,
         recentSearches, handleSearchSubmit, handleRemoveRecentSearch, handleClearRecentSearches, handleGoHome, handleMainViewChange,
+        // FIX: Add `postPrefillData` to the dependency array.
+        postPrefillData,
     ]);
 
     return {
