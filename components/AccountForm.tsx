@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useReducer } from 'react';
 import { Account, ContactOption } from '../types';
-import { EnvelopeIcon, LockClosedIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, PhotoIcon } from './Icons';
+import { EnvelopeIcon, KeyIcon, PhoneIcon, ChatBubbleBottomCenterTextIcon, PhotoIcon } from './Icons';
 import { validateAccountData, AccountValidationData } from '../utils/validation';
 import { InputWithIcon } from './InputWithIcon';
 import { fileToDataUrl, compressImage } from '../utils/media';
@@ -366,12 +366,12 @@ export const AccountForm: React.FC<AccountFormProps> = ({ account, isEditing, al
                         <>
                             <div>
                                 <FormField id="account-password" label="Password" error={errors.password}>
-                                    <InputWithIcon type="password" value={state.password} onChange={(e) => handleFieldChange('password', e.target.value)} onBlur={() => validate('password')} icon={<LockClosedIcon className="w-5 h-5 text-gray-600" />} />
+                                    <InputWithIcon type="password" value={state.password} onChange={(e) => handleFieldChange('password', e.target.value)} onBlur={() => validate('password')} icon={<KeyIcon className="w-5 h-5 text-gray-600" />} />
                                 </FormField>
                                 <PasswordStrengthMeter password={state.password} />
                             </div>
                             <FormField id="account-confirm-password" label="Confirm Password" error={errors.confirmPassword}>
-                                <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<LockClosedIcon className="w-5 h-5 text-gray-600" />} />
+                                <InputWithIcon type="password" value={state.confirmPassword} onChange={(e) => handleFieldChange('confirmPassword', e.target.value)} onBlur={() => validate('confirmPassword')} icon={<KeyIcon className="w-5 h-5 text-gray-600" />} />
                             </FormField>
                         </>
                     )}

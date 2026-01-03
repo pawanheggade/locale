@@ -1,7 +1,7 @@
 
 import React, { useState, useReducer } from 'react';
 import { Account } from '../types';
-import { AlertIcon, SpinnerIcon, EnvelopeIcon, LockClosedIcon, GoogleIcon, AppleIcon } from './Icons';
+import { AlertIcon, SpinnerIcon, EnvelopeIcon, KeyIcon, GoogleIcon, AppleIcon } from './Icons';
 import { InputWithIcon } from './InputWithIcon';
 import { Button } from './ui/Button';
 import { Avatar } from './Avatar';
@@ -139,7 +139,7 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({ accounts, onLogin, o
                     type="password"
                     value={password}
                     onChange={(e) => dispatch({ type: 'SET_FIELD', field: 'password', payload: e.target.value })}
-                    icon={<LockClosedIcon className="h-5 w-5 text-gray-400" />}
+                    icon={<KeyIcon className="h-5 w-5 text-gray-400" />}
                     required
                 />
             </FormField>

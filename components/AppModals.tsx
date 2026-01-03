@@ -49,16 +49,18 @@ const LoginModal: React.FC = () => {
             panelRef={modalRef} 
             onClose={closeModal} 
             title={
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 min-w-[280px]">
-                    <div className="flex justify-end">
+                <div className="flex items-center justify-between w-full min-w-[280px]">
+                    <div className="flex-1 flex justify-end">
                         <Logo />
                     </div>
-                    <span className="text-gray-300 text-3xl font-sans" aria-hidden="true">
+                    <span className="text-gray-400 text-3xl font-sans px-4" aria-hidden="true">
                         🜃
                     </span>
-                    <div className="flex flex-col items-start justify-center">
-                        <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
-                        <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
+                    <div className="flex-1 flex justify-start">
+                        <div className="flex flex-col items-start justify-center">
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
+                            <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
+                        </div>
                     </div>
                 </div>
             }
