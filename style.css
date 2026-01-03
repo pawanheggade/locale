@@ -224,10 +224,10 @@
     }
 
     .user-location-marker .pulse-red {
-        background-color: #ef4444; /* Tailwind red-500 */
+        background-color: #f46550; /* new red-500 */
     }
     .user-location-marker .pulse-red::before {
-        background-color: #ef4444;
+        background-color: #f46550;
     }
 
     @keyframes pulse-ring-animation {
@@ -264,7 +264,7 @@
     /* Selected state for custom marker */
     .marker-selected .marker-content {
         transform: translateY(-4px) scale(1.1) !important;
-        box-shadow: 0 0 0 3px #ef4444 !important; /* Tailwind's red-500 ring */
+        box-shadow: 0 0 0 3px #e12e12 !important; /* new red-600 ring */
     }
 
     /* Custom Marker Cluster Styles */
@@ -285,31 +285,22 @@
         justify-content: center;
     }
     .marker-cluster-small {
-        background-color: rgba(255, 204, 204, 0.6); /* red-200 replacement (#ffcccc) */
+        background-color: rgba(253, 216, 213, 0.6); /* new red-200 */
     }
     .marker-cluster-small div {
-        background-color: rgba(239, 68, 68, 0.9); /* red-500 */
-        font-size: 14px;
-        width: 30px;
-        height: 30px;
+        background-color: rgba(244, 101, 80, 0.9); /* new red-500 */
     }
     .marker-cluster-medium {
-        background-color: rgba(255, 204, 204, 0.6); /* red-300 replacement (#ffcccc) */
+        background-color: rgba(251, 188, 180, 0.6); /* new red-300 */
     }
     .marker-cluster-medium div {
-        background-color: rgba(220, 38, 38, 0.9); /* red-600 */
-        font-size: 16px;
-        width: 40px;
-        height: 40px;
+        background-color: rgba(225, 46, 18, 0.9); /* new red-600 */
     }
     .marker-cluster-large {
-        background-color: rgba(255, 204, 204, 0.6); /* red-400 replacement (#ffcccc) */
+        background-color: rgba(248, 145, 130, 0.6); /* new red-400 */
     }
     .marker-cluster-large div {
-        background-color: rgba(185, 28, 28, 0.9); /* red-700 */
-        font-size: 18px;
-        width: 50px;
-        height: 50px;
+        background-color: rgba(197, 34, 12, 0.9); /* new red-700 */
     }
 
     /* --- Prose content styling for modals --- */
@@ -338,7 +329,7 @@
         margin-bottom: 0.5em;
     }
     .prose a {
-        color: #DC2626; /* Tailwind red-600 */
+        color: #e12e12; /* new red-600 */
         text-decoration: underline;
     }
 
