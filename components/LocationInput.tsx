@@ -1,11 +1,11 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { SpinnerIcon, MapPinIcon, CheckIcon } from './Icons';
 import { LocationStatus } from '../hooks/useLocationInput';
 import { useSuggestionKeyboardNav } from '../hooks/useSearchSuggestions';
 import { Button } from './ui/Button';
 import { useClickOutside } from '../hooks/useClickOutside';
-import { cn, inputBaseStyles } from '../lib/utils';
+import { InputWithIcon } from './InputWithIcon';
 
 interface LocationInputProps {
     id?: string;
@@ -55,11 +55,21 @@ export const LocationInput: React.FC<LocationInputProps> = ({
 
     const isVerifying = status === 'verifying' || status === 'geolocating';
 
+    const rightIcon = useMemo(() => {
+        if (isVerifying) {
+            return <SpinnerIcon className="w-5 h-5 text-gray-600" />;
+        }
+        if (status === 'verified') {
+            return <CheckIcon className="w-5 h-5 text-green-600" />;
+        }
+        return null;
+    }, [isVerifying, status]);
+
     return (
         <div ref={containerRef} className="relative w-full">
             <div className="relative flex gap-2">
                 <div className="relative flex-grow">
-                    <input
+                    <InputWithIcon
                         ref={inputRef}
                         type="text"
                         id={id}
@@ -68,7 +78,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         onKeyDown={handleKeyDown}
                         onBlur={onVerify}
                         placeholder={placeholder}
-                        className={cn(inputBaseStyles, 'w-full h-10 px-3 py-2 pr-10', className)}
+                        className={className}
                         autoComplete="off"
                         required={required}
                         role="combobox"
@@ -76,17 +86,8 @@ export const LocationInput: React.FC<LocationInputProps> = ({
                         aria-expanded={isDropdownOpen}
                         aria-controls={`${id}-suggestions-listbox`}
                         aria-activedescendant={activeIndex > -1 ? `${id}-suggestion-${activeIndex}` : undefined}
+                        rightIcon={rightIcon}
                     />
-                    {isVerifying && (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <SpinnerIcon className="w-5 h-5 text-gray-600" />
-                        </div>
-                    )}
-                    {status === 'verified' && (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <CheckIcon className="w-5 h-5 text-green-600" />
-                        </div>
-                    )}
                 </div>
                 <Button 
                     type="button" 
