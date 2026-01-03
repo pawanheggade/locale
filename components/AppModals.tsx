@@ -53,7 +53,9 @@ const LoginModal: React.FC = () => {
                     <div className="flex justify-end">
                         <Logo />
                     </div>
-                    <div className="h-10 w-px bg-gray-900/10"></div>
+                    <span className="text-gray-300 text-3xl font-sans" aria-hidden="true">
+                        🜃
+                    </span>
                     <div className="flex flex-col items-start justify-center">
                         <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
                         <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none">community</span>
