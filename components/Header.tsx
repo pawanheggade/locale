@@ -333,11 +333,11 @@ export const Header: React.FC<HeaderProps> = ({
                       <Button
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
                           variant="ghost"
-                          size="icon-xs"
-                          className="text-gray-400 rounded-full w-6 h-6"
+                          size="icon-sm"
+                          className="text-gray-600 rounded-full !w-8 !h-8"
                           aria-label="Open navigation menu"
                       >
-                          <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                          <StudioIcon className={cn("w-5 h-5 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} />
                       </Button>
                       {isNavDropdownOpen && (
                           <div className="absolute top-full left-0 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
@@ -476,11 +476,11 @@ export const Header: React.FC<HeaderProps> = ({
                       <Button
                           onClick={() => setIsNavDropdownOpen(prev => !prev)}
                           variant="ghost"
-                          size="icon-xs"
-                          className="text-gray-400 rounded-full w-6 h-6"
+                          size="icon-sm"
+                          className="text-gray-600 rounded-full !w-8 !h-8"
                           aria-label="Open navigation menu"
                       >
-                          <ChevronDownIcon className={cn("w-4 h-4 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} strokeWidth={2.5} />
+                          <StudioIcon className={cn("w-5 h-5 transition-transform duration-200", isNavDropdownOpen && "rotate-180")} />
                       </Button>
                       {isNavDropdownOpen && (
                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-auto bg-white rounded-xl border border-gray-100 z-50 p-1 animate-zoom-in origin-top">
