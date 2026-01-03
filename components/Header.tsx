@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
             {
               id: 'studio' as const,
               label: 'Studio',
-              icon: <StudioIcon className="w-5 h-5" />,
+              icon: <StudioIcon className="w-5 h-5 relative bottom-0.5" />,
               isActive: view === 'studio',
               onClick: () => {
                 navigateTo('studio');
@@ -353,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
                                               )}
                                           >
                                               <div className="flex items-center gap-3">
-                                                  {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                                  {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive })}
                                                   {item.label}
                                               </div>
                                           </Button>
@@ -496,7 +496,7 @@ export const Header: React.FC<HeaderProps> = ({
                                           )}
                                       >
                                           <div className="flex items-center gap-3">
-                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive, className: "w-5 h-5" })}
+                                              {React.cloneElement(item.icon as React.ReactElement<any>, { isFilled: item.isActive })}
                                               {item.label}
                                           </div>
                                       </Button>

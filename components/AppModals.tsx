@@ -31,6 +31,7 @@ import { PostCard } from './PostCard';
 import { SEO } from './SEO';
 import { useUserData } from '../contexts/UserDataContext';
 import { StoryViewerModal } from './StoryViewerModal';
+import { StudioIcon } from './Icons';
 
 interface AppModalsProps {
     isFindingNearby: boolean;
@@ -53,9 +54,7 @@ const LoginModal: React.FC = () => {
                     <div className="flex-1 flex justify-end">
                         <Logo />
                     </div>
-                    <span className="text-gray-400 text-3xl font-sans px-4" aria-hidden="true">
-                        🜃
-                    </span>
+                    <StudioIcon className="w-9 h-9 text-gray-400 mx-4 flex-shrink-0" />
                     <div className="flex-1 flex justify-start">
                         <div className="flex flex-col items-start justify-center">
                             <span className="font-['Comfortaa'] font-bold text-[13px] text-gray-500 lowercase leading-none mb-0.5">hyperlocal</span>
