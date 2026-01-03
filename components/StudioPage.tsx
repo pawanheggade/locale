@@ -241,7 +241,7 @@ export const StudioPage: React.FC = () => {
                 />
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 group-hover:text-red-600 transition-colors">Studio</h1>
-                    <p className="text-gray-600 mt-1">Manage your presence on Locale.</p>
+                    <p className="text-gray-600 mt-1">Manage your account on Locale.</p>
                 </div>
             </div>
             
